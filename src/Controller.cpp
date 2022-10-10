@@ -50,23 +50,42 @@ namespace wrench {
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller starting");
 
-        /* Create a files */
+        /* Create some files */
         auto some_file = wrench::Simulation::addFile("some_file", 1 * GBYTE);
         auto some_other_file = wrench::Simulation::addFile("some_other_file", 2 * GBYTE);
-        this->storage_service->createFile(some_file, wrench::FileLocation::LOCATION(this->storage_service));
+        /* [STORALLOC] >>> We probably need to know which storage service to use before this line!  <<<
+         * Something like:
+         *
+         *  auto data_allocation_manager = this->createAllocationManager();
+         *  auto allocation = data_allocation_manager->getAllocation(...); // input here the job's storage reqs
+         *  this->allocation->createFile(some_file);  // 'allocation' would be some sort of a 'meta' storage_service
+         *
+         */ 
+        this->storage_service->createFile(some_file, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/some_file"));
+
 
         /* Create a job manager so that we can create/submit jobs */
         auto job_manager = this->createJobManager();
 
         WRENCH_INFO("Creating a compound job with a file read action followed by a compute action");
+        // [STORALLOC] Apart from job name, we could offer optional parameters for storage requirements, as provided by user.
         auto job1 = job_manager->createCompoundJob("job1");
-        auto fileread = job1->addFileReadAction("fileread", some_file, wrench::FileLocation::LOCATION(this->storage_service));
+        /* [STORALLOC] Job contains some file read / write actions. These actions are available to the job_manager when the job is 
+         * submitted.
+         * -> We could compute total read / write storage requirements from these and use this information for scheduling storage
+         * -> BUT, it doesn't correspond to the way a user would typically provide this information in real scenarios?
+         *    (here we would need to describe storage requirements with a file ops detail, whereas in real world scenario, we would
+         *     prefer that the user just states a few approximate requirements for the entire job I/Os)
+         * -> AND it means changing the way we add file-related actions (we don't know the location of files yet so we can't have created them (l.64)) 
+         */
+        auto fileread = job1->addFileReadAction("fileread", some_file, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/some_file"));
         auto compute = job1->addComputeAction("compute", 100 * GFLOP, 50 * MBYTE, 1, 3, wrench::ParallelModel::AMDAHL(0.8));
+        // [STORALLOC] We could also add a specific action to describe our storage requirements, BUT this would be a 'fake' action
         job1->addActionDependency(fileread, compute);
 
         WRENCH_INFO("Creating a compound job with a file write action and a (simultaneous) sleep action");
         auto job2 = job_manager->createCompoundJob("job2");
-        auto filewrite = job2->addFileWriteAction("filewrite", some_other_file, wrench::FileLocation::LOCATION(this->storage_service));
+        auto filewrite = job2->addFileWriteAction("filewrite", some_other_file, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/other_file"));
         auto sleep = job2->addSleepAction("sleep", 20.0);
 
         WRENCH_INFO("Making the second job depend on the first one");
@@ -74,6 +93,18 @@ namespace wrench {
 
         WRENCH_INFO("Submitting both jobs to the bare-metal compute service");
 
+        /* [STORALLOC]
+         * Maybe, when submitting a job, we could pass not only the compute service,
+         * but also an optional allocation service.
+         * PROs: 
+         *   - hide the allocation in the job manager (instead of creating a dedicated manager)
+         *   - job_manager has access to both the job and the simulation, it can many informations to
+         *     the allocation service 
+         * CONs:
+         *   - once again, the files operations have already been described at this point, so we would
+         *     need to update them?
+         *   - 
+         */
         job_manager->submitJob(job1, this->bare_metal_compute_service);
         job_manager->submitJob(job2, this->bare_metal_compute_service);
 
