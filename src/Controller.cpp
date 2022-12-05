@@ -51,19 +51,20 @@ namespace wrench {
         WRENCH_INFO("Controller starting");
 
         /* Create some files */
-        auto some_file = wrench::Simulation::addFile("some_file", 1 * GBYTE);
-        auto some_other_file = wrench::Simulation::addFile("some_other_file", 2 * GBYTE);
-        /* [STORALLOC] >>> We probably need to know which storage service to use before this line!  <<<
-         * Something like:
-         *
-         *  auto data_allocation_manager = this->createAllocationManager();
-         *  auto allocation = data_allocation_manager->getAllocation(...); // input here the job's storage reqs
-         *  this->allocation->createFile(some_file);  // 'allocation' would be some sort of a 'meta' storage_service
-         *
-         */ 
-        this->storage_service->createFile(some_file, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/some_file"));
+        auto staged_data_file = wrench::Simulation::addFile("staged_data_file", 1 * GBYTE);
+        auto result_file = wrench::Simulation::addFile("result_file", 2 * GBYTE);
+        // This file is staged, it is supposed to exist before the job starts
+        this->storage_service->createFile(staged_data_file, "/dev/disk0/staged/");
 
+        auto wr_loc = wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk5/temp_write", result_file);
+        auto wr_loc2 = wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk5/temp_write", result_file);
+        WRENCH_INFO(wr_loc->getAbsolutePathAtMountPoint().c_str());
+        WRENCH_INFO(wr_loc->getFile()->getID().c_str());
+        WRENCH_INFO(wr_loc->getFullAbsolutePath().c_str());
+        WRENCH_INFO(wr_loc->toString().c_str()); 
+        WRENCH_INFO(wr_loc->equal(wr_loc2) ? "Both wr_loc equal" : "wr_loc are different");
 
+    
         /* Create a job manager so that we can create/submit jobs */
         auto job_manager = this->createJobManager();
 
@@ -78,14 +79,14 @@ namespace wrench {
          *     prefer that the user just states a few approximate requirements for the entire job I/Os)
          * -> AND it means changing the way we add file-related actions (we don't know the location of files yet so we can't have created them (l.64)) 
          */
-        auto fileread = job1->addFileReadAction("fileread", some_file, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/some_file"));
+        auto fileread = job1->addFileReadAction("fileread", wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/staged", staged_data_file));
         auto compute = job1->addComputeAction("compute", 100 * GFLOP, 50 * MBYTE, 1, 3, wrench::ParallelModel::AMDAHL(0.8));
         // [STORALLOC] We could also add a specific action to describe our storage requirements, BUT this would be a 'fake' action
         job1->addActionDependency(fileread, compute);
 
         WRENCH_INFO("Creating a compound job with a file write action and a (simultaneous) sleep action");
         auto job2 = job_manager->createCompoundJob("job2");
-        auto filewrite = job2->addFileWriteAction("filewrite", some_other_file, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/other_file"));
+        auto filewrite = job2->addFileWriteAction("filewrite", wr_loc);
         auto sleep = job2->addSleepAction("sleep", 20.0);
 
         WRENCH_INFO("Making the second job depend on the first one");
