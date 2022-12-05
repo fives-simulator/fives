@@ -54,10 +54,10 @@ namespace wrench {
         auto staged_data_file = wrench::Simulation::addFile("staged_data_file", 1 * GBYTE);
         auto result_file = wrench::Simulation::addFile("result_file", 2 * GBYTE);
         // This file is staged, it is supposed to exist before the job starts
-        this->storage_service->createFile(staged_data_file, "/dev/disk0/staged/");
+        this->storage_service->createFile(staged_data_file, "/dev/hdd0/staged/");
 
-        auto wr_loc = wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk5/temp_write", result_file);
-        auto wr_loc2 = wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk5/temp_write", result_file);
+        auto wr_loc = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
+        auto wr_loc2 = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
         WRENCH_INFO(wr_loc->getAbsolutePathAtMountPoint().c_str());
         WRENCH_INFO(wr_loc->getFile()->getID().c_str());
         WRENCH_INFO(wr_loc->getFullAbsolutePath().c_str());
@@ -79,7 +79,7 @@ namespace wrench {
          *     prefer that the user just states a few approximate requirements for the entire job I/Os)
          * -> AND it means changing the way we add file-related actions (we don't know the location of files yet so we can't have created them (l.64)) 
          */
-        auto fileread = job1->addFileReadAction("fileread", wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/staged", staged_data_file));
+        auto fileread = job1->addFileReadAction("fileread", wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/staged", staged_data_file));
         auto compute = job1->addComputeAction("compute", 100 * GFLOP, 50 * MBYTE, 1, 3, wrench::ParallelModel::AMDAHL(0.8));
         // [STORALLOC] We could also add a specific action to describe our storage requirements, BUT this would be a 'fake' action
         job1->addActionDependency(fileread, compute);

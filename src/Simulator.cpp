@@ -100,24 +100,36 @@ private:
         compute_host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
         compute_host->set_property("wattage_off", "10");
         
-        // Create a storage host
-        auto storage_host = zone->create_host("storage0", {"100.0Mf","50.0Mf","20.0Mf"});
-        storage_host->set_core_count(16);
-        storage_host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-        storage_host->set_property("wattage_off", "10");
-        storage_host->set_property("latency", "10");
-        auto disk0 = storage_host->create_disk("hdd0", "50MBps", "50MBps");
-        disk0->set_property("size", "600GiB");
-        disk0->set_property("mount", "/dev/disk0");
+        // Create a storage hosts ("storage[0-3]")
+        std::vector<s4u_Host*> storage_hosts = {};
+        for (auto i=0; i<4; i++){
+            auto storage_host = zone->create_host(
+                "storage"+std::to_string(i),
+                {"100.0Mf","50.0Mf","20.0Mf"}
+            );
+            storage_host->set_core_count(16);
+            storage_host->set_property(
+                "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
+            );
+            storage_host->set_property("wattage_off", "10");
+            storage_host->set_property("latency", "10");
 
-        // Input for contention and variability on HDD
-        disk0->set_sharing_policy(sg4::Disk::Operation::READ, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_read);
-        disk0->set_sharing_policy(sg4::Disk::Operation::WRITE, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_write);
-        disk0->set_factor_cb(hdd_variability);
+            for (auto j=0; j<2; j++) {
+                auto hdd = storage_host->create_disk("hdd"+std::to_string(j), "50MBps", "50MBps");
+                hdd->set_property("size", "600GiB");
+                hdd->set_property("mount", "/dev/hdd"+std::to_string(j));
 
-        auto disk5 = storage_host->create_disk("ssd0", "1000MBps", "1000MBps");
-        disk5->set_property("size", "200GiB");
-        disk5->set_property("mount", "/dev/disk5");
+                // Input for contention and variability on HDD
+                hdd->set_sharing_policy(sg4::Disk::Operation::READ, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_read);
+                hdd->set_sharing_policy(sg4::Disk::Operation::WRITE, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_write);
+                hdd->set_factor_cb(hdd_variability);
+
+                auto ssd = storage_host->create_disk("ssd"+std::to_string(j), "1000MBps", "1000MBps");
+                ssd->set_property("size", "200GiB");
+                ssd->set_property("mount", "/dev/ssd"+std::to_string(j));
+            }
+            storage_hosts.push_back(storage_host);
+        }
 
         // Create three network links
         auto network_link = zone->create_link("network_link", link_bw)->set_latency("20us");
@@ -127,20 +139,24 @@ private:
 
         // Add routes
         {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(compute_host->get_netpoint(),
+            for(const auto& storage_host: storage_hosts) {
+                sg4::LinkInRoute network_link_in_route{network_link};
+                zone->add_route(compute_host->get_netpoint(),
                             storage_host->get_netpoint(),
                             nullptr,
                             nullptr,
                             {network_link_in_route});
+            }
         }
         {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
+            for(const auto& storage_host: storage_hosts) {
+                sg4::LinkInRoute network_link_in_route{network_link};
+                zone->add_route(user_host->get_netpoint(),
                             storage_host->get_netpoint(),
                             nullptr,
                             nullptr,
                             {network_link_in_route});
+            }
         }
         {
             sg4::LinkInRoute network_link_in_route{network_link};
@@ -150,13 +166,32 @@ private:
                             nullptr,
                             {network_link_in_route});
         }
+        {/*
+            for(auto it = storage_hosts.begin(); it!=storage_hosts.end(); it++) {
+                sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
+                auto current_ss = *it;
+                s4u_Host* next_ss = nullptr;
+                if (it++ == storage_hosts.end()) {
+                    next_ss = *(storage_hosts.begin());
+                } else {
+                    next_ss = *(it++);
+                }
+                zone->add_route(current_ss->get_netpoint(),
+                            next_ss->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+            }
+        */}
         {
-            sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
-            zone->add_route(storage_host->get_netpoint(),
+            for(const auto& storage_host: storage_hosts) {
+                sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
+                zone->add_route(storage_host->get_netpoint(),
                             storage_host->get_netpoint(),
                             nullptr,
                             nullptr,
                             {network_link_in_route});
+            }
         }
         {
             sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
@@ -204,15 +239,36 @@ int main(int argc, char **argv) {
     simulation->instantiatePlatform(platform_factory);
 
     /* Instantiate a storage service on the platform */
-    auto storage_service = simulation->add(
+    auto storage_service0 = simulation->add(
         wrench::SimpleStorageService::createSimpleStorageService(
-            "storage0", {"/dev/disk0", "/dev/disk5"}, {}, {}
+            "storage0", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+        )
+    );
+
+        /* Instantiate a storage service on the platform */
+    auto storage_service1 = simulation->add(
+        wrench::SimpleStorageService::createSimpleStorageService(
+            "storage1", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+        )
+    );
+
+        /* Instantiate a storage service on the platform */
+    auto storage_service2 = simulation->add(
+        wrench::SimpleStorageService::createSimpleStorageService(
+            "storage2", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+        )
+    );
+
+        /* Instantiate a storage service on the platform */
+    auto storage_service3 = simulation->add(
+        wrench::SimpleStorageService::createSimpleStorageService(
+            "storage3", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
         )
     );
 
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
-            "storage0", {storage_service}, {}, {}
+            "storage1", {storage_service2, storage_service3}, {}, {}
         )
     );
 
@@ -222,7 +278,7 @@ int main(int argc, char **argv) {
 
     /* Instantiate an execution controller */
     auto wms = simulation->add(
-            new wrench::Controller(baremetal_service, storage_service, "user0"));
+            new wrench::Controller(baremetal_service, storage_service0, "user0"));
 
     std::cout << "Launching simulation..." << std::endl;
 
