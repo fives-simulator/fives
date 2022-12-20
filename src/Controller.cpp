@@ -33,9 +33,12 @@ namespace wrench {
      */
     Controller::Controller(const std::shared_ptr<BareMetalComputeService> &bare_metal_compute_service,
                            const std::shared_ptr<SimpleStorageService> &storage_service,
+                           const std::shared_ptr<CompoundStorageService> &compound_storage_service,
                            const std::string &hostname) :
             ExecutionController(hostname,"controller"),
-            bare_metal_compute_service(bare_metal_compute_service), storage_service(storage_service) {}
+            bare_metal_compute_service(bare_metal_compute_service), 
+            storage_service(storage_service), 
+            compound_storage_service(compound_storage_service) {}
 
     /**
      * @brief main method of the Controller
@@ -52,10 +55,16 @@ namespace wrench {
 
         /* Create some files */
         auto staged_data_file = wrench::Simulation::addFile("staged_data_file", 1 * GBYTE);
-        auto result_file = wrench::Simulation::addFile("result_file", 2 * GBYTE);
         // This file is staged, it is supposed to exist before the job starts
         this->storage_service->createFile(staged_data_file, "/dev/hdd0/staged/");
 
+        // auto result_file = wrench::Simulation::addFile("result_file", 2 * GBYTE);
+        auto exp_file = wrench::Simulation::addFile("exp_file", 10 * GBYTE);
+
+        // New file location on CompoundStorageServer (useless apart from testing)
+        auto cpd_loc = wrench::FileLocation::LOCATION(this->compound_storage_service, exp_file);
+    
+        /*
         auto wr_loc = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
         auto wr_loc2 = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
         WRENCH_INFO(wr_loc->getAbsolutePathAtMountPoint().c_str());
@@ -63,7 +72,7 @@ namespace wrench {
         WRENCH_INFO(wr_loc->getFullAbsolutePath().c_str());
         WRENCH_INFO(wr_loc->toString().c_str()); 
         WRENCH_INFO(wr_loc->equal(wr_loc2) ? "Both wr_loc equal" : "wr_loc are different");
-
+        */
     
         /* Create a job manager so that we can create/submit jobs */
         auto job_manager = this->createJobManager();
@@ -81,12 +90,14 @@ namespace wrench {
          */
         auto fileread = job1->addFileReadAction("fileread", wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/staged", staged_data_file));
         auto compute = job1->addComputeAction("compute", 100 * GFLOP, 50 * MBYTE, 1, 3, wrench::ParallelModel::AMDAHL(0.8));
+        auto expwrite = job1->addFileWriteAction("expwrite", wrench::FileLocation::LOCATION(this->compound_storage_service, exp_file));
         // [STORALLOC] We could also add a specific action to describe our storage requirements, BUT this would be a 'fake' action
         job1->addActionDependency(fileread, compute);
+        job1->addActionDependency(compute, expwrite);
 
         WRENCH_INFO("Creating a compound job with a file write action and a (simultaneous) sleep action");
         auto job2 = job_manager->createCompoundJob("job2");
-        auto filewrite = job2->addFileWriteAction("filewrite", wr_loc);
+        auto fileread2 = job2->addFileReadAction("fileread_2", wrench::FileLocation::LOCATION(this->compound_storage_service, exp_file));
         auto sleep = job2->addSleepAction("sleep", 20.0);
 
         WRENCH_INFO("Making the second job depend on the first one");
@@ -116,7 +127,7 @@ namespace wrench {
 
         WRENCH_INFO("Execution complete!");
 
-        std::vector<std::shared_ptr<wrench::Action>> actions = {fileread, compute, filewrite, sleep};
+        std::vector<std::shared_ptr<wrench::Action>> actions = {fileread, compute, fileread2, sleep};
         for (auto const &a : actions) {
             printf("Action %s: %.2fs - %.2fs\n", a->getName().c_str(), a->getStartDate(), a->getEndDate());
         }

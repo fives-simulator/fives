@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 
     /* Instantiate an execution controller */
     auto wms = simulation->add(
-            new wrench::Controller(baremetal_service, storage_service0, "user0"));
+            new wrench::Controller(baremetal_service, storage_service0, compound_storage_service, "user0"));
 
     std::cout << "Launching simulation..." << std::endl;
 

@@ -26,6 +26,7 @@ namespace wrench {
         Controller(
                   const std::shared_ptr<BareMetalComputeService> &bare_metal_compute_service,
                   const std::shared_ptr<SimpleStorageService> &storage_service,
+                  const std::shared_ptr<CompoundStorageService> &compound_storage_service,
                   const std::string &hostname);
 
     protected:
@@ -39,6 +40,7 @@ namespace wrench {
 
         const std::shared_ptr<BareMetalComputeService> bare_metal_compute_service;
         const std::shared_ptr<SimpleStorageService> storage_service;
+        const std::shared_ptr<CompoundStorageService> compound_storage_service;
 
     };
 }
