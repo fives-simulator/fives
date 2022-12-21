@@ -27,16 +27,16 @@ namespace wrench {
     /**
      * @brief Constructor
      *
-     * @param bare_metal_compute_service: a set of compute services available to run actions
+     * @param compute_service: a compute services available to run actions
      * @param storage_services: a set of storage services available to store files
      * @param hostname: the name of the host on which to start the WMS
      */
-    Controller::Controller(const std::shared_ptr<BareMetalComputeService> &bare_metal_compute_service,
+    Controller::Controller(const std::shared_ptr<ComputeService> &compute_service,
                            const std::shared_ptr<SimpleStorageService> &storage_service,
                            const std::shared_ptr<CompoundStorageService> &compound_storage_service,
                            const std::string &hostname) :
             ExecutionController(hostname,"controller"),
-            bare_metal_compute_service(bare_metal_compute_service), 
+            compute_service(compute_service), 
             storage_service(storage_service), 
             compound_storage_service(compound_storage_service) {}
 
@@ -101,27 +101,22 @@ namespace wrench {
         auto sleep = job2->addSleepAction("sleep", 20.0);
 
         WRENCH_INFO("Making the second job depend on the first one");
-        job2->addParentJob(job1);
+        // TODO: This line seems to create a deadlock when jobs are submitted to batch scheduler (maybe normal) - check this.
+        //job2->addParentJob(job1);
 
         WRENCH_INFO("Submitting both jobs to the bare-metal compute service");
 
-        /* [STORALLOC]
-         * Maybe, when submitting a job, we could pass not only the compute service,
-         * but also an optional allocation service.
-         * PROs: 
-         *   - hide the allocation in the job manager (instead of creating a dedicated manager)
-         *   - job_manager has access to both the job and the simulation, it can many informations to
-         *     the allocation service 
-         * CONs:
-         *   - once again, the files operations have already been described at this point, so we would
-         *     need to update them?
-         *   - 
-         */
-        job_manager->submitJob(job1, this->bare_metal_compute_service);
-        job_manager->submitJob(job2, this->bare_metal_compute_service);
+        // Ohh that's dirty
+        std::map<std::string, std::string> service_specific_args =
+            {{"-N", "1"},
+             {"-c", "10"},
+             {"-t", "120"}};
+        job_manager->submitJob(job1, this->compute_service, service_specific_args);
+
 
         WRENCH_INFO("Waiting for an execution event...");
         this->waitForAndProcessNextEvent();
+        job_manager->submitJob(job2, this->compute_service, service_specific_args);
         WRENCH_INFO("Waiting for an execution event...");
         this->waitForAndProcessNextEvent();
 

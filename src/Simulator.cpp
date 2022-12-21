@@ -93,12 +93,24 @@ private:
         user_host->set_property("wattage_off", "10");
         
 
-        // Create a compute host
-        auto compute_host = zone->create_host("compute0", {"100.0Mf","50.0Mf","20.0Mf"});
-        compute_host->set_core_count(16);
-        compute_host->set_property("ram", "128GB");
-        compute_host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-        compute_host->set_property("wattage_off", "10");
+        // Create 2 compute host and a batch service host
+        auto compute_host_0 = zone->create_host("compute0", {"100.0Mf","50.0Mf","20.0Mf"});
+        compute_host_0->set_core_count(16);
+        compute_host_0->set_property("ram", "128GB");
+        compute_host_0->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
+        compute_host_0->set_property("wattage_off", "10");
+
+        auto compute_host_1 = zone->create_host("compute1", {"100.0Mf","50.0Mf","20.0Mf"});
+        compute_host_1->set_core_count(16);
+        compute_host_1->set_property("ram", "128GB");
+        compute_host_1->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
+        compute_host_1->set_property("wattage_off", "10");
+
+        auto batch_head = zone->create_host("batch0", {"25.0Mf","10.0Mf","5.0Mf"});
+        batch_head->set_core_count(4);
+        batch_head->set_property("ram", "32GB");
+        batch_head->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
+        batch_head->set_property("wattage_off", "10");
         
         // Create a storage hosts ("storage[0-3]")
         std::vector<s4u_Host*> storage_hosts = {};
@@ -137,15 +149,33 @@ private:
         auto loopback_ComputeHost = zone->create_link("loopback_ComputeHost", "1000EBps")->set_latency("0us");
         auto loopback_StorageHost = zone->create_link("loopback_StorageHost", "1000EBps")->set_latency("0us");
 
-        // Add routes
+        // Add routes (so many of them, and we're still missing a few)
         {
             for(const auto& storage_host: storage_hosts) {
-                sg4::LinkInRoute network_link_in_route{network_link};
-                zone->add_route(compute_host->get_netpoint(),
+                {
+                    sg4::LinkInRoute network_link_in_route{network_link};
+                    zone->add_route(compute_host_0->get_netpoint(),
                             storage_host->get_netpoint(),
                             nullptr,
                             nullptr,
                             {network_link_in_route});
+                }
+                {
+                    sg4::LinkInRoute network_link_in_route{network_link};
+                    zone->add_route(compute_host_1->get_netpoint(),
+                            storage_host->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+                }
+                {
+                    sg4::LinkInRoute network_link_in_route{network_link};
+                    zone->add_route(batch_head->get_netpoint(),
+                            storage_host->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+                }
             }
         }
         {
@@ -161,7 +191,33 @@ private:
         {
             sg4::LinkInRoute network_link_in_route{network_link};
             zone->add_route(user_host->get_netpoint(),
-                            compute_host->get_netpoint(),
+                            compute_host_0->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+            zone->add_route(batch_head->get_netpoint(),
+                            compute_host_0->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+        }
+        {
+            sg4::LinkInRoute network_link_in_route{network_link};
+            zone->add_route(user_host->get_netpoint(),
+                            compute_host_1->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+            zone->add_route(batch_head->get_netpoint(),
+                            compute_host_1->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+        }
+        {
+            sg4::LinkInRoute network_link_in_route{network_link};
+            zone->add_route(user_host->get_netpoint(),
+                            batch_head->get_netpoint(),
                             nullptr,
                             nullptr,
                             {network_link_in_route});
@@ -195,8 +251,24 @@ private:
         }
         {
             sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(compute_host->get_netpoint(),
-                            compute_host->get_netpoint(),
+            zone->add_route(compute_host_0->get_netpoint(),
+                            compute_host_0->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+        }
+        {
+            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
+            zone->add_route(compute_host_1->get_netpoint(),
+                            compute_host_1->get_netpoint(),
+                            nullptr,
+                            nullptr,
+                            {network_link_in_route});
+        }
+        {
+            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
+            zone->add_route(batch_head->get_netpoint(),
+                            batch_head->get_netpoint(),
                             nullptr,
                             nullptr,
                             {network_link_in_route});
@@ -273,12 +345,14 @@ int main(int argc, char **argv) {
     );
 
     /* Instantiate a bare-metal compute service on the platform */
-    auto baremetal_service = simulation->add(new wrench::BareMetalComputeService(
-            "compute0", {"compute0"}, "", {}, {}));
+    auto batch_service = simulation->add(new wrench::BatchComputeService(
+            "batch0", {"compute0", "compute1"}, "", 
+            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
+    );
 
     /* Instantiate an execution controller */
     auto wms = simulation->add(
-            new wrench::Controller(baremetal_service, storage_service0, compound_storage_service, "user0"));
+            new wrench::Controller(batch_service, storage_service0, compound_storage_service, "user0"));
 
     std::cout << "Launching simulation..." << std::endl;
 
