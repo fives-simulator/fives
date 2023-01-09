@@ -18,276 +18,11 @@
 
 #include <iostream>
 #include <wrench-dev.h>
-
-#include "simgrid/plugins/energy.h"
+#include <simgrid/plugins/energy.h>
+#include <simgrid/kernel/routing/NetPoint.hpp>
 
 #include "Controller.h"
-
-
-constexpr unsigned int MBPS (1000 * 1000);
-
-namespace sg4 = simgrid::s4u;
-
-
-/*  Contention and variability models.
- *  (just placeholders so far)
- */
-
-static double non_linear_disk_bw_read(double capacities, int n_activities) {
-    // std::cout << "Read capacities " << capacities << std::endl;
-    // std::cout << "n_activities " << n_activities << std::endl;
-
-    // Slowdown disk in regard to current number of activities
-    return capacities * (1 / n_activities) * 0.9;
-}
-
-static double non_linear_disk_bw_write(double capacities, int n_activities) {
-    // std::cout << "Write capacities " << capacities << std::endl;
-    // std::cout << "n_activities " << n_activities << std::endl;
-
-    // Slowdown disk in regard to current number of activities
-    return capacities * (1 / n_activities) * 0.8;
-}
-
-static double hdd_variability(sg_size_t size, sg4::Io::OpType op)
-{
-    if ( op == sg4::Io::OpType::READ ) {
-        return 1.2;     // accelerate read operation (always the same value in this case)
-    } else {
-        return 0.8;     // slowdown writes
-    }
-
-}
-
-
-/**
- * @brief Function to instantiate a simulated platform, instead of
- * loading it from an XML file. This function directly uses SimGrid's s4u API
- * (see the SimGrid documentation). This function creates a platform that's
- * identical to that described in the file two_hosts.xml located in this directory.
- */
-
-class PlatformFactory {
-
-public:
-
-    PlatformFactory(double link_bw) : link_bw(link_bw) {}
-
-    void operator()() const {
-        create_platform(this->link_bw);
-    }
-
-private:
-    double link_bw;
-
-    void create_platform(double link_bw) const {
-        // Create the top-level zone
-        auto zone = sg4::create_full_zone("AS0");
-        // zone->set_property("routing", "Full");
-        
-        // Create a User host
-        auto user_host = zone->create_host("user0", {"100.0Mf","50.0Mf","20.0Mf"});
-        user_host->set_core_count(16);
-        user_host->set_property("ram", "128GB");
-        user_host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-        user_host->set_property("wattage_off", "10");
-        
-
-        // Create 2 compute host and a batch service host
-        auto compute_host_0 = zone->create_host("compute0", {"100.0Mf","50.0Mf","20.0Mf"});
-        compute_host_0->set_core_count(16);
-        compute_host_0->set_property("ram", "128GB");
-        compute_host_0->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-        compute_host_0->set_property("wattage_off", "10");
-
-        auto compute_host_1 = zone->create_host("compute1", {"100.0Mf","50.0Mf","20.0Mf"});
-        compute_host_1->set_core_count(16);
-        compute_host_1->set_property("ram", "128GB");
-        compute_host_1->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-        compute_host_1->set_property("wattage_off", "10");
-
-        auto batch_head = zone->create_host("batch0", {"25.0Mf","10.0Mf","5.0Mf"});
-        batch_head->set_core_count(4);
-        batch_head->set_property("ram", "32GB");
-        batch_head->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-        batch_head->set_property("wattage_off", "10");
-        
-        // Create a storage hosts ("storage[0-3]")
-        std::vector<s4u_Host*> storage_hosts = {};
-        for (auto i=0; i<4; i++){
-            auto storage_host = zone->create_host(
-                "storage"+std::to_string(i),
-                {"100.0Mf","50.0Mf","20.0Mf"}
-            );
-            storage_host->set_core_count(16);
-            storage_host->set_property(
-                "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
-            );
-            storage_host->set_property("wattage_off", "10");
-            storage_host->set_property("latency", "10");
-
-            for (auto j=0; j<2; j++) {
-                auto hdd = storage_host->create_disk("hdd"+std::to_string(j), "50MBps", "50MBps");
-                hdd->set_property("size", "600GiB");
-                hdd->set_property("mount", "/dev/hdd"+std::to_string(j));
-
-                // Input for contention and variability on HDD
-                hdd->set_sharing_policy(sg4::Disk::Operation::READ, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_read);
-                hdd->set_sharing_policy(sg4::Disk::Operation::WRITE, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_write);
-                hdd->set_factor_cb(hdd_variability);
-
-                auto ssd = storage_host->create_disk("ssd"+std::to_string(j), "1000MBps", "1000MBps");
-                ssd->set_property("size", "200GiB");
-                ssd->set_property("mount", "/dev/ssd"+std::to_string(j));
-            }
-            storage_hosts.push_back(storage_host);
-        }
-
-        // Create three network links
-        auto network_link = zone->create_link("network_link", link_bw)->set_latency("20us");
-        auto loopback_UserHost = zone->create_link("loopback_UserHost", "1000EBps")->set_latency("0us");
-        auto loopback_ComputeHost = zone->create_link("loopback_ComputeHost", "1000EBps")->set_latency("0us");
-        auto loopback_StorageHost = zone->create_link("loopback_StorageHost", "1000EBps")->set_latency("0us");
-
-        // Add routes (so many of them, and we're still missing a few)
-        {
-            for(const auto& storage_host: storage_hosts) {
-                {
-                    sg4::LinkInRoute network_link_in_route{network_link};
-                    zone->add_route(compute_host_0->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-                }
-                {
-                    sg4::LinkInRoute network_link_in_route{network_link};
-                    zone->add_route(compute_host_1->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-                }
-                {
-                    sg4::LinkInRoute network_link_in_route{network_link};
-                    zone->add_route(batch_head->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-                }
-            }
-        }
-        {
-            for(const auto& storage_host: storage_hosts) {
-                sg4::LinkInRoute network_link_in_route{network_link};
-                zone->add_route(user_host->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            }
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            compute_host_0->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            zone->add_route(batch_head->get_netpoint(),
-                            compute_host_0->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            compute_host_1->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            zone->add_route(batch_head->get_netpoint(),
-                            compute_host_1->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            batch_head->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {/*
-            for(auto it = storage_hosts.begin(); it!=storage_hosts.end(); it++) {
-                sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
-                auto current_ss = *it;
-                s4u_Host* next_ss = nullptr;
-                if (it++ == storage_hosts.end()) {
-                    next_ss = *(storage_hosts.begin());
-                } else {
-                    next_ss = *(it++);
-                }
-                zone->add_route(current_ss->get_netpoint(),
-                            next_ss->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            }
-        */}
-        {
-            for(const auto& storage_host: storage_hosts) {
-                sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
-                zone->add_route(storage_host->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            }
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(compute_host_0->get_netpoint(),
-                            compute_host_0->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(compute_host_1->get_netpoint(),
-                            compute_host_1->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(batch_head->get_netpoint(),
-                            batch_head->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            user_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-
-        zone->seal();
-
-    }
-};
-
-
+#include "Platform.h"
 
 
 /**
@@ -301,14 +36,70 @@ int main(int argc, char **argv) {
 
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
+
     sg_host_energy_plugin_init();
 
     /* Initialize the simulation */
     simulation->init(&argc, argv);
 
     /* Instantiating the simulated platform */
-    PlatformFactory platform_factory(10000 * MBPS);
+    auto platform_factory = storalloc::PlatformFactory(10000 * storalloc::MBPS);
     simulation->instantiatePlatform(platform_factory);
+    simulation->getOutput().enableDiskTimestamps(true);
+
+
+    /*  Describe topology of zones, hosts and links.
+     *  (should be used to create a diagram..)
+     *
+     */
+    std::set<simgrid::kernel::routing::NetZoneImpl*> zones = {};
+    
+    for (const auto& hostname : wrench::S4U_Simulation::getAllHostnames()) {
+        std::cout << " - " << hostname << std::endl;
+        auto netpt = wrench::S4U_Simulation::get_host_or_vm_by_name(hostname)->get_netpoint();
+        auto zone = netpt->get_englobing_zone();
+        zones.insert(zone);
+        std::cout << "    - NetPoint is :" << netpt->get_name() << "@" << zone->get_name() << std::endl;
+    }
+
+    // getting info on NetZoneImpl instances
+    for (const auto& zone : zones) {
+        std::cout << "Zone: " << zone->get_name() << std::endl;
+        // std::cout << "  - Network model: " << zone->get_network_model() << std::endl;
+        std::cout << "  - Host count: " << zone->get_host_count() << std::endl;
+        std::cout << "  - Parent zone: " << zone->get_parent()->get_name() << std::endl;
+        std::cout << "With links:" << std::endl;
+        for (const auto& link : zone->get_all_links()) {
+            std::cout << "   - " << link->get_name() << std::endl;
+        }
+        auto hostsInZone = zone->get_all_hosts();
+        std::cout << "Hosts:" << std::endl;
+        for (const auto & host : hostsInZone) {
+            std::cout << " - " << host->get_name() << std::endl;
+        }
+    }
+
+    auto storage0 = wrench::S4U_Simulation::get_host_or_vm_by_name("storage0");
+    auto compute14 = wrench::S4U_Simulation::get_host_or_vm_by_name("compute14");
+    std::vector<simgrid::s4u::Link*> linksInRoute;
+    double latency = 0;
+    //std::unordered_set<simgrid::kernel::routing::NetZoneImpl*> netzonesInRoute;
+    storage0->route_to(compute14, linksInRoute, &latency);
+
+    for (const auto & link : linksInRoute) {
+        std::cout << link->get_name() << std::endl;
+    }
+
+
+
+
+    /*
+    for (auto const & [tmpzone, tmphostnames] : wrench::S4U_Simulation::getAllHostnamesByZone()) {
+        for (auto const & host : tmphostnames) {
+            std::cout << tmpzone << " : " << host << std::endl;
+        }
+    }
+    */
 
     /* Instantiate a storage service on the platform */
     auto storage_service0 = simulation->add(
@@ -362,6 +153,15 @@ int main(int argc, char **argv) {
     auto storage_host = sg4::Host::by_name("storage0");
     auto consummed = sg_host_get_consumed_energy(storage_host);
     std::cout << "Energy consumed : " << consummed << std::endl;
+
+
+    simulation->getOutput().dumpDiskOperationsJSON("./wrench_disk_ops.json", true);
+    simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
+
+    auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
+    for (auto const &item: trace) {
+        std::cerr << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
+    }
 
     return 0;
 }

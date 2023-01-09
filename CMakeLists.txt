@@ -5,7 +5,7 @@ project(my-wrench-simulator)
 
 add_definitions("-Wall -Wno-unused-variable -Wno-unused-private-field")
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
@@ -18,8 +18,10 @@ include_directories(include/ /usr/local/include /opt/local/include /usr/local/in
 # source files
 set(SOURCE_FILES
         include/Controller.h
+        include/Platform.h
         src/Controller.cpp
         src/Simulator.cpp
+        src/Platform.cpp
         )
 
 # wrench library and dependencies
