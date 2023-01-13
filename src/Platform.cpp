@@ -50,12 +50,13 @@ namespace storalloc {
 
 
     /**
-    * @brief Callback to set a cluster leaf/element
+    * @brief Callback to set a compute cluster leaf/element. Creates nodes called "comptute[X]"
+    *        (compute0, compute1, ...)
     * 
     * @param zone Cluster netzone being created (usefull to create the hosts/links inside it)
     * @param coord Coordinates in the cluster
     * @param id Internal identifier in the torus (for information)
-    * @return netpoint, gateway: the netpoint to the StarZone and CPU0 as gateway
+    * @return netpoint, gateway: the netpoint to the Dragonfly zone
     */
     static std::pair<simgrid::kernel::routing::NetPoint*, simgrid::kernel::routing::NetPoint*>
     create_hostzone(sg4::NetZone* zone, const std::vector<unsigned long>& /*coord*/, unsigned long id)
@@ -74,18 +75,19 @@ namespace storalloc {
     }
 
 
+
+
     void PlatformFactory::create_platform(double link_bw) const {
 
         // Create the top-level zone and backbone "link"
-        auto main_zone = sg4::create_star_zone("AS0");
+        auto main_zone = sg4::create_star_zone("AS_Root");
         auto main_link_bb = main_zone->create_link("backbone", link_bw)->set_latency("20us");
         sg4::LinkInRoute backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
         // Create a network zone for control hosts
-        auto control_zone = sg4::create_star_zone("AS_Ctrl");
+        auto control_zone = sg4::create_floyd_zone("AS_Ctrl");
         control_zone->set_parent(main_zone);
-        //control_zone->set_property("routing", "floyd");
         auto backbone_link_ctrl = control_zone->create_link("backbone_ctrl", "1.25GBps")->seal();
         sg4::LinkInRoute backbone_ctrl(backbone_link_ctrl);
         
@@ -105,28 +107,27 @@ namespace storalloc {
 
             auto link = control_zone->create_split_duplex_link(host->get_name(), "125MBps")->set_latency("24us")->seal();
             /* add link and backbone for communications from the host */
-            control_zone->add_route(host->get_netpoint(), nullptr, nullptr, nullptr,
+            control_zone->add_route(host->get_netpoint(), control_router, nullptr, nullptr,
                        {{link, sg4::LinkInRoute::Direction::UP}, backbone_ctrl}, true);
         }
 
-        
         control_zone->seal();
 
-        // Create compute zone
-        auto compute_zone = sg4::create_dragonfly_zone("cluster", main_zone, {{2, 2}, {2, 1}, {2, 2}, 2}, {create_hostzone, {}, create_limiter},
+        // Create a Dragonfly compute zone
+        auto compute_zone = sg4::create_dragonfly_zone("AS_Dragonfly_Compute", main_zone, {{2, 2}, {2, 1}, {2, 2}, 2}, {create_hostzone, {}, create_limiter},
                              10e9, 10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX);
         auto compute_router = compute_zone-> create_router("compute_router_0");
         compute_zone->seal();
 
-        // Create storage zone
-        auto storage_zone = sg4::create_full_zone("AS_Storage");
+        // Create a storage zone
+        auto storage_zone = sg4::create_floyd_zone("AS_Storage");
         storage_zone->set_parent(main_zone);
         auto backbone_link_storage = storage_zone->create_link("backbone_storage", "1.25GBps");
         sg4::LinkInRoute backbone_storage(backbone_link_storage);
         auto storage_router = storage_zone->create_router("storage_zone_router_0");
 
         std::vector<s4u_Host*> storage_hosts = {};
-        for (auto i=0; i<4; i++){
+        for (auto i=0; i<5; i++){
 
             auto hostname = "storage"+std::to_string(i);
             auto storage_host = storage_zone->create_host(
@@ -148,7 +149,13 @@ namespace storalloc {
 
             for (auto j=0; j<2; j++) {
                 auto hdd = storage_host->create_disk("hdd"+std::to_string(j), "50MBps", "50MBps");
-                hdd->set_property("size", "600GiB");
+                if (i == 1) {
+                    // Fake huge disk for staging storage service - needs to be fixed with something less dirty
+                    hdd->set_property("size", "60000GiB");
+                } else {
+                    hdd->set_property("size", "600GiB");
+                }
+                    
                 hdd->set_property("mount", "/dev/hdd"+std::to_string(j));
 
                 // Input for contention and variability on HDD
@@ -162,155 +169,13 @@ namespace storalloc {
             }
             storage_hosts.push_back(storage_host);
         }
-
-        
         storage_zone->seal();
 
+        // Route from main zone to sub zones.
         main_zone->add_route(storage_zone->get_netpoint(), nullptr, storage_router, nullptr, {backbone});
         main_zone->add_route(control_zone->get_netpoint(), nullptr, control_router, nullptr, {backbone});
         main_zone->add_route(compute_zone->get_netpoint(), nullptr, compute_router, nullptr, {backbone});
         
-
-        /*
-        // Create links for hosts loopback
-        auto loopback_UserHost = control_zone->create_link("loopback_UserHost", "1000EBps")->set_latency("0us");
-        auto loopback_StorageHost = storage_zone->create_link("loopback_StorageHost", "1000EBps")->set_latency("0us");
-
-        // Add routes (so many of them, and we're still missing a few)
-        {
-            for(const auto& storage_host: storage_hosts) {
-                {
-                    sg4::LinkInRoute network_link_in_route{network_link};
-                    zone->add_route(compute_host_0->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-                }
-                {
-                    sg4::LinkInRoute network_link_in_route{network_link};
-                    zone->add_route(compute_host_1->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-                }
-                {
-                    sg4::LinkInRoute network_link_in_route{network_link};
-                    zone->add_route(batch_head->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-                }
-            }
-        }
-        {
-            for(const auto& storage_host: storage_hosts) {
-                sg4::LinkInRoute network_link_in_route{network_link};
-                zone->add_route(user_host->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            }
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            compute_host_0->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            zone->add_route(batch_head->get_netpoint(),
-                            compute_host_0->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            compute_host_1->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            zone->add_route(batch_head->get_netpoint(),
-                            compute_host_1->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            batch_head->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        */
-        {/*
-            for(auto it = storage_hosts.begin(); it!=storage_hosts.end(); it++) {
-                sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
-                auto current_ss = *it;
-                s4u_Host* next_ss = nullptr;
-                if (it++ == storage_hosts.end()) {
-                    next_ss = *(storage_hosts.begin());
-                } else {
-                    next_ss = *(it++);
-                }
-                zone->add_route(current_ss->get_netpoint(),
-                            next_ss->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            }
-        */}
-        /*
-        {
-            for(const auto& storage_host: storage_hosts) {
-                sg4::LinkInRoute network_link_in_route{loopback_StorageHost};
-                zone->add_route(storage_host->get_netpoint(),
-                            storage_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-            }
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(compute_host_0->get_netpoint(),
-                            compute_host_0->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(compute_host_1->get_netpoint(),
-                            compute_host_1->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{loopback_ComputeHost};
-            zone->add_route(batch_head->get_netpoint(),
-                            batch_head->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-        {
-            sg4::LinkInRoute network_link_in_route{network_link};
-            zone->add_route(user_host->get_netpoint(),
-                            user_host->get_netpoint(),
-                            nullptr,
-                            nullptr,
-                            {network_link_in_route});
-        }
-*/
         main_zone->seal();
 
     }

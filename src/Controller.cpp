@@ -34,11 +34,13 @@ namespace wrench {
     Controller::Controller(const std::shared_ptr<ComputeService> &compute_service,
                            const std::shared_ptr<SimpleStorageService> &storage_service,
                            const std::shared_ptr<CompoundStorageService> &compound_storage_service,
-                           const std::string &hostname) :
+                           const std::string &hostname,
+                           const std::vector<storalloc::YamlJob>& jobs) :
             ExecutionController(hostname,"controller"),
             compute_service(compute_service), 
             storage_service(storage_service), 
-            compound_storage_service(compound_storage_service) {}
+            compound_storage_service(compound_storage_service),
+            jobs(jobs) {}
 
     /**
      * @brief main method of the Controller
@@ -53,17 +55,73 @@ namespace wrench {
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller starting");
 
-        /* Create some files */
-        auto staged_data_file = wrench::Simulation::addFile("staged_data_file", 1 * GBYTE);
-        // This file is staged, it is supposed to exist before the job starts
-        this->storage_service->createFile(staged_data_file, "/dev/hdd0/staged/");
+        WRENCH_INFO("Got %s jobs", std::to_string(jobs.size()).c_str());
 
-        // auto result_file = wrench::Simulation::addFile("result_file", 2 * GBYTE);
-        auto exp_file = wrench::Simulation::addFile("exp_file", 10 * GBYTE);
+        /* Create a job manager so that we can create/submit jobs */
+        auto job_manager = this->createJobManager();
+        std::vector<std::shared_ptr<wrench::CompoundJob>> compound_jobs;
+        std::vector<std::shared_ptr<wrench::Action>> actions;
 
-        // New file location on CompoundStorageServer (useless apart from testing)
-        auto cpd_loc = wrench::FileLocation::LOCATION(this->compound_storage_service, exp_file);
+        for (const auto& yaml_job : jobs) {
+            
+            // Create WRENCH compound jobs
+            auto job = job_manager->createCompoundJob(std::to_string(yaml_job.id));
+            WRENCH_INFO("Creating a compound job for ID %s", std::to_string(yaml_job.id).c_str());
+
+            // Create file for read operation
+            std::shared_ptr<wrench::DataFile> read_file = nullptr;
+            std::shared_ptr<wrench::FileReadAction> fileReadAction = nullptr;
+            if (yaml_job.readBytes != 0) {
+                read_file = wrench::Simulation::addFile("input_data_file_" + std::to_string(yaml_job.id), yaml_job.readBytes);
+                // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
+                wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/", read_file));
+                job->addFileCopyAction(
+                    "fileCopyForStaging", 
+                    wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/", read_file),
+                    wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
+                );
+                fileReadAction = job->addFileReadAction("fileRead", wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                actions.push_back(fileReadAction);
+                WRENCH_INFO("Read action added to job ID %s", std::to_string(yaml_job.id).c_str());
+            }
+
+            auto compute = job->addComputeAction("compute", 300 * GFLOP, 50 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
+            actions.push_back(compute);
+            WRENCH_INFO("Compute action added to job ID %s", std::to_string(yaml_job.id).c_str());
+
+            // Possibly model some waiting time / bootstrapping with a sleep action ?
+            // auto sleep = job2->addSleepAction("sleep", 20.0);
+
+            // Create file for write operation
+            std::shared_ptr<wrench::DataFile> write_file = nullptr;
+            std::shared_ptr<wrench::FileWriteAction> fileWriteAction = nullptr;
+            if (yaml_job.writtenBytes != 0) {
+                write_file = wrench::Simulation::addFile("ouptut_data_file_" + std::to_string(yaml_job.id), yaml_job.writtenBytes);
+                fileWriteAction = job->addFileWriteAction("fileWrite", wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                actions.push_back(fileWriteAction);
+                WRENCH_INFO("Write action added to job ID %s", std::to_string(yaml_job.id).c_str());
+            }
+            
+            // Dependencies (if any)
+            if (fileReadAction)
+                job->addActionDependency(fileReadAction, compute);
+            if (fileWriteAction)
+                job->addActionDependency(compute, fileWriteAction);
+
+            std::map<std::string, std::string> service_specific_args =
+                    {{"-N", std::to_string(yaml_job.nodesUsed)},
+                     {"-c", std::to_string(yaml_job.coresUsed)},
+                     {"-t", std::to_string(yaml_job.runTime)}};
+            WRENCH_INFO("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
+                        job->getName().c_str(),
+                        yaml_job.nodesUsed, yaml_job.coresUsed, yaml_job.runTime
+            );
+            job_manager->submitJob(job, this->compute_service, service_specific_args);
+
+        }
     
+        WRENCH_INFO("All jobs submitted to the BatchComputeService");
+        
         /*
         auto wr_loc = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
         auto wr_loc2 = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
@@ -73,59 +131,26 @@ namespace wrench {
         WRENCH_INFO(wr_loc->toString().c_str()); 
         WRENCH_INFO(wr_loc->equal(wr_loc2) ? "Both wr_loc equal" : "wr_loc are different");
         */
-    
-        /* Create a job manager so that we can create/submit jobs */
-        auto job_manager = this->createJobManager();
-
-        WRENCH_INFO("Creating a compound job with a file read action followed by a compute action");
-        // [STORALLOC] Apart from job name, we could offer optional parameters for storage requirements, as provided by user.
-        auto job1 = job_manager->createCompoundJob("job1");
-        /* [STORALLOC] Job contains some file read / write actions. These actions are available to the job_manager when the job is 
-         * submitted.
-         * -> We could compute total read / write storage requirements from these and use this information for scheduling storage
-         * -> BUT, it doesn't correspond to the way a user would typically provide this information in real scenarios?
-         *    (here we would need to describe storage requirements with a file ops detail, whereas in real world scenario, we would
-         *     prefer that the user just states a few approximate requirements for the entire job I/Os)
-         * -> AND it means changing the way we add file-related actions (we don't know the location of files yet so we can't have created them (l.64)) 
-         */
-        auto fileread = job1->addFileReadAction("fileread", wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/staged", staged_data_file));
-        auto compute = job1->addComputeAction("compute", 100 * GFLOP, 50 * MBYTE, 1, 3, wrench::ParallelModel::AMDAHL(0.8));
-        auto expwrite = job1->addFileWriteAction("expwrite", wrench::FileLocation::LOCATION(this->compound_storage_service, exp_file));
-        // [STORALLOC] We could also add a specific action to describe our storage requirements, BUT this would be a 'fake' action
-        job1->addActionDependency(fileread, compute);
-        job1->addActionDependency(compute, expwrite);
-
-        WRENCH_INFO("Creating a compound job with a file write action and a (simultaneous) sleep action");
-        auto job2 = job_manager->createCompoundJob("job2");
-        auto fileread2 = job2->addFileReadAction("fileread_2", wrench::FileLocation::LOCATION(this->compound_storage_service, exp_file));
-        auto sleep = job2->addSleepAction("sleep", 20.0);
-
-        WRENCH_INFO("Making the second job depend on the first one");
-        // TODO: This line seems to create a deadlock when jobs are submitted to batch scheduler (maybe normal) - check this.
-        //job2->addParentJob(job1);
-
-        WRENCH_INFO("Submitting both jobs to the bare-metal compute service");
-
-        // Ohh that's dirty
-        std::map<std::string, std::string> service_specific_args =
-            {{"-N", "1"},
-             {"-c", "10"},
-             {"-t", "120"}};
-        job_manager->submitJob(job1, this->compute_service, service_specific_args);
-
-
-        WRENCH_INFO("Waiting for an execution event...");
-        this->waitForAndProcessNextEvent();
-        job_manager->submitJob(job2, this->compute_service, service_specific_args);
-        WRENCH_INFO("Waiting for an execution event...");
-        this->waitForAndProcessNextEvent();
+       
+        auto nb_jobs = compound_jobs.size();
+        for (size_t i = 0; i < nb_jobs; i++) {
+            this->waitForAndProcessNextEvent();
+        }
 
         WRENCH_INFO("Execution complete!");
 
-        std::vector<std::shared_ptr<wrench::Action>> actions = {fileread, compute, fileread2, sleep};
         for (auto const &a : actions) {
             printf("Action %s: %.2fs - %.2fs\n", a->getName().c_str(), a->getStartDate(), a->getEndDate());
         }
+
+        /*
+            // cleanup
+            if (read_file)
+                wrench::simulation::removeFile(read_file);
+
+            if (write_file)
+                wrench::simulation::removeFile(write_file);
+        */
 
         return 0;
     }
@@ -140,6 +165,5 @@ namespace wrench {
         auto job = event->job;
         /* Print info about all actions in the job */
         WRENCH_INFO("Notified that compound job %s has completed:", job->getName().c_str());
-
     }
 }

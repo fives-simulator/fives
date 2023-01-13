@@ -1,0 +1,2256 @@
+jobs:
+- MPIprocs: 21600
+  coresUsed: 21632
+  endTime: '2020-10-01 21:23:08'
+  id: 470572
+  nodesUsed: 338
+  readBytes: 29183644256
+  runTime: 3573
+  startTime: '2020-10-01 20:22:29'
+  submissionTime: '2020-09-30 19:55:49'
+  waitingTime: 1 days 00:26:40
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-01 20:35:42'
+  id: 470732
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 67
+  startTime: '2020-10-01 20:08:47'
+  submissionTime: '2020-10-01 16:25:34'
+  waitingTime: 0 days 03:43:13
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-01 20:35:42'
+  id: 470732
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 97
+  startTime: '2020-10-01 20:08:47'
+  submissionTime: '2020-10-01 16:25:34'
+  waitingTime: 0 days 03:43:13
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-01 20:35:42'
+  id: 470732
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 659
+  startTime: '2020-10-01 20:08:47'
+  submissionTime: '2020-10-01 16:25:34'
+  waitingTime: 0 days 03:43:13
+  writtenBytes: 0
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-01 13:03:12'
+  id: 470693
+  nodesUsed: 8
+  readBytes: 58671864
+  runTime: 29
+  startTime: '2020-10-01 12:35:43'
+  submissionTime: '2020-10-01 12:34:11'
+  waitingTime: 0 days 00:01:32
+  writtenBytes: 2880006912
+- MPIprocs: 1
+  coresUsed: 512
+  endTime: '2020-10-01 20:56:52'
+  id: 470792
+  nodesUsed: 8
+  readBytes: 0
+  runTime: 71
+  startTime: '2020-10-01 20:49:05'
+  submissionTime: '2020-10-01 20:48:03'
+  waitingTime: 0 days 00:01:02
+  writtenBytes: 119891080
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-01 17:47:26'
+  id: 470718
+  nodesUsed: 8
+  readBytes: 58671864
+  runTime: 22
+  startTime: '2020-10-01 16:46:11'
+  submissionTime: '2020-10-01 15:51:47'
+  waitingTime: 0 days 00:54:24
+  writtenBytes: 2880006912
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-01 20:35:42'
+  id: 470732
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 297
+  startTime: '2020-10-01 20:08:47'
+  submissionTime: '2020-10-01 16:25:34'
+  waitingTime: 0 days 03:43:13
+  writtenBytes: 2199023260064
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-01 14:02:51'
+  id: 470694
+  nodesUsed: 8
+  readBytes: 58671864
+  runTime: 19
+  startTime: '2020-10-01 13:10:08'
+  submissionTime: '2020-10-01 13:08:53'
+  waitingTime: 0 days 00:01:15
+  writtenBytes: 2880006912
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-01 15:49:27'
+  id: 470708
+  nodesUsed: 8
+  readBytes: 58671864
+  runTime: 25
+  startTime: '2020-10-01 15:02:44'
+  submissionTime: '2020-10-01 15:01:10'
+  waitingTime: 0 days 00:01:34
+  writtenBytes: 2880006912
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-02 20:22:19'
+  id: 470990
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 270
+  startTime: '2020-10-02 20:04:27'
+  submissionTime: '2020-10-02 16:25:30'
+  waitingTime: 0 days 03:38:57
+  writtenBytes: 2199023260064
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-02 14:16:31'
+  id: 470953
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 36
+  startTime: '2020-10-02 13:15:03'
+  submissionTime: '2020-10-02 13:13:46'
+  waitingTime: 0 days 00:01:17
+  writtenBytes: 5550410720
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-02 20:22:19'
+  id: 470990
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 77
+  startTime: '2020-10-02 20:04:27'
+  submissionTime: '2020-10-02 16:25:30'
+  waitingTime: 0 days 03:38:57
+  writtenBytes: 0
+- MPIprocs: 96
+  coresUsed: 256
+  endTime: '2020-10-02 13:07:35'
+  id: 470950
+  nodesUsed: 4
+  readBytes: 55557320
+  runTime: 28
+  startTime: '2020-10-02 12:52:48'
+  submissionTime: '2020-10-02 12:51:26'
+  waitingTime: 0 days 00:01:22
+  writtenBytes: 3630410720
+- MPIprocs: 8192
+  coresUsed: 8192
+  endTime: '2020-10-02 20:30:56'
+  id: 470925
+  nodesUsed: 128
+  readBytes: 18418198040
+  runTime: 198
+  startTime: '2020-10-02 20:26:11'
+  submissionTime: '2020-10-02 07:54:09'
+  waitingTime: 0 days 12:32:02
+  writtenBytes: 30887303296
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-02 20:22:19'
+  id: 470990
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 235
+  startTime: '2020-10-02 20:04:27'
+  submissionTime: '2020-10-02 16:25:30'
+  waitingTime: 0 days 03:38:57
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-02 20:22:19'
+  id: 470990
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 56
+  startTime: '2020-10-02 20:04:27'
+  submissionTime: '2020-10-02 16:25:30'
+  waitingTime: 0 days 03:38:57
+  writtenBytes: 549755813888
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-03 17:26:02'
+  id: 471254
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 56
+  startTime: '2020-10-03 16:55:32'
+  submissionTime: '2020-10-03 16:54:18'
+  waitingTime: 0 days 00:01:14
+  writtenBytes: 7051208960
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-03 11:40:45'
+  id: 471206
+  nodesUsed: 8
+  readBytes: 58671864
+  runTime: 31
+  startTime: '2020-10-03 11:35:52'
+  submissionTime: '2020-10-03 11:34:34'
+  waitingTime: 0 days 00:01:18
+  writtenBytes: 4800006912
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-03 11:09:53'
+  id: 471194
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 43
+  startTime: '2020-10-03 10:08:32'
+  submissionTime: '2020-10-03 10:07:13'
+  waitingTime: 0 days 00:01:19
+  writtenBytes: 5550410720
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-03 16:42:47'
+  id: 471250
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 63
+  startTime: '2020-10-03 16:26:48'
+  submissionTime: '2020-10-03 16:25:30'
+  waitingTime: 0 days 00:01:18
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-03 16:42:47'
+  id: 471250
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 272
+  startTime: '2020-10-03 16:26:48'
+  submissionTime: '2020-10-03 16:25:30'
+  waitingTime: 0 days 00:01:18
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-03 16:42:47'
+  id: 471250
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 217
+  startTime: '2020-10-03 16:26:48'
+  submissionTime: '2020-10-03 16:25:30'
+  waitingTime: 0 days 00:01:18
+  writtenBytes: 0
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-03 16:20:21'
+  id: 471248
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 47
+  startTime: '2020-10-03 16:01:07'
+  submissionTime: '2020-10-03 16:00:04'
+  waitingTime: 0 days 00:01:03
+  writtenBytes: 7051208960
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-03 16:50:35'
+  id: 471252
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 47
+  startTime: '2020-10-03 16:45:34'
+  submissionTime: '2020-10-03 16:44:32'
+  waitingTime: 0 days 00:01:02
+  writtenBytes: 7051208960
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-03 16:42:47'
+  id: 471250
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 68
+  startTime: '2020-10-03 16:26:48'
+  submissionTime: '2020-10-03 16:25:30'
+  waitingTime: 0 days 00:01:18
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-04 21:24:53'
+  id: 471370
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 304
+  startTime: '2020-10-04 21:02:06'
+  submissionTime: '2020-10-04 16:25:40'
+  waitingTime: 0 days 04:36:26
+  writtenBytes: 2199023260064
+- MPIprocs: 8192
+  coresUsed: 8192
+  endTime: '2020-10-04 21:28:26'
+  id: 471377
+  nodesUsed: 128
+  readBytes: 32947342448
+  runTime: 194
+  startTime: '2020-10-04 21:24:14'
+  submissionTime: '2020-10-04 18:54:04'
+  waitingTime: 0 days 02:30:10
+  writtenBytes: 49972757312
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-04 21:24:53'
+  id: 471370
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 169
+  startTime: '2020-10-04 21:02:06'
+  submissionTime: '2020-10-04 16:25:40'
+  waitingTime: 0 days 04:36:26
+  writtenBytes: 549755813888
+- MPIprocs: 8192
+  coresUsed: 8192
+  endTime: '2020-10-04 13:40:31'
+  id: 471184
+  nodesUsed: 128
+  readBytes: 25734962088
+  runTime: 131
+  startTime: '2020-10-04 13:37:32'
+  submissionTime: '2020-10-03 08:43:14'
+  waitingTime: 1 days 04:54:18
+  writtenBytes: 33922454896
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-04 21:21:52'
+  id: 471365
+  nodesUsed: 129
+  readBytes: 10545339344
+  runTime: 1094
+  startTime: '2020-10-04 21:02:26'
+  submissionTime: '2020-10-04 14:10:02'
+  waitingTime: 0 days 06:52:24
+  writtenBytes: 6462298044
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-04 23:12:54'
+  id: 471368
+  nodesUsed: 129
+  readBytes: 28790307288
+  runTime: 2560
+  startTime: '2020-10-04 22:28:52'
+  submissionTime: '2020-10-04 14:12:41'
+  waitingTime: 0 days 08:16:11
+  writtenBytes: 5126173600
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-04 21:24:53'
+  id: 471370
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 106
+  startTime: '2020-10-04 21:02:06'
+  submissionTime: '2020-10-04 16:25:40'
+  waitingTime: 0 days 04:36:26
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-04 21:24:53'
+  id: 471370
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 399
+  startTime: '2020-10-04 21:02:06'
+  submissionTime: '2020-10-04 16:25:40'
+  waitingTime: 0 days 04:36:26
+  writtenBytes: 0
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-05 10:00:02'
+  id: 471486
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 95
+  startTime: '2020-10-05 09:14:42'
+  submissionTime: '2020-10-05 09:13:53'
+  waitingTime: 0 days 00:00:49
+  writtenBytes: 19807994000
+- MPIprocs: 21600
+  coresUsed: 21632
+  endTime: '2020-10-05 13:29:33'
+  id: 470881
+  nodesUsed: 338
+  readBytes: 29183644256
+  runTime: 3951
+  startTime: '2020-10-05 12:22:34'
+  submissionTime: '2020-10-02 02:11:08'
+  waitingTime: 3 days 10:11:26
+  writtenBytes: 22298628536
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-05 11:04:48'
+  id: 471489
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 47
+  startTime: '2020-10-05 10:03:42'
+  submissionTime: '2020-10-05 10:03:01'
+  waitingTime: 0 days 00:00:41
+  writtenBytes: 6010634000
+- MPIprocs: 8192
+  coresUsed: 8192
+  endTime: '2020-10-05 12:22:33'
+  id: 471472
+  nodesUsed: 128
+  readBytes: 18418198040
+  runTime: 165
+  startTime: '2020-10-05 12:18:57'
+  submissionTime: '2020-10-05 07:27:31'
+  waitingTime: 0 days 04:51:26
+  writtenBytes: 30887303296
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-06 02:02:36'
+  id: 471517
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 149
+  startTime: '2020-10-06 01:50:19'
+  submissionTime: '2020-10-06 00:28:24'
+  waitingTime: 0 days 01:21:55
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-06 02:02:36'
+  id: 471517
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 45
+  startTime: '2020-10-06 01:50:19'
+  submissionTime: '2020-10-06 00:28:24'
+  waitingTime: 0 days 01:21:55
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-06 02:02:36'
+  id: 471517
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 207
+  startTime: '2020-10-06 01:50:19'
+  submissionTime: '2020-10-06 00:28:24'
+  waitingTime: 0 days 01:21:55
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-06 02:02:36'
+  id: 471517
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 58
+  startTime: '2020-10-06 01:50:19'
+  submissionTime: '2020-10-06 00:28:24'
+  waitingTime: 0 days 01:21:55
+  writtenBytes: 549755813888
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-08 10:33:17'
+  id: 468525
+  nodesUsed: 2048
+  readBytes: 105429021796
+  runTime: 84887
+  startTime: '2020-10-07 10:55:40'
+  submissionTime: '2020-09-20 20:42:27'
+  waitingTime: 16 days 14:13:13
+  writtenBytes: 1050401005020
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-08 10:33:17'
+  id: 468525
+  nodesUsed: 2048
+  readBytes: 106655479396
+  runTime: 84842
+  startTime: '2020-10-07 10:55:40'
+  submissionTime: '2020-09-20 20:42:27'
+  waitingTime: 16 days 14:13:13
+  writtenBytes: 1387783562432
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-08 10:33:17'
+  id: 468525
+  nodesUsed: 2048
+  readBytes: 104515140196
+  runTime: 84921
+  startTime: '2020-10-07 10:55:40'
+  submissionTime: '2020-09-20 20:42:27'
+  waitingTime: 16 days 14:13:13
+  writtenBytes: 1042693410416
+- MPIprocs: 65024
+  coresUsed: 65024
+  endTime: '2020-10-08 13:19:44'
+  id: 467943
+  nodesUsed: 1016
+  readBytes: 181112655996
+  runTime: 86664
+  startTime: '2020-10-07 13:17:19'
+  submissionTime: '2020-09-17 15:49:57'
+  waitingTime: 19 days 21:27:22
+  writtenBytes: 12015938452320
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-07 09:43:29'
+  id: 471609
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 126
+  startTime: '2020-10-07 09:28:31'
+  submissionTime: '2020-10-06 16:26:28'
+  waitingTime: 0 days 17:02:03
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-07 09:43:29'
+  id: 471609
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 46
+  startTime: '2020-10-07 09:28:31'
+  submissionTime: '2020-10-06 16:26:28'
+  waitingTime: 0 days 17:02:03
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-07 09:43:29'
+  id: 471609
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 181
+  startTime: '2020-10-07 09:28:31'
+  submissionTime: '2020-10-06 16:26:28'
+  waitingTime: 0 days 17:02:03
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-07 09:43:29'
+  id: 471609
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 235
+  startTime: '2020-10-07 09:28:31'
+  submissionTime: '2020-10-06 16:26:28'
+  waitingTime: 0 days 17:02:03
+  writtenBytes: 2199023260064
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-08 19:04:32'
+  id: 471438
+  nodesUsed: 802
+  readBytes: 0
+  runTime: 9738
+  startTime: '2020-10-08 16:21:03'
+  submissionTime: '2020-10-05 02:42:16'
+  waitingTime: 3 days 13:38:47
+  writtenBytes: 12597034044
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-08 12:13:17'
+  id: 471846
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 280
+  startTime: '2020-10-08 11:52:18'
+  submissionTime: '2020-10-07 16:25:25'
+  waitingTime: 0 days 19:26:53
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-08 12:13:17'
+  id: 471846
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 86
+  startTime: '2020-10-08 11:52:18'
+  submissionTime: '2020-10-07 16:25:25'
+  waitingTime: 0 days 19:26:53
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-08 12:13:17'
+  id: 471846
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 257
+  startTime: '2020-10-08 11:52:18'
+  submissionTime: '2020-10-07 16:25:25'
+  waitingTime: 0 days 19:26:53
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-08 12:13:17'
+  id: 471846
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 58
+  startTime: '2020-10-08 11:52:18'
+  submissionTime: '2020-10-07 16:25:25'
+  waitingTime: 0 days 19:26:53
+  writtenBytes: 0
+- MPIprocs: 4096
+  coresUsed: 8192
+  endTime: '2020-10-08 12:49:13'
+  id: 471660
+  nodesUsed: 128
+  readBytes: 97241417392
+  runTime: 2929
+  startTime: '2020-10-08 11:52:58'
+  submissionTime: '2020-10-06 19:02:45'
+  waitingTime: 1 days 16:50:13
+  writtenBytes: 461732990907
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-09 02:55:18'
+  id: 472087
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 261
+  startTime: '2020-10-09 02:12:13'
+  submissionTime: '2020-10-08 16:25:25'
+  waitingTime: 0 days 09:46:48
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-09 02:55:18'
+  id: 472087
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 252
+  startTime: '2020-10-09 02:12:13'
+  submissionTime: '2020-10-08 16:25:25'
+  waitingTime: 0 days 09:46:48
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-09 02:55:18'
+  id: 472087
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 63
+  startTime: '2020-10-09 02:12:13'
+  submissionTime: '2020-10-08 16:25:25'
+  waitingTime: 0 days 09:46:48
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-09 02:55:18'
+  id: 472087
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 467
+  startTime: '2020-10-09 02:12:13'
+  submissionTime: '2020-10-08 16:25:25'
+  waitingTime: 0 days 09:46:48
+  writtenBytes: 2199023260064
+- MPIprocs: 25600
+  coresUsed: 76800
+  endTime: '2020-10-11 20:52:14'
+  id: 468394
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85519
+  startTime: '2020-10-10 21:03:06'
+  submissionTime: '2020-09-19 10:26:46'
+  waitingTime: 21 days 10:36:20
+  writtenBytes: 166724889496
+- MPIprocs: 25600
+  coresUsed: 76800
+  endTime: '2020-10-11 20:52:14'
+  id: 468394
+  nodesUsed: 1200
+  readBytes: 4718617400
+  runTime: 85516
+  startTime: '2020-10-10 21:03:06'
+  submissionTime: '2020-09-19 10:26:46'
+  waitingTime: 21 days 10:36:20
+  writtenBytes: 160432991600
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-11 20:52:14'
+  id: 468394
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85510
+  startTime: '2020-10-10 21:03:06'
+  submissionTime: '2020-09-19 10:26:46'
+  waitingTime: 21 days 10:36:20
+  writtenBytes: 72352310536
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-11 20:52:14'
+  id: 468394
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85511
+  startTime: '2020-10-10 21:03:06'
+  submissionTime: '2020-09-19 10:26:46'
+  waitingTime: 21 days 10:36:20
+  writtenBytes: 75498063168
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-11 16:37:39'
+  id: 472351
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 444
+  startTime: '2020-10-11 16:13:08'
+  submissionTime: '2020-10-09 16:25:36'
+  waitingTime: 1 days 23:47:32
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-11 16:37:39'
+  id: 472351
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 46
+  startTime: '2020-10-11 16:13:08'
+  submissionTime: '2020-10-09 16:25:36'
+  waitingTime: 1 days 23:47:32
+  writtenBytes: 0
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-11 11:39:42'
+  id: 472611
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 118
+  startTime: '2020-10-11 11:09:14'
+  submissionTime: '2020-10-11 11:08:18'
+  waitingTime: 0 days 00:00:56
+  writtenBytes: 6010634000
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-11 16:37:39'
+  id: 472351
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 255
+  startTime: '2020-10-11 16:13:08'
+  submissionTime: '2020-10-09 16:25:36'
+  waitingTime: 1 days 23:47:32
+  writtenBytes: 549755813888
+- MPIprocs: 160
+  coresUsed: 512
+  endTime: '2020-10-11 21:23:48'
+  id: 472666
+  nodesUsed: 8
+  readBytes: 57635016
+  runTime: 94
+  startTime: '2020-10-11 21:13:03'
+  submissionTime: '2020-10-11 21:11:31'
+  waitingTime: 0 days 00:01:32
+  writtenBytes: 6010634000
+- MPIprocs: 96
+  coresUsed: 256
+  endTime: '2020-10-11 15:22:39'
+  id: 472621
+  nodesUsed: 4
+  readBytes: 55557320
+  runTime: 73
+  startTime: '2020-10-11 14:52:13'
+  submissionTime: '2020-10-11 14:50:50'
+  waitingTime: 0 days 00:01:23
+  writtenBytes: 6010634000
+- MPIprocs: 200
+  coresUsed: 512
+  endTime: '2020-10-11 20:42:15'
+  id: 472653
+  nodesUsed: 8
+  readBytes: 58933576
+  runTime: 129
+  startTime: '2020-10-11 20:32:35'
+  submissionTime: '2020-10-11 20:31:38'
+  waitingTime: 0 days 00:00:57
+  writtenBytes: 6010634000
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-11 13:41:57'
+  id: 472617
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 129
+  startTime: '2020-10-11 13:11:03'
+  submissionTime: '2020-10-11 13:10:08'
+  waitingTime: 0 days 00:00:55
+  writtenBytes: 6010634000
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-11 16:03:23'
+  id: 472622
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 125
+  startTime: '2020-10-11 15:32:35'
+  submissionTime: '2020-10-11 15:31:33'
+  waitingTime: 0 days 00:01:02
+  writtenBytes: 6010634000
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-11 18:30:48'
+  id: 472635
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 115
+  startTime: '2020-10-11 18:23:12'
+  submissionTime: '2020-10-11 18:21:53'
+  waitingTime: 0 days 00:01:19
+  writtenBytes: 6010634000
+- MPIprocs: 160
+  coresUsed: 512
+  endTime: '2020-10-11 22:02:58'
+  id: 472672
+  nodesUsed: 8
+  readBytes: 57635016
+  runTime: 129
+  startTime: '2020-10-11 21:31:55'
+  submissionTime: '2020-10-11 21:30:35'
+  waitingTime: 0 days 00:01:20
+  writtenBytes: 6010634000
+- MPIprocs: 200
+  coresUsed: 512
+  endTime: '2020-10-11 20:26:23'
+  id: 472652
+  nodesUsed: 8
+  readBytes: 58933576
+  runTime: 124
+  startTime: '2020-10-11 20:15:32'
+  submissionTime: '2020-10-11 20:14:18'
+  waitingTime: 0 days 00:01:14
+  writtenBytes: 6010634000
+- MPIprocs: 240
+  coresUsed: 512
+  endTime: '2020-10-11 20:55:31'
+  id: 472658
+  nodesUsed: 8
+  readBytes: 60232136
+  runTime: 116
+  startTime: '2020-10-11 20:46:56'
+  submissionTime: '2020-10-11 20:45:35'
+  waitingTime: 0 days 00:01:21
+  writtenBytes: 6010634000
+- MPIprocs: 320
+  coresUsed: 512
+  endTime: '2020-10-11 21:04:04'
+  id: 472662
+  nodesUsed: 8
+  readBytes: 62829256
+  runTime: 129
+  startTime: '2020-10-11 20:58:50'
+  submissionTime: '2020-10-11 20:56:18'
+  waitingTime: 0 days 00:02:32
+  writtenBytes: 6010634000
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-11 18:20:44'
+  id: 472632
+  nodesUsed: 8
+  readBytes: 58673864
+  runTime: 114
+  startTime: '2020-10-11 18:02:56'
+  submissionTime: '2020-10-11 18:01:35'
+  waitingTime: 0 days 00:01:21
+  writtenBytes: 6010634000
+- MPIprocs: 192
+  coresUsed: 512
+  endTime: '2020-10-11 19:08:18'
+  id: 472637
+  nodesUsed: 8
+  readBytes: 62169608
+  runTime: 121
+  startTime: '2020-10-11 18:37:51'
+  submissionTime: '2020-10-11 18:36:50'
+  waitingTime: 0 days 00:01:01
+  writtenBytes: 6010634000
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-11 16:37:39'
+  id: 472351
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 163
+  startTime: '2020-10-11 16:13:08'
+  submissionTime: '2020-10-09 16:25:36'
+  waitingTime: 1 days 23:47:32
+  writtenBytes: 0
+- MPIprocs: 96
+  coresUsed: 256
+  endTime: '2020-10-11 14:49:52'
+  id: 472620
+  nodesUsed: 4
+  readBytes: 55557320
+  runTime: 121
+  startTime: '2020-10-11 14:34:49'
+  submissionTime: '2020-10-11 14:33:34'
+  waitingTime: 0 days 00:01:15
+  writtenBytes: 6010634000
+- MPIprocs: 65536
+  coresUsed: 131072
+  endTime: '2020-10-13 04:43:15'
+  id: 467890
+  nodesUsed: 2048
+  readBytes: 46030624672
+  runTime: 37517
+  startTime: '2020-10-12 18:16:04'
+  submissionTime: '2020-09-17 13:56:56'
+  waitingTime: 25 days 04:19:08
+  writtenBytes: 273408671360
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-12 15:08:34'
+  id: 472625
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 385
+  startTime: '2020-10-12 14:45:46'
+  submissionTime: '2020-10-11 16:40:01'
+  waitingTime: 0 days 22:05:45
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-12 15:08:34'
+  id: 472625
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 243
+  startTime: '2020-10-12 14:45:46'
+  submissionTime: '2020-10-11 16:40:01'
+  waitingTime: 0 days 22:05:45
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-12 15:08:34'
+  id: 472625
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 150
+  startTime: '2020-10-12 14:45:46'
+  submissionTime: '2020-10-11 16:40:01'
+  waitingTime: 0 days 22:05:45
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-12 15:08:34'
+  id: 472625
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 44
+  startTime: '2020-10-12 14:45:46'
+  submissionTime: '2020-10-11 16:40:01'
+  waitingTime: 0 days 22:05:45
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-13 06:42:24'
+  id: 472787
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 148
+  startTime: '2020-10-13 06:22:09'
+  submissionTime: '2020-10-12 16:26:30'
+  waitingTime: 0 days 13:55:39
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-13 06:42:24'
+  id: 472787
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 43
+  startTime: '2020-10-13 06:22:09'
+  submissionTime: '2020-10-12 16:26:30'
+  waitingTime: 0 days 13:55:39
+  writtenBytes: 0
+- MPIprocs: 26240
+  coresUsed: 52480
+  endTime: '2020-10-13 06:44:03'
+  id: 471903
+  nodesUsed: 820
+  readBytes: 102737207412
+  runTime: 3331
+  startTime: '2020-10-13 05:46:00'
+  submissionTime: '2020-10-07 20:56:19'
+  waitingTime: 5 days 08:49:41
+  writtenBytes: 931267504250
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-13 07:53:13'
+  id: 472679
+  nodesUsed: 802
+  readBytes: 0
+  runTime: 3935
+  startTime: '2020-10-13 06:46:44'
+  submissionTime: '2020-10-11 22:26:34'
+  waitingTime: 1 days 08:20:10
+  writtenBytes: 15668530480
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-13 07:45:14'
+  id: 472705
+  nodesUsed: 129
+  readBytes: 10545339344
+  runTime: 1106
+  startTime: '2020-10-13 07:24:14'
+  submissionTime: '2020-10-12 02:51:52'
+  waitingTime: 1 days 04:32:22
+  writtenBytes: 6462298044
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-13 06:42:24'
+  id: 472787
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 232
+  startTime: '2020-10-13 06:22:09'
+  submissionTime: '2020-10-12 16:26:30'
+  waitingTime: 0 days 13:55:39
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-13 06:42:24'
+  id: 472787
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 323
+  startTime: '2020-10-13 06:22:09'
+  submissionTime: '2020-10-12 16:26:30'
+  waitingTime: 0 days 13:55:39
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-14 07:35:22'
+  id: 472949
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 265
+  startTime: '2020-10-14 07:16:31'
+  submissionTime: '2020-10-13 16:26:30'
+  waitingTime: 0 days 14:50:01
+  writtenBytes: 0
+- MPIprocs: 200
+  coresUsed: 512
+  endTime: '2020-10-14 10:18:30'
+  id: 473116
+  nodesUsed: 8
+  readBytes: 58933576
+  runTime: 115
+  startTime: '2020-10-14 10:05:35'
+  submissionTime: '2020-10-14 09:32:49'
+  waitingTime: 0 days 00:32:46
+  writtenBytes: 6010634000
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-14 07:35:22'
+  id: 472949
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 316
+  startTime: '2020-10-14 07:16:31'
+  submissionTime: '2020-10-13 16:26:30'
+  waitingTime: 0 days 14:50:01
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-14 07:35:22'
+  id: 472949
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 53
+  startTime: '2020-10-14 07:16:31'
+  submissionTime: '2020-10-13 16:26:30'
+  waitingTime: 0 days 14:50:01
+  writtenBytes: 549755813888
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-14 08:19:52'
+  id: 472707
+  nodesUsed: 129
+  readBytes: 28790307288
+  runTime: 2623
+  startTime: '2020-10-14 07:33:05'
+  submissionTime: '2020-10-12 02:54:53'
+  waitingTime: 2 days 04:38:12
+  writtenBytes: 5126173600
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-14 07:35:22'
+  id: 472949
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 46
+  startTime: '2020-10-14 07:16:31'
+  submissionTime: '2020-10-13 16:26:30'
+  waitingTime: 0 days 14:50:01
+  writtenBytes: 0
+- MPIprocs: 71168
+  coresUsed: 71168
+  endTime: '2020-10-15 08:50:37'
+  id: 468490
+  nodesUsed: 1112
+  readBytes: 198225662076
+  runTime: 86722
+  startTime: '2020-10-14 08:48:15'
+  submissionTime: '2020-09-20 04:48:19'
+  waitingTime: 24 days 03:59:56
+  writtenBytes: 14590126684554
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 12:50:59'
+  id: 473164
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 401
+  startTime: '2020-10-15 12:11:53'
+  submissionTime: '2020-10-14 16:25:30'
+  waitingTime: 0 days 19:46:23
+  writtenBytes: 549755813888
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-15 11:44:24'
+  id: 472153
+  nodesUsed: 802
+  readBytes: 1165010324
+  runTime: 9954
+  startTime: '2020-10-15 08:57:22'
+  submissionTime: '2020-10-08 19:39:48'
+  waitingTime: 6 days 13:17:34
+  writtenBytes: 12604363404
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 23:54:43'
+  id: 473377
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 44
+  startTime: '2020-10-15 23:28:55'
+  submissionTime: '2020-10-15 16:25:39'
+  waitingTime: 0 days 07:03:16
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 12:50:59'
+  id: 473164
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 528
+  startTime: '2020-10-15 12:11:53'
+  submissionTime: '2020-10-14 16:25:30'
+  waitingTime: 0 days 19:46:23
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 23:54:43'
+  id: 473377
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 459
+  startTime: '2020-10-15 23:28:55'
+  submissionTime: '2020-10-15 16:25:39'
+  waitingTime: 0 days 07:03:16
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 23:54:43'
+  id: 473377
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 197
+  startTime: '2020-10-15 23:28:55'
+  submissionTime: '2020-10-15 16:25:39'
+  waitingTime: 0 days 07:03:16
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 12:50:59'
+  id: 473164
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 251
+  startTime: '2020-10-15 12:11:53'
+  submissionTime: '2020-10-14 16:25:30'
+  waitingTime: 0 days 19:46:23
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 23:54:43'
+  id: 473377
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 261
+  startTime: '2020-10-15 23:28:55'
+  submissionTime: '2020-10-15 16:25:39'
+  waitingTime: 0 days 07:03:16
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-15 12:50:59'
+  id: 473164
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 64
+  startTime: '2020-10-15 12:11:53'
+  submissionTime: '2020-10-14 16:25:30'
+  waitingTime: 0 days 19:46:23
+  writtenBytes: 0
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-16 12:54:41'
+  id: 469860
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85511
+  startTime: '2020-10-15 13:05:31'
+  submissionTime: '2020-09-27 00:24:07'
+  waitingTime: 18 days 12:41:24
+  writtenBytes: 94372578960
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-16 12:54:41'
+  id: 469860
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85511
+  startTime: '2020-10-15 13:05:31'
+  submissionTime: '2020-09-27 00:24:07'
+  waitingTime: 18 days 12:41:24
+  writtenBytes: 110101342120
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-16 12:54:41'
+  id: 469860
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85511
+  startTime: '2020-10-15 13:05:31'
+  submissionTime: '2020-09-27 00:24:07'
+  waitingTime: 18 days 12:41:24
+  writtenBytes: 72352310536
+- MPIprocs: 25600
+  coresUsed: 76800
+  endTime: '2020-10-16 12:54:41'
+  id: 469860
+  nodesUsed: 1200
+  readBytes: 4718617400
+  runTime: 85517
+  startTime: '2020-10-15 13:05:31'
+  submissionTime: '2020-09-27 00:24:07'
+  waitingTime: 18 days 12:41:24
+  writtenBytes: 160432991600
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-16 12:54:41'
+  id: 469860
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85511
+  startTime: '2020-10-15 13:05:31'
+  submissionTime: '2020-09-27 00:24:07'
+  waitingTime: 18 days 12:41:24
+  writtenBytes: 78643815800
+- MPIprocs: 128
+  coresUsed: 128
+  endTime: '2020-10-16 19:59:21'
+  id: 473687
+  nodesUsed: 2
+  readBytes: 888848
+  runTime: 492
+  startTime: '2020-10-16 19:10:08'
+  submissionTime: '2020-10-16 19:08:38'
+  waitingTime: 0 days 00:01:30
+  writtenBytes: 11040780128
+- MPIprocs: 4096
+  coresUsed: 8192
+  endTime: '2020-10-16 09:11:48'
+  id: 472418
+  nodesUsed: 128
+  readBytes: 97241417392
+  runTime: 1200
+  startTime: '2020-10-16 08:50:07'
+  submissionTime: '2020-10-09 21:24:41'
+  waitingTime: 6 days 11:25:26
+  writtenBytes: 461732990939
+- MPIprocs: 128
+  coresUsed: 128
+  endTime: '2020-10-16 19:59:21'
+  id: 473687
+  nodesUsed: 2
+  readBytes: 888848
+  runTime: 702
+  startTime: '2020-10-16 19:10:08'
+  submissionTime: '2020-10-16 19:08:38'
+  waitingTime: 0 days 00:01:30
+  writtenBytes: 16676742552
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 23:38:43'
+  id: 473861
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 44
+  startTime: '2020-10-17 23:16:22'
+  submissionTime: '2020-10-17 16:26:29'
+  waitingTime: 0 days 06:49:53
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 11:40:23'
+  id: 473645
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 240
+  startTime: '2020-10-17 11:16:51'
+  submissionTime: '2020-10-16 16:26:32'
+  waitingTime: 0 days 18:50:19
+  writtenBytes: 549755813888
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-17 11:42:45'
+  id: 472875
+  nodesUsed: 802
+  readBytes: 0
+  runTime: 10376
+  startTime: '2020-10-17 08:49:00'
+  submissionTime: '2020-10-12 23:17:59'
+  waitingTime: 4 days 09:31:01
+  writtenBytes: 12616742868
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 11:40:23'
+  id: 473645
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 396
+  startTime: '2020-10-17 11:16:51'
+  submissionTime: '2020-10-16 16:26:32'
+  waitingTime: 0 days 18:50:19
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 23:38:43'
+  id: 473861
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 379
+  startTime: '2020-10-17 23:16:22'
+  submissionTime: '2020-10-17 16:26:29'
+  waitingTime: 0 days 06:49:53
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 23:38:43'
+  id: 473861
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 178
+  startTime: '2020-10-17 23:16:22'
+  submissionTime: '2020-10-17 16:26:29'
+  waitingTime: 0 days 06:49:53
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 11:40:23'
+  id: 473645
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 47
+  startTime: '2020-10-17 11:16:51'
+  submissionTime: '2020-10-16 16:26:32'
+  waitingTime: 0 days 18:50:19
+  writtenBytes: 0
+- MPIprocs: 16384
+  coresUsed: 65536
+  endTime: '2020-10-17 23:47:45'
+  id: 473458
+  nodesUsed: 1024
+  readBytes: 97241417392
+  runTime: 1786
+  startTime: '2020-10-17 23:15:41'
+  submissionTime: '2020-10-15 22:55:14'
+  waitingTime: 2 days 00:20:27
+  writtenBytes: 270793402179
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 23:38:43'
+  id: 473861
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 226
+  startTime: '2020-10-17 23:16:22'
+  submissionTime: '2020-10-17 16:26:29'
+  waitingTime: 0 days 06:49:53
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-17 11:40:23'
+  id: 473645
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 172
+  startTime: '2020-10-17 11:16:51'
+  submissionTime: '2020-10-16 16:26:32'
+  waitingTime: 0 days 18:50:19
+  writtenBytes: 0
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-18 06:24:40'
+  id: 473934
+  nodesUsed: 129
+  readBytes: 10545339344
+  runTime: 1145
+  startTime: '2020-10-18 06:02:36'
+  submissionTime: '2020-10-18 06:02:15'
+  waitingTime: 0 days 00:00:21
+  writtenBytes: 6462298156
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-18 10:49:14'
+  id: 473936
+  nodesUsed: 129
+  readBytes: 28790307288
+  runTime: 2629
+  startTime: '2020-10-18 10:01:59'
+  submissionTime: '2020-10-18 06:05:10'
+  waitingTime: 0 days 03:56:49
+  writtenBytes: 5126173600
+- MPIprocs: 26240
+  coresUsed: 52480
+  endTime: '2020-10-18 01:30:57'
+  id: 471897
+  nodesUsed: 820
+  readBytes: 97241417392
+  runTime: 2098
+  startTime: '2020-10-18 00:54:09'
+  submissionTime: '2020-10-07 20:39:44'
+  waitingTime: 10 days 04:14:25
+  writtenBytes: 468666258759
+- MPIprocs: 26240
+  coresUsed: 52480
+  endTime: '2020-10-18 01:50:47'
+  id: 471904
+  nodesUsed: 820
+  readBytes: 102737207412
+  runTime: 3291
+  startTime: '2020-10-18 00:53:46'
+  submissionTime: '2020-10-07 20:57:36'
+  waitingTime: 10 days 03:56:10
+  writtenBytes: 931267504250
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-18 04:23:13'
+  id: 472887
+  nodesUsed: 802
+  readBytes: 0
+  runTime: 10155
+  startTime: '2020-10-18 01:32:06'
+  submissionTime: '2020-10-13 03:11:00'
+  waitingTime: 4 days 22:21:06
+  writtenBytes: 12587840772
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-21 23:32:28'
+  id: 470620
+  nodesUsed: 2048
+  readBytes: 105429021796
+  runTime: 84877
+  startTime: '2020-10-20 23:54:41'
+  submissionTime: '2020-09-30 23:26:16'
+  waitingTime: 20 days 00:28:25
+  writtenBytes: 970138673768
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-21 23:32:28'
+  id: 470620
+  nodesUsed: 2048
+  readBytes: 104515140196
+  runTime: 84892
+  startTime: '2020-10-20 23:54:41'
+  submissionTime: '2020-09-30 23:26:16'
+  waitingTime: 20 days 00:28:25
+  writtenBytes: 1122041860068
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-21 23:32:28'
+  id: 470620
+  nodesUsed: 2048
+  readBytes: 106655479396
+  runTime: 84917
+  startTime: '2020-10-20 23:54:41'
+  submissionTime: '2020-09-30 23:26:16'
+  waitingTime: 20 days 00:28:25
+  writtenBytes: 1331393567396
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-21 00:23:02'
+  id: 473978
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 51
+  startTime: '2020-10-21 00:10:17'
+  submissionTime: '2020-10-20 22:03:28'
+  waitingTime: 0 days 02:06:49
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-21 00:23:02'
+  id: 473978
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 195
+  startTime: '2020-10-21 00:10:17'
+  submissionTime: '2020-10-20 22:03:28'
+  waitingTime: 0 days 02:06:49
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-21 00:23:02'
+  id: 473978
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 162
+  startTime: '2020-10-21 00:10:17'
+  submissionTime: '2020-10-20 22:03:28'
+  waitingTime: 0 days 02:06:49
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-21 00:23:02'
+  id: 473978
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 45
+  startTime: '2020-10-21 00:10:17'
+  submissionTime: '2020-10-20 22:03:28'
+  waitingTime: 0 days 02:06:49
+  writtenBytes: 0
+- MPIprocs: 40960
+  coresUsed: 40960
+  endTime: '2020-10-21 09:20:12'
+  id: 472761
+  nodesUsed: 640
+  readBytes: 5924262496
+  runTime: 27176
+  startTime: '2020-10-21 01:44:29'
+  submissionTime: '2020-10-12 14:19:56'
+  waitingTime: 8 days 11:24:33
+  writtenBytes: 264494386900
+- MPIprocs: 13120
+  coresUsed: 52480
+  endTime: '2020-10-22 01:21:34'
+  id: 474235
+  nodesUsed: 820
+  readBytes: 97241417392
+  runTime: 1878
+  startTime: '2020-10-22 00:44:58'
+  submissionTime: '2020-10-21 23:00:48'
+  waitingTime: 0 days 01:44:10
+  writtenBytes: 274014629307
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-22 14:05:52'
+  id: 474115
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 51
+  startTime: '2020-10-22 13:52:41'
+  submissionTime: '2020-10-21 16:26:02'
+  waitingTime: 0 days 21:26:39
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-22 14:05:52'
+  id: 474115
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 55
+  startTime: '2020-10-22 13:52:41'
+  submissionTime: '2020-10-21 16:26:02'
+  waitingTime: 0 days 21:26:39
+  writtenBytes: 0
+- MPIprocs: 6560
+  coresUsed: 52480
+  endTime: '2020-10-22 05:19:45'
+  id: 474244
+  nodesUsed: 820
+  readBytes: 97241417392
+  runTime: 2105
+  startTime: '2020-10-22 04:40:36'
+  submissionTime: '2020-10-21 23:32:00'
+  waitingTime: 0 days 05:08:36
+  writtenBytes: 274014629307
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-22 14:05:52'
+  id: 474115
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 193
+  startTime: '2020-10-22 13:52:41'
+  submissionTime: '2020-10-21 16:26:02'
+  waitingTime: 0 days 21:26:39
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-22 14:05:52'
+  id: 474115
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 227
+  startTime: '2020-10-22 13:52:41'
+  submissionTime: '2020-10-21 16:26:02'
+  waitingTime: 0 days 21:26:39
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 17:45:47'
+  id: 474375
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 48
+  startTime: '2020-10-23 17:32:07'
+  submissionTime: '2020-10-22 16:26:06'
+  waitingTime: 1 days 01:06:01
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 17:45:47'
+  id: 474375
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 226
+  startTime: '2020-10-23 17:32:07'
+  submissionTime: '2020-10-22 16:26:06'
+  waitingTime: 1 days 01:06:01
+  writtenBytes: 2199023260064
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-23 16:21:09'
+  id: 474392
+  nodesUsed: 802
+  readBytes: 0
+  runTime: 3912
+  startTime: '2020-10-23 15:14:31'
+  submissionTime: '2020-10-22 17:58:05'
+  waitingTime: 0 days 21:16:26
+  writtenBytes: 15557680432
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 18:25:40'
+  id: 474661
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 208
+  startTime: '2020-10-23 18:11:54'
+  submissionTime: '2020-10-23 17:48:07'
+  waitingTime: 0 days 00:23:47
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 17:45:47'
+  id: 474375
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 52
+  startTime: '2020-10-23 17:32:07'
+  submissionTime: '2020-10-22 16:26:06'
+  waitingTime: 1 days 01:06:01
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 17:45:47'
+  id: 474375
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 175
+  startTime: '2020-10-23 17:32:07'
+  submissionTime: '2020-10-22 16:26:06'
+  waitingTime: 1 days 01:06:01
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 18:25:40'
+  id: 474661
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 178
+  startTime: '2020-10-23 18:11:54'
+  submissionTime: '2020-10-23 17:48:07'
+  waitingTime: 0 days 00:23:47
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 18:25:40'
+  id: 474661
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 48
+  startTime: '2020-10-23 18:11:54'
+  submissionTime: '2020-10-23 17:48:07'
+  waitingTime: 0 days 00:23:47
+  writtenBytes: 0
+- MPIprocs: 26240
+  coresUsed: 52480
+  endTime: '2020-10-23 15:38:10'
+  id: 474143
+  nodesUsed: 820
+  readBytes: 97241417392
+  runTime: 1846
+  startTime: '2020-10-23 15:04:23'
+  submissionTime: '2020-10-21 18:01:38'
+  waitingTime: 1 days 21:02:45
+  writtenBytes: 274014629307
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-23 18:25:40'
+  id: 474661
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 53
+  startTime: '2020-10-23 18:11:54'
+  submissionTime: '2020-10-23 17:48:07'
+  waitingTime: 0 days 00:23:47
+  writtenBytes: 549755813888
+- MPIprocs: 16384
+  coresUsed: 16384
+  endTime: '2020-10-25 05:44:07'
+  id: 474043
+  nodesUsed: 256
+  readBytes: 7498198608
+  runTime: 11691
+  startTime: '2020-10-25 02:26:49'
+  submissionTime: '2020-10-21 06:20:50'
+  waitingTime: 3 days 20:05:59
+  writtenBytes: 149153842432
+- MPIprocs: 71168
+  coresUsed: 71168
+  endTime: '2020-10-27 12:27:35'
+  id: 471751
+  nodesUsed: 1112
+  readBytes: 198225662076
+  runTime: 86654
+  startTime: '2020-10-26 12:25:33'
+  submissionTime: '2020-10-07 00:00:17'
+  waitingTime: 19 days 12:25:16
+  writtenBytes: 14997558957942
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-26 03:27:52'
+  id: 475206
+  nodesUsed: 129
+  readBytes: 10545339344
+  runTime: 1223
+  startTime: '2020-10-26 03:05:05'
+  submissionTime: '2020-10-26 02:09:12'
+  waitingTime: 0 days 00:55:53
+  writtenBytes: 6462300760
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 19:32:44'
+  id: 475216
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 242
+  startTime: '2020-10-26 19:08:14'
+  submissionTime: '2020-10-26 03:03:09'
+  waitingTime: 0 days 16:05:05
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 22:31:03'
+  id: 475359
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 48
+  startTime: '2020-10-26 22:16:40'
+  submissionTime: '2020-10-26 19:34:45'
+  waitingTime: 0 days 02:41:55
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 03:00:47'
+  id: 474948
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 311
+  startTime: '2020-10-26 02:34:39'
+  submissionTime: '2020-10-24 16:26:08'
+  waitingTime: 1 days 10:08:31
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 22:31:03'
+  id: 475359
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 52
+  startTime: '2020-10-26 22:16:40'
+  submissionTime: '2020-10-26 19:34:45'
+  waitingTime: 0 days 02:41:55
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 03:00:47'
+  id: 474948
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 60
+  startTime: '2020-10-26 02:34:39'
+  submissionTime: '2020-10-24 16:26:08'
+  waitingTime: 1 days 10:08:31
+  writtenBytes: 0
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-27 14:47:49'
+  id: 470565
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85509
+  startTime: '2020-10-26 15:00:53'
+  submissionTime: '2020-09-30 19:15:28'
+  waitingTime: 25 days 19:45:25
+  writtenBytes: 75498063168
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 03:00:47'
+  id: 474948
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 253
+  startTime: '2020-10-26 02:34:39'
+  submissionTime: '2020-10-24 16:26:08'
+  waitingTime: 1 days 10:08:31
+  writtenBytes: 0
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-27 14:47:49'
+  id: 470565
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85509
+  startTime: '2020-10-26 15:00:53'
+  submissionTime: '2020-09-30 19:15:28'
+  waitingTime: 25 days 19:45:25
+  writtenBytes: 75498063168
+- MPIprocs: 6400
+  coresUsed: 76800
+  endTime: '2020-10-27 14:47:49'
+  id: 470565
+  nodesUsed: 1200
+  readBytes: 1614826760
+  runTime: 85505
+  startTime: '2020-10-26 15:00:53'
+  submissionTime: '2020-09-30 19:15:28'
+  waitingTime: 25 days 19:45:25
+  writtenBytes: 67822723920
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-27 14:47:49'
+  id: 470565
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85509
+  startTime: '2020-10-26 15:00:53'
+  submissionTime: '2020-09-30 19:15:28'
+  waitingTime: 25 days 19:45:25
+  writtenBytes: 94372578960
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 19:32:44'
+  id: 475216
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 47
+  startTime: '2020-10-26 19:08:14'
+  submissionTime: '2020-10-26 03:03:09'
+  waitingTime: 0 days 16:05:05
+  writtenBytes: 0
+- MPIprocs: 8192
+  coresUsed: 8256
+  endTime: '2020-10-26 23:41:22'
+  id: 475209
+  nodesUsed: 129
+  readBytes: 28790307288
+  runTime: 2523
+  startTime: '2020-10-26 22:56:59'
+  submissionTime: '2020-10-26 02:11:58'
+  waitingTime: 0 days 20:45:01
+  writtenBytes: 5126173600
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 19:32:44'
+  id: 475216
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 360
+  startTime: '2020-10-26 19:08:14'
+  submissionTime: '2020-10-26 03:03:09'
+  waitingTime: 0 days 16:05:05
+  writtenBytes: 2199023260064
+- MPIprocs: 12800
+  coresUsed: 76800
+  endTime: '2020-10-27 14:47:49'
+  id: 470565
+  nodesUsed: 1200
+  readBytes: 3145752632
+  runTime: 85507
+  startTime: '2020-10-26 15:00:53'
+  submissionTime: '2020-09-30 19:15:28'
+  waitingTime: 25 days 19:45:25
+  writtenBytes: 110101342120
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 03:00:47'
+  id: 474948
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 424
+  startTime: '2020-10-26 02:34:39'
+  submissionTime: '2020-10-24 16:26:08'
+  waitingTime: 1 days 10:08:31
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 22:31:03'
+  id: 475359
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 207
+  startTime: '2020-10-26 22:16:40'
+  submissionTime: '2020-10-26 19:34:45'
+  waitingTime: 0 days 02:41:55
+  writtenBytes: 0
+- MPIprocs: 19200
+  coresUsed: 76800
+  endTime: '2020-10-27 14:47:49'
+  id: 470565
+  nodesUsed: 1200
+  readBytes: 4718617400
+  runTime: 85509
+  startTime: '2020-10-26 15:00:53'
+  submissionTime: '2020-09-30 19:15:28'
+  waitingTime: 25 days 19:45:25
+  writtenBytes: 127402669800
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 19:32:44'
+  id: 475216
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 280
+  startTime: '2020-10-26 19:08:14'
+  submissionTime: '2020-10-26 03:03:09'
+  waitingTime: 0 days 16:05:05
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-26 22:31:03'
+  id: 475359
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 202
+  startTime: '2020-10-26 22:16:40'
+  submissionTime: '2020-10-26 19:34:45'
+  waitingTime: 0 days 02:41:55
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-27 19:45:13'
+  id: 475594
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 192
+  startTime: '2020-10-27 19:28:30'
+  submissionTime: '2020-10-27 16:26:08'
+  waitingTime: 0 days 03:02:22
+  writtenBytes: 549755813888
+- MPIprocs: 65536
+  coresUsed: 65536
+  endTime: '2020-10-27 18:58:36'
+  id: 474131
+  nodesUsed: 1024
+  readBytes: 4823005100
+  runTime: 14701
+  startTime: '2020-10-27 14:52:53'
+  submissionTime: '2020-10-21 17:26:42'
+  waitingTime: 5 days 21:26:11
+  writtenBytes: 32188418692
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-27 19:45:13'
+  id: 475594
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 240
+  startTime: '2020-10-27 19:28:30'
+  submissionTime: '2020-10-27 16:26:08'
+  waitingTime: 0 days 03:02:22
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-27 19:45:13'
+  id: 475594
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 156
+  startTime: '2020-10-27 19:28:30'
+  submissionTime: '2020-10-27 16:26:08'
+  waitingTime: 0 days 03:02:22
+  writtenBytes: 0
+- MPIprocs: 802
+  coresUsed: 51328
+  endTime: '2020-10-27 20:34:26'
+  id: 474454
+  nodesUsed: 802
+  readBytes: 464797800
+  runTime: 5348
+  startTime: '2020-10-27 19:04:00'
+  submissionTime: '2020-10-22 20:58:57'
+  waitingTime: 4 days 22:05:03
+  writtenBytes: 52871283048
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-27 19:45:13'
+  id: 475594
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 49
+  startTime: '2020-10-27 19:28:30'
+  submissionTime: '2020-10-27 16:26:08'
+  waitingTime: 0 days 03:02:22
+  writtenBytes: 0
+- MPIprocs: 71168
+  coresUsed: 71168
+  endTime: '2020-10-29 17:50:19'
+  id: 471579
+  nodesUsed: 1112
+  readBytes: 198225662076
+  runTime: 86740
+  startTime: '2020-10-28 17:48:30'
+  submissionTime: '2020-10-06 14:22:12'
+  waitingTime: 22 days 03:26:18
+  writtenBytes: 14792012662128
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-29 05:01:33'
+  id: 470621
+  nodesUsed: 2048
+  readBytes: 106655479396
+  runTime: 84956
+  startTime: '2020-10-28 05:21:06'
+  submissionTime: '2020-09-30 23:26:33'
+  waitingTime: 27 days 05:54:33
+  writtenBytes: 1230998392132
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-29 05:01:33'
+  id: 470621
+  nodesUsed: 2048
+  readBytes: 104515140196
+  runTime: 84999
+  startTime: '2020-10-28 05:21:06'
+  submissionTime: '2020-09-30 23:26:33'
+  waitingTime: 27 days 05:54:33
+  writtenBytes: 1096943066252
+- MPIprocs: 32768
+  coresUsed: 131072
+  endTime: '2020-10-29 05:01:33'
+  id: 470621
+  nodesUsed: 2048
+  readBytes: 105429021796
+  runTime: 84983
+  startTime: '2020-10-28 05:21:06'
+  submissionTime: '2020-09-30 23:26:33'
+  waitingTime: 27 days 05:54:33
+  writtenBytes: 1050401005020
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:11:14'
+  id: 475864
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 261
+  startTime: '2020-10-29 15:39:15'
+  submissionTime: '2020-10-28 16:26:10'
+  waitingTime: 0 days 23:13:05
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:11:14'
+  id: 475864
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 48
+  startTime: '2020-10-29 15:39:15'
+  submissionTime: '2020-10-28 16:26:10'
+  waitingTime: 0 days 23:13:05
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:11:14'
+  id: 475864
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 175
+  startTime: '2020-10-29 15:39:15'
+  submissionTime: '2020-10-28 16:26:10'
+  waitingTime: 0 days 23:13:05
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:56:00'
+  id: 476070
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 430
+  startTime: '2020-10-29 16:27:53'
+  submissionTime: '2020-10-29 16:26:18'
+  waitingTime: 0 days 00:01:35
+  writtenBytes: 2199023260064
+- MPIprocs: 65536
+  coresUsed: 65536
+  endTime: '2020-10-29 08:46:07'
+  id: 474349
+  nodesUsed: 1024
+  readBytes: 4823005100
+  runTime: 13159
+  startTime: '2020-10-29 05:05:21'
+  submissionTime: '2020-10-22 14:42:24'
+  waitingTime: 6 days 14:22:57
+  writtenBytes: 32188418692
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:56:00'
+  id: 476070
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 270
+  startTime: '2020-10-29 16:27:53'
+  submissionTime: '2020-10-29 16:26:18'
+  waitingTime: 0 days 00:01:35
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:11:14'
+  id: 475864
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 307
+  startTime: '2020-10-29 15:39:15'
+  submissionTime: '2020-10-28 16:26:10'
+  waitingTime: 0 days 23:13:05
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:56:00'
+  id: 476070
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 256
+  startTime: '2020-10-29 16:27:53'
+  submissionTime: '2020-10-29 16:26:18'
+  waitingTime: 0 days 00:01:35
+  writtenBytes: 0
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-29 16:56:00'
+  id: 476070
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 49
+  startTime: '2020-10-29 16:27:53'
+  submissionTime: '2020-10-29 16:26:18'
+  waitingTime: 0 days 00:01:35
+  writtenBytes: 0
+- MPIprocs: 71168
+  coresUsed: 71168
+  endTime: '2020-10-31 21:59:21'
+  id: 472370
+  nodesUsed: 1112
+  readBytes: 198225662076
+  runTime: 86652
+  startTime: '2020-10-30 21:55:34'
+  submissionTime: '2020-10-09 17:47:19'
+  waitingTime: 21 days 04:08:15
+  writtenBytes: 14384580388740
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-30 18:16:05'
+  id: 476279
+  nodesUsed: 128
+  readBytes: 1649288217968
+  runTime: 45
+  startTime: '2020-10-30 17:49:59'
+  submissionTime: '2020-10-30 16:26:10'
+  waitingTime: 0 days 01:23:49
+  writtenBytes: 0
+- MPIprocs: 71168
+  coresUsed: 71168
+  endTime: '2020-10-31 21:58:53'
+  id: 472369
+  nodesUsed: 1112
+  readBytes: 198225662076
+  runTime: 86894
+  startTime: '2020-10-30 21:55:06'
+  submissionTime: '2020-10-09 17:46:19'
+  waitingTime: 21 days 04:08:47
+  writtenBytes: 14792012662128
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-30 18:16:05'
+  id: 476279
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 241
+  startTime: '2020-10-30 17:49:59'
+  submissionTime: '2020-10-30 16:26:10'
+  waitingTime: 0 days 01:23:49
+  writtenBytes: 549755813888
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-30 18:16:05'
+  id: 476279
+  nodesUsed: 128
+  readBytes: 0
+  runTime: 380
+  startTime: '2020-10-30 17:49:59'
+  submissionTime: '2020-10-30 16:26:10'
+  waitingTime: 0 days 01:23:49
+  writtenBytes: 2199023260064
+- MPIprocs: 2048
+  coresUsed: 8192
+  endTime: '2020-10-30 18:16:05'
+  id: 476279
+  nodesUsed: 128
+  readBytes: 549755813888
+  runTime: 166
+  startTime: '2020-10-30 17:49:59'
+  submissionTime: '2020-10-30 16:26:10'
+  waitingTime: 0 days 01:23:49
+  writtenBytes: 0
+- MPIprocs: 200
+  coresUsed: 512
+  endTime: '2020-10-31 02:02:11'
+  id: 476395
+  nodesUsed: 8
+  readBytes: 58933576
+  runTime: 134
+  startTime: '2020-10-31 00:58:55'
+  submissionTime: '2020-10-31 00:43:22'
+  waitingTime: 0 days 00:15:33
+  writtenBytes: 6010634000

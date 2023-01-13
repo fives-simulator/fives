@@ -17,13 +17,98 @@
  **/
 
 #include <iostream>
+
 #include <wrench-dev.h>
 #include <simgrid/plugins/energy.h>
 #include <simgrid/kernel/routing/NetPoint.hpp>
 
+#include "yaml-cpp/yaml.h"
+
 #include "Controller.h"
 #include "Platform.h"
+#include "JobDefinition.h"
 
+/**
+ * @brief Describe topology of zones, hosts and links.
+ * (should be used to create a diagram..)
+ * 
+*/
+void describe_platform() {
+    
+    std::set<simgrid::kernel::routing::NetZoneImpl*> zones = {};
+
+    // Dragonfly zonefor controllers is actually seen as "clusters"
+    for (auto const & hostcluster : wrench::S4U_Simulation::getAllHostnamesByCluster()) {
+        for (auto const & host : hostcluster.second) {
+            std::cout << host << "@" << hostcluster.first << std::endl;
+            auto netpt = wrench::S4U_Simulation::get_host_or_vm_by_name(host)->get_netpoint();
+            auto zone = netpt->get_englobing_zone();
+            zones.insert(zone);
+        }
+    }
+
+    // Storage and control zone is considered as an actual zone (its created as a "floyd_zone")
+    for (auto const & hostzone : wrench::S4U_Simulation::getAllHostnamesByZone()) {
+        for (auto const & host : hostzone.second) {
+            std::cout << host << "@" << hostzone.first << std::endl;
+            auto netpt = wrench::S4U_Simulation::get_host_or_vm_by_name(host)->get_netpoint();
+            auto zone = netpt->get_englobing_zone();
+            zones.insert(zone);
+        }
+    }
+
+    // Zone info recap
+    for (const auto& zone : zones) {
+        std::cout << "Zone: " << zone->get_name() << std::endl;
+        // std::cout << "  - Network model: " << zone->get_network_model() << std::endl;
+        std::cout << "  - Host count: " << zone->get_host_count() << std::endl;
+        std::cout << "  - Parent zone: " << zone->get_parent()->get_name() << std::endl;
+        std::cout << "  - Links:" << std::endl;
+        for (const auto& link : zone->get_all_links()) {
+            std::cout << "     - " << link->get_name() << std::endl;
+        }
+    }
+
+    // Showing a route between two hosts
+    /*
+    auto storage0 = wrench::S4U_Simulation::get_host_or_vm_by_name("storage0");
+    auto compute14 = wrench::S4U_Simulation::get_host_or_vm_by_name("compute14");
+    auto user0 = wrench::S4U_Simulation::get_host_or_vm_by_name("user0");
+    std::vector<simgrid::s4u::Link*> linksInRoute;
+    double latency = 0;
+    //std::unordered_set<simgrid::kernel::routing::NetZoneImpl*> netzonesInRoute;
+    storage0->route_to(compute14, linksInRoute, &latency);
+
+    for (const auto & link : linksInRoute) {
+        std::cout << link->get_name() << std::endl;
+    }
+
+    linksInRoute.clear();
+    user0->route_to(storage0, linksInRoute, &latency);
+    for (const auto & link : linksInRoute) {
+        std::cout << link->get_name() << std::endl;
+    }
+    */
+
+}
+
+auto loadYamlJobs(const std::string& yaml_file_name) {
+
+    YAML::Node jobs = YAML::LoadFile(yaml_file_name);
+    if (!(jobs["jobs"]) or !(jobs["jobs"].IsSequence())) {
+        std::cout << "# Invalide job file" << std::endl;
+        throw std::invalid_argument("Invalid job file as input data");
+    }
+
+    std::vector<storalloc::YamlJob> job_list;
+    for (const auto& job : jobs["jobs"]) {
+        job_list.push_back(job.as<storalloc::YamlJob>());
+    }
+
+    std::cout << "# Loaded " << std::to_string(job_list.size()) << " jobs" << std::endl;
+
+    return job_list;
+}
 
 /**
  * @brief The Simulator's main function
@@ -33,6 +118,8 @@
  * @return 0 on success, non-zero otherwise
  */
 int main(int argc, char **argv) {
+
+    auto jobs = loadYamlJobs("../IOJobs_10.yml");
 
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
@@ -47,95 +134,38 @@ int main(int argc, char **argv) {
     simulation->instantiatePlatform(platform_factory);
     simulation->getOutput().enableDiskTimestamps(true);
 
+    // Just to make sure the platform looks about correct.
+    describe_platform();
 
-    /*  Describe topology of zones, hosts and links.
-     *  (should be used to create a diagram..)
-     *
-     */
-    std::set<simgrid::kernel::routing::NetZoneImpl*> zones = {};
-    
-    for (const auto& hostname : wrench::S4U_Simulation::getAllHostnames()) {
-        std::cout << " - " << hostname << std::endl;
-        auto netpt = wrench::S4U_Simulation::get_host_or_vm_by_name(hostname)->get_netpoint();
-        auto zone = netpt->get_englobing_zone();
-        zones.insert(zone);
-        std::cout << "    - NetPoint is :" << netpt->get_name() << "@" << zone->get_name() << std::endl;
+    // Simple storage services to be accessed through CompoundStorageService
+    std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
+    for (auto i = 2; i < 5; i++) {
+        sstorageservices.insert(
+            simulation->add(
+                wrench::SimpleStorageService::createSimpleStorageService(
+                    "storage"+std::to_string(i), {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+                )
+            )
+        );
     }
 
-    // getting info on NetZoneImpl instances
-    for (const auto& zone : zones) {
-        std::cout << "Zone: " << zone->get_name() << std::endl;
-        // std::cout << "  - Network model: " << zone->get_network_model() << std::endl;
-        std::cout << "  - Host count: " << zone->get_host_count() << std::endl;
-        std::cout << "  - Parent zone: " << zone->get_parent()->get_name() << std::endl;
-        std::cout << "With links:" << std::endl;
-        for (const auto& link : zone->get_all_links()) {
-            std::cout << "   - " << link->get_name() << std::endl;
-        }
-        auto hostsInZone = zone->get_all_hosts();
-        std::cout << "Hosts:" << std::endl;
-        for (const auto & host : hostsInZone) {
-            std::cout << " - " << host->get_name() << std::endl;
-        }
-    }
-
-    auto storage0 = wrench::S4U_Simulation::get_host_or_vm_by_name("storage0");
-    auto compute14 = wrench::S4U_Simulation::get_host_or_vm_by_name("compute14");
-    std::vector<simgrid::s4u::Link*> linksInRoute;
-    double latency = 0;
-    //std::unordered_set<simgrid::kernel::routing::NetZoneImpl*> netzonesInRoute;
-    storage0->route_to(compute14, linksInRoute, &latency);
-
-    for (const auto & link : linksInRoute) {
-        std::cout << link->get_name() << std::endl;
-    }
-
-
-
-
-    /*
-    for (auto const & [tmpzone, tmphostnames] : wrench::S4U_Simulation::getAllHostnamesByZone()) {
-        for (auto const & host : tmphostnames) {
-            std::cout << tmpzone << " : " << host << std::endl;
-        }
-    }
-    */
-
-    /* Instantiate a storage service on the platform */
-    auto storage_service0 = simulation->add(
-        wrench::SimpleStorageService::createSimpleStorageService(
-            "storage0", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
-        )
-    );
-
-        /* Instantiate a storage service on the platform */
-    auto storage_service1 = simulation->add(
-        wrench::SimpleStorageService::createSimpleStorageService(
-            "storage1", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
-        )
-    );
-
-        /* Instantiate a storage service on the platform */
-    auto storage_service2 = simulation->add(
-        wrench::SimpleStorageService::createSimpleStorageService(
-            "storage2", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
-        )
-    );
-
-        /* Instantiate a storage service on the platform */
-    auto storage_service3 = simulation->add(
-        wrench::SimpleStorageService::createSimpleStorageService(
-            "storage3", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
-        )
-    );
-
+    // CompoundStorageService, on first storage node
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
-            "storage1", {storage_service2, storage_service3}, {}, {}
+            "storage0", sstorageservices, {}, {}
         )
     );
 
-    /* Instantiate a bare-metal compute service on the platform */
+    // Additionnal Simple Storage service, to be used as-is.
+    auto storage_service1 = simulation->add(
+            wrench::SimpleStorageService::createSimpleStorageService(
+                "storage1", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+            )
+    );
+
+    /* Instantiate a batch compute service on the platform, with a special algorithm 
+       able to handle the CompoundStorageService
+     */
     auto batch_service = simulation->add(new wrench::BatchComputeService(
             "batch0", {"compute0", "compute1"}, "", 
             {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
@@ -143,7 +173,7 @@ int main(int argc, char **argv) {
 
     /* Instantiate an execution controller */
     auto wms = simulation->add(
-            new wrench::Controller(batch_service, storage_service0, compound_storage_service, "user0"));
+            new wrench::Controller(batch_service, storage_service1, compound_storage_service, "user0", jobs));
 
     std::cout << "Launching simulation..." << std::endl;
 

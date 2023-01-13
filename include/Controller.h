@@ -13,6 +13,7 @@
 #define CONTROLLER_H
 
 #include <wrench-dev.h>
+#include "JobDefinition.h"
 
 namespace wrench {
 
@@ -27,7 +28,8 @@ namespace wrench {
                   const std::shared_ptr<ComputeService> &compute_service,
                   const std::shared_ptr<SimpleStorageService> &storage_service,
                   const std::shared_ptr<CompoundStorageService> &compound_storage_service,
-                  const std::string &hostname);
+                  const std::string &hostname,
+                  const std::vector<storalloc::YamlJob>& jobs);
 
     protected:
 
@@ -41,6 +43,7 @@ namespace wrench {
         const std::shared_ptr<ComputeService> compute_service;
         const std::shared_ptr<SimpleStorageService> storage_service;
         const std::shared_ptr<CompoundStorageService> compound_storage_service;
+        const std::vector<storalloc::YamlJob>& jobs;
 
     };
 }
