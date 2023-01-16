@@ -64,7 +64,7 @@ namespace storalloc {
 
         std::string hostname = "compute" + std::to_string(id);
         auto compute_host = zone->create_host(hostname, {"100.0Mf","50.0Mf","20.0Mf"});
-        compute_host->set_core_count(16);
+        compute_host->set_core_count(24);
         compute_host->set_property("ram", "128GB");
         compute_host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
         compute_host->set_property("wattage_off", "10");
@@ -149,13 +149,7 @@ namespace storalloc {
 
             for (auto j=0; j<2; j++) {
                 auto hdd = storage_host->create_disk("hdd"+std::to_string(j), "50MBps", "50MBps");
-                if (i == 1) {
-                    // Fake huge disk for staging storage service - needs to be fixed with something less dirty
-                    hdd->set_property("size", "60000GiB");
-                } else {
-                    hdd->set_property("size", "600GiB");
-                }
-                    
+                hdd->set_property("size", "600GiB");
                 hdd->set_property("mount", "/dev/hdd"+std::to_string(j));
 
                 // Input for contention and variability on HDD

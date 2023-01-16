@@ -54,8 +54,7 @@ namespace wrench {
         /* Set the logging output to GREEN */
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller starting");
-
-        WRENCH_INFO("Got %s jobs", std::to_string(jobs.size()).c_str());
+        WRENCH_INFO("Got %s jobs to prepare and submit", std::to_string(jobs.size()).c_str());
 
         /* Create a job manager so that we can create/submit jobs */
         auto job_manager = this->createJobManager();
@@ -64,31 +63,33 @@ namespace wrench {
 
         for (const auto& yaml_job : jobs) {
             
-            // Create WRENCH compound jobs
             auto job = job_manager->createCompoundJob(std::to_string(yaml_job.id));
-            WRENCH_INFO("Creating a compound job for ID %s", std::to_string(yaml_job.id).c_str());
+            auto job_id = std::to_string(yaml_job.id);
+            WRENCH_INFO("Creating a compound job for ID %s", job_id.c_str());
 
             // Create file for read operation
             std::shared_ptr<wrench::DataFile> read_file = nullptr;
             std::shared_ptr<wrench::FileReadAction> fileReadAction = nullptr;
             if (yaml_job.readBytes != 0) {
-                read_file = wrench::Simulation::addFile("input_data_file_" + std::to_string(yaml_job.id), yaml_job.readBytes);
+                read_file = wrench::Simulation::addFile("input_data_file_" + job_id, yaml_job.readBytes);
                 // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
                 wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/", read_file));
-                job->addFileCopyAction(
-                    "fileCopyForStaging", 
+                auto fileCopyAction = job->addFileCopyAction(
+                    "fileCopyForStaging" + job_id, 
                     wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/", read_file),
                     wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
                 );
-                fileReadAction = job->addFileReadAction("fileRead", wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                fileReadAction = job->addFileReadAction("fileRead" + job_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                job->addActionDependency(fileCopyAction, fileReadAction);
+                actions.push_back(fileCopyAction);
                 actions.push_back(fileReadAction);
-                WRENCH_INFO("Read action added to job ID %s", std::to_string(yaml_job.id).c_str());
+                WRENCH_INFO("Copy and read action added to job ID %s", job_id.c_str());
             }
 
-            auto compute = job->addComputeAction("compute", 300 * GFLOP, 50 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
+            // Compute action
+            auto compute = job->addComputeAction("compute" + job_id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
             actions.push_back(compute);
-            WRENCH_INFO("Compute action added to job ID %s", std::to_string(yaml_job.id).c_str());
-
+            WRENCH_INFO("Compute action added to job ID %s", job_id.c_str());
             // Possibly model some waiting time / bootstrapping with a sleep action ?
             // auto sleep = job2->addSleepAction("sleep", 20.0);
 
@@ -96,10 +97,10 @@ namespace wrench {
             std::shared_ptr<wrench::DataFile> write_file = nullptr;
             std::shared_ptr<wrench::FileWriteAction> fileWriteAction = nullptr;
             if (yaml_job.writtenBytes != 0) {
-                write_file = wrench::Simulation::addFile("ouptut_data_file_" + std::to_string(yaml_job.id), yaml_job.writtenBytes);
-                fileWriteAction = job->addFileWriteAction("fileWrite", wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                write_file = wrench::Simulation::addFile("ouptut_data_file_" + job_id, yaml_job.writtenBytes);
+                fileWriteAction = job->addFileWriteAction("fileWrite" + job_id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
                 actions.push_back(fileWriteAction);
-                WRENCH_INFO("Write action added to job ID %s", std::to_string(yaml_job.id).c_str());
+                WRENCH_INFO("Write action added to job ID %s", job_id.c_str());
             }
             
             // Dependencies (if any)
@@ -116,8 +117,8 @@ namespace wrench {
                         job->getName().c_str(),
                         yaml_job.nodesUsed, yaml_job.coresUsed, yaml_job.runTime
             );
+            compound_jobs.push_back(job);
             job_manager->submitJob(job, this->compute_service, service_specific_args);
-
         }
     
         WRENCH_INFO("All jobs submitted to the BatchComputeService");
@@ -131,6 +132,10 @@ namespace wrench {
         WRENCH_INFO(wr_loc->toString().c_str()); 
         WRENCH_INFO(wr_loc->equal(wr_loc2) ? "Both wr_loc equal" : "wr_loc are different");
         */
+
+        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_BLUE);
+        WRENCH_INFO("Waiting for execution events");
+        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
        
         auto nb_jobs = compound_jobs.size();
         for (size_t i = 0; i < nb_jobs; i++) {
@@ -140,7 +145,15 @@ namespace wrench {
         WRENCH_INFO("Execution complete!");
 
         for (auto const &a : actions) {
-            printf("Action %s: %.2fs - %.2fs\n", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+            if (a->getState() != Action::State::COMPLETED) {
+                TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
+            }
+            WRENCH_INFO("Action %s: %.2fs - %.2fs\n", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+            if (a->getState() != Action::State::COMPLETED) {
+                //WRENCH_INFO("  - action failure cause: %s", a->getFailureCause()->toString().c_str());
+            }
+            TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+
         }
 
         /*
@@ -166,4 +179,20 @@ namespace wrench {
         /* Print info about all actions in the job */
         WRENCH_INFO("Notified that compound job %s has completed:", job->getName().c_str());
     }
-}
+
+
+    /**
+     * @brief Process a compound job completion event
+     *
+     * @param event: the event
+     */
+    void Controller::processEventCompoundJobFailure(std::shared_ptr<CompoundJobFailedEvent> event) {
+        /* Retrieve the job that this event is for */
+        auto job = event->job;
+        /* Print info about all actions in the job */
+        auto cause = event->failure_cause;
+        WRENCH_INFO("Notified that compound job %s has failed:", job->getName().c_str());
+        WRENCH_INFO("Failure cause for %s : %s",  job->getName().c_str(), cause->toString().c_str());
+    }
+
+} // namespace wrench

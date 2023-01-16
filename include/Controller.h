@@ -12,8 +12,10 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <wrench-dev.h>
 #include "JobDefinition.h"
+
+#include <wrench-dev.h>
+
 
 namespace wrench {
 
@@ -33,11 +35,11 @@ namespace wrench {
 
     protected:
 
-        // Overridden method
         void processEventCompoundJobCompletion(std::shared_ptr<CompoundJobCompletedEvent>) override;
+        void processEventCompoundJobFailure(std::shared_ptr<CompoundJobFailedEvent>) override;
 
     private:
-        // main() method of the WMS
+
         int main() override;
 
         const std::shared_ptr<ComputeService> compute_service;
@@ -46,5 +48,6 @@ namespace wrench {
         const std::vector<storalloc::YamlJob>& jobs;
 
     };
-}
+} // namespace wrench
+
 #endif //CONTROLLER_H

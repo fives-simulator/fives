@@ -167,7 +167,8 @@ int main(int argc, char **argv) {
        able to handle the CompoundStorageService
      */
     auto batch_service = simulation->add(new wrench::BatchComputeService(
-            "batch0", {"compute0", "compute1"}, "", 
+            "batch0", {"compute0", "compute1", "compute2", "compute3", "compute4", "compute5",
+                       "compute6", "compute7", "compute8", "compute9", "compute10", "compute11"}, "", 
             {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
     );
 
