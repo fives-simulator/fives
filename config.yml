@@ -1,0 +1,17 @@
+---
+
+general:
+  bandwidth: 1 # GBps
+  config_version: 0.0.1
+  config_name: StorAlloc_Test
+dragonfly:
+  groups: 2       # Entire Dragonfly zone
+  group_links: 2
+  chassis: 2      # per group
+  chassis_links: 2
+  routers: 2      # per chassis
+  router_links: 2
+  nodes: 1        # per router
+storage:
+  nb_nodes: 5     # Count one node for CompoundSService and one for external storage
+...

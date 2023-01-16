@@ -2,6 +2,7 @@
 #define PLATFORM_H
 
 #include <wrench-dev.h>
+#include "ConfigDefinition.h"
 
 namespace sg4 = simgrid::s4u;
 
@@ -20,17 +21,17 @@ namespace storalloc {
 
     public:
 
-        PlatformFactory(double link_bw) : link_bw(link_bw) {}
+        PlatformFactory(const storalloc::Config cfg) : config(cfg){}
 
         void operator()() const {
-            create_platform(this->link_bw);
+            create_platform(this->config);
         }
 
     private:
 
-        double link_bw;
+        storalloc::Config config;
 
-        void create_platform(double link_bw) const;
+        void create_platform(const storalloc::Config&) const;
 
     };
 

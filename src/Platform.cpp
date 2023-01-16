@@ -75,13 +75,11 @@ namespace storalloc {
     }
 
 
-
-
-    void PlatformFactory::create_platform(double link_bw) const {
+    void PlatformFactory::create_platform(const storalloc::Config& cfg) const {
 
         // Create the top-level zone and backbone "link"
         auto main_zone = sg4::create_star_zone("AS_Root");
-        auto main_link_bb = main_zone->create_link("backbone", link_bw)->set_latency("20us");
+        auto main_link_bb = main_zone->create_link("backbone", cfg.bw)->set_latency("20us");
         sg4::LinkInRoute backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
@@ -114,8 +112,20 @@ namespace storalloc {
         control_zone->seal();
 
         // Create a Dragonfly compute zone
-        auto compute_zone = sg4::create_dragonfly_zone("AS_Dragonfly_Compute", main_zone, {{2, 2}, {2, 1}, {2, 2}, 2}, {create_hostzone, {}, create_limiter},
-                             10e9, 10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX);
+        auto groups = 2;        // for entire dragonfly zone
+        auto group_links = 2;
+        auto chassis = 2;       // per group
+        auto chassis_links = 2;
+        auto routers = 2;       // per chassis
+        auto routers_links = 2;
+        auto nodes = 2;         // per router
+        auto compute_zone = sg4::create_dragonfly_zone(
+            "AS_DragonflyCompute", 
+            main_zone, 
+            {{cfg.d_groups, cfg.d_group_links}, {cfg.d_chassis, cfg.d_chassis_links}, {cfg.d_routers, cfg.d_router_links}, cfg.d_nodes}, {create_hostzone, {}, create_limiter},
+            10e9, 10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX
+        );
+        // Add a global router for zone-zone routes
         auto compute_router = compute_zone-> create_router("compute_router_0");
         compute_zone->seal();
 
@@ -127,7 +137,7 @@ namespace storalloc {
         auto storage_router = storage_zone->create_router("storage_zone_router_0");
 
         std::vector<s4u_Host*> storage_hosts = {};
-        for (auto i=0; i<5; i++){
+        for (size_t i=0; i < cfg.nb_storage_nodes; i++){
 
             auto hostname = "storage"+std::to_string(i);
             auto storage_host = storage_zone->create_host(
@@ -171,7 +181,6 @@ namespace storalloc {
         main_zone->add_route(compute_zone->get_netpoint(), nullptr, compute_router, nullptr, {backbone});
         
         main_zone->seal();
-
     }
 
 } // namespace storalloc

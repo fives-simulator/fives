@@ -24,9 +24,11 @@
 
 #include "yaml-cpp/yaml.h"
 
+#include "JobDefinition.h"
+#include "ConfigDefinition.h"
 #include "Controller.h"
 #include "Platform.h"
-#include "JobDefinition.h"
+
 
 /**
  * @brief Describe topology of zones, hosts and links.
@@ -92,11 +94,25 @@ void describe_platform() {
 
 }
 
+
+auto loadConfig(const std::string& yaml_file_name) {
+
+    YAML::Node config = YAML::LoadFile(yaml_file_name);
+
+    if (!(config["general"]) or !(config["dragonfly"]) or !(config["storage"])) {
+        std::cout << "# Invalid config file, missing one or many sections." << std::endl;
+        throw std::invalid_argument("Invalid config file, missing one or many sections.");
+    }
+
+    return config.as<storalloc::Config>();
+}
+
+
 auto loadYamlJobs(const std::string& yaml_file_name) {
 
     YAML::Node jobs = YAML::LoadFile(yaml_file_name);
     if (!(jobs["jobs"]) or !(jobs["jobs"].IsSequence())) {
-        std::cout << "# Invalide job file" << std::endl;
+        std::cout << "# Invalid job file" << std::endl;
         throw std::invalid_argument("Invalid job file as input data");
     }
 
@@ -119,7 +135,8 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
  */
 int main(int argc, char **argv) {
 
-    auto jobs = loadYamlJobs("../IOJobs_10.yml");
+    auto config = loadConfig(argv[1]);
+    auto jobs = loadYamlJobs(argv[2]);
 
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
@@ -129,8 +146,8 @@ int main(int argc, char **argv) {
     /* Initialize the simulation */
     simulation->init(&argc, argv);
 
-    /* Instantiating the simulated platform */
-    auto platform_factory = storalloc::PlatformFactory(10000 * storalloc::MBPS);
+    /* Instantiating the simulated platform with user-provided config*/
+    auto platform_factory = storalloc::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
     simulation->getOutput().enableDiskTimestamps(true);
 
@@ -139,7 +156,7 @@ int main(int argc, char **argv) {
 
     // Simple storage services to be accessed through CompoundStorageService
     std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
-    for (auto i = 2; i < 5; i++) {
+    for (int i = 2; i < config.nb_storage_nodes; i++) {
         sstorageservices.insert(
             simulation->add(
                 wrench::SimpleStorageService::createSimpleStorageService(
@@ -166,9 +183,13 @@ int main(int argc, char **argv) {
     /* Instantiate a batch compute service on the platform, with a special algorithm 
        able to handle the CompoundStorageService
      */
+    std::vector<std::string> compute_nodes;
+    auto nb_compute_nodes = config.d_nodes * config.d_routers * config.d_chassis * config.d_groups;
+    for(unsigned int i = 0; i < nb_compute_nodes; i++){
+        compute_nodes.push_back("compute" + std::to_string(i));
+    }
     auto batch_service = simulation->add(new wrench::BatchComputeService(
-            "batch0", {"compute0", "compute1", "compute2", "compute3", "compute4", "compute5",
-                       "compute6", "compute7", "compute8", "compute9", "compute10", "compute11"}, "", 
+            "batch0", compute_nodes, "", 
             {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
     );
 

@@ -20,9 +20,12 @@ set(SOURCE_FILES
         include/Controller.h
         include/Platform.h
         include/JobDefinition.h
+        include/ConfigDefinition.h
         src/Controller.cpp
         src/Simulator.cpp
         src/Platform.cpp
+        src/JobDefinition.cpp
+        src/ConfigDefinition.cpp
 )
 
 # wrench library and dependencies

@@ -61,6 +61,7 @@ namespace wrench {
         std::vector<std::shared_ptr<wrench::CompoundJob>> compound_jobs;
         std::vector<std::shared_ptr<wrench::Action>> actions;
 
+        // Create all jobs
         for (const auto& yaml_job : jobs) {
             
             auto job = job_manager->createCompoundJob(std::to_string(yaml_job.id));
@@ -80,13 +81,14 @@ namespace wrench {
                     wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
                 );
                 fileReadAction = job->addFileReadAction("fileRead" + job_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-                job->addActionDependency(fileCopyAction, fileReadAction);
+                job->addActionDependency(fileCopyAction, fileReadAction);   // Copy must always happen firstso that file is correctly placed on storage before being read
                 actions.push_back(fileCopyAction);
                 actions.push_back(fileReadAction);
                 WRENCH_INFO("Copy and read action added to job ID %s", job_id.c_str());
             }
 
-            // Compute action
+            // Compute action - Add one for every job.
+            // Random values (flops, ram, ...) to be adjusted.
             auto compute = job->addComputeAction("compute" + job_id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
             actions.push_back(compute);
             WRENCH_INFO("Compute action added to job ID %s", job_id.c_str());
@@ -121,50 +123,31 @@ namespace wrench {
             job_manager->submitJob(job, this->compute_service, service_specific_args);
         }
     
-        WRENCH_INFO("All jobs submitted to the BatchComputeService");
-        
-        /*
-        auto wr_loc = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
-        auto wr_loc2 = wrench::FileLocation::LOCATION(this->storage_service, "/dev/ssd0/temp_write", result_file);
-        WRENCH_INFO(wr_loc->getAbsolutePathAtMountPoint().c_str());
-        WRENCH_INFO(wr_loc->getFile()->getID().c_str());
-        WRENCH_INFO(wr_loc->getFullAbsolutePath().c_str());
-        WRENCH_INFO(wr_loc->toString().c_str()); 
-        WRENCH_INFO(wr_loc->equal(wr_loc2) ? "Both wr_loc equal" : "wr_loc are different");
-        */
 
+        
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_BLUE);
-        WRENCH_INFO("Waiting for execution events");
+        WRENCH_INFO("### All jobs submitted to the BatchComputeService");
+        WRENCH_INFO("### Waiting for execution events");
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
-       
         auto nb_jobs = compound_jobs.size();
         for (size_t i = 0; i < nb_jobs; i++) {
             this->waitForAndProcessNextEvent();
         }
 
-        WRENCH_INFO("Execution complete!");
+        WRENCH_INFO("Execution complete");
 
+        // List all action states and times
         for (auto const &a : actions) {
             if (a->getState() != Action::State::COMPLETED) {
                 TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
             }
             WRENCH_INFO("Action %s: %.2fs - %.2fs\n", a->getName().c_str(), a->getStartDate(), a->getEndDate());
             if (a->getState() != Action::State::COMPLETED) {
-                //WRENCH_INFO("  - action failure cause: %s", a->getFailureCause()->toString().c_str());
+                WRENCH_INFO("  - action failure cause: %s", a->getFailureCause()->toString().c_str());
             }
             TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
-
         }
-
-        /*
-            // cleanup
-            if (read_file)
-                wrench::simulation::removeFile(read_file);
-
-            if (write_file)
-                wrench::simulation::removeFile(write_file);
-        */
-
+        
         return 0;
     }
 
@@ -174,25 +157,23 @@ namespace wrench {
      * @param event: the event
      */
     void Controller::processEventCompoundJobCompletion(std::shared_ptr<CompoundJobCompletedEvent> event) {
-        /* Retrieve the job that this event is for */
         auto job = event->job;
-        /* Print info about all actions in the job */
-        WRENCH_INFO("Notified that compound job %s has completed:", job->getName().c_str());
+        WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
     }
 
 
     /**
-     * @brief Process a compound job completion event
+     * @brief Process a compound job failure event
      *
      * @param event: the event
      */
     void Controller::processEventCompoundJobFailure(std::shared_ptr<CompoundJobFailedEvent> event) {
-        /* Retrieve the job that this event is for */
+        /* Retrieve the job that this event is for and failure cause*/
         auto job = event->job;
-        /* Print info about all actions in the job */
         auto cause = event->failure_cause;
-        WRENCH_INFO("Notified that compound job %s has failed:", job->getName().c_str());
-        WRENCH_INFO("Failure cause for %s : %s",  job->getName().c_str(), cause->toString().c_str());
+        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
+        WRENCH_WARN("Notified that compound job %s has failed: %s", job->getName().c_str(), cause->toString().c_str());
+        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
     }
 
 } // namespace wrench

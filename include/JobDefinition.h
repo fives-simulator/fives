@@ -25,9 +25,7 @@
 
 namespace storalloc
 {
-    
     struct YamlJob {
-
         int id;
         int mpiProcs;
         int coresUsed;
@@ -40,64 +38,18 @@ namespace storalloc
         std::string submissionTime;
         std::string waitingTime;   
     };
-
-    constexpr bool operator==(const YamlJob& lhs, const YamlJob& rhs) { 
-        return (
-            lhs.id == rhs.id && 
-            lhs.mpiProcs == rhs.mpiProcs &&
-            lhs.coresUsed == rhs.coresUsed &&
-            lhs.nodesUsed == rhs.nodesUsed &&
-            lhs.readBytes == rhs.readBytes &&
-            lhs.writtenBytes == rhs.writtenBytes &&
-            lhs.runTime == rhs.runTime &&
-            lhs.startTime == rhs.startTime &&
-            lhs.endTime == rhs.endTime &&
-            lhs.submissionTime == rhs.submissionTime &&
-            lhs.waitingTime == rhs.waitingTime
-        );
-    }
-
+    
+    constexpr bool operator==(const YamlJob& lhs, const YamlJob& rhs);
 } // namespace storalloc
 
 namespace YAML {
-    template<>
-        struct convert<storalloc::YamlJob> {
-            static Node encode(const storalloc::YamlJob& rhs) {
-                Node node;
-                node.push_back(rhs.id);
-                node.push_back(rhs.mpiProcs);
-                node.push_back(rhs.coresUsed);
-                node.push_back(rhs.nodesUsed);
-                node.push_back(rhs.readBytes);
-                node.push_back(rhs.writtenBytes);
-                node.push_back(rhs.runTime);
-                node.push_back(rhs.startTime);
-                node.push_back(rhs.endTime);
-                node.push_back(rhs.submissionTime);
-                node.push_back(rhs.waitingTime);
-            return node;
-        }
 
-        static bool decode(const Node& node, storalloc::YamlJob& rhs) {
-            if(!(node.Type() == YAML::NodeType::Map) || node.size() != 11) {
-                return false;
-            }
-
-            rhs.id = node["id"].as<int>();
-            rhs.mpiProcs = node["MPIprocs"].as<int>();
-            rhs.coresUsed = node["coresUsed"].as<int>();
-            rhs.nodesUsed = node["nodesUsed"].as<int>();
-            rhs.readBytes = node["readBytes"].as<long>();
-            rhs.writtenBytes = node["writtenBytes"].as<long>();
-            rhs.runTime = node["runTime"].as<int>();
-            rhs.startTime = node["startTime"].as<std::string>();
-            rhs.endTime = node["endTime"].as<std::string>();
-            rhs.submissionTime = node["submissionTime"].as<std::string>();
-            rhs.waitingTime = node["waitingTime"].as<std::string>();
-
-            return true;
-        }
+    template <>
+    struct convert<storalloc::YamlJob> {
+        static Node encode(const storalloc::YamlJob& rhs);
+        static bool decode(const Node& node, storalloc::YamlJob& rhs);
     };
+
 }
 
 
