@@ -75,11 +75,11 @@ namespace storalloc {
     }
 
 
-    void PlatformFactory::create_platform(const storalloc::Config& cfg) const {
+    void PlatformFactory::create_platform(const std::shared_ptr<storalloc::Config> cfg) const {
 
         // Create the top-level zone and backbone "link"
         auto main_zone = sg4::create_star_zone("AS_Root");
-        auto main_link_bb = main_zone->create_link("backbone", cfg.bw)->set_latency("20us");
+        auto main_link_bb = main_zone->create_link("backbone", cfg->bw)->set_latency("20us");
         sg4::LinkInRoute backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
@@ -122,7 +122,7 @@ namespace storalloc {
         auto compute_zone = sg4::create_dragonfly_zone(
             "AS_DragonflyCompute", 
             main_zone, 
-            {{cfg.d_groups, cfg.d_group_links}, {cfg.d_chassis, cfg.d_chassis_links}, {cfg.d_routers, cfg.d_router_links}, cfg.d_nodes}, {create_hostzone, {}, create_limiter},
+            {{cfg->d_groups, cfg->d_group_links}, {cfg->d_chassis, cfg->d_chassis_links}, {cfg->d_routers, cfg->d_router_links}, cfg->d_nodes}, {create_hostzone, {}, create_limiter},
             10e9, 10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX
         );
         // Add a global router for zone-zone routes
@@ -137,7 +137,7 @@ namespace storalloc {
         auto storage_router = storage_zone->create_router("storage_zone_router_0");
 
         std::vector<s4u_Host*> storage_hosts = {};
-        for (size_t i=0; i < cfg.nb_storage_nodes; i++){
+        for (size_t i=0; i < 5; i++){
 
             auto hostname = "storage"+std::to_string(i);
             auto storage_host = storage_zone->create_host(

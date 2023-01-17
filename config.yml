@@ -4,6 +4,31 @@ general:
   bandwidth: 1 # GBps
   config_version: 0.0.1
   config_name: StorAlloc_Test
+storage:
+  disk_templates:
+    - &HDD_Capa1
+      id: HDD_Capa1
+      capacity: 2000  # GB
+      read_bw: 100    # MBps
+      write_bw: 50    # MBps
+      mount_prefix: /dev/hdd
+    - &SSD_Perf1
+      id: SSD_Perf1
+      capacity: 960  # GB
+      read_bw: 1000    # MBps
+      write_bw: 500    # MBps
+      mount_prefix: /dev/ssd
+  node_templates:
+    - &NodeCapa1
+      id: Capacity
+      disks:
+        - quantity: 4
+          template: *HDD_Capa1
+        - quantity: 1
+          template: *SSD_Perf1
+  nodes:
+    - quantity: 5
+      template: *NodeCapa1
 dragonfly:
   groups: 2       # Entire Dragonfly zone
   group_links: 2
@@ -12,6 +37,11 @@ dragonfly:
   routers: 2      # per chassis
   router_links: 2
   nodes: 1        # per router
-storage:
-  nb_nodes: 5     # Count one node for CompoundSService and one for external storage
+  node_local_storage:
+    enabled: no
+    nb_disks: 1
+    capacity: 250 # GB
+    read_bw: 1000 # MBps
+    write_bw: 500 # MBps
+
 ...

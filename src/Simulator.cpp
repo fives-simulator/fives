@@ -104,6 +104,8 @@ auto loadConfig(const std::string& yaml_file_name) {
         throw std::invalid_argument("Invalid config file, missing one or many sections.");
     }
 
+    std::cout << "# Loading configuration : " << config["general"]["config_name"] << "::" << config["general"]["config_version"] << std::endl;
+
     return config.as<storalloc::Config>();
 }
 
@@ -121,7 +123,7 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
         job_list.push_back(job.as<storalloc::YamlJob>());
     }
 
-    std::cout << "# Loaded " << std::to_string(job_list.size()) << " jobs" << std::endl;
+    std::cout << "# Loading " << std::to_string(job_list.size()) << " jobs" << std::endl;
 
     return job_list;
 }
@@ -135,8 +137,31 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
  */
 int main(int argc, char **argv) {
 
-    auto config = loadConfig(argv[1]);
+    if (argc < 3) {
+        std::cout << "###############################################################" << std::endl;
+        std::cout << "# USAGE: " << argv[0] << " <config file> <job file>" << std::endl;
+        std::cout << "#          [Both files are expected to be YAML]" << std::endl;
+        std::cout << "# This program starts a WRENCH simulation of a batch scheduler" << std::endl;
+        std::cout << "###############################################################" << std::endl;
+        return 1;
+    }
+
+    auto config = std::make_shared<storalloc::Config>(loadConfig(argv[1]));
     auto jobs = loadYamlJobs(argv[2]);
+
+
+
+    std::cout << "In use node templates are : " << std:: endl;
+    for (const auto& node_tpl : config->node_templates) {
+        std::cout << "- " << node_tpl.first << " nodes with id " << node_tpl.second.id << std::endl; 
+        std::cout << "   - " << std::to_string(node_tpl.second.disks.size()) << " disks" << std::endl;
+        std::cout << "   - to_string: " << node_tpl.second.to_string() << std::endl;
+        std::cout << "  Disks : " << std::endl;
+        for (const auto& disk : node_tpl.second.disks) {
+            std::cout << "  - " << disk.to_string() << std::endl;
+            std::cout << "  - R/W bw " << disk.tpl.read_bw << " / " << disk.tpl.write_bw << std::endl;
+        }
+    }
 
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
@@ -154,16 +179,22 @@ int main(int argc, char **argv) {
     // Just to make sure the platform looks about correct.
     describe_platform();
 
-    // Simple storage services to be accessed through CompoundStorageService
+    // Simple storage services that will be accessed through CompoundStorageService
     std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
-    for (int i = 2; i < config.nb_storage_nodes; i++) {
+    auto node_id = 0;
+    for (const auto& node : config->nodes) {
+
+        // mount_points = 
+
         sstorageservices.insert(
             simulation->add(
                 wrench::SimpleStorageService::createSimpleStorageService(
-                    "storage"+std::to_string(i), {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+                    node.tpl.id + std::to_string(node_id),                      // ID based on node template and global index
+                    {"/dev/hdd0", "/dev/ssd0"}, {}, {}
                 )
             )
         );
+        node_id++;
     }
 
     // CompoundStorageService, on first storage node
@@ -184,7 +215,7 @@ int main(int argc, char **argv) {
        able to handle the CompoundStorageService
      */
     std::vector<std::string> compute_nodes;
-    auto nb_compute_nodes = config.d_nodes * config.d_routers * config.d_chassis * config.d_groups;
+    auto nb_compute_nodes = config->d_nodes * config->d_routers * config->d_chassis * config->d_groups;
     for(unsigned int i = 0; i < nb_compute_nodes; i++){
         compute_nodes.push_back("compute" + std::to_string(i));
     }

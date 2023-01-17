@@ -12,6 +12,38 @@
 
 namespace storalloc
 {
+
+    struct DiskTemplate {
+        std::string id;
+        int capacity;
+        int read_bw;
+        int write_bw;
+        std::string mount_prefix;
+
+        std::string to_string() const;
+    };
+
+    struct DiskEntry {
+        int qtt;
+        DiskTemplate tpl;
+
+        std::string to_string() const;
+    };
+
+    struct NodeTemplate {
+        std::string id;
+        std::vector<DiskEntry> disks;
+
+        std::string to_string() const;
+    };
+
+    struct NodeEntry {
+        int qtt;
+        NodeTemplate tpl;
+
+        std::string to_string() const;
+    };
+
     struct Config {
         std::string config_name;
         std::string config_version;
@@ -23,8 +55,11 @@ namespace storalloc
         unsigned int d_routers;
         unsigned int d_router_links;
         unsigned int d_nodes;
-        int nb_storage_nodes;
+        std::map<std::string, DiskTemplate> disk_templates;
+        std::map<std::string, NodeTemplate> node_templates;
+        std::vector<NodeEntry> nodes;
     };
+
     bool operator==(const Config& lhs, const Config& rhs);
 } // namespace storalloc
 
@@ -36,6 +71,5 @@ namespace YAML {
     };
     
 } // namespace YAML
-
 
 #endif // CFGDEFINITION_H

@@ -21,7 +21,7 @@ namespace storalloc {
 
     public:
 
-        PlatformFactory(const storalloc::Config cfg) : config(cfg){}
+        PlatformFactory(const std::shared_ptr<storalloc::Config> cfg) : config(cfg){}
 
         void operator()() const {
             create_platform(this->config);
@@ -29,9 +29,9 @@ namespace storalloc {
 
     private:
 
-        storalloc::Config config;
+        std::shared_ptr<storalloc::Config> config;
 
-        void create_platform(const storalloc::Config&) const;
+        void create_platform(const std::shared_ptr<storalloc::Config>) const;
 
     };
 
