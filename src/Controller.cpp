@@ -74,10 +74,10 @@ namespace wrench {
             if (yaml_job.readBytes != 0) {
                 read_file = wrench::Simulation::addFile("input_data_file_" + job_id, yaml_job.readBytes);
                 // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
-                wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/", read_file));
+                wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
                 auto fileCopyAction = job->addFileCopyAction(
                     "fileCopyForStaging" + job_id, 
-                    wrench::FileLocation::LOCATION(this->storage_service, "/dev/hdd0/", read_file),
+                    wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file),
                     wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
                 );
                 fileReadAction = job->addFileReadAction("fileRead" + job_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));

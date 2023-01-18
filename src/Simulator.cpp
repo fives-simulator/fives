@@ -181,34 +181,42 @@ int main(int argc, char **argv) {
 
     // Simple storage services that will be accessed through CompoundStorageService
     std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
-    auto node_id = 0;
-    for (const auto& node : config->nodes) {
+    for (const auto& node : config->nodes) {    // node types
 
-        // mount_points = 
+        // mount points list is the same for all nodes of a given type
+        std::set<std::string> mount_points;
+        for (const auto& disk: node.tpl.disks) {
+            for (auto j = 0; j < disk.qtt; j++) {
+                mount_points.insert(disk.tpl.mount_prefix + std::to_string(j));
+            } 
+        }
 
-        sstorageservices.insert(
-            simulation->add(
-                wrench::SimpleStorageService::createSimpleStorageService(
-                    node.tpl.id + std::to_string(node_id),                      // ID based on node template and global index
-                    {"/dev/hdd0", "/dev/ssd0"}, {}, {}
+        for(auto i = 0; i < node.qtt; i++) {    // qtt of each type
+
+            std::cout << "Inserting a new SimpleStorageService" << std::endl;
+            sstorageservices.insert(
+                simulation->add(
+                    wrench::SimpleStorageService::createSimpleStorageService(
+                        node.tpl.id + std::to_string(i),                      // ID based on node template and global index
+                        mount_points, {}, {}
+                    )
                 )
-            )
-        );
-        node_id++;
+            );
+        }
     }
 
     // CompoundStorageService, on first storage node
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
-            "storage0", sstorageservices, {}, {}
+            "compound_storage", sstorageservices, {}, {}
         )
     );
 
     // Additionnal Simple Storage service, to be used as-is.
-    auto storage_service1 = simulation->add(
-            wrench::SimpleStorageService::createSimpleStorageService(
-                "storage1", {"/dev/hdd0", "/dev/ssd0"}, {}, {}
-            )
+    auto permanent_storage = simulation->add(
+        wrench::SimpleStorageService::createSimpleStorageService(
+            "permanent_storage", {"/dev/disk0"}, {}, {}
+        )
     );
 
     /* Instantiate a batch compute service on the platform, with a special algorithm 
@@ -226,14 +234,15 @@ int main(int argc, char **argv) {
 
     /* Instantiate an execution controller */
     auto wms = simulation->add(
-            new wrench::Controller(batch_service, storage_service1, compound_storage_service, "user0", jobs));
+            new wrench::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
 
     std::cout << "Launching simulation..." << std::endl;
 
     /* Launch the simulation */
     simulation->launch();
 
-    auto storage_host = sg4::Host::by_name("storage0");
+    // Playing around with energy plugin, not useful
+    auto storage_host = sg4::Host::by_name("compound_storage");
     auto consummed = sg_host_get_consumed_energy(storage_host);
     std::cout << "Energy consumed : " << consummed << std::endl;
 

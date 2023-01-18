@@ -8,19 +8,19 @@ storage:
   disk_templates:
     - &hdd_capa
       id: hdd_capa
-      capacity: 2000  # GB
+      capacity: 2000  # GiB
       read_bw: 100    # MBps
       write_bw: 50    # MBps
       mount_prefix: /dev/hdd
     - &ssd_perf
       id: ssd_perf
-      capacity: 960  # GB
-      read_bw: 1000    # MBps
-      write_bw: 500    # MBps
+      capacity: 960   # GiB
+      read_bw: 1000   # MBps
+      write_bw: 500   # MBps
       mount_prefix: /dev/ssd
   node_templates:
     - &node_capa
-      id: Capacity
+      id: capacity
       disks:
         - quantity: 4
           template: *hdd_capa
@@ -40,7 +40,7 @@ dragonfly:
   node_local_storage:
     enabled: no
     nb_disks: 1
-    capacity: 250 # GB
+    capacity: 250 # GiB
     read_bw: 1000 # MBps
     write_bw: 500 # MBps
 

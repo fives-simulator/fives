@@ -136,43 +136,78 @@ namespace storalloc {
         sg4::LinkInRoute backbone_storage(backbone_link_storage);
         auto storage_router = storage_zone->create_router("storage_zone_router_0");
 
-        std::vector<s4u_Host*> storage_hosts = {};
-        for (size_t i=0; i < 5; i++){
+        // Simple storage services that will be accessed through CompoundStorageService
+        auto node_id = 0;
+        for (const auto& node : config->nodes) {    // node types in use
 
-            auto hostname = "storage"+std::to_string(i);
-            auto storage_host = storage_zone->create_host(
-                hostname,
-                {"100.0Mf","50.0Mf","20.0Mf"}
-            );
-            storage_host->set_core_count(16);
-            storage_host->set_property(
-                "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
-            );
-            storage_host->set_property("wattage_off", "10");
-            storage_host->set_property("latency", "10");
-            
-            auto link = storage_zone->create_split_duplex_link(hostname, "125MBps")->set_latency("24us")->seal();
+            for(auto i = 0; i < node.qtt; i++) {    // qtt of each type
 
-            /* add link and backbone for communications from the host */
-            storage_zone->add_route(storage_host->get_netpoint(), storage_router, nullptr, nullptr,
-                       {{link, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
+                // Base node characteristics
+                auto hostname = node.tpl.id + std::to_string(i);
+                auto storage_host = storage_zone->create_host(
+                    hostname,
+                    {"100.0Mf","50.0Mf","20.0Mf"}
+                );
+                storage_host->set_core_count(16);
+                storage_host->set_property(
+                    "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
+                );
+                storage_host->set_property("wattage_off", "10");
+                storage_host->set_property("latency", "10");
 
-            for (auto j=0; j<2; j++) {
-                auto hdd = storage_host->create_disk("hdd"+std::to_string(j), "50MBps", "50MBps");
-                hdd->set_property("size", "600GiB");
-                hdd->set_property("mount", "/dev/hdd"+std::to_string(j));
+                // Link to storage backbone
+                auto link = storage_zone->create_split_duplex_link(hostname, "125MBps")->set_latency("24us")->seal();
+                storage_zone->add_route(storage_host->get_netpoint(), storage_router, nullptr, nullptr,
+                        {{link, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
 
-                // Input for contention and variability on HDD
-                hdd->set_sharing_policy(sg4::Disk::Operation::READ, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_read);
-                hdd->set_sharing_policy(sg4::Disk::Operation::WRITE, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_write);
-                hdd->set_factor_cb(hdd_variability);
 
-                auto ssd = storage_host->create_disk("ssd"+std::to_string(j), "1000MBps", "1000MBps");
-                ssd->set_property("size", "200GiB");
-                ssd->set_property("mount", "/dev/ssd"+std::to_string(j));
+                for (const auto& disk: node.tpl.disks) {
+
+                    for (auto j = 0; j < disk.qtt; j++) {
+                        auto new_disk = storage_host->create_disk(
+                            disk.tpl.id + std::to_string(j), 
+                            std::to_string(disk.tpl.read_bw) + "MBps", 
+                            std::to_string(disk.tpl.write_bw) + "MBps"
+                        );
+                        new_disk->set_property("size", std::to_string(disk.tpl.capacity)+"GiB");
+                        new_disk->set_property("mount", disk.tpl.mount_prefix + std::to_string(j));
+
+                        // Input for contention and variability on HDD
+                        new_disk->set_sharing_policy(sg4::Disk::Operation::READ, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_read);
+                        new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_write);
+                        new_disk->set_factor_cb(hdd_variability);           // TODO: Add config parameter to select which variability function should be used
+                    }
+                }
             }
-            storage_hosts.push_back(storage_host);
         }
+
+        // Also add one 'special' storage service for permanent storage (external to the supercomputer, or at
+        // least not directly among the usual storage nodes used by jobs)
+        auto permanent_storage = storage_zone->create_host(
+            "permanent_storage",
+            {"100.0Mf","50.0Mf","20.0Mf"}
+        )->set_core_count(16)->set_property("ram", "32GB")->set_property(
+            "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
+        )->set_property("wattage_off", "10")->set_property("latency", "10");
+        permanent_storage->create_disk("disk0", "1000MBps", "1000MBps")->set_property("size", "1000TiB")->set_property("mount", "/dev/disk0");
+        // Link to storage backbone
+        auto link_perm = storage_zone->create_split_duplex_link("permanent_storage", "125MBps")->set_latency("24us")->seal();
+        storage_zone->add_route(permanent_storage->get_netpoint(), storage_router, nullptr, nullptr,
+                       {{link_perm, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
+
+
+
+        // And finally a node for the compound storage service itself
+        auto cmpd_storage = storage_zone->create_host(
+            "compound_storage",
+            {"100.0Mf","50.0Mf","20.0Mf"}
+        )->set_core_count(4)->set_property("ram", "16GB")->set_property(
+            "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
+        )->set_property("wattage_off", "10")->set_property("latency", "10");
+        auto link_cpd = storage_zone->create_split_duplex_link("compound_storage", "125MBps")->set_latency("24us")->seal();
+        storage_zone->add_route(cmpd_storage->get_netpoint(), storage_router, nullptr, nullptr,
+                       {{link_cpd, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
+
         storage_zone->seal();
 
         // Route from main zone to sub zones.
