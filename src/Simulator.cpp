@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
     }
     auto batch_service = simulation->add(new wrench::BatchComputeService(
             "batch0", compute_nodes, "", 
-            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
+            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "fcfs"}}, {})
     );
 
     /* Instantiate an execution controller */
