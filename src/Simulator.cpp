@@ -94,7 +94,6 @@ void describe_platform() {
 
 }
 
-
 auto loadConfig(const std::string& yaml_file_name) {
 
     YAML::Node config = YAML::LoadFile(yaml_file_name);
@@ -127,6 +126,43 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
 
     return job_list;
 }
+
+
+std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(const std::shared_ptr<wrench::FileLocation>& location, const std::set<std::shared_ptr<wrench::StorageService>>& resources) {
+
+    static auto last_selection = resources.begin();
+    auto capacity_req = location->getFile()->getSize();
+    
+    std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
+
+    std::cout << "Calling on the smartStorageSelectionStrategy" << std::endl;
+
+    // Poor-man's round robin xD
+    auto current = last_selection++;
+    while(current != last_selection) {
+
+        auto free_space = current->get()->getFreeSpace();
+        for (const auto& free_space_entry : free_space) {
+
+            if (free_space_entry.second >= capacity_req) {
+                designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(current->get()), free_space_entry.first, location->getFile());
+                break;
+            }
+        }
+
+        if (designated_location)
+            break;
+
+        current++;
+        if (current == resources.end())
+            current = resources.begin();
+    }
+
+    std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
+    return designated_location;
+}
+
+
 
 /**
  * @brief The Simulator's main function
@@ -208,7 +244,7 @@ int main(int argc, char **argv) {
     // CompoundStorageService, on first storage node
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
-            "compound_storage", sstorageservices, {}, {}
+            "compound_storage", sstorageservices
         )
     );
 
