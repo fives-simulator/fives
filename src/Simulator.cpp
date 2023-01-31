@@ -127,11 +127,37 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
     return job_list;
 }
 
+std::shared_ptr<wrench::FileLocation> defaultStorageServiceSelection(
+    const std::shared_ptr<wrench::DataFile>& file, 
+    const std::set<std::shared_ptr<wrench::StorageService>>& resources,
+    const std::map<std::shared_ptr<wrench::DataFile>, std::shared_ptr<wrench::FileLocation>>& mapping) {
 
-std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(const std::shared_ptr<wrench::FileLocation>& location, const std::set<std::shared_ptr<wrench::StorageService>>& resources) {
+    auto capacity_req = file->getSize();
+    
+    std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
+
+    for(const auto& storage_service : resources) {
+
+        auto free_space = storage_service->getFreeSpace();
+        for (const auto& free_space_entry : free_space) {
+            if (free_space_entry.second >= capacity_req) {
+                designated_location = wrench::FileLocation::LOCATION(storage_service, free_space_entry.first, file);
+                break;
+            }
+        }
+    }
+
+    return designated_location;
+}
+
+
+std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
+    const std::shared_ptr<wrench::DataFile>& file, 
+    const std::set<std::shared_ptr<wrench::StorageService>>& resources,
+    const std::map<std::shared_ptr<wrench::DataFile>, std::shared_ptr<wrench::FileLocation>>& mapping) {
 
     static auto last_selection = resources.begin();
-    auto capacity_req = location->getFile()->getSize();
+    auto capacity_req = file->getSize();
     
     std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
 
@@ -145,7 +171,7 @@ std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(const std::s
         for (const auto& free_space_entry : free_space) {
 
             if (free_space_entry.second >= capacity_req) {
-                designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(current->get()), free_space_entry.first, location->getFile());
+                designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(current->get()), free_space_entry.first, file);
                 break;
             }
         }
@@ -265,7 +291,7 @@ int main(int argc, char **argv) {
     }
     auto batch_service = simulation->add(new wrench::BatchComputeService(
             "batch0", compute_nodes, "", 
-            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "fcfs"}}, {})
+            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
     );
 
     /* Instantiate an execution controller */
