@@ -64,34 +64,40 @@ namespace wrench {
         // Create all jobs
         for (const auto& yaml_job : jobs) {
             
-            auto job = job_manager->createCompoundJob(std::to_string(yaml_job.id));
-            auto job_id = std::to_string(yaml_job.id);
-            WRENCH_INFO("Creating a compound job for ID %s", job_id.c_str());
+            WRENCH_INFO("JOB SUBMISSION TIME = %s", yaml_job.submissionTime.c_str());
+
+            WRENCH_INFO("SIMULATION SLEEP BEFORE SUBMIT = %d", yaml_job.sleepTime);
+            // Sleep in simulation so that jobs are submitted sequentially with the same schedule as in
+            // the original DARSHAN traces.
+            simulation->sleep(yaml_job.sleepTime);
+
+            auto job = job_manager->createCompoundJob(yaml_job.id);
+            WRENCH_INFO("Creating a compound job for ID %s", yaml_job.id.c_str());
 
             // Create file for read operation
             std::shared_ptr<wrench::DataFile> read_file = nullptr;
             std::shared_ptr<wrench::FileReadAction> fileReadAction = nullptr;
             if (yaml_job.readBytes != 0) {
-                read_file = wrench::Simulation::addFile("input_data_file_" + job_id, yaml_job.readBytes);
+                read_file = wrench::Simulation::addFile("input_data_file_" + yaml_job.id, yaml_job.readBytes);
                 // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
                 wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
                 auto fileCopyAction = job->addFileCopyAction(
-                    "fileCopyForStaging" + job_id, 
+                    "fileCopyForStaging" + yaml_job.id, 
                     wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file),
                     wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
                 );
-                fileReadAction = job->addFileReadAction("fileRead" + job_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                fileReadAction = job->addFileReadAction("fileRead" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
                 job->addActionDependency(fileCopyAction, fileReadAction);   // Copy must always happen firstso that file is correctly placed on storage before being read
                 actions.push_back(fileCopyAction);
                 actions.push_back(fileReadAction);
-                WRENCH_INFO("Copy and read action added to job ID %s", job_id.c_str());
+                WRENCH_INFO("Copy and read action added to job ID %s", yaml_job.id.c_str());
             }
 
             // Compute action - Add one for every job.
             // Random values (flops, ram, ...) to be adjusted.
-            auto compute = job->addComputeAction("compute" + job_id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
+            auto compute = job->addComputeAction("compute" + yaml_job.id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
             actions.push_back(compute);
-            WRENCH_INFO("Compute action added to job ID %s", job_id.c_str());
+            WRENCH_INFO("Compute action added to job ID %s", yaml_job.id.c_str());
             // Possibly model some waiting time / bootstrapping with a sleep action ?
             // auto sleep = job2->addSleepAction("sleep", 20.0);
 
@@ -99,17 +105,31 @@ namespace wrench {
             std::shared_ptr<wrench::DataFile> write_file = nullptr;
             std::shared_ptr<wrench::FileWriteAction> fileWriteAction = nullptr;
             if (yaml_job.writtenBytes != 0) {
-                write_file = wrench::Simulation::addFile("ouptut_data_file_" + job_id, yaml_job.writtenBytes);
-                fileWriteAction = job->addFileWriteAction("fileWrite" + job_id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                write_file = wrench::Simulation::addFile("ouptut_data_file_" + yaml_job.id, yaml_job.writtenBytes);
+                fileWriteAction = job->addFileWriteAction("fileWrite" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
                 actions.push_back(fileWriteAction);
-                WRENCH_INFO("Write action added to job ID %s", job_id.c_str());
+                WRENCH_INFO("Write action added to job ID %s", yaml_job.id.c_str());
             }
-            
-            // Dependencies (if any)
-            if (fileReadAction)
+
+            // Dependencies and cleanup by delete files (if needed) 
+            if (fileReadAction) {
                 job->addActionDependency(fileReadAction, compute);
-            if (fileWriteAction)
+                auto deleteReadAction = job->addFileDeleteAction("deleteReadFile", wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                auto deleteExternalReadAction = job->addFileDeleteAction("deleteExternalReadFile", wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
+                if (fileWriteAction) {
+                    job->addActionDependency(fileWriteAction, deleteReadAction);
+                    job->addActionDependency(fileWriteAction, deleteExternalReadAction);
+                } else {
+                    job->addActionDependency(compute, deleteReadAction);
+                    job->addActionDependency(compute, deleteExternalReadAction);
+                }  
+            }
+            if (fileWriteAction) {
                 job->addActionDependency(compute, fileWriteAction);
+                auto deleteWriteAction = job->addFileDeleteAction("deleteWriteFile", wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                // Maybe we need a sleep action or a copy action here to 
+                job->addActionDependency(fileWriteAction, deleteWriteAction);
+            }
 
             std::map<std::string, std::string> service_specific_args =
                     {{"-N", std::to_string(yaml_job.nodesUsed)},
@@ -147,7 +167,10 @@ namespace wrench {
             }
             TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
         }
-        
+
+
+        this->processCompletedJobs(compound_jobs);
+
         return 0;
     }
 
@@ -174,6 +197,54 @@ namespace wrench {
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
         WRENCH_WARN("Notified that compound job %s has failed: %s", job->getName().c_str(), cause->toString().c_str());
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+    }
+
+    void Controller::processCompletedJobs(const std::vector<std::shared_ptr<wrench::CompoundJob>>& jobs) {
+        
+        for (const auto& job : jobs) {
+            
+            std::cout << "[JOB] " << job->getName() << " with priority " << job->getPriority() << " in state " << job->getStateAsString() << std::endl;
+            std::cout << "It was submitted at date " << job->getSubmitDate() << std::endl;
+            if (job->hasSuccessfullyCompleted()) {
+                std::cout << "  [SUCCESS]" << std::endl;
+            } else {
+                std::cout << "  [FAILURE]" << std::endl;
+            }
+
+            std::cout << "   -> ACTIONS:" << std::endl;
+            auto actions = job->getActions();
+            for (const auto& action : actions) {
+
+                if (auto fileRead = std::dynamic_pointer_cast<FileReadAction>(action)) {
+                    auto usedLocation = fileRead->getUsedFileLocation();
+                    auto usedFile = usedLocation->getFile();
+                    std::cout << "        [Read] " << fileRead->getName() << " set on service " << usedLocation->getStorageService()->getName() << " on disk " << usedLocation->getFullAbsolutePath() << " with file " << usedFile->getID() << std::endl;
+                    std::cout << "               Run from " << fileRead->getStartDate() << " to " << fileRead->getEndDate() << std::endl;
+                    std::cout << "               [Status] = " << fileRead->getStateAsString() << std::endl;
+                } else if (auto fileWrite = std::dynamic_pointer_cast<FileWriteAction>(action)) {
+                    auto usedLocation = fileWrite->getFileLocation();
+                    auto usedFile = usedLocation->getFile();
+                    std::cout << "        [Write] " << fileWrite->getName() << " set on service " << usedLocation->getStorageService()->getName() << " on disk " << usedLocation->getFullAbsolutePath() << " with file " << usedFile->getID() << std::endl;
+                    std::cout << "               Run from " << fileWrite->getStartDate() << " to " << fileWrite->getEndDate() << std::endl;
+                    std::cout << "               [Status] = " << fileWrite->getStateAsString() << std::endl;
+                } else if (auto fileCopy = std::dynamic_pointer_cast<FileCopyAction>(action)) {
+                    auto src = fileCopy->getSourceFileLocation();
+                    auto dest = fileCopy->getDestinationFileLocation();
+                    std::cout << "        [Copy] " << fileCopy->getName() << " for file " << src->getFile()->getID() << " from  " << src->getStorageService()->getName() << " to " << dest->getStorageService()->getName() << std::endl;
+                    std::cout << "               Run from " << fileCopy->getStartDate() << " to " << fileCopy->getEndDate() << std::endl;
+                    std::cout << "               [Status] = " << fileCopy->getStateAsString() << std::endl;
+                } else if (auto fileDelete = std::dynamic_pointer_cast<FileDeleteAction>(action)) {
+                    auto usedLocation = fileDelete->getFileLocation();
+                    auto usedFile = usedLocation->getFile();
+                    std::cout << "        [Delete] " << fileDelete->getName() << " set on service " << usedLocation->getStorageService()->getName() << " on disk " << usedLocation->getFullAbsolutePath() << " with file " << usedFile->getID() << std::endl;
+                    std::cout << "               Run from " << fileDelete->getStartDate() << " to " << fileDelete->getEndDate() << std::endl;
+                    std::cout << "               [Status] = " << fileDelete->getStateAsString() << std::endl;
+                }
+
+            }
+
+        }
+        
     }
 
 } // namespace wrench

@@ -19,7 +19,7 @@
 #include <string>
 #include "yaml-cpp/yaml.h"
 
-constexpr bool storalloc::operator==(const storalloc::YamlJob& lhs, const storalloc::YamlJob& rhs) { 
+bool storalloc::operator==(const storalloc::YamlJob& lhs, const storalloc::YamlJob& rhs) { 
     return (
         lhs.id == rhs.id && 
         lhs.mpiProcs == rhs.mpiProcs &&
@@ -29,6 +29,7 @@ constexpr bool storalloc::operator==(const storalloc::YamlJob& lhs, const storal
         lhs.writtenBytes == rhs.writtenBytes &&
         lhs.runTime == rhs.runTime &&
         lhs.startTime == rhs.startTime &&
+        lhs.sleepTime == rhs.sleepTime &&
         lhs.endTime == rhs.endTime &&
         lhs.submissionTime == rhs.submissionTime &&
         lhs.waitingTime == rhs.waitingTime
@@ -52,11 +53,11 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob& r
 }
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node& node, storalloc::YamlJob& rhs) {
-    if(!(node.Type() == YAML::NodeType::Map) || node.size() != 11) {
+    if(!(node.Type() == YAML::NodeType::Map) || node.size() != 12) {
         return false;
     }
 
-    rhs.id = node["id"].as<int>();
+    rhs.id = node["id"].as<std::string>();
     rhs.mpiProcs = node["MPIprocs"].as<int>();
     rhs.coresUsed = node["coresUsed"].as<int>();
     rhs.nodesUsed = node["nodesUsed"].as<int>();
@@ -64,6 +65,7 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node& node, storalloc
     rhs.writtenBytes = node["writtenBytes"].as<long>();
     rhs.runTime = node["runTime"].as<int>();
     rhs.startTime = node["startTime"].as<std::string>();
+    rhs.sleepTime = node["sleep_simulation"].as<int>();
     rhs.endTime = node["endTime"].as<std::string>();
     rhs.submissionTime = node["submissionTime"].as<std::string>();
     rhs.waitingTime = node["waitingTime"].as<std::string>();

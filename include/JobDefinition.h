@@ -26,7 +26,7 @@
 namespace storalloc
 {
     struct YamlJob {
-        int id;
+        std::string id;
         int mpiProcs;
         int coresUsed;
         int nodesUsed;
@@ -34,12 +34,13 @@ namespace storalloc
         long writtenBytes;
         int runTime;
         std::string startTime;
+        int sleepTime;
         std::string endTime;
         std::string submissionTime;
         std::string waitingTime;   
     };
     
-    constexpr bool operator==(const YamlJob& lhs, const YamlJob& rhs);
+    bool operator==(const YamlJob& lhs, const YamlJob& rhs);
 } // namespace storalloc
 
 namespace YAML {
