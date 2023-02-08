@@ -16,9 +16,12 @@
 #define MBYTE (1000.0 * 1000.0)
 #define GBYTE (1000.0 * 1000.0 * 1000.0)
 
-#include <iostream>
-
 #include "Controller.h"
+
+#include <iostream>
+#include <fstream>
+
+#include "yaml-cpp/yaml.h"
 
 WRENCH_LOG_CATEGORY(controller, "Log category for Controller");
 
@@ -201,50 +204,99 @@ namespace wrench {
 
     void Controller::processCompletedJobs(const std::vector<std::shared_ptr<wrench::CompoundJob>>& jobs) {
         
-        for (const auto& job : jobs) {
-            
-            std::cout << "[JOB] " << job->getName() << " with priority " << job->getPriority() << " in state " << job->getStateAsString() << std::endl;
-            std::cout << "It was submitted at date " << job->getSubmitDate() << std::endl;
-            if (job->hasSuccessfullyCompleted()) {
-                std::cout << "  [SUCCESS]" << std::endl;
-            } else {
-                std::cout << "  [FAILURE]" << std::endl;
-            }
+        YAML::Emitter out;
+        out << YAML::BeginSeq;
 
-            std::cout << "   -> ACTIONS:" << std::endl;
+        for (const auto& job : jobs) {
+
+            out << YAML::BeginMap;  // Job map
+
+            out << YAML::Key << "job_id" << YAML::Value << job->getName();
+            out << YAML::Key << "job_status" << YAML::Value << job->getStateAsString();
+            out << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
+            out << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
+            out << YAML::Key << "job_duration" << YAML::Value << (job->getEndDate() - job->getSubmitDate());
+            
+            out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq;   // action sequence
             auto actions = job->getActions();
             for (const auto& action : actions) {
+                
+                out << YAML::BeginMap;  // action map
+                out << YAML::Key << "act_name" << YAML::Value << action->getName();
+                out << YAML::Key << "act_type" << YAML::Value << wrench::Action::getActionTypeAsString(action);
+                out << YAML::Key << "act_status" << YAML::Value << action->getStateAsString();
+                out << YAML::Key << "act_start_ts" << YAML::Value << action->getStartDate();
+                out << YAML::Key << "act_end_ts" << YAML::Value << action->getEndDate();
+                out << YAML::Key << "act_duration" << YAML::Value << (action->getEndDate() - action->getStartDate());
 
                 if (auto fileRead = std::dynamic_pointer_cast<FileReadAction>(action)) {
+
                     auto usedLocation = fileRead->getUsedFileLocation();
                     auto usedFile = usedLocation->getFile();
-                    std::cout << "        [Read] " << fileRead->getName() << " set on service " << usedLocation->getStorageService()->getName() << " on disk " << usedLocation->getFullAbsolutePath() << " with file " << usedFile->getID() << std::endl;
-                    std::cout << "               Run from " << fileRead->getStartDate() << " to " << fileRead->getEndDate() << std::endl;
-                    std::cout << "               [Status] = " << fileRead->getStateAsString() << std::endl;
+
+                    out << YAML::Key << "src_storage_service" << YAML::Value << usedLocation->getStorageService()->getName();
+                    out << YAML::Key << "src_storage_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
+                    out << YAML::Key << "src_storage_disk" << YAML::Value << usedLocation->getMountPoint();
+                    out << YAML::Key << "src_file_path" << YAML::Value << usedLocation->getFullAbsolutePath();
+                    out << YAML::Key << "src_file_name" << YAML::Value << usedFile->getID();
+                    out << YAML::Key << "src_file_size_bytes" << YAML::Value << usedFile->getSize();
+                    
                 } else if (auto fileWrite = std::dynamic_pointer_cast<FileWriteAction>(action)) {
                     auto usedLocation = fileWrite->getFileLocation();
                     auto usedFile = usedLocation->getFile();
-                    std::cout << "        [Write] " << fileWrite->getName() << " set on service " << usedLocation->getStorageService()->getName() << " on disk " << usedLocation->getFullAbsolutePath() << " with file " << usedFile->getID() << std::endl;
-                    std::cout << "               Run from " << fileWrite->getStartDate() << " to " << fileWrite->getEndDate() << std::endl;
-                    std::cout << "               [Status] = " << fileWrite->getStateAsString() << std::endl;
+
+                    out << YAML::Key << "dst_storage_service" << YAML::Value << usedLocation->getStorageService()->getName();
+                    out << YAML::Key << "dst_storage_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
+                    out << YAML::Key << "dst_storage_disk" << YAML::Value << usedLocation->getMountPoint();
+                    out << YAML::Key << "dst_file_path" << YAML::Value << usedLocation->getFullAbsolutePath();
+                    out << YAML::Key << "dst_file_name" << YAML::Value << usedFile->getID();
+                    out << YAML::Key << "dst_file_size_bytes" << YAML::Value << usedFile->getSize();
+
                 } else if (auto fileCopy = std::dynamic_pointer_cast<FileCopyAction>(action)) {
                     auto src = fileCopy->getSourceFileLocation();
                     auto dest = fileCopy->getDestinationFileLocation();
-                    std::cout << "        [Copy] " << fileCopy->getName() << " for file " << src->getFile()->getID() << " from  " << src->getStorageService()->getName() << " to " << dest->getStorageService()->getName() << std::endl;
-                    std::cout << "               Run from " << fileCopy->getStartDate() << " to " << fileCopy->getEndDate() << std::endl;
-                    std::cout << "               [Status] = " << fileCopy->getStateAsString() << std::endl;
+
+                    out << YAML::Key << "src_storage_service" << YAML::Value << src->getStorageService()->getName();
+                    out << YAML::Key << "src_storage_server" << YAML::Value << src->getStorageService()->getHostname();
+                    out << YAML::Key << "src_storage_disk" << YAML::Value << src->getMountPoint();
+                    out << YAML::Key << "src_file_path" << YAML::Value << src->getFullAbsolutePath();
+                    out << YAML::Key << "src_file_name" << YAML::Value << src->getFile()->getID();
+                    out << YAML::Key << "src_file_size_bytes" << YAML::Value << src->getFile()->getSize();
+
+                    out << YAML::Key << "dst_storage_service" << YAML::Value << dest->getStorageService()->getName();
+                    out << YAML::Key << "dst_storage_server" << YAML::Value << dest->getStorageService()->getHostname();
+                    out << YAML::Key << "dst_storage_disk" << YAML::Value << dest->getMountPoint();
+                    out << YAML::Key << "dst_file_path" << YAML::Value << dest->getFullAbsolutePath();
+                    out << YAML::Key << "dst_file_name" << YAML::Value << dest->getFile()->getID();
+                    out << YAML::Key << "dst_file_size_bytes" << YAML::Value << dest->getFile()->getSize();
+
                 } else if (auto fileDelete = std::dynamic_pointer_cast<FileDeleteAction>(action)) {
                     auto usedLocation = fileDelete->getFileLocation();
                     auto usedFile = usedLocation->getFile();
-                    std::cout << "        [Delete] " << fileDelete->getName() << " set on service " << usedLocation->getStorageService()->getName() << " on disk " << usedLocation->getFullAbsolutePath() << " with file " << usedFile->getID() << std::endl;
-                    std::cout << "               Run from " << fileDelete->getStartDate() << " to " << fileDelete->getEndDate() << std::endl;
-                    std::cout << "               [Status] = " << fileDelete->getStateAsString() << std::endl;
+
+                    out << YAML::Key << "dst_storage_service" << YAML::Value << usedLocation->getStorageService()->getName();
+                    out << YAML::Key << "dst_storage_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
+                    out << YAML::Key << "dst_storage_disk" << YAML::Value << usedLocation->getMountPoint();
+                    out << YAML::Key << "dst_file_path" << YAML::Value << usedLocation->getFullAbsolutePath();
+                    out << YAML::Key << "dst_file_name" << YAML::Value << usedFile->getID();
+                    out << YAML::Key << "dst_file_size_bytes" << YAML::Value << usedFile->getSize();
+
                 }
-
+                out << YAML::EndMap;
             }
-
+            out << YAML::EndSeq;
+            out << YAML::EndMap;
         }
+        out << YAML::EndSeq;
         
+        // Write to YAML file
+        ofstream io_ops;
+        io_ops.open ("io_operations.yml");
+        io_ops << "---\n";
+        io_ops << out.c_str();
+        io_ops << "\n...\n";
+        io_ops.close();
+         	
     }
 
 } // namespace wrench
