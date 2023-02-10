@@ -61,10 +61,15 @@ namespace wrench {
 
         /* Create a job manager so that we can create/submit jobs */
         auto job_manager = this->createJobManager();
-        std::vector<std::shared_ptr<wrench::CompoundJob>> compound_jobs;
+        std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs;
         std::vector<std::shared_ptr<wrench::Action>> actions;
 
-        // Create all jobs
+        /**
+         *  Create CompoundJobs from the list provided in the yaml file.
+         *  All jobs have the same model so far (optional copy + read then compute, 
+         *  optional write, and cleanup with file delete).
+         * 
+        */
         for (const auto& yaml_job : jobs) {
             
             WRENCH_INFO("JOB SUBMISSION TIME = %s", yaml_job.submissionTime.c_str());
@@ -98,6 +103,8 @@ namespace wrench {
 
             // Compute action - Add one for every job.
             // Random values (flops, ram, ...) to be adjusted.
+            // We could start from the theoreticak peak performance of modelled platform, and specify the flops based on the 
+            // % of available compute resources used by the job and its execution time (minor a factor of the time spend in IO ?)
             auto compute = job->addComputeAction("compute" + yaml_job.id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
             actions.push_back(compute);
             WRENCH_INFO("Compute action added to job ID %s", yaml_job.id.c_str());
@@ -142,7 +149,7 @@ namespace wrench {
                         job->getName().c_str(),
                         yaml_job.nodesUsed, yaml_job.coresUsed, yaml_job.runTime
             );
-            compound_jobs.push_back(job);
+            compound_jobs.push_back(std::make_pair(yaml_job, job));
             job_manager->submitJob(job, this->compute_service, service_specific_args);
         }
     
@@ -202,12 +209,15 @@ namespace wrench {
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
     }
 
-    void Controller::processCompletedJobs(const std::vector<std::shared_ptr<wrench::CompoundJob>>& jobs) {
+    void Controller::processCompletedJobs(const std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>>& jobs) {
         
         YAML::Emitter out;
         out << YAML::BeginSeq;
 
-        for (const auto& job : jobs) {
+        for (const auto& job_pair : jobs) {
+
+            auto yaml_job = job_pair.first;
+            auto job = job_pair.second;
 
             out << YAML::BeginMap;  // Job map
 
@@ -216,6 +226,12 @@ namespace wrench {
             out << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
             out << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
             out << YAML::Key << "job_duration" << YAML::Value << (job->getEndDate() - job->getSubmitDate());
+            out << YAML::Key << "origin_runtime" << YAML::Value << yaml_job.runTime;
+            out << YAML::Key << "origin_read_bytes" << YAML::Value << yaml_job.readBytes;
+            out << YAML::Key << "origin_written_bytes" << YAML::Value << yaml_job.writtenBytes;
+            out << YAML::Key << "origin_core_used" << YAML::Value << yaml_job.coresUsed;
+            out << YAML::Key << "origin_mpi_procs" << YAML::Value << yaml_job.mpiProcs;
+            out << YAML::Key << "job_sleep_time" << YAML::Value << yaml_job.sleepTime;
             
             out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq;   // action sequence
             auto actions = job->getActions();
