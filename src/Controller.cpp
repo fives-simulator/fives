@@ -90,12 +90,12 @@ namespace wrench {
                 // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
                 wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
                 auto fileCopyAction = job->addFileCopyAction(
-                    "fileCopyForStaging" + yaml_job.id, 
+                    "stagingCopy_" + yaml_job.id, 
                     wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file),
                     wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
                 );
-                fileReadAction = job->addFileReadAction("fileRead" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-                job->addActionDependency(fileCopyAction, fileReadAction);   // Copy must always happen firstso that file is correctly placed on storage before being read
+                fileReadAction = job->addFileReadAction("fRead_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                job->addActionDependency(fileCopyAction, fileReadAction);
                 actions.push_back(fileCopyAction);
                 actions.push_back(fileReadAction);
                 WRENCH_INFO("Copy and read action added to job ID %s", yaml_job.id.c_str());
@@ -105,7 +105,7 @@ namespace wrench {
             // Random values (flops, ram, ...) to be adjusted.
             // We could start from the theoreticak peak performance of modelled platform, and specify the flops based on the 
             // % of available compute resources used by the job and its execution time (minor a factor of the time spend in IO ?)
-            auto compute = job->addComputeAction("compute" + yaml_job.id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
+            auto compute = job->addComputeAction("compute_" + yaml_job.id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
             actions.push_back(compute);
             WRENCH_INFO("Compute action added to job ID %s", yaml_job.id.c_str());
             // Possibly model some waiting time / bootstrapping with a sleep action ?
@@ -116,7 +116,7 @@ namespace wrench {
             std::shared_ptr<wrench::FileWriteAction> fileWriteAction = nullptr;
             if (yaml_job.writtenBytes != 0) {
                 write_file = wrench::Simulation::addFile("ouptut_data_file_" + yaml_job.id, yaml_job.writtenBytes);
-                fileWriteAction = job->addFileWriteAction("fileWrite" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                fileWriteAction = job->addFileWriteAction("fWrite_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
                 actions.push_back(fileWriteAction);
                 WRENCH_INFO("Write action added to job ID %s", yaml_job.id.c_str());
             }
@@ -124,8 +124,8 @@ namespace wrench {
             // Dependencies and cleanup by delete files (if needed) 
             if (fileReadAction) {
                 job->addActionDependency(fileReadAction, compute);
-                auto deleteReadAction = job->addFileDeleteAction("deleteReadFile", wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-                auto deleteExternalReadAction = job->addFileDeleteAction("deleteExternalReadFile", wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
+                auto deleteReadAction = job->addFileDeleteAction("delRF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                auto deleteExternalReadAction = job->addFileDeleteAction("delERF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
                 if (fileWriteAction) {
                     job->addActionDependency(fileWriteAction, deleteReadAction);
                     job->addActionDependency(fileWriteAction, deleteExternalReadAction);
@@ -136,7 +136,7 @@ namespace wrench {
             }
             if (fileWriteAction) {
                 job->addActionDependency(compute, fileWriteAction);
-                auto deleteWriteAction = job->addFileDeleteAction("deleteWriteFile", wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                auto deleteWriteAction = job->addFileDeleteAction("delWF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
                 // Maybe we need a sleep action or a copy action here to 
                 job->addActionDependency(fileWriteAction, deleteWriteAction);
             }
@@ -221,7 +221,11 @@ namespace wrench {
 
             out << YAML::BeginMap;  // Job map
 
-            out << YAML::Key << "job_id" << YAML::Value << job->getName();
+            
+            auto job_uid = job->getName();
+            auto job_id = job_uid.substr(0, job_uid.find("-"));
+            out << YAML::Key << "job_uid" << YAML::Value << job_uid;
+            out << YAML::Key << "job_id" << YAML::Value << job_id;          // for use in group-by 
             out << YAML::Key << "job_status" << YAML::Value << job->getStateAsString();
             out << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
             out << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
@@ -231,7 +235,7 @@ namespace wrench {
             out << YAML::Key << "origin_written_bytes" << YAML::Value << yaml_job.writtenBytes;
             out << YAML::Key << "origin_core_used" << YAML::Value << yaml_job.coresUsed;
             out << YAML::Key << "origin_mpi_procs" << YAML::Value << yaml_job.mpiProcs;
-            out << YAML::Key << "job_sleep_time" << YAML::Value << yaml_job.sleepTime;
+            out << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepTime;
             
             out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq;   // action sequence
             auto actions = job->getActions();
@@ -239,7 +243,9 @@ namespace wrench {
                 
                 out << YAML::BeginMap;  // action map
                 out << YAML::Key << "act_name" << YAML::Value << action->getName();
-                out << YAML::Key << "act_type" << YAML::Value << wrench::Action::getActionTypeAsString(action);
+                auto act_type = wrench::Action::getActionTypeAsString(action);
+                act_type.pop_back();  // removing a useless '-' at the end
+                out << YAML::Key << "act_type" << YAML::Value << act_type;  
                 out << YAML::Key << "act_status" << YAML::Value << action->getStateAsString();
                 out << YAML::Key << "act_start_ts" << YAML::Value << action->getStartDate();
                 out << YAML::Key << "act_end_ts" << YAML::Value << action->getEndDate();
