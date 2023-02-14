@@ -27,6 +27,20 @@ WRENCH_LOG_CATEGORY(controller, "Log category for Controller");
 
 namespace wrench {
 
+    struct DiskIOCounters {
+        double total_capacity;
+        double total_capacity_used;
+        int total_allocation_count;
+    };
+
+    struct StorageServiceIOCounters {
+        std::string service_name;
+        double total_capacity_used;
+        int total_allocation_count;
+        std::map<std::string, DiskIOCounters> disks;
+    };
+
+
     /**
      * @brief Constructor
      *
@@ -171,13 +185,12 @@ namespace wrench {
             if (a->getState() != Action::State::COMPLETED) {
                 TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
             }
-            WRENCH_INFO("Action %s: %.2fs - %.2fs\n", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+            WRENCH_INFO("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
             if (a->getState() != Action::State::COMPLETED) {
                 WRENCH_INFO("  - action failure cause: %s", a->getFailureCause()->toString().c_str());
             }
             TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
         }
-
 
         this->processCompletedJobs(compound_jobs);
 
@@ -209,8 +222,94 @@ namespace wrench {
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
     }
 
+    // DELETE Overload
+    std::pair<std::string, std::string> updateIoUsage(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileDeleteAction>& action) {
+
+        if (action->getState() != wrench::Action::COMPLETED) {
+            throw std::runtime_error("Action is not in COMPLETED state");
+        }
+
+        auto storage_service = action->getFileLocation()->getStorageService()->getName();
+        auto mount_pt = action->getFileLocation()->getMountPoint();
+        auto volume = action->getFile()->getSize(); 
+
+        // Update volume record with new write/copy/delete value
+        volume_records[storage_service].total_allocation_count -= 1;
+        volume_records[storage_service].total_capacity_used -= volume;
+        volume_records[storage_service].disks[mount_pt].total_allocation_count -= 1;           // allocation count on disk
+        volume_records[storage_service].disks[mount_pt].total_capacity_used -= volume;     // byte volume count
+
+        // Return latest updated keys for ease of use
+        return std::make_pair(storage_service, mount_pt);
+    }
+
+    // COPY overload
+    std::pair<std::string, std::string> updateIoUsage(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileCopyAction>& action) {
+        
+        auto dst_storage_service = action->getSourceFileLocation()->getStorageService()->getName();
+        auto dst_mount_pt = action->getSourceFileLocation()->getMountPoint();
+        auto dst_volume = action->getSourceFileLocation()->getFile()->getSize();
+
+        if (action->getState() != wrench::Action::COMPLETED) {
+            throw std::runtime_error("Action is not in COMPLETED state");
+        }
+
+        if (volume_records.find(dst_storage_service) == volume_records.end()) {
+            // Add entry for previously unseen storage service
+            volume_records[dst_storage_service].disks = std::map<std::string, DiskIOCounters>();
+        }
+
+        if (volume_records[dst_storage_service].disks.find(dst_mount_pt) == volume_records[dst_storage_service].disks.end()) {
+            // Add entry for previously unseen storage service disk
+            volume_records[dst_storage_service].disks[dst_mount_pt] = DiskIOCounters();
+        }
+
+        // Update volume record with new write/copy/delete value
+        volume_records[dst_storage_service].total_allocation_count += 1;  // allocation count on disk
+        volume_records[dst_storage_service].total_capacity_used += dst_volume;  // byte volume count
+        volume_records[dst_storage_service].disks[dst_mount_pt].total_allocation_count += 1;  // allocation count on disk
+        volume_records[dst_storage_service].disks[dst_mount_pt].total_capacity_used  += dst_volume;  // byte volume count
+
+        // Return latest updated keys for ease of use
+        return std::make_pair(dst_storage_service, dst_mount_pt);
+    }
+
+    // WRITE overload
+    std::pair<std::string, std::string> updateIoUsage(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileWriteAction>& action) {
+
+        if (action->getState() != wrench::Action::COMPLETED) {
+            throw std::runtime_error("Action is not in COMPLETED state");
+        }
+
+        auto storage_service = action->getFileLocation()->getStorageService()->getName();
+        auto mount_pt = action->getFileLocation()->getMountPoint();
+        auto volume = action->getFile()->getSize(); 
+
+        if (volume_records.find(storage_service) == volume_records.end()) {
+            volume_records[storage_service].disks = std::map<std::string, DiskIOCounters>();
+        }
+
+        if (volume_records[storage_service].disks.find(mount_pt) == volume_records[storage_service].disks.end()) {
+            volume_records[storage_service].disks[mount_pt] = DiskIOCounters();
+        }
+
+        // Update volume record with new write/copy/delete value
+        volume_records[storage_service].total_allocation_count += 1;                    // allocation count on disk
+        volume_records[storage_service].total_capacity_used += volume;                  // byte volume count
+        volume_records[storage_service].disks[mount_pt].total_allocation_count += 1;    // allocation count on disk
+        volume_records[storage_service].disks[mount_pt].total_capacity_used += volume;  // byte volume count
+
+        // Return latest updated keys for ease of use
+        return std::make_pair(storage_service, mount_pt);
+    }
+
     void Controller::processCompletedJobs(const std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>>& jobs) {
         
+        std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
+
+        YAML::Emitter out_ss;
+        out_ss << YAML::BeginSeq;
+
         YAML::Emitter out;
         out << YAML::BeginSeq;
 
@@ -221,8 +320,8 @@ namespace wrench {
 
             out << YAML::BeginMap;  // Job map
 
-            
             auto job_uid = job->getName();
+            std::cout << "In job " << job_uid << std::endl;
             auto job_id = job_uid.substr(0, job_uid.find("-"));
             out << YAML::Key << "job_uid" << YAML::Value << job_uid;
             out << YAML::Key << "job_id" << YAML::Value << job_id;          // for use in group-by 
@@ -239,7 +338,14 @@ namespace wrench {
             
             out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq;   // action sequence
             auto actions = job->getActions();
-            for (const auto& action : actions) {
+            auto set_cmp = [](const std::shared_ptr<Action>& a, const std::shared_ptr<Action>& b)
+                                  {
+                                      return (a->getStartDate() < b->getStartDate());
+                                  };
+            auto sorted_actions = std::set<std::shared_ptr<Action>, decltype(set_cmp)>(set_cmp);
+            sorted_actions.insert(actions.begin(), actions.end());
+
+            for (const auto& action : sorted_actions) {
                 
                 out << YAML::BeginMap;  // action map
                 out << YAML::Key << "act_name" << YAML::Value << action->getName();
@@ -274,6 +380,20 @@ namespace wrench {
                     out << YAML::Key << "dst_file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "dst_file_size_bytes" << YAML::Value << usedFile->getSize();
 
+                    auto keys = updateIoUsage(volume_per_storage_service_disk, fileWrite);
+                    out_ss << YAML::BeginMap;
+                    out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                    out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
+                    out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                    out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
+                    out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
+                    out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << usedFile->getSize();
+                    out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
+                    out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
+                    out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
+                    out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
+                    out_ss << YAML::EndMap;
+
                 } else if (auto fileCopy = std::dynamic_pointer_cast<FileCopyAction>(action)) {
                     auto src = fileCopy->getSourceFileLocation();
                     auto dest = fileCopy->getDestinationFileLocation();
@@ -292,6 +412,20 @@ namespace wrench {
                     out << YAML::Key << "dst_file_name" << YAML::Value << dest->getFile()->getID();
                     out << YAML::Key << "dst_file_size_bytes" << YAML::Value << dest->getFile()->getSize();
 
+                    auto keys = updateIoUsage(volume_per_storage_service_disk, fileCopy);
+                    out_ss << YAML::BeginMap;
+                    out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                    out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
+                    out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                    out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
+                    out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
+                    out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << dest->getFile()->getSize();      // dest file, because it's the one being written
+                    out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
+                    out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
+                    out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
+                    out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
+                    out_ss << YAML::EndMap;
+
                 } else if (auto fileDelete = std::dynamic_pointer_cast<FileDeleteAction>(action)) {
                     auto usedLocation = fileDelete->getFileLocation();
                     auto usedFile = usedLocation->getFile();
@@ -303,6 +437,22 @@ namespace wrench {
                     out << YAML::Key << "dst_file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "dst_file_size_bytes" << YAML::Value << usedFile->getSize();
 
+                    std::cout << " Delete from  " <<usedLocation->getStorageService()->getHostname() << std::endl;
+                    if (usedLocation->getStorageService()->getHostname() != "permanent_storage") {
+                        auto keys = updateIoUsage(volume_per_storage_service_disk, fileDelete);
+                        out_ss << YAML::BeginMap;
+                        out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                        out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
+                        out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                        out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
+                        out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
+                        out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << usedFile->getSize();
+                        out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
+                        out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
+                        out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
+                        out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
+                        out_ss << YAML::EndMap;
+                    }
                 }
                 out << YAML::EndMap;
             }
@@ -310,7 +460,8 @@ namespace wrench {
             out << YAML::EndMap;
         }
         out << YAML::EndSeq;
-        
+        out_ss << YAML::EndSeq;
+
         // Write to YAML file
         ofstream io_ops;
         io_ops.open ("io_operations.yml");
@@ -318,6 +469,14 @@ namespace wrench {
         io_ops << out.c_str();
         io_ops << "\n...\n";
         io_ops.close();
+
+        // Write to YAML file
+        ofstream io_ss_ops;
+        io_ss_ops.open ("storage_service_operations.yml");
+        io_ss_ops << "---\n";
+        io_ss_ops << out_ss.c_str();
+        io_ss_ops << "\n...\n";
+        io_ss_ops.close();
          	
     }
 
