@@ -92,6 +92,7 @@ namespace wrench {
             // Sleep in simulation so that jobs are submitted sequentially with the same schedule as in
             // the original DARSHAN traces.
             simulation->sleep(yaml_job.sleepTime);
+            std::shared_ptr<wrench::Action> latest_dependency;
 
             auto job = job_manager->createCompoundJob(yaml_job.id);
             WRENCH_INFO("Creating a compound job for ID %s", yaml_job.id.c_str());
@@ -102,16 +103,17 @@ namespace wrench {
             if (yaml_job.readBytes != 0) {
                 read_file = wrench::Simulation::addFile("input_data_file_" + yaml_job.id, yaml_job.readBytes);
                 // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
-                wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
+                wrench::Simulation::createFile(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
                 auto fileCopyAction = job->addFileCopyAction(
                     "stagingCopy_" + yaml_job.id, 
-                    wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file),
+                    wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file),
                     wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
                 );
                 fileReadAction = job->addFileReadAction("fRead_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-                job->addActionDependency(fileCopyAction, fileReadAction);
                 actions.push_back(fileCopyAction);
                 actions.push_back(fileReadAction);
+                job->addActionDependency(fileCopyAction, fileReadAction);
+                latest_dependency = fileReadAction;
                 WRENCH_INFO("Copy and read action added to job ID %s", yaml_job.id.c_str());
             }
 
@@ -121,40 +123,56 @@ namespace wrench {
             // % of available compute resources used by the job and its execution time (minor a factor of the time spend in IO ?)
             auto compute = job->addComputeAction("compute_" + yaml_job.id, 100 * GFLOP, 200 * MBYTE, yaml_job.coresUsed, yaml_job.coresUsed, wrench::ParallelModel::AMDAHL(0.8));
             actions.push_back(compute);
+            if (latest_dependency) {
+                job->addActionDependency(latest_dependency, compute);
+                latest_dependency = compute;
+            }
             WRENCH_INFO("Compute action added to job ID %s", yaml_job.id.c_str());
             // Possibly model some waiting time / bootstrapping with a sleep action ?
             // auto sleep = job2->addSleepAction("sleep", 20.0);
 
-            // Create file for write operation
+            // Create file for write operation and copy written file back to long-term storage
             std::shared_ptr<wrench::DataFile> write_file = nullptr;
             std::shared_ptr<wrench::FileWriteAction> fileWriteAction = nullptr;
             if (yaml_job.writtenBytes != 0) {
                 write_file = wrench::Simulation::addFile("ouptut_data_file_" + yaml_job.id, yaml_job.writtenBytes);
                 fileWriteAction = job->addFileWriteAction("fWrite_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                auto archiveAction = job->addFileCopyAction(
+                    "archiveCopy_" + yaml_job.id, 
+                    wrench::FileLocation::LOCATION(this->compound_storage_service, write_file),
+                    wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", write_file)
+                );
                 actions.push_back(fileWriteAction);
-                WRENCH_INFO("Write action added to job ID %s", yaml_job.id.c_str());
+                actions.push_back(archiveAction);
+                job->addActionDependency(latest_dependency, fileWriteAction);
+                job->addActionDependency(fileWriteAction, archiveAction);
+                latest_dependency = archiveAction;
+                WRENCH_INFO("Write and copy to archive actions added to job ID %s", yaml_job.id.c_str());
+
             }
 
             // Dependencies and cleanup by delete files (if needed) 
             if (fileReadAction) {
-                job->addActionDependency(fileReadAction, compute);
+                // job->addActionDependency(fileReadAction, compute);
                 auto deleteReadAction = job->addFileDeleteAction("delRF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-                auto deleteExternalReadAction = job->addFileDeleteAction("delERF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/", read_file));
-                if (fileWriteAction) {
-                    job->addActionDependency(fileWriteAction, deleteReadAction);
-                    job->addActionDependency(fileWriteAction, deleteExternalReadAction);
-                } else {
-                    job->addActionDependency(compute, deleteReadAction);
-                    job->addActionDependency(compute, deleteExternalReadAction);
-                }  
-            }
-            if (fileWriteAction) {
-                job->addActionDependency(compute, fileWriteAction);
-                auto deleteWriteAction = job->addFileDeleteAction("delWF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
-                // Maybe we need a sleep action or a copy action here to 
-                job->addActionDependency(fileWriteAction, deleteWriteAction);
+                auto deleteExternalReadAction = job->addFileDeleteAction("delERF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
+                job->addActionDependency(latest_dependency, deleteReadAction);
+                job->addActionDependency(deleteReadAction, deleteExternalReadAction);
+                actions.push_back(deleteReadAction);
+                actions.push_back(deleteExternalReadAction);
+                latest_dependency = deleteExternalReadAction;
             }
 
+            if (fileWriteAction) {
+                auto deleteWriteAction = job->addFileDeleteAction("delWF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+                auto deleteExternalWriteAction = job->addFileDeleteAction("delEWF_" + yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", write_file));
+                actions.push_back(deleteWriteAction);
+                actions.push_back(deleteExternalWriteAction);
+                job->addActionDependency(latest_dependency, deleteWriteAction);
+                job->addActionDependency(deleteWriteAction, deleteExternalWriteAction);
+            }
+
+            
             std::map<std::string, std::string> service_specific_args =
                     {{"-N", std::to_string(yaml_job.nodesUsed)},
                      {"-c", std::to_string(yaml_job.coresUsed)},
@@ -226,6 +244,7 @@ namespace wrench {
     std::pair<std::string, std::string> updateIoUsage(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileDeleteAction>& action) {
 
         if (action->getState() != wrench::Action::COMPLETED) {
+            std::cout << "Action " << action->getName() << " is in state " << action->getStateAsString() << std::endl;
             throw std::runtime_error("Action is not in COMPLETED state");
         }
 
@@ -246,11 +265,12 @@ namespace wrench {
     // COPY overload
     std::pair<std::string, std::string> updateIoUsage(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileCopyAction>& action) {
         
-        auto dst_storage_service = action->getSourceFileLocation()->getStorageService()->getName();
-        auto dst_mount_pt = action->getSourceFileLocation()->getMountPoint();
-        auto dst_volume = action->getSourceFileLocation()->getFile()->getSize();
+        auto dst_storage_service = action->getDestinationFileLocation()->getStorageService()->getName();
+        auto dst_mount_pt = action->getDestinationFileLocation()->getMountPoint();
+        auto dst_volume = action->getDestinationFileLocation()->getFile()->getSize();
 
         if (action->getState() != wrench::Action::COMPLETED) {
+            std::cout << "Action " << action->getName() << " is in state " << action->getStateAsString() << std::endl;
             throw std::runtime_error("Action is not in COMPLETED state");
         }
 
@@ -278,6 +298,7 @@ namespace wrench {
     std::pair<std::string, std::string> updateIoUsage(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileWriteAction>& action) {
 
         if (action->getState() != wrench::Action::COMPLETED) {
+            std::cout << "Action " << action->getName() << " is in state " << action->getStateAsString() << std::endl;
             throw std::runtime_error("Action is not in COMPLETED state");
         }
 
@@ -344,9 +365,11 @@ namespace wrench {
                                   };
             auto sorted_actions = std::set<std::shared_ptr<Action>, decltype(set_cmp)>(set_cmp);
             sorted_actions.insert(actions.begin(), actions.end());
-
+        
             for (const auto& action : sorted_actions) {
+
                 
+
                 out << YAML::BeginMap;  // action map
                 out << YAML::Key << "act_name" << YAML::Value << action->getName();
                 auto act_type = wrench::Action::getActionTypeAsString(action);
@@ -356,6 +379,8 @@ namespace wrench {
                 out << YAML::Key << "act_start_ts" << YAML::Value << action->getStartDate();
                 out << YAML::Key << "act_end_ts" << YAML::Value << action->getEndDate();
                 out << YAML::Key << "act_duration" << YAML::Value << (action->getEndDate() - action->getStartDate());
+
+                std::cout << "ACTION TYPE:  " << act_type << " AT TS : " << std::to_string(action->getStartDate()) << std::endl;
 
                 if (auto fileRead = std::dynamic_pointer_cast<FileReadAction>(action)) {
 
@@ -412,19 +437,21 @@ namespace wrench {
                     out << YAML::Key << "dst_file_name" << YAML::Value << dest->getFile()->getID();
                     out << YAML::Key << "dst_file_size_bytes" << YAML::Value << dest->getFile()->getSize();
 
-                    auto keys = updateIoUsage(volume_per_storage_service_disk, fileCopy);
-                    out_ss << YAML::BeginMap;
-                    out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
-                    out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
-                    out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
-                    out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
-                    out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
-                    out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << dest->getFile()->getSize();      // dest file, because it's the one being written
-                    out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
-                    out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
-                    out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
-                    out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
-                    out_ss << YAML::EndMap;
+                    if (dest->getStorageService()->getHostname() != "permanent_storage") {
+                        auto keys = updateIoUsage(volume_per_storage_service_disk, fileCopy);
+                        out_ss << YAML::BeginMap;
+                        out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                        out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
+                        out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                        out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
+                        out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
+                        out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << dest->getFile()->getSize();      // dest file, because it's the one being written
+                        out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
+                        out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
+                        out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
+                        out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
+                        out_ss << YAML::EndMap;
+                    }
 
                 } else if (auto fileDelete = std::dynamic_pointer_cast<FileDeleteAction>(action)) {
                     auto usedLocation = fileDelete->getFileLocation();
@@ -437,8 +464,9 @@ namespace wrench {
                     out << YAML::Key << "dst_file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "dst_file_size_bytes" << YAML::Value << usedFile->getSize();
 
-                    std::cout << " Delete from  " <<usedLocation->getStorageService()->getHostname() << std::endl;
+                    
                     if (usedLocation->getStorageService()->getHostname() != "permanent_storage") {
+                        std::cout << " Delete from  " << usedLocation->getStorageService()->getHostname() << std::endl;
                         auto keys = updateIoUsage(volume_per_storage_service_disk, fileDelete);
                         out_ss << YAML::BeginMap;
                         out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
