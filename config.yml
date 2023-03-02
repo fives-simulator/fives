@@ -8,7 +8,7 @@ storage:
   disk_templates:
     - &hdd_capa
       id: hdd_capa
-      capacity: 2000  # GiB
+      capacity: 4000  # GiB
       read_bw: 100    # MBps
       write_bw: 50    # MBps
       mount_prefix: /dev/hdd
@@ -22,21 +22,21 @@ storage:
     - &node_capa
       id: capacity
       disks:
-        - quantity: 4
+        - quantity: 8
           template: *hdd_capa
-        - quantity: 1
+        - quantity: 4
           template: *ssd_perf
   nodes:
-    - quantity: 5
+    - quantity: 20
       template: *node_capa
 dragonfly:
-  groups: 2       # Entire Dragonfly zone
+  groups: 10       # Entire Dragonfly zone
   group_links: 2
-  chassis: 2      # per group
+  chassis: 6       # per group
   chassis_links: 2
-  routers: 2      # per chassis
+  routers: 16      # per chassis
   router_links: 2
-  nodes: 1        # per router
+  nodes: 4         # per router
   node_local_storage:
     enabled: no
     nb_disks: 1

@@ -127,34 +127,12 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
     return job_list;
 }
 
-std::shared_ptr<wrench::FileLocation> defaultStorageServiceSelection(
-    const std::shared_ptr<wrench::DataFile>& file, 
-    const std::set<std::shared_ptr<wrench::StorageService>>& resources,
-    const std::map<std::shared_ptr<wrench::DataFile>, std::shared_ptr<wrench::FileLocation>>& mapping) {
-
-    auto capacity_req = file->getSize();
-    
-    std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
-
-    for(const auto& storage_service : resources) {
-
-        auto free_space = storage_service->getFreeSpace();
-        for (const auto& free_space_entry : free_space) {
-            if (free_space_entry.second >= capacity_req) {
-                designated_location = wrench::FileLocation::LOCATION(storage_service, free_space_entry.first, file);
-                break;
-            }
-        }
-    }
-
-    return designated_location;
-}
-
 
 std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
     const std::shared_ptr<wrench::DataFile>& file, 
     const std::set<std::shared_ptr<wrench::StorageService>>& resources,
-    const std::map<std::shared_ptr<wrench::DataFile>, std::shared_ptr<wrench::FileLocation>>& mapping) {
+    const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>>& mapping,
+    const std::vector<std::shared_ptr<wrench::FileLocation>>& previous_allocations) {
 
     static auto last_selection = resources.begin();
     auto capacity_req = file->getSize();
@@ -167,11 +145,12 @@ std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
     auto current = last_selection++;
     while(current != last_selection) {
 
-        auto free_space = current->get()->getFreeSpace();
-        for (const auto& free_space_entry : free_space) {
-
-            if (free_space_entry.second >= capacity_req) {
-                designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(current->get()), free_space_entry.first, file);
+        auto ss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(*(current));
+        auto mount_points = ss->getMountPoints();
+        for (const auto& mnt : mount_points) {
+            auto free_space = ss->getTotalFreeSpaceAtPath(mnt);
+            if (free_space >= capacity_req) {
+                designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(current->get()), mnt, file);
                 break;
             }
         }
@@ -185,7 +164,13 @@ std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
     }
 
     std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
+    if (designated_location) {
+        std::cout << "Designated location is not null" << std::endl;
+    } else {
+        std::cout << "Designated location is null" << std::endl;
+    }
     return designated_location;
+
 }
 
 
@@ -239,7 +224,7 @@ int main(int argc, char **argv) {
     simulation->getOutput().enableDiskTimestamps(true);
 
     // Just to make sure the platform looks about correct.
-    describe_platform();
+    // describe_platform();
 
     // Simple storage services that will be accessed through CompoundStorageService
     std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
@@ -254,23 +239,29 @@ int main(int argc, char **argv) {
         }
 
         for(auto i = 0; i < node.qtt; i++) {    // qtt of each type
-
-            std::cout << "Inserting a new SimpleStorageService" << std::endl;
-            sstorageservices.insert(
-                simulation->add(
-                    wrench::SimpleStorageService::createSimpleStorageService(
-                        node.tpl.id + std::to_string(i),                      // ID based on node template and global index
-                        mount_points, {}, {}
+            for (const auto& mnt_pt : mount_points) {
+                std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << " for disk " << mnt_pt << std::endl;
+                sstorageservices.insert(
+                    simulation->add(
+                        wrench::SimpleStorageService::createSimpleStorageService(
+                            node.tpl.id + std::to_string(i),                      // ID based on node template and global index
+                            { mnt_pt }, {}, {}
+                        )
                     )
-                )
-            );
+                );
+            }
+
         }
     }
 
     // CompoundStorageService, on first storage node
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
-            "compound_storage", sstorageservices
+            "compound_storage", 
+            sstorageservices, 
+            smartStorageSelectionStrategy, 
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}}, 
+            {}
         )
     );
 
@@ -286,12 +277,13 @@ int main(int argc, char **argv) {
      */
     std::vector<std::string> compute_nodes;
     auto nb_compute_nodes = config->d_nodes * config->d_routers * config->d_chassis * config->d_groups;
+    std::cout << "Using " << nb_compute_nodes << " compute nodes" << std::endl;
     for(unsigned int i = 0; i < nb_compute_nodes; i++){
         compute_nodes.push_back("compute" + std::to_string(i));
     }
     auto batch_service = simulation->add(new wrench::BatchComputeService(
             "batch0", compute_nodes, "", 
-            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf_storage"}}, {})
+            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf"}}, {})
     );
 
     /* Instantiate an execution controller */
@@ -308,9 +300,8 @@ int main(int argc, char **argv) {
     auto consummed = sg_host_get_consumed_energy(storage_host);
     std::cout << "Energy consumed : " << consummed << std::endl;
 
-
-    simulation->getOutput().dumpDiskOperationsJSON("./wrench_disk_ops.json", true);
-    simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
+    // simulation->getOutput().dumpDiskOperationsJSON("./wrench_disk_ops.json", true);
+    // simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
 
     auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
     for (auto const &item: trace) {
