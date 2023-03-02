@@ -64,8 +64,8 @@ namespace storalloc {
 
         std::string hostname = "compute" + std::to_string(id);
         auto compute_host = zone->create_host(hostname, {"100.0Mf","50.0Mf","20.0Mf"});
-        compute_host->set_core_count(24);
-        compute_host->set_property("ram", "128GB");
+        compute_host->set_core_count(64);
+        compute_host->set_property("ram", "192GB");
         compute_host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
         compute_host->set_property("wattage_off", "10");
         compute_host->seal();
@@ -98,8 +98,8 @@ namespace storalloc {
         auto control_router = control_zone->create_router("control_zone_router_0");
 
         for (auto &host: control_hosts) {
-            host->set_core_count(4);
-            host->set_property("ram", "32GB");
+            host->set_core_count(64);
+            host->set_property("ram", "64GB");
             host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
             host->set_property("wattage_off", "10");
 
