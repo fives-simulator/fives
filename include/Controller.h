@@ -39,6 +39,8 @@ namespace wrench {
         void processEventCompoundJobFailure(std::shared_ptr<CompoundJobFailedEvent>) override;
 
         void processCompletedJobs(const std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>>& jobs);
+        void extractSSSIO();
+
 
     private:
 
