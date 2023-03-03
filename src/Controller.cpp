@@ -217,6 +217,7 @@ namespace wrench {
         }
 
         this->processCompletedJobs(compound_jobs);
+        this->extractSSSIO();
 
         return 0;
     }
@@ -247,16 +248,11 @@ namespace wrench {
     }
 
     // DELETE Overload
-    std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileDeleteAction>& action) {
+    std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
 
-        if (action->getState() != wrench::Action::COMPLETED) {
-            std::cout << "Action " << action->getName() << " is in state " << action->getStateAsString() << std::endl;
-            throw std::runtime_error("Action is not in COMPLETED state");
-        }
-
-        auto storage_service = action->getFileLocation()->getStorageService()->getName();
-        auto mount_pt = action->getFileLocation()->getPath();       // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
-        auto volume = action->getFile()->getSize(); 
+        auto storage_service = location->getStorageService()->getName();
+        auto mount_pt = location->getPath();                   // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto volume = location->getFile()->getSize(); 
 
         // Update volume record with new write/copy/delete value
         volume_records[storage_service].total_allocation_count -= 1;
@@ -519,30 +515,45 @@ namespace wrench {
                     auto usedLocation = fileDelete->getFileLocation();
                     auto usedFile = usedLocation->getFile();
 
-                    out << YAML::Key << "dst_storage_service" << YAML::Value << usedLocation->getStorageService()->getName();
-                    out << YAML::Key << "dst_storage_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
-                    // out << YAML::Key << "dst_storage_disk" << YAML::Value << usedLocation->getMountPoint();
-                    out << YAML::Key << "dst_file_path" << YAML::Value << usedLocation->getPath();
-                    out << YAML::Key << "dst_file_name" << YAML::Value << usedFile->getID();
-                    out << YAML::Key << "dst_file_size_bytes" << YAML::Value << usedFile->getSize();
+                    out << YAML::Key << "storage_service" << YAML::Value << usedLocation->getStorageService()->getName();
+                    out << YAML::Key << "storage_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
+                    out << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
+                    out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
+                    out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
 
                     
                     if (usedLocation->getStorageService()->getHostname() != "permanent_storage") {
-                        std::cout << " Delete from  " << usedLocation->getStorageService()->getHostname() << std::endl;
-                        auto keys = updateIoUsageDelete(volume_per_storage_service_disk, fileDelete);
-                        out_ss << YAML::BeginMap;
-                        out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
-                        out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
-                        out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
-                        out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
-                        out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
-                        out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
-                        out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << usedFile->getSize();
-                        out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
-                        out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
-                        out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
-                        out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
-                        out_ss << YAML::EndMap;
+
+                        auto delete_trace = this->compound_storage_service->delete_traces[usedFile->getID()];
+                        out << YAML::Key << "parts_count" << YAML::Value << delete_trace.internal_locations.size();
+                        out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
+                        for (const auto& trace_loc : delete_trace.internal_locations) {
+                            out << YAML::BeginMap;
+                            out << YAML::Key << "storage_service" << YAML::Value << trace_loc->getStorageService()->getName();
+                            out << YAML::Key << "storage_server" << YAML::Value << trace_loc->getStorageService()->getHostname();
+                            out << YAML::Key << "part_path" << YAML::Value << trace_loc->getPath();
+                            out << YAML::Key << "part_name" << YAML::Value << trace_loc->getFile()->getID();
+                            out << YAML::Key << "part_size_bytes" << YAML::Value << trace_loc->getFile()->getSize();
+                            out << YAML::EndMap;
+                        }
+                        out << YAML::EndSeq;
+
+                        for (const auto& trace_loc : delete_trace.internal_locations) {
+                            auto keys = updateIoUsageDelete(volume_per_storage_service_disk, trace_loc);
+                            out_ss << YAML::BeginMap;
+                            out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                            out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
+                            out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                            out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
+                            out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
+                            out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
+                            out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << usedFile->getSize();
+                            out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
+                            out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
+                            out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
+                            out_ss << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
+                            out_ss << YAML::EndMap;
+                        }
                     }
                 }
                 out << YAML::EndMap;
@@ -569,6 +580,37 @@ namespace wrench {
         io_ss_ops << "\n...\n";
         io_ss_ops.close();
          	
+    }
+
+    void Controller::extractSSSIO() {
+
+        YAML::Emitter out;
+        out << YAML::BeginSeq;
+
+        for(const auto& entry : this->compound_storage_service->internal_storage_use) {
+
+            auto ts = entry.first;
+            auto sss_map = entry.second;
+
+            out << YAML::BeginMap;
+            out << YAML::Key << "ts" << YAML::Value << ts;
+            for (const auto& map_entry : sss_map) {
+                out << YAML::Key << map_entry.first->getHostname() + "::" + map_entry.first->getBaseRootPath() << YAML::Value << map_entry.second; 
+            }
+            out << YAML::EndMap;
+
+        }
+
+        out << YAML::EndSeq;
+
+
+        ofstream io_ops;
+        io_ops.open ("timestamped_io_operations.yml");
+        io_ops << "---\n";
+        io_ops << out.c_str();
+        io_ops << "\n...\n";
+        io_ops.close();
+
     }
 
 } // namespace wrench
