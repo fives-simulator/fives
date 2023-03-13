@@ -20,10 +20,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
+#include <wrench/util/UnitParser.h>
 
 #include "yaml-cpp/yaml.h"
 
-WRENCH_LOG_CATEGORY(controller, "Log category for Controller");
+WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for Controller");
 
 namespace wrench {
 
@@ -92,7 +94,7 @@ namespace wrench {
             // Sleep in simulation so that jobs are submitted sequentially with the same schedule as in
             // the original DARSHAN traces.
             simulation->sleep(yaml_job.sleepTime);
-            std::shared_ptr<wrench::Action> latest_dependency;
+            std::shared_ptr<wrench::Action> latest_dependency = nullptr;
 
             auto job = job_manager->createCompoundJob(yaml_job.id);
             WRENCH_INFO("Creating a compound job for ID %s", yaml_job.id.c_str());
@@ -126,8 +128,8 @@ namespace wrench {
             actions.push_back(compute);
             if (latest_dependency) {
                 job->addActionDependency(latest_dependency, compute);
-                latest_dependency = compute;
             }
+            latest_dependency = compute;
             WRENCH_INFO("Compute action added to job ID %s", yaml_job.id.c_str());
             // Possibly model some waiting time / bootstrapping with a sleep action ?
             // auto sleep = job2->addSleepAction("sleep", 20.0);
@@ -180,13 +182,18 @@ namespace wrench {
             }
 
             
+            auto runtime = ((yaml_job.runTime / 60) * 1000);
+            if (runtime == 0) {
+                runtime = 1;
+            }
+    
             std::map<std::string, std::string> service_specific_args =
                     {{"-N", std::to_string(yaml_job.nodesUsed)},                            // nb of nodes
                      {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)},       // core per node
-                     {"-t", std::to_string((yaml_job.runTime / 60) * 1000)}};                        // minutes
+                     {"-t", std::to_string(runtime)}};               // minutes
             WRENCH_INFO("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
                         job->getName().c_str(),
-                        yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, (yaml_job.runTime / 60) * 1000
+                        yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, runtime
             );
             compound_jobs.push_back(std::make_pair(yaml_job, job));
             job_manager->submitJob(job, this->compute_service, service_specific_args);
@@ -584,33 +591,33 @@ namespace wrench {
 
     void Controller::extractSSSIO() {
 
-        YAML::Emitter out;
-        out << YAML::BeginSeq;
+        ofstream io_ops;
+        io_ops.setf(std::ios_base::fixed);
+        io_ops.open("timestamped_io_operations.csv");
+        io_ops << "ts,storage_service_name,storage_hostname,disk_id,disk_capacity,disk_free_space\n";
+        // io_ops << setprecision(10);
 
         for(const auto& entry : this->compound_storage_service->internal_storage_use) {
 
             auto ts = entry.first;
             auto sss_map = entry.second;
-
-            out << YAML::BeginMap;
-            out << YAML::Key << "ts" << YAML::Value << ts;
             for (const auto& map_entry : sss_map) {
-                out << YAML::Key << map_entry.first->getHostname() + "::" + map_entry.first->getBaseRootPath() << YAML::Value << map_entry.second; 
+          
+                auto sss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(map_entry.first);
+                std::string disk_capacity = sss->getDiskForPathOrNull("/")->get_property("size");
+                auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
+            
+                io_ops << ts << ",";                                    // timestamp
+                io_ops << map_entry.first->getName() << ",";            // storage_service_name
+                io_ops << map_entry.first->getHostname() << ",";        // storage_hostname
+                io_ops << map_entry.first->getBaseRootPath() << ",";    // disk_id
+                io_ops << capacity_bytes << ",";                        // disk_capacity
+                io_ops << map_entry.second.free_space << "\n";           // disk_free_space
+                // io_ops << map_entry.second.load << "";                // disk_load
             }
-            out << YAML::EndMap;
-
         }
 
-        out << YAML::EndSeq;
-
-
-        ofstream io_ops;
-        io_ops.open ("timestamped_io_operations.yml");
-        io_ops << "---\n";
-        io_ops << out.c_str();
-        io_ops << "\n...\n";
         io_ops.close();
-
     }
 
 } // namespace wrench

@@ -139,28 +139,44 @@ std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
     
     std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
 
-    std::cout << "Calling on the smartStorageSelectionStrategy" << std::endl;
+    std::map<std::shared_ptr<wrench::StorageService>, double> temp_used_space = {};
+    for (const auto & alloc : previous_allocations) {
+        if (temp_used_space.find(alloc->getStorageService()) != temp_used_space.end()) {
+            temp_used_space[alloc->getStorageService()] += alloc->getFile()->getSize();
+        } else {
+            temp_used_space[alloc->getStorageService()] = alloc->getFile()->getSize();
+        }
+    }
 
-    // Poor-man's round robin xD
-    auto current = last_selection++;
-    while(current != last_selection) {
+    std::cout << "Calling on the smartStorageSelectionStrategy for file " << file->getID() << std::endl;
 
-        auto ss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(*(current));
-        auto mount_points = ss->getMountPoints();
-        for (const auto& mnt : mount_points) {
-            auto free_space = ss->getTotalFreeSpaceAtPath(mnt);
-            if (free_space >= capacity_req) {
-                designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(current->get()), mnt, file);
-                break;
-            }
+    auto attempts = 25;
+
+    while(attempts > 0) {
+
+        auto ss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(*(last_selection));
+        auto free_space = ss->getTotalFreeSpace();
+
+        if (temp_used_space.find(ss) != temp_used_space.end()) {
+            free_space -= temp_used_space[ss];
         }
 
-        if (designated_location)
+        if (free_space >= capacity_req) {
+            designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(last_selection->get()), file);
             break;
+        }
 
-        current++;
-        if (current == resources.end())
-            current = resources.begin();
+        if (designated_location) {
+            break;
+        }
+
+        // Poor-man's round robin xD
+        last_selection++;
+        if (last_selection == resources.end()) {
+            last_selection = resources.begin();
+        }
+
+        attempts--;
     }
 
     std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
