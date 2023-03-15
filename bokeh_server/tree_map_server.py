@@ -7,6 +7,7 @@
 import yaml
 import datetime as dt
 import random
+import sys
 
 import pandas as pd
 import numpy as np
@@ -34,10 +35,14 @@ from squarify import normalize_sizes, squarify
 
 
 X, Y, W, H = 0, 0, 1800, 900
+INPUTFILE = "timestamped_io_operations.csv"
 
-
-def load_traces(file: str = "timestamped_io_operations.csv"):
+def load_traces(file: str = INPUTFILE):
     """Import traces from Wrench app"""
+
+    if len(sys.argv) == 2:
+        file = sys.argv[1]
+
     io_traces = None
     ts_traces = pd.read_csv(file, sep=",", header=0)
     return ts_traces
@@ -170,7 +175,7 @@ def bkapp(doc):
         line_width=2,
         line_color="black",
         fill_alpha=1,
-        fill_color=factor_cmap("storage_hostname", fill_colormap, SERVER_NAMES),
+        fill_color=factor_cmap("storage_hostname", "Turbo256", SERVER_NAMES),
     )
 
     # Disks
@@ -244,6 +249,8 @@ server = Server({"/": bkapp}, num_procs=1)
 server.start()
 
 if __name__ == "__main__":
+
+
     print("Starting Bokeh Application on 'http://localhost:5006/'")
     server.io_loop.add_callback(server.show, "/")
     server.io_loop.start()
