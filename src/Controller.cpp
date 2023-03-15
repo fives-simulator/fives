@@ -88,16 +88,16 @@ namespace wrench {
         */
         for (const auto& yaml_job : jobs) {
             
-            WRENCH_INFO("JOB SUBMISSION TIME = %s", yaml_job.submissionTime.c_str());
+            WRENCH_DEBUG("JOB SUBMISSION TIME = %s", yaml_job.submissionTime.c_str());
 
-            WRENCH_INFO("SIMULATION SLEEP BEFORE SUBMIT = %d", yaml_job.sleepTime);
+            WRENCH_DEBUG("SIMULATION SLEEP BEFORE SUBMIT = %d", yaml_job.sleepTime);
             // Sleep in simulation so that jobs are submitted sequentially with the same schedule as in
             // the original DARSHAN traces.
             simulation->sleep(yaml_job.sleepTime);
             std::shared_ptr<wrench::Action> latest_dependency = nullptr;
 
             auto job = job_manager->createCompoundJob(yaml_job.id);
-            WRENCH_INFO("Creating a compound job for ID %s", yaml_job.id.c_str());
+            WRENCH_DEBUG("Creating a compound job for ID %s", yaml_job.id.c_str());
 
             // Create file for read operation
             std::shared_ptr<wrench::DataFile> read_file = nullptr;
@@ -116,7 +116,7 @@ namespace wrench {
                 actions.push_back(fileReadAction);
                 job->addActionDependency(fileCopyAction, fileReadAction);
                 latest_dependency = fileReadAction;
-                WRENCH_INFO("Copy and read action added to job ID %s", yaml_job.id.c_str());
+                WRENCH_DEBUG("Copy and read action added to job ID %s", yaml_job.id.c_str());
             }
 
             // Compute action - Add one for every job.
@@ -130,7 +130,7 @@ namespace wrench {
                 job->addActionDependency(latest_dependency, compute);
             }
             latest_dependency = compute;
-            WRENCH_INFO("Compute action added to job ID %s", yaml_job.id.c_str());
+            WRENCH_DEBUG("Compute action added to job ID %s", yaml_job.id.c_str());
             // Possibly model some waiting time / bootstrapping with a sleep action ?
             // auto sleep = job2->addSleepAction("sleep", 20.0);
 
@@ -150,8 +150,7 @@ namespace wrench {
                 job->addActionDependency(latest_dependency, fileWriteAction);
                 job->addActionDependency(fileWriteAction, archiveAction);
                 latest_dependency = archiveAction;
-                WRENCH_INFO("Write and copy to archive actions added to job ID %s", yaml_job.id.c_str());
-
+                WRENCH_DEBUG("Write and copy to archive actions added to job ID %s", yaml_job.id.c_str());
             }
 
             // Dependencies and cleanup by delete files (if needed) 
@@ -182,16 +181,13 @@ namespace wrench {
             }
 
             
-            auto runtime = ((yaml_job.runTime / 60) * 1000);
-            if (runtime == 0) {
-                runtime = 1;
-            }
+            auto runtime = ((yaml_job.runTime) * 100);     // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
     
             std::map<std::string, std::string> service_specific_args =
                     {{"-N", std::to_string(yaml_job.nodesUsed)},                            // nb of nodes
                      {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)},       // core per node
                      {"-t", std::to_string(runtime)}};               // minutes
-            WRENCH_INFO("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
+            WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
                         job->getName().c_str(),
                         yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, runtime
             );
@@ -216,11 +212,13 @@ namespace wrench {
             if (a->getState() != Action::State::COMPLETED) {
                 TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
             }
-            WRENCH_INFO("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+            WRENCH_DEBUG("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
             if (a->getState() != Action::State::COMPLETED) {
-                WRENCH_INFO("  - action failure cause: %s", a->getFailureCause()->toString().c_str());
+                WRENCH_WARN("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+                WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
+                TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+                return 1;
             }
-            TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
         }
 
         this->processCompletedJobs(compound_jobs);

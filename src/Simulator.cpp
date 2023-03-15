@@ -130,15 +130,22 @@ auto loadYamlJobs(const std::string& yaml_file_name) {
 
 std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
     const std::shared_ptr<wrench::DataFile>& file, 
-    const std::set<std::shared_ptr<wrench::StorageService>>& resources,
+    const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>>& resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>>& mapping,
     const std::vector<std::shared_ptr<wrench::FileLocation>>& previous_allocations) {
 
-    static auto last_selection = resources.begin();
+    // Init round-robin
+    static auto last_selected_server = resources.begin()->first;
+    static auto internal_disk_selection = 0;
+    static auto call_count = 0;
+
+    std::cout << "# Call count 1: "<< std::to_string(call_count) << std::endl;
+
     auto capacity_req = file->getSize();
     
     std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
 
+    // Dirty...
     std::map<std::shared_ptr<wrench::StorageService>, double> temp_used_space = {};
     for (const auto & alloc : previous_allocations) {
         if (temp_used_space.find(alloc->getStorageService()) != temp_used_space.end()) {
@@ -148,43 +155,48 @@ std::shared_ptr<wrench::FileLocation> smartStorageSelectionStrategy(
         }
     }
 
-    std::cout << "Calling on the smartStorageSelectionStrategy for file " << file->getID() << std::endl;
+    std::cout << "Calling on the smartStorageSelectionStrategy for file " << file->getID() << " (" << std::to_string(file->getSize()) << "B)" << std::endl;
+    auto current = resources.find(last_selected_server);
+    std::cout << "Starting from server " << current->first << std::endl;
+    std::cout << "Considering disk index " << std::to_string(internal_disk_selection) << std::endl;
 
-    auto attempts = 25;
+    do {
 
-    while(attempts > 0) {
+        auto storage_service = current->second[internal_disk_selection % current->second.size()];
+        std::cout << "- Looking at storage service " << storage_service->getName() << std::endl;
 
-        auto ss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(*(last_selection));
-        auto free_space = ss->getTotalFreeSpace();
+        auto free_space = storage_service->getTotalFreeSpace();
+        std::cout << "- It has " << free_space << "B of free space" << std::endl;
 
-        if (temp_used_space.find(ss) != temp_used_space.end()) {
-            free_space -= temp_used_space[ss];
+        if (temp_used_space.find(storage_service) != temp_used_space.end()) {
+            free_space -= temp_used_space[storage_service];
         }
+        std::cout << "- It has " << free_space << "B of adjusted free space" << std::endl;
 
         if (free_space >= capacity_req) {
-            designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(last_selection->get()), file);
+            designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(storage_service), file);
+            storage_service->reserveSpace(designated_location);
+            std::cout << "Chose server " << current->first << storage_service->getBaseRootPath() << std::endl;
+            // Update for next function call
+            std::advance(current, 1);
+            if (current == resources.end())
+                current = resources.begin();
+            last_selected_server = current->first;
+            std::cout << "Next first server will be " << last_selected_server << std::endl;
             break;
         }
 
-        if (designated_location) {
-            break;
+        std::advance(current, 1);
+        if (current == resources.end()) {
+            current = resources.begin();
+            internal_disk_selection++;
         }
+    } while (current->first != last_selected_server);
 
-        // Poor-man's round robin xD
-        last_selection++;
-        if (last_selection == resources.end()) {
-            last_selection = resources.begin();
-        }
+    call_count++;
+    std::cout << "# Call count 2: "<< std::to_string(call_count) << std::endl;
 
-        attempts--;
-    }
-
-    std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
-    if (designated_location) {
-        std::cout << "Designated location is not null" << std::endl;
-    } else {
-        std::cout << "Designated location is null" << std::endl;
-    }
+    // std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
     return designated_location;
 
 }
@@ -256,7 +268,7 @@ int main(int argc, char **argv) {
 
         for(auto i = 0; i < node.qtt; i++) {    // qtt of each type
             for (const auto& mnt_pt : mount_points) {
-                std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << " for disk " << mnt_pt << std::endl;
+                // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
                 sstorageservices.insert(
                     simulation->add(
                         wrench::SimpleStorageService::createSimpleStorageService(
@@ -276,7 +288,7 @@ int main(int argc, char **argv) {
             "compound_storage", 
             sstorageservices, 
             smartStorageSelectionStrategy, 
-            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}}, 
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}},  // size of smallest SSD
             {}
         )
     );

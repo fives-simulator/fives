@@ -169,7 +169,7 @@ namespace storalloc {
                             std::to_string(disk.tpl.read_bw) + "MBps", 
                             std::to_string(disk.tpl.write_bw) + "MBps"
                         );
-                        new_disk->set_property("size", std::to_string(disk.tpl.capacity)+"GiB");
+                        new_disk->set_property("size", std::to_string(disk.tpl.capacity)+"GB");
                         new_disk->set_property("mount", disk.tpl.mount_prefix + std::to_string(j));
 
                         // Input for contention and variability on HDD
@@ -189,9 +189,9 @@ namespace storalloc {
         )->set_core_count(16)->set_property("ram", "32GB")->set_property(
             "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
         )->set_property("wattage_off", "10")->set_property("latency", "10");
-        permanent_storage->create_disk("disk0", "1000MBps", "1000MBps")->set_property("size", "1000TiB")->set_property("mount", "/dev/disk0");
+        permanent_storage->create_disk("disk0", "1000MBps", "1000MBps")->set_property("size", "10000TB")->set_property("mount", "/dev/disk0");
         // Link to storage backbone
-        auto link_perm = storage_zone->create_split_duplex_link("permanent_storage", "125MBps")->set_latency("24us")->seal();
+        auto link_perm = storage_zone->create_split_duplex_link("permanent_storage", "1000MBps")->set_latency("24us")->seal();
         storage_zone->add_route(permanent_storage->get_netpoint(), storage_router, nullptr, nullptr,
                        {{link_perm, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
 
