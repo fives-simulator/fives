@@ -86,6 +86,7 @@ namespace wrench {
          *  optional write, and cleanup with file delete).
          * 
         */
+        auto cumul_sleep = 0;
         for (const auto& yaml_job : jobs) {
             
             WRENCH_DEBUG("JOB SUBMISSION TIME = %s", yaml_job.submissionTime.c_str());
@@ -103,6 +104,7 @@ namespace wrench {
             std::shared_ptr<wrench::DataFile> read_file = nullptr;
             std::shared_ptr<wrench::FileReadAction> fileReadAction = nullptr;
             if (yaml_job.readBytes != 0) {
+                WRENCH_DEBUG("Creating copy&read for a file with size %ld", yaml_job.readBytes);
                 read_file = wrench::Simulation::addFile("input_data_file_" + yaml_job.id, yaml_job.readBytes);
                 // "storage_service" represents a user shared storage area (/home, any NFS, ...) or any storage located outside the cluster.
                 wrench::StorageService::createFileAtLocation(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));

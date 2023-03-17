@@ -214,7 +214,7 @@ def bkapp(doc):
     p.add_tools(hover)
 
     # Slider for trace id control
-    trace_id = Slider(title="trace", value=0, start=0, end=(TRACES_COUNT - 1), step=1)
+    trace_id = Slider(title="trace", value=0, start=0, end=(TRACES_COUNT - 1), step=1, width=1800)
 
     def update_data(attrname, old, new):
         # Get the current slider value

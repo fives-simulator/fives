@@ -8,7 +8,7 @@ storage:
   disk_templates:
     - &hdd_capa
       id: hdd_capa
-      capacity: 4000  # GB
+      capacity: 2000  # GB
       read_bw: 100    # MBps
       write_bw: 50    # MBps
       mount_prefix: /dev/hdd
@@ -22,12 +22,12 @@ storage:
     - &node_capa
       id: capacity
       disks:
-        - quantity: 16
-          template: *hdd_capa
         - quantity: 4
           template: *ssd_perf
+        - quantity: 8
+          template: *hdd_capa
   nodes:
-    - quantity: 40
+    - quantity: 12
       template: *node_capa
 dragonfly:
   groups: 12       # Entire Dragonfly zone
