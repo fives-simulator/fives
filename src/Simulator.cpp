@@ -283,7 +283,8 @@ int main(int argc, char **argv) {
             "compound_storage", 
             sstorageservices, 
             smartStorageSelectionStrategy, 
-            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}},  // size of smallest SSD
+            // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}},  // size of smallest SSD
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "100000000000"}},
             {}
         )
     );

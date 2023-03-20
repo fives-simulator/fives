@@ -41,7 +41,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node& ynode, storalloc
         // General
         rhs.config_name = ynode["general"]["config_name"].as<std::string>();
         rhs.config_version = ynode["general"]["config_version"].as<std::string>();
-        rhs.bw = ynode["general"]["bandwidth"].as<int>() * 1'000'000'000;
+        rhs.bw = ynode["general"]["bandwidth"].as<std::string>();
         
         // Dragonfly
         rhs.d_groups = ynode["dragonfly"]["groups"].as<int>();

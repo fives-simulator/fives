@@ -103,7 +103,7 @@ namespace storalloc {
             host->set_property("wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
             host->set_property("wattage_off", "10");
 
-            auto link = control_zone->create_split_duplex_link(host->get_name(), "125MBps")->set_latency("24us")->seal();
+            auto link = control_zone->create_split_duplex_link(host->get_name(), "1.25GBps")->set_latency("24us")->seal();
             /* add link and backbone for communications from the host */
             control_zone->add_route(host->get_netpoint(), control_router, nullptr, nullptr,
                        {{link, sg4::LinkInRoute::Direction::UP}, backbone_ctrl}, true);
@@ -132,8 +132,8 @@ namespace storalloc {
         // Create a storage zone
         auto storage_zone = sg4::create_floyd_zone("AS_Storage");
         storage_zone->set_parent(main_zone);
-        auto backbone_link_storage = storage_zone->create_link("backbone_storage", "1.25GBps");
-        sg4::LinkInRoute backbone_storage(backbone_link_storage);
+        auto backbone_link_storage = storage_zone->create_link("backbone_storage", "12.5GBps"); // 100 Gbps
+        sg4::LinkInRoute backbone_storage(backbone_link_storage);   
         auto storage_router = storage_zone->create_router("storage_zone_router_0");
 
         // Simple storage services that will be accessed through CompoundStorageService
@@ -156,7 +156,7 @@ namespace storalloc {
                 storage_host->set_property("latency", "10");
 
                 // Link to storage backbone
-                auto link = storage_zone->create_split_duplex_link(hostname, "125MBps")->set_latency("24us")->seal();
+                auto link = storage_zone->create_split_duplex_link(hostname, "12.5GBps")->set_latency("24us")->seal();
                 storage_zone->add_route(storage_host->get_netpoint(), storage_router, nullptr, nullptr,
                         {{link, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
 
@@ -189,9 +189,9 @@ namespace storalloc {
         )->set_core_count(16)->set_property("ram", "32GB")->set_property(
             "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
         )->set_property("wattage_off", "10")->set_property("latency", "10");
-        permanent_storage->create_disk("disk0", "1000MBps", "1000MBps")->set_property("size", "10000TB")->set_property("mount", "/dev/disk0");
+        permanent_storage->create_disk("disk0", "10000MBps", "10000MBps")->set_property("size", "10000TB")->set_property("mount", "/dev/disk0");
         // Link to storage backbone
-        auto link_perm = storage_zone->create_split_duplex_link("permanent_storage", "1000MBps")->set_latency("24us")->seal();
+        auto link_perm = storage_zone->create_split_duplex_link("permanent_storage", "25GBps")->set_latency("24us")->seal();
         storage_zone->add_route(permanent_storage->get_netpoint(), storage_router, nullptr, nullptr,
                        {{link_perm, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
 
@@ -204,7 +204,7 @@ namespace storalloc {
         )->set_core_count(4)->set_property("ram", "16GB")->set_property(
             "wattage_per_state", "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0"
         )->set_property("wattage_off", "10")->set_property("latency", "10");
-        auto link_cpd = storage_zone->create_split_duplex_link("compound_storage", "125MBps")->set_latency("24us")->seal();
+        auto link_cpd = storage_zone->create_split_duplex_link("compound_storage", "25GBps")->set_latency("24us")->seal();
         storage_zone->add_route(cmpd_storage->get_netpoint(), storage_router, nullptr, nullptr,
                        {{link_cpd, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
 
