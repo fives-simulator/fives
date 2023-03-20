@@ -182,13 +182,17 @@ namespace wrench {
                 job->addActionDependency(deleteWriteAction, deleteExternalWriteAction);
             }
 
+            auto runtime = 0;
+            if (yaml_job.runTime < 1000) {
+                runtime = ((yaml_job.runTime + 20000) * 60);
+            } else {
+                runtime = ((yaml_job.runTime) * 60);     // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
+            }
             
-            auto runtime = ((yaml_job.runTime) * 100);     // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
-    
             std::map<std::string, std::string> service_specific_args =
                     {{"-N", std::to_string(yaml_job.nodesUsed)},                            // nb of nodes
                      {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)},       // core per node
-                     {"-t", std::to_string(runtime)}};               // minutes
+                     {"-t", std::to_string(runtime)}};                                      // minutes
             WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
                         job->getName().c_str(),
                         yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, runtime

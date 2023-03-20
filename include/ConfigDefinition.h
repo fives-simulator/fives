@@ -47,7 +47,7 @@ namespace storalloc
     struct Config {
         std::string config_name;
         std::string config_version;
-        long bw;
+        std::string bw;
         unsigned int d_groups;
         unsigned int d_group_links;
         unsigned int d_chassis;

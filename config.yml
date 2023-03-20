@@ -1,7 +1,7 @@
 ---
 
 general:
-  bandwidth: 1 # GBps
+  bandwidth: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
   config_name: StorAlloc_Test
 storage:
@@ -24,7 +24,7 @@ storage:
       disks:
         - quantity: 4
           template: *ssd_perf
-        - quantity: 8
+        - quantity: 6
           template: *hdd_capa
   nodes:
     - quantity: 12
@@ -40,7 +40,7 @@ dragonfly:
   node_local_storage:
     enabled: no       # Not implemented yet anyway
     nb_disks: 1
-    capacity: 128# GB
+    capacity: 128 # GB
     read_bw: 1000 # MBps
     write_bw: 500 # MBps
 
