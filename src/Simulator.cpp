@@ -236,7 +236,7 @@ int main(int argc, char **argv) {
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
 
-    sg_host_energy_plugin_init();
+    // sg_host_energy_plugin_init();
 
     /* Initialize the simulation */
     simulation->init(&argc, argv);
@@ -283,8 +283,8 @@ int main(int argc, char **argv) {
             "compound_storage", 
             sstorageservices, 
             smartStorageSelectionStrategy, 
-            // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}},  // size of smallest SSD
-            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "100000000000"}},
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "960000000000"}},  // size of smallest SSD
+            // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "30000000000"}},
             {}
         )
     );
@@ -321,8 +321,8 @@ int main(int argc, char **argv) {
 
     // Playing around with energy plugin, not useful
     auto storage_host = sg4::Host::by_name("compound_storage");
-    auto consummed = sg_host_get_consumed_energy(storage_host);
-    std::cout << "Energy consumed : " << consummed << std::endl;
+    // auto consummed = sg_host_get_consumed_energy(storage_host);
+    // std::cout << "Energy consumed : " << consummed << std::endl;
 
     // simulation->getOutput().dumpDiskOperationsJSON("./wrench_disk_ops.json", true);
     // simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
