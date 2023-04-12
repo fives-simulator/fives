@@ -29,6 +29,14 @@ WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for Controller");
 
 namespace wrench {
 
+    template<typename E>
+    constexpr auto
+    toUType(E enumerator) noexcept
+    {
+        return static_cast<std::underlying_type_t<E>>(enumerator);
+    }
+
+
     struct DiskIOCounters {
         double total_capacity;
         double total_capacity_used;
@@ -192,7 +200,7 @@ namespace wrench {
             std::map<std::string, std::string> service_specific_args =
                     {{"-N", std::to_string(yaml_job.nodesUsed)},                            // nb of nodes
                      {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)},       // core per node
-                     {"-t", std::to_string(runtime)}};                                      // minutes
+                     {"-t", std::to_string(runtime)}};                                      // seconds
             WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
                         job->getName().c_str(),
                         yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, runtime
@@ -200,8 +208,7 @@ namespace wrench {
             compound_jobs.push_back(std::make_pair(yaml_job, job));
             job_manager->submitJob(job, this->compute_service, service_specific_args);
         }
-        
-        
+            
         TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_BLUE);
         WRENCH_INFO("### All jobs submitted to the BatchComputeService");
         WRENCH_INFO("### Waiting for execution events");
@@ -593,25 +600,61 @@ namespace wrench {
          	
     }
 
+    /*
+        struct AllocationTrace {
+            double ts;
+            IOAction act;
+            std::string file_name;
+            std::vector<DiskUsage> disk_usage;                              // new usage stats for updated disks
+            std::vector<std::shared_ptr<FileLocation>> internal_locations;  
+        };
+
+        struct DiskUsage {
+            std::shared_ptr<StorageService> service;
+            double free_space;
+            double load;        // not actually used so far
+        };
+    */
+
     void Controller::extractSSSIO() {
 
         ofstream io_ops;
         io_ops.setf(std::ios_base::fixed);
         io_ops.open("timestamped_io_operations.csv");
-        io_ops << "ts,storage_service_name,storage_hostname,disk_id,disk_capacity,disk_free_space\n";
+        io_ops << "ts,action_name,storage_service_name,storage_hostname,disk_id,disk_capacity,disk_free_space,file_name\n";
         // io_ops << setprecision(10);
 
         for(const auto& entry : this->compound_storage_service->internal_storage_use) {
 
-            auto ts = entry.first;
-            auto sss_map = entry.second;
+            auto ts = entry.first;          // ts
+            auto alloc = entry.second;    // AllocationTrace structure
+
+            for (const auto& disk_usage : alloc.disk_usage) {
+
+                auto  simple_storage = std::dynamic_pointer_cast<wrench::SimpleStorageService>(disk_usage.service);
+                std::string disk_capacity = simple_storage->getDiskForPathOrNull("/")->get_property("size");
+                auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
+
+                io_ops << ts << ",";                                                            // timestamp
+                io_ops <<  std::to_string(static_cast<u_int8_t>(alloc.act)) << ",";  // action code
+                io_ops << simple_storage->getName() << ",";                                     // storage_service_name
+                io_ops << simple_storage->getHostname() << ",";                                 // storage_hostname
+                io_ops << simple_storage->getBaseRootPath() << ",";                             // disk_id
+                io_ops << capacity_bytes << ",";                                                // disk_capacity
+                io_ops << disk_usage.free_space << ",";                                         // disk_free_space
+                io_ops << disk_usage.file_name << "\n";                                              // disk_free_space
+
+            }
+
+            /*
             for (const auto& map_entry : sss_map) {
           
                 auto sss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(map_entry.first);
                 std::string disk_capacity = sss->getDiskForPathOrNull("/")->get_property("size");
                 auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
-            
+
                 io_ops << ts << ",";                                    // timestamp
+                io_ops << std::to_string(static_cast<int>(map_entry.second.act)) << ",";       // traced action type 
                 io_ops << map_entry.first->getName() << ",";            // storage_service_name
                 io_ops << map_entry.first->getHostname() << ",";        // storage_hostname
                 io_ops << map_entry.first->getBaseRootPath() << ",";    // disk_id
@@ -619,6 +662,7 @@ namespace wrench {
                 io_ops << map_entry.second.free_space << "\n";           // disk_free_space
                 // io_ops << map_entry.second.load << "";                // disk_load
             }
+            */
         }
 
         io_ops.close();

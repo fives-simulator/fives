@@ -23,6 +23,7 @@ from bokeh.models import (
     Legend,
     LegendItem,
     FixedTicker,
+    Div,
 )
 from bokeh.io import show
 from bokeh.plotting import figure
@@ -36,6 +37,22 @@ from squarify import normalize_sizes, squarify
 
 X, Y, W, H = 0, 0, 1800, 900
 INPUTFILE = "timestamped_io_operations.csv"
+
+ACTIONS_TYPE_TO_STRING = {
+    1: "Read - Start",
+    2: "Read - End",
+    3: "Write - Start",
+    4: "Write - End",
+    5: "CopyToCSS - Start",
+    6: "CopyToCSS - End",
+    7: "CopyFromCSS - Start",
+    8: "CopyFromCss- End",
+    9: "Delete - Start",
+    10: "Delete - End",
+    11: "Simulation Start"
+}
+
+DISKS = None
 
 def load_traces(file: str = INPUTFILE):
     """Import traces from Wrench app"""
@@ -80,6 +97,7 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
     updt_traces = updt_traces[
         [
             "storage_hostname",
+            "action_name",
             "disk_id",
             "disk_capacity",
             "disk_free_space",
@@ -142,9 +160,10 @@ def bkapp(doc):
     )
     hex_color_map = [matplotlib.colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
 
-    servers, disks = compute_dfs_treemap(ptraces, UNIQUE_TS[0])
+    global DISKS
+    servers, DISKS = compute_dfs_treemap(ptraces, UNIQUE_TS[0])
     servers_source = ColumnDataSource(servers)
-    disks_source = ColumnDataSource(disks)
+    disks_source = ColumnDataSource(DISKS)
 
     p = figure(
         width=W,
@@ -214,7 +233,10 @@ def bkapp(doc):
     p.add_tools(hover)
 
     # Slider for trace id control
-    trace_id = Slider(title="trace", value=0, start=0, end=(TRACES_COUNT - 1), step=1, width=1800)
+    trace_id = Slider(
+        title="trace", value=0, start=0, end=(TRACES_COUNT - 1), step=1, width=1800
+    )
+    plain_text = Div(text=f"{disks_source}")
 
     def update_data(attrname, old, new):
         # Get the current slider value
@@ -224,6 +246,7 @@ def bkapp(doc):
         updt_traces = updt_traces[
             [
                 "storage_hostname",
+                "action_name",
                 "disk_id",
                 "disk_capacity",
                 "disk_free_space",
@@ -233,23 +256,30 @@ def bkapp(doc):
         ].sort_values(["storage_hostname", "disk_id"])
         updt_traces = updt_traces.reset_index()
         updt_traces = updt_traces.drop("index", axis=1)
+        updt_traces = updt_traces.set_index(keys=["storage_hostname", "disk_id"])
+
+        action_type = updt_traces["action_name"][0]
+        plain_text.text = f"Current TS: {UNIQUE_TS[index]} - Action type: {ACTIONS_TYPE_TO_STRING[action_type]}"
 
         # servers.update(updt_traces_by_server)
-        disks.update(updt_traces)
+        # disks.update(updt_traces)
+        global DISKS
+        DISKS = DISKS.set_index(keys=["storage_hostname", "disk_id"])
+        DISKS.update(updt_traces)
+        DISKS = DISKS.reset_index()
 
         # servers_source = servers
-        disks_source.data = disks
+        disks_source.data = DISKS
 
     trace_id.on_change("value", update_data)
 
-    doc.add_root(column(p, trace_id))
+    doc.add_root(column(p, column(trace_id, plain_text)))
 
 
 server = Server({"/": bkapp}, num_procs=1)
 server.start()
 
 if __name__ == "__main__":
-
 
     print("Starting Bokeh Application on 'http://localhost:5006/'")
     server.io_loop.add_callback(server.show, "/")
