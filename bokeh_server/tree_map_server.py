@@ -53,6 +53,7 @@ ACTIONS_TYPE_TO_STRING = {
 }
 
 DISKS = None
+CURRENT_INDEX = 0
 
 def load_traces(file: str = INPUTFILE):
     """Import traces from Wrench app"""
@@ -103,6 +104,7 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
             "disk_free_space",
             "percent_free",
             "disk_capacity_tb",
+            "file_name"
         ]
     ]
     updt_traces_by_server = (
@@ -227,6 +229,7 @@ def bkapp(doc):
             ("Disk", "@disk_id"),
             ("Free space (%)", "@percent_free"),
             ("Free space (Bytes)", "@disk_free_space"),
+            ("File", "@file_name")
         ],
     )
     hover.renderers = [disk_blk]
@@ -239,37 +242,45 @@ def bkapp(doc):
     plain_text = Div(text=f"{disks_source}")
 
     def update_data(attrname, old, new):
-        # Get the current slider value
-        index = trace_id.value
 
-        updt_traces = ptraces[ptraces["ts"] == UNIQUE_TS[index]]
-        updt_traces = updt_traces[
-            [
-                "storage_hostname",
-                "action_name",
-                "disk_id",
-                "disk_capacity",
-                "disk_free_space",
-                "percent_free",
-                "disk_capacity_tb",
-            ]
-        ].sort_values(["storage_hostname", "disk_id"])
-        updt_traces = updt_traces.reset_index()
-        updt_traces = updt_traces.drop("index", axis=1)
-        updt_traces = updt_traces.set_index(keys=["storage_hostname", "disk_id"])
+        global CURRENT_INDEX
 
-        action_type = updt_traces["action_name"][0]
-        plain_text.text = f"Current TS: {UNIQUE_TS[index]} - Action type: {ACTIONS_TYPE_TO_STRING[action_type]}"
+        # Get the new slider value
+        new_index = trace_id.value
 
-        # servers.update(updt_traces_by_server)
-        # disks.update(updt_traces)
-        global DISKS
-        DISKS = DISKS.set_index(keys=["storage_hostname", "disk_id"])
-        DISKS.update(updt_traces)
-        DISKS = DISKS.reset_index()
+        start_index, end_index = 0, new_index + 1
+        if new_index > CURRENT_INDEX:
+            start_index = CURRENT_INDEX + 1
 
-        # servers_source = servers
-        disks_source.data = DISKS
+        for idx in range(start_index, end_index):
+
+            updt_traces = ptraces[ptraces["ts"] == UNIQUE_TS[idx]]
+            updt_traces = updt_traces[
+                [
+                    "storage_hostname",
+                    "action_name",
+                    "disk_id",
+                    "disk_capacity",
+                    "disk_free_space",
+                    "percent_free",
+                    "disk_capacity_tb",
+                    "file_name"
+                ]
+            ].sort_values(["storage_hostname", "disk_id"])
+            updt_traces = updt_traces.reset_index()
+            updt_traces = updt_traces.drop("index", axis=1)
+            updt_traces = updt_traces.set_index(keys=["storage_hostname", "disk_id"])
+
+            action_type = updt_traces["action_name"][0]
+            
+            global DISKS
+            DISKS = DISKS.set_index(keys=["storage_hostname", "disk_id"])
+            DISKS.update(updt_traces)
+            DISKS = DISKS.reset_index()
+            disks_source.data = DISKS
+
+        plain_text.text = f"Current TS: {UNIQUE_TS[new_index]} - Action type: {ACTIONS_TYPE_TO_STRING[action_type]}"
+        CURRENT_INDEX = new_index
 
     trace_id.on_change("value", update_data)
 
