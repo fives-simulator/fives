@@ -4,6 +4,7 @@ general:
   bandwidth: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
   config_name: StorAlloc_Test
+  max_stripe_size: 960000000000    # Max size for allocation stripes (in bytes)
 storage:
   disk_templates:
     - &hdd_capa
