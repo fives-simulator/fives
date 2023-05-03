@@ -1,9 +1,9 @@
+#include <random>
+
 #include "AllocationStrategy.h"
 
 
-
-
-std::shared_ptr<wrench::FileLocation> storalloc::simpleRRStrategy(
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::simpleRRStrategy(
     const std::shared_ptr<wrench::DataFile>& file, 
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>>& resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>>& mapping,
@@ -66,13 +66,21 @@ std::shared_ptr<wrench::FileLocation> storalloc::simpleRRStrategy(
     // std::cout << "# Call count 2: "<< std::to_string(call_count) << std::endl;
 
     // std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
-    return designated_location;
+    if (designated_location)
+        return std::vector<std::shared_ptr<wrench::FileLocation>>{designated_location};
+    else
+        return std::vector<std::shared_ptr<wrench::FileLocation>>();
 
 }
 
 
-
-std::shared_ptr<wrench::FileLocation> storalloc::lustreStrategy(
+/**
+ * @brief Lustre-inspired allocation algorithm (round-robin with a few tweaks)
+ *        meant to be used with the INTERNAL_STRIPING property of the CSS set to false
+ *        (striping is done here).
+ * 
+*/
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
     const std::shared_ptr<wrench::DataFile>& file, 
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>>& resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>>& mapping,
@@ -81,31 +89,18 @@ std::shared_ptr<wrench::FileLocation> storalloc::lustreStrategy(
     // ## First build a list of services containing only up / non-full services and ordered for use with rr
     // This is roughly equivalent to lod_qos.c::lod_qos_calc_rr() function in Lustre sources.
 
-    std::map<std::string, int> hostname_to_service_number;      // OSS in Lustre
-    std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services;    // OST in Lustre
-        
-    for (const auto host_it = resources.begin(); host_it != resources.end(); ++host_it) {
-
-        auto service_count = 0;
-
-        for (const auto srv : host_it->second) {
-            if (srv->traceTotalFreeSpace() != 0) {
-                disk_level_services.push_back(srv);
-                service_count++;
-            }
-        }
-
-        if (!disk_level_services.empty()) {
-            hostname_to_service_number[host_it->first] = service_count; 
-        }
-            
+    std::map<std::string, int> hostname_to_service_number;                          // OSS in Lustre
+    std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services;       // OST in Lustre
+    for (const auto &host : resources) {
+        disk_level_services.insert(disk_level_services.end(), host.second.begin(), host.second.end());
+        hostname_to_service_number[host.first] = host.second.size();
     }
 
     std::vector<std::shared_ptr<wrench::StorageService>> rr_ordered_services(disk_level_services.size());
     fill(rr_ordered_services.begin(), rr_ordered_services.end(), nullptr);
     auto placed_services = 0;
 
-    for (const auto server : hostname_to_service_number) {
+    for (const auto &server : hostname_to_service_number) {
 
         auto j = 0;
         auto srv_hostname = server.first;
@@ -132,72 +127,97 @@ std::shared_ptr<wrench::FileLocation> storalloc::lustreStrategy(
     }
 
     if (placed_services != rr_ordered_services.size()) {
-        // Error throw or return ? 
+        throw std::runtime_error("Number of placed services differs expected size of the RR-ordered services");
     }
+
 
     // ## 2. Use the rr ordered list of services to allocation stripes for the given file 
     // Roughly the equivalent of what happens in lod_qos.c::lod_ost_alloc_rr()
 
-
-
-
-    // Init round-robin
-    static auto last_selected_server = resources.begin()->first;
-    static auto internal_disk_selection = 0;
-    // static auto call_count = 0;
-    // std::cout << "# Call count 1: "<< std::to_string(call_count) << std::endl;
-    auto capacity_req = file->getSize();
-    std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
-    // std::cout << "Calling on the rrStorageSelectionStrategy for file " << file->getID() << " (" << std::to_string(file->getSize()) << "B)" << std::endl;
-    auto current = resources.find(last_selected_server);
-    auto current_disk_selection = internal_disk_selection;
-    // std::cout << "Last selected server " << last_selected_server << std::endl;
-    // std::cout << "Starting from server " << current->first << std::endl;
-    // std::cout << "Internal disk selection " << std::to_string(internal_disk_selection) << std::endl;
-
-    auto continue_disk_loop = true;
-
-    do {
-
-        // std::cout << "Considering disk index " << std::to_string(current_disk_selection) << std::endl;
-        auto nb_of_local_disks = current->second.size();
-        auto storage_service = current->second[current_disk_selection % nb_of_local_disks];
-        // std::cout << "- Looking at storage service " << storage_service->getName() << std::endl;
-
-        auto free_space = storage_service->getTotalFreeSpace();
-        // std::cout << "- It has " << free_space << "B of free space" << std::endl;
-
-        if (free_space >= capacity_req) {
-            designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(storage_service), file);
-            // std::cout << "Chose server " << current->first << storage_service->getBaseRootPath() << std::endl;
-            // Update for next function call
-            std::advance(current, 1);
-            if (current == resources.end()) {
-                current = resources.begin();
-                current_disk_selection++;
+    /** 
+     * In Lustre, the user is supposed to provide a striping pattern (stripe size and number of OSTs onto which the stripes will be placed)
+     * Here we don't have (nor want) this kind of user input, so we need to derive the stripe size and number of used OSTs from the file 
+     * size and the total number of OSTs, with some homemade rule.
+     * 
+     * Currently, the stripe size is arbitrarily set to 640MB (recommended size is between 1-4MB, and max is 4GB, but anyway, our allocations
+     * do not necessarily represent files...)
+     * 
+    */ 
+    int stripe_size = 640000000;    // how much data is written to a given OST before moving to the next one (640MB in this case)
+    int stripe_count = 1;           // on how many OSTs to allocate stripes (eg: 1 means a single OST receives all, -1 means to stripe over all OSTs, 0 means to use Lustre's default)
+    int stripe_per_ost = 1;
+    auto file_size_b = file->getSize(); 
+    if (file_size_b > stripe_size) {
+        stripe_count = std::ceil(file_size_b / stripe_size);        // here we potentially ask for more storage than needed due to the rounding
+        if (stripe_count > rr_ordered_services.size()) {
+            while(stripe_count > rr_ordered_services.size() * stripe_per_ost) {
+                stripe_per_ost++;   // here we don't ask for more storage than needed because the condition of the allocation loop
+                                    // (see below) also checks whether all required stripes have been allocated or not.  
             }
-            last_selected_server = current->first;
-            internal_disk_selection = current_disk_selection;
-            // std::cout << "Next first server will be " << last_selected_server << std::endl;
+        } 
+    }
+    int max_nb_ost = 2000;          // never stripe on more than 2000 OSTs, that's the Lustre limit when using ZFS.    
+
+    // Index of first OST of the strip pattern
+    // (from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, rr_ordered_services.size() - 1);
+    int start_ost_index = distrib(gen);     // similar to when Lustre chooses the first OST to be used.
+    int temp_start_ost_index = start_ost_index;
+    int stripe_idx = 0;
+
+      
+    std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations;
+
+    // some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
+    for (auto speed = 0; speed < 2; speed++) {
+        for (auto i = 0; i < rr_ordered_services.size() && stripe_idx < stripe_count; i++) {
+
+            auto array_idx = temp_start_ost_index % rr_ordered_services.size();
+            ++temp_start_ost_index;
+            auto current_ost = rr_ordered_services[array_idx];
+
+            if (current_ost->traceTotalFreeSpace() < stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
+                // Only keep running storage services associated with non-full disks
+                continue;
+            }
+
+            // For the first iteration, avoid services which already have an allocation on them.
+            if (speed == 0) {
+                auto used = false;
+                for (const auto& alloc_mapping : mapping) {
+                    auto location_vector = alloc_mapping.second;
+                    for (const auto& location : location_vector) {
+                        if (location->getStorageService()->getHostname() == current_ost->getHostname())
+                            used = true;
+                    }
+                }
+                if (used)
+                    continue;
+            }
+
+            auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(stripe_idx), stripe_size);
+            designated_locations.push_back(
+                wrench::FileLocation::LOCATION(
+                    std::shared_ptr<wrench::StorageService>(current_ost), part
+                )
+            );
+            stripe_idx++;
+        }
+
+        if (stripe_idx == stripe_count) {
             break;
+        } else {
+            designated_locations.clear();
+            temp_start_ost_index = start_ost_index;     // back to original index, but this time we'll allow 'slow' OSTs
         }
-
-        std::advance(current, 1);
-        if (current == resources.end()) {
-            current = resources.begin();
-            current_disk_selection++;
-        }
-        if (current_disk_selection > (internal_disk_selection + nb_of_local_disks + 1)) {
-            // std::cout << "Stopping continue_disk_loop" << std::endl;
-            continue_disk_loop = false;
-        }
-        // std::cout << "Next server will be " << current->first << std::endl;
-    } while ((current->first != last_selected_server) or (continue_disk_loop));
-
-    // call_count++;
-    // std::cout << "# Call count 2: "<< std::to_string(call_count) << std::endl;
-
-    // std::cout << "smartStorageSelectionStrategy has done its work." << std::endl;
-    return designated_location;
-
+    }
+    
+    // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
+    if (designated_locations.size() != stripe_count) {
+        designated_locations.clear();
+    } 
+    
+    return designated_locations;
 }
