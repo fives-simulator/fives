@@ -4,33 +4,23 @@
     IO event (write / copy / delete) in the simulation.
 """
 
-import yaml
-import datetime as dt
 import random
 import sys
 
 import pandas as pd
-import numpy as np
 import matplotlib
 
-from bokeh.layouts import column, row, layout
+from bokeh.layouts import column
 from bokeh.models import (
     ColumnDataSource,
     Slider,
     HoverTool,
-    LinearColorMapper,
-    ColorBar,
-    Legend,
-    LegendItem,
-    FixedTicker,
     Div,
 )
-from bokeh.io import show
 from bokeh.plotting import figure
-from bokeh.themes import Theme
 from bokeh.palettes import viridis
 from bokeh.server.server import Server
-from bokeh.transform import jitter, factor_cmap, linear_cmap
+from bokeh.transform import factor_cmap, linear_cmap
 
 from squarify import normalize_sizes, squarify
 
@@ -49,11 +39,12 @@ ACTIONS_TYPE_TO_STRING = {
     8: "CopyFromCss- End",
     9: "Delete - Start",
     10: "Delete - End",
-    11: "Simulation Start"
+    11: "Simulation Start",
 }
 
 DISKS = None
 CURRENT_INDEX = 0
+
 
 def load_traces(file: str = INPUTFILE):
     """Import traces from Wrench app"""
@@ -61,7 +52,6 @@ def load_traces(file: str = INPUTFILE):
     if len(sys.argv) == 2:
         file = sys.argv[1]
 
-    io_traces = None
     ts_traces = pd.read_csv(file, sep=",", header=0)
     return ts_traces
 
@@ -78,15 +68,16 @@ def preprocess_traces(traces: pd.DataFrame):
     ts_traces["disk_capacity_tb"] = (
         ts_traces["disk_capacity"] / 1000 / 1000 / 1000 / 1000
     ).round(decimals=2)
+    ts_traces["file_name"] = ts_traces["file_name"].fillna("No file")
 
     return ts_traces
 
 
-def treemap(df, col, x, y, dx, dy):
+def treemap(df, norm_column, x_coord, y_coord, delta_x, delta_y):
     """Compute blocks coordinates for the treemap"""
     sub_df = df.copy()  # nlargest(N, col)
-    normed = normalize_sizes(sub_df[col], dx, dy)
-    blocks = squarify(normed, x, y, dx, dy)
+    normed = normalize_sizes(sub_df[norm_column], delta_x, delta_y)
+    blocks = squarify(normed, x_coord, y_coord, delta_x, delta_y)
     blocks_df = pd.DataFrame.from_dict(blocks).set_index(sub_df.index)
     return sub_df.join(blocks_df, how="left").reset_index()
 
@@ -104,7 +95,7 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
             "disk_free_space",
             "percent_free",
             "disk_capacity_tb",
-            "file_name"
+            "file_name",
         ]
     ]
     updt_traces_by_server = (
@@ -117,7 +108,7 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
     blocks_by_server = treemap(updt_traces_by_server, "disk_capacity", X, Y, W, H)
 
     dfs = []
-    for index, (storage_server, capacity, x, y, dx, dy) in blocks_by_server.iterrows():
+    for _, (storage_server, _, x, y, dx, dy) in blocks_by_server.iterrows():
         df = updt_traces[updt_traces.storage_hostname == storage_server]
         df = df.sort_values(["disk_capacity"])
         dfs.append(treemap(df, "disk_capacity", x, y, dx, dy))
@@ -130,7 +121,9 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
     internal_blocks["dx"] = internal_blocks["dx"] - 10
     internal_blocks["dy"] = internal_blocks["dy"] - 10
 
-    internal_blocks = internal_blocks.sort_values(["storage_hostname", "disk_id"])
+    internal_blocks = internal_blocks.sort_values(
+        ["storage_hostname", "disk_id", "file_name"]
+    )
     internal_blocks = internal_blocks.reset_index(drop=True)
     internal_blocks = internal_blocks.drop("index", axis=1)
 
@@ -138,7 +131,6 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
 
 
 def bkapp(doc):
-
     traces = load_traces()
     ptraces = preprocess_traces(traces)
 
@@ -210,7 +202,12 @@ def bkapp(doc):
         line_color="black",
         fill_alpha=0.7,
         fill_color=linear_cmap(
-            "percent_free", hex_color_map, 1, 99, high_color="white", low_color="black"
+            "percent_free",
+            hex_color_map,
+            1,
+            99.9,
+            high_color="white",
+            low_color="black",
         ),
     )
     # p.text('x', 'ytop', x_offset=2, y_offset=5, text="disk_id", source=disks_source,
@@ -229,7 +226,7 @@ def bkapp(doc):
             ("Disk", "@disk_id"),
             ("Free space (%)", "@percent_free"),
             ("Free space (Bytes)", "@disk_free_space"),
-            ("File", "@file_name")
+            ("File", "@file_name"),
         ],
     )
     hover.renderers = [disk_blk]
@@ -242,7 +239,6 @@ def bkapp(doc):
     plain_text = Div(text=f"{disks_source}")
 
     def update_data(attrname, old, new):
-
         global CURRENT_INDEX
 
         # Get the new slider value
@@ -253,7 +249,6 @@ def bkapp(doc):
             start_index = CURRENT_INDEX + 1
 
         for idx in range(start_index, end_index):
-
             updt_traces = ptraces[ptraces["ts"] == UNIQUE_TS[idx]]
             updt_traces = updt_traces[
                 [
@@ -264,15 +259,26 @@ def bkapp(doc):
                     "disk_free_space",
                     "percent_free",
                     "disk_capacity_tb",
-                    "file_name"
+                    "file_name",
                 ]
-            ].sort_values(["storage_hostname", "disk_id"])
+            ].sort_values(["storage_hostname", "disk_id", "file_name"])
             updt_traces = updt_traces.reset_index()
             updt_traces = updt_traces.drop("index", axis=1)
             updt_traces = updt_traces.set_index(keys=["storage_hostname", "disk_id"])
+            updt_traces = updt_traces.groupby(["storage_hostname", "disk_id"]).agg(
+                {
+                    "disk_capacity": "first",
+                    "action_name": "first",
+                    "disk_free_space": "first",
+                    "percent_free": "first",
+                    "disk_capacity_tb": "first",
+                    "disk_capacity": "first",
+                    "file_name": ", ".join,
+                }
+            )
 
             action_type = updt_traces["action_name"][0]
-            
+
             global DISKS
             DISKS = DISKS.set_index(keys=["storage_hostname", "disk_id"])
             DISKS.update(updt_traces)
@@ -291,7 +297,6 @@ server = Server({"/": bkapp}, num_procs=1)
 server.start()
 
 if __name__ == "__main__":
-
     print("Starting Bokeh Application on 'http://localhost:5006/'")
     server.io_loop.add_callback(server.show, "/")
     server.io_loop.start()

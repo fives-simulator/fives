@@ -4,18 +4,18 @@ general:
   bandwidth: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
   config_name: StorAlloc_Test
-  max_stripe_size: 960000000000    # Max size for allocation stripes (in bytes)
+  max_stripe_size: 960000000    # Max size for allocation stripes (in bytes)
 storage:
   disk_templates:
     - &hdd_capa
       id: hdd_capa
-      capacity: 2000  # GB
+      capacity: 200   # GB
       read_bw: 100    # MBps
       write_bw: 50    # MBps
       mount_prefix: /dev/hdd
     - &ssd_perf
       id: ssd_perf
-      capacity: 960   # GB
+      capacity: 96    # GB
       read_bw: 1000   # MBps
       write_bw: 500   # MBps
       mount_prefix: /dev/ssd
@@ -23,23 +23,23 @@ storage:
     - &node_capa
       id: capacity
       disks:
-        - quantity: 4
+        - quantity: 1
           template: *ssd_perf
-        - quantity: 6
+        - quantity: 2
           template: *hdd_capa
   nodes:
-    - quantity: 12
+    - quantity: 4
       template: *node_capa
 dragonfly:
-  groups: 12       # Entire Dragonfly zone
+  groups: 2         # Entire Dragonfly zone
   group_links: 2
-  chassis: 6       # per group
+  chassis: 2        # per group
   chassis_links: 2
-  routers: 16      # per chassis
+  routers: 2        # per chassis
   router_links: 2
-  nodes: 4         # per router
+  nodes: 2          # per router
   node_local_storage:
-    enabled: no       # Not implemented yet anyway
+    enabled: no     # Not implemented yet anyway
     nb_disks: 1
     capacity: 128 # GB
     read_bw: 1000 # MBps
