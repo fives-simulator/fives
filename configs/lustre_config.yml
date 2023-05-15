@@ -1,0 +1,45 @@
+---
+
+# Test config for a tiny Lustre filesystem
+# - 2 HDD per node (200GB each)
+# - 8 nodes
+# - Small compute system on the side
+
+general:
+  bandwidth: 25000MBps    # 200Gbps backbone...
+  config_version: 0.0.1
+  config_name: StorAlloc_Lustre_TEST
+  max_stripe_size: 640000000    # Max size for allocation stripes (in bytes)
+storage:
+  disk_templates:
+    - &hdd_capa
+      id: hdd_OSS
+      capacity: 200   # GB
+      read_bw: 100    # MBps
+      write_bw: 50    # MBps
+      mount_prefix: /dev/hdd
+  node_templates:
+    - &node_capa
+      id: lustre_OSS
+      disks:
+        - quantity: 2
+          template: *hdd_capa
+  nodes:
+    - quantity: 8
+      template: *node_capa
+dragonfly:
+  groups: 2         # Entire Dragonfly zone
+  group_links: 2
+  chassis: 2        # per group
+  chassis_links: 2
+  routers: 2        # per chassis
+  router_links: 2
+  nodes: 2          # per router
+  node_local_storage:
+    enabled: no     # Not implemented yet anyway
+    nb_disks: 1
+    capacity: 128 # GB
+    read_bw: 1000 # MBps
+    write_bw: 500 # MBps
+
+...

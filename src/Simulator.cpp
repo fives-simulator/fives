@@ -37,10 +37,9 @@ int storalloc::run_simulation(int argc, char **argv) {
         return 1;
     }
 
+    // Load Compute and Storage configuration
     auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(argv[1]));
-    auto jobs = storalloc::loadYamlJobs(argv[2]);
-
-    std::cout << "Using the following node templates : " << std:: endl;
+    std::cout << "# Using the following node templates : " << std:: endl;
     for (const auto& node_tpl : config->node_templates) {
         std::cout << "- " << node_tpl.first << " nodes with id " << node_tpl.second.id << std::endl; 
         std::cout << "   - " << std::to_string(node_tpl.second.disks.size()) << " disks" << std::endl;
@@ -51,6 +50,10 @@ int storalloc::run_simulation(int argc, char **argv) {
             std::cout << "  - R/W bw " << disk.tpl.read_bw << " / " << disk.tpl.write_bw << std::endl;
         }
     }
+
+    // Load jobs
+    auto jobs = storalloc::loadYamlJobs(argv[2]);
+    std::cout << "# Jobs loaded (" << jobs.size() << " jobs)" << std::endl;
 
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
@@ -102,7 +105,8 @@ int storalloc::run_simulation(int argc, char **argv) {
             "compound_storage", 
             sstorageservices, 
             storalloc::lustreStrategy, 
-            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, config->max_stripe_size}},
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, config->max_stripe_size},
+             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "30000000000"}},
             {}
         )
