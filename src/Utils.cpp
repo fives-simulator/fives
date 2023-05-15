@@ -78,7 +78,7 @@ storalloc::Config storalloc::loadConfig(const std::string& yaml_file_name) {
         throw std::invalid_argument("Invalid config file, missing one or many sections.");
     }
 
-    std::cout << "# Loading configuration : " << config["general"]["config_name"] << "::" << config["general"]["config_version"] << std::endl;
+    std::cout << "# Loading configuration : " << config["general"]["config_name"] << " (v" << config["general"]["config_version"] << ")" << std::endl;
 
     return config.as<storalloc::Config>();
 }

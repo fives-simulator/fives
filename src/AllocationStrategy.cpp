@@ -127,6 +127,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
     }
 
     if (placed_services != rr_ordered_services.size()) {
+        std::cout << "LustreAlloc: couldn't place all services in the round-robin pre-processed list (missing " << std::to_string(rr_ordered_services.size() - placed_services) << " services)" << std::endl; 
         throw std::runtime_error("Number of placed services differs expected size of the RR-ordered services");
     }
 
@@ -161,31 +162,45 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
     // Index of first OST of the strip pattern
     // (from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution)
     std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(rd());     // replace rd() by a static seed for reproducibility
     std::uniform_int_distribution<> distrib(0, rr_ordered_services.size() - 1);
     int start_ost_index = distrib(gen);     // similar to when Lustre chooses the first OST to be used.
     int temp_start_ost_index = start_ost_index;
     int stripe_idx = 0;
 
+    std::cout << "LUSTRE ALLOC DEBUG" << std::endl;
+    std::cout << "Start index = " << std::to_string(start_ost_index) << std::endl;
+    std::cout << "Stripe per ost = " << std::to_string(stripe_per_ost) << std::endl;
+    std::cout << "Stripe count = " << std::to_string(stripe_count) << std::endl;
+    std::cout << "Current file_size = " << std::to_string(file_size_b) << std::endl;
+    std::cout << "rr_ordered_services.size() = " << std::to_string(rr_ordered_services.size()) << std::endl;
+
       
+    std::map<int, std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
     std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations;
 
-    // some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
+    // Some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
     for (auto speed = 0; speed < 2; speed++) {
-        for (auto i = 0; i < rr_ordered_services.size() && stripe_idx < stripe_count; i++) {
-
+        for (auto i = 0; i < rr_ordered_services.size() * stripe_per_ost && stripe_idx < stripe_count; i++) {
+ 
             auto array_idx = temp_start_ost_index % rr_ordered_services.size();
             ++temp_start_ost_index;
             auto current_ost = rr_ordered_services[array_idx];
+            std::cout << "LustreAlloc : array_idx = " << std::to_string(array_idx) << std::endl;
+            std::cout << "LustreAlloc : current_ost = " << current_ost->getHostname() << std::endl; 
+            std::cout << "LustreAlloc : i = " << std::to_string(i) << std::endl;
+            std::cout << "LustreAlloc : stripe_idx = " << std::to_string(stripe_idx) << std::endl;
+            std::cout << "LustreAlloc : speed = " << std::to_string(speed) << std::endl;
 
             if (current_ost->traceTotalFreeSpace() < stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                 // Only keep running storage services associated with non-full disks
+                std::cout << "LustreAlloc: skipping OST (total Free space == " << std::to_string(current_ost->traceTotalFreeSpace()) << " and current state == " << current_ost->getState() << ")" << std::endl;
                 continue;
             }
 
             // For the first iteration, avoid services which already have an allocation on them.
+            auto used = false;
             if (speed == 0) {
-                auto used = false;
                 for (const auto& alloc_mapping : mapping) {
                     auto location_vector = alloc_mapping.second;
                     for (const auto& location : location_vector) {
@@ -193,29 +208,43 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
                             used = true;
                     }
                 }
-                if (used)
-                    continue;
+
             }
 
-            auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(stripe_idx), stripe_size);
-            designated_locations.push_back(
-                wrench::FileLocation::LOCATION(
-                    std::shared_ptr<wrench::StorageService>(current_ost), part
-                )
-            );
-            stripe_idx++;
+            if (used) {
+                std::cout << "LustreAlloc : Skipping OST because another allocation is already using it" << std::endl; 
+                continue;
+            } else {
+                std::cout << "LustreAlloc : Using OST " << current_ost->getHostname() << std::endl;
+                temp_stripe_locations[stripe_idx] = current_ost;
+                
+                stripe_idx++;
+            }
         }
 
         if (stripe_idx == stripe_count) {
+            std::cout << "LustreAlloc : Stopping because stripe_idx == stripe_count" << std::endl;
             break;
         } else {
             designated_locations.clear();
             temp_start_ost_index = start_ost_index;     // back to original index, but this time we'll allow 'slow' OSTs
+            stripe_idx = 0;
+            std::cout << "LustreAlloc : Starting over because stripe_idx != stripe_count and we reached the condition of this loop" << std::endl;
         }
     }
     
+    for (const auto& stripe_entry : temp_stripe_locations) {
+        auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(stripe_entry.first), stripe_size);
+        designated_locations.push_back(
+            wrench::FileLocation::LOCATION(
+                std::shared_ptr<wrench::StorageService>(stripe_entry.second), part
+            )
+        );
+    }
+
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
     if (designated_locations.size() != stripe_count) {
+        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(designated_locations.size()) << " instead" << std::endl;
         designated_locations.clear();
     } 
     
