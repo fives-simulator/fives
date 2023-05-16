@@ -226,7 +226,7 @@ def bkapp(doc):
             ("Disk", "@disk_id"),
             ("Free space (%)", "@percent_free"),
             ("Free space (Bytes)", "@disk_free_space"),
-            ("File", "@file_name"),
+            ("File", "@{file_name}"),
         ],
     )
     hover.renderers = [disk_blk]
@@ -265,6 +265,7 @@ def bkapp(doc):
             updt_traces = updt_traces.reset_index()
             updt_traces = updt_traces.drop("index", axis=1)
             updt_traces = updt_traces.set_index(keys=["storage_hostname", "disk_id"])
+            print(updt_traces)
             updt_traces = updt_traces.groupby(["storage_hostname", "disk_id"]).agg(
                 {
                     "disk_capacity": "first",
