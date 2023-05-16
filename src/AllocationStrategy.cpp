@@ -208,7 +208,6 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
                             used = true;
                     }
                 }
-
             }
 
             if (used) {
@@ -226,13 +225,18 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
             std::cout << "LustreAlloc : Stopping because stripe_idx == stripe_count" << std::endl;
             break;
         } else {
-            designated_locations.clear();
+            temp_stripe_locations.clear();
             temp_start_ost_index = start_ost_index;     // back to original index, but this time we'll allow 'slow' OSTs
             stripe_idx = 0;
             std::cout << "LustreAlloc : Starting over because stripe_idx != stripe_count and we reached the condition of this loop" << std::endl;
         }
     }
     
+    // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
+    if (temp_stripe_locations.size() != stripe_count) {
+        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
+    } 
+
     for (const auto& stripe_entry : temp_stripe_locations) {
         auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(stripe_entry.first), stripe_size);
         designated_locations.push_back(
@@ -242,11 +246,5 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
         );
     }
 
-    // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
-    if (designated_locations.size() != stripe_count) {
-        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(designated_locations.size()) << " instead" << std::endl;
-        designated_locations.clear();
-    } 
-    
     return designated_locations;
 }

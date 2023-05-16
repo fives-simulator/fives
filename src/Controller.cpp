@@ -626,7 +626,7 @@ namespace wrench {
 
         for(const auto& entry : this->compound_storage_service->internal_storage_use) {
 
-            auto ts = entry.first;          // ts
+            auto ts = entry.first;        // ts
             auto alloc = entry.second;    // AllocationTrace structure
 
             for (const auto& disk_usage : alloc.disk_usage) {
@@ -636,13 +636,13 @@ namespace wrench {
                 auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
 
                 io_ops << ts << ",";                                                            // timestamp
-                io_ops <<  std::to_string(static_cast<u_int8_t>(alloc.act)) << ",";  // action code
+                io_ops <<  std::to_string(static_cast<u_int8_t>(alloc.act)) << ",";             // action code
                 io_ops << simple_storage->getName() << ",";                                     // storage_service_name
                 io_ops << simple_storage->getHostname() << ",";                                 // storage_hostname
                 io_ops << simple_storage->getBaseRootPath() << ",";                             // disk_id
                 io_ops << capacity_bytes << ",";                                                // disk_capacity
                 io_ops << disk_usage.free_space << ",";                                         // disk_free_space
-                io_ops << disk_usage.file_name << "\n";                                              // disk_free_space
+                io_ops << (disk_usage.file_name.empty() ? "NoFile" : disk_usage.file_name) << "\n";                                         // file_name
 
             }
 
