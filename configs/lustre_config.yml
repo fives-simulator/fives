@@ -14,7 +14,7 @@ storage:
   disk_templates:
     - &hdd_capa
       id: hdd_OSS
-      capacity: 200   # GB
+      capacity: 20   # GB
       read_bw: 100    # MBps
       write_bw: 50    # MBps
       mount_prefix: /dev/hdd
@@ -38,7 +38,7 @@ dragonfly:
   node_local_storage:
     enabled: no     # Not implemented yet anyway
     nb_disks: 1
-    capacity: 128 # GB
+    capacity: 8 # GB
     read_bw: 1000 # MBps
     write_bw: 500 # MBps
 

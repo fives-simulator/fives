@@ -141,29 +141,34 @@ def compute_dfs_treemap(df: pd.DataFrame, ts_index: int):
 
 def update_file_name(filename: str, previous_filename: str, action: int):
     ret = ""
-    if previous_filename == "NoFile":
+    if previous_filename == "NoFile" or previous_filename == "":
         ret = filename
-    elif action == 4:
-        ret = previous_filename  # No update of the file name on write - end
-    elif previous_filename == filename and action != 9:
+    elif action in [4, 9]:
+        ret = previous_filename  # No update of the file name on write - end and delete -start
+    elif previous_filename == filename and action != 10:
+        print(f"Filename {filename} unchanged")
         ret = filename
-    elif action in [9, 10]:  # delete
+    elif action == 10:  # delete
         print("In delete action")
         found = previous_filename.find(filename)
         if found == -1:
-            print("Filename not found")
+            print(f"Filename {filename} not found")
+            print(f"Previous filename : {previous_filename}")
             ret = previous_filename
         else:
-            print("Filename found")
+            print(f"Filename {filename} found")
+            print(f"Previous filename : {previous_filename}")
             ret = (
                 previous_filename[0:found] + previous_filename[found + len(filename) :]
             )
     elif action in [1, 2, 7, 8]:  # no new file on CSS, do not update filename
+        print(f"No update (action 1, 2, 7, 8)")
         ret = previous_filename
     else:
+        print(f"Appending filename {filename}")
         ret = previous_filename + ", " + filename
 
-    print(ret)
+    print(f"# New filename : {ret}")
     return ret
 
 
@@ -263,7 +268,7 @@ def bkapp(doc):
             ("Disk", "@disk_id"),
             ("Free space (%)", "@percent_free"),
             ("Free space (Bytes)", "@disk_free_space"),
-            ("File part(s)", "@{file_name}"),
+            ("Latest File part(s)", "@{file_name}"),
             ("Latest Action", "@action_name"),
         ],
     )
@@ -319,6 +324,8 @@ def bkapp(doc):
 
             global DISKS
             DISKS = DISKS.set_index(keys=["storage_hostname", "disk_id"])
+            DISKS.update(updt_traces)
+            """
             temp_file_name = DISKS["file_name"].copy(deep=True)
             DISKS.update(updt_traces)
             DISKS["previous_file_name"] = temp_file_name
@@ -328,6 +335,7 @@ def bkapp(doc):
                 ),
                 axis=1,
             )
+            """
             DISKS = DISKS.reset_index()
             disks_source.data = DISKS
 
