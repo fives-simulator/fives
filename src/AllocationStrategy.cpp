@@ -12,7 +12,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
 
     // Init round-robin
     static auto last_selected_server = resources.begin()->first;
-    static auto internal_disk_selection = 0;
+    static unsigned int internal_disk_selection = 0;
     auto capacity_req = file->getSize();
     std::shared_ptr<wrench::FileLocation> designated_location = nullptr;
     auto current = resources.find(last_selected_server);
@@ -23,7 +23,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
     do {
 
         // std::cout << "Considering disk index " << std::to_string(current_disk_selection) << std::endl;
-        auto nb_of_local_disks = current->second.size();
+        unsigned int nb_of_local_disks = current->second.size();
         auto storage_service = current->second[current_disk_selection % nb_of_local_disks];
         // std::cout << "- Looking at storage service " << storage_service->getName() << std::endl;
 
@@ -67,6 +67,28 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
 }
 
 
+storalloc::ba_min_max storalloc::compute_min_max_utilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>>& resources) {
+
+    storalloc::ba_min_max ba_min_max = {UINT64_MAX, 0};
+
+    for (const auto & resource : resources) {
+        for (const auto & service : resource.second) {
+            auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
+            uint64_t current_free_space = ss_service->traceTotalFreeSpace();
+            current_free_space >>= 8;       // used in Lustre code to prevent overflows, we're blindly doing the same
+            ba_min_max.min = min(current_free_space, ba_min_max.min);
+            ba_min_max.max = max(current_free_space, ba_min_max.max);
+        }
+    }
+
+    return ba_min_max;
+}
+
+bool storalloc::lustre_use_rr(struct ba_min_max ba_min_max) {
+    return (ba_min_max.max * (256 - LUSTRE_lq_threshold_rr)) >> 8 < ba_min_max.min;
+}
+
+
 /**
  * @brief Lustre-inspired allocation algorithm (round-robin with a few tweaks)
  *        meant to be used with the INTERNAL_STRIPING property of the CSS set to false
@@ -79,26 +101,10 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
         const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>>& mapping,
         const std::vector<std::shared_ptr<wrench::FileLocation>>& previous_allocations) {
 
-
     // Check for inbalance in the storage services utilization
-    uint64_t ba_min = -1;       // overflowing on purpose to get max(uint64_t)
-	uint64_t ba_max = 0;    
-
-    for (const auto & resource : resources) {
-        for (const auto & service : resource.second) {
-            auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
-            uint64_t current_free_space = ss_service->traceTotalFreeSpace();
-            current_free_space >>= 8;       // used in Lustre code to prevent overflows, we're blindly doing the same
-            ba_min = min(current_free_space, ba_min);
-            ba_max = max(current_free_space, ba_min);
-        }
-    }
-
-    // "Magic" default Lustre settings, that equals to computing whether or not the free space
-    // diff between OSTs is greater thant 17% or not
-    const auto lq_threshold_rr = 43;
-
-    if ((ba_max * (256 - lq_threshold_rr)) >> 8 < ba_min) {
+    auto ba_min_max = compute_min_max_utilization(resources);
+    
+    if (lustre_use_rr(ba_min_max)) {
         // Consider that every target has roughly the same free space, and use RR allocator
         std::cout << "[lustreStrategy] Using RR allocator" << std::endl;
         return storalloc::lustreRRAllocator(file, resources, mapping, previous_allocations);
@@ -107,7 +113,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
         std::cout << "[lustreStrategy] Using weighted allocator" << std::endl;
         return storalloc::lustreWeightedAllocator(file, resources, mapping, previous_allocations);
     }
-   
+
 }
 
 
@@ -130,7 +136,8 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
 
     std::vector<std::shared_ptr<wrench::StorageService>> rr_ordered_services(disk_level_services.size());
     fill(rr_ordered_services.begin(), rr_ordered_services.end(), nullptr);
-    auto placed_services = 0;
+    auto rr_services_count = rr_ordered_services.size();
+    std::size_t placed_services = 0;
 
     for (const auto &server : hostname_to_service_number) {
 
@@ -138,7 +145,8 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
         auto srv_hostname = server.first;
         auto srv_service_count = server.second;
 
-        for (auto i = 0; i < disk_level_services.size(); i++) {
+        const auto disk_level_svc_count = disk_level_services.size();
+        for (std::size_t i = 0; i < disk_level_svc_count; i++) {
             
             int next;
 
@@ -146,9 +154,9 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
                 continue;
             }
 
-            next = j * disk_level_services.size() / srv_service_count;
+            next = j * disk_level_svc_count / srv_service_count;
             while (rr_ordered_services[next] != nullptr) {
-                next = (next +1) % disk_level_services.size();
+                next = (next +1) % disk_level_svc_count;
             }
 
             rr_ordered_services[next] = disk_level_services[i];
@@ -181,7 +189,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
     auto file_size_b = file->getSize(); 
     if (file_size_b > stripe_size) {
         stripe_count = std::ceil(file_size_b / stripe_size);        // here we potentially ask for more storage than needed due to the rounding
-        if (stripe_count > rr_ordered_services.size()) {
+        if (stripe_count > rr_services_count) {
             while(stripe_count > rr_ordered_services.size() * stripe_per_ost) {
                 stripe_per_ost++;   // here we don't ask for more storage than needed because the condition of the allocation loop
                                     // (see below) also checks whether all required stripes have been allocated or not.  
@@ -307,11 +315,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
         num_active_services += resource.second.size(); 
     }
         
-    // In Lustre, this priority represents how important 
-    // is free space compared to using a wide array of targets
-    // Here we use the default priority, which balanced towards free space (91%)
-    const auto lq_prio_free = 232;
-    const auto prio_wide = 256;
+
 
     uint64_t total_weight = 0;
     std::map<std::shared_ptr<wrench::StorageService>, uint64_t> weighted_services = {};
@@ -338,7 +342,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
             // Compute a penalty per OST
             current_free_space >>= 16;     // Bitshift for overflow
             current_files >>= 8;
-            uint64_t penalty = ( (prio_wide * current_free_space * current_files) >> 8 ) / num_active_services; 
+            uint64_t penalty = ( (LUSTRE_prio_wide * current_free_space * current_files) >> 8 ) / num_active_services; 
             penalty >>= 1;
 
             if (weight < penalty)
@@ -355,7 +359,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
         /** Per server penalty: 
          *  ~ prio * current_free_space * current_free_inodes / number of targets in server / (number of server - 1) / 2
          */
-        auto server_penalty = ( prio_wide * srv_free_space * srv_free_inodes ) >> 8;
+        auto server_penalty = ( LUSTRE_prio_wide * srv_free_space * srv_free_inodes ) >> 8;
         server_penalty = server_penalty / weighted_oss_services.size() * resources.size();
         server_penalty >>= 1;
 
