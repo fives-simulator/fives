@@ -51,7 +51,7 @@ namespace storalloc {
     // is free space compared to using a wide array of targets
     // Here we use the default priority, which balanced towards free space (91%)
     const auto LUSTRE_lq_prio_free = 232;
-    const auto LUSTRE_prio_wide = 256;
+    const auto LUSTRE_prio_wide = 256 - LUSTRE_lq_prio_free;
     const auto LUSTRE_max_nb_ost = 2000;    // never stripe on more than 2000 OSTs, that's the Lustre limit when using ZFS.
          
     /** Currently, the stripe size is arbitrarily set to 512MB (recommended size is between 1-4MB, and max is 4GB, but anyway, our allocations

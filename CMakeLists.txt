@@ -81,6 +81,7 @@ if(GTEST_LIBRARY)
     EXCLUDE_FROM_ALL
     test/main.cpp
     test/FunctionalTest.cpp
+    test/AllocationStrategyTest.cpp
     test/include/TestWithFork.h
     test/include/UniqueTmpPathPrefix.h
     ${SOURCE_FILES}
