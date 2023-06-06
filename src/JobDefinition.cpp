@@ -17,6 +17,7 @@
 
 #include "JobDefinition.h"
 #include <string>
+#include <iostream>
 #include "yaml-cpp/yaml.h"
 
 bool storalloc::operator==(const storalloc::YamlJob& lhs, const storalloc::YamlJob& rhs) { 
@@ -53,17 +54,34 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob& r
 }
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node& node, storalloc::YamlJob& rhs) {
+    
     if(!(node.Type() == YAML::NodeType::Map) || node.size() != 12) {
         return false;
     }
 
     rhs.id = node["id"].as<std::string>();
     rhs.mpiProcs = node["MPIprocs"].as<int>();
+    if (rhs.mpiProcs <= 0) {
+        std::cerr << "MPIprocs <= 0 on node " << node["id"] << std::endl;
+        return false;
+    }
     rhs.coresUsed = node["coresUsed"].as<int>();
+    if (rhs.coresUsed <= 0) {
+        std::cerr << "coresUsed <= 0 on node " << node["id"] << std::endl;
+        return false;
+    }
     rhs.nodesUsed = node["nodesUsed"].as<int>();
+    if (rhs.nodesUsed <= 0) {
+        std::cerr << "nodesUsed <= 0 on node " << node["id"] << std::endl;
+        return false;
+    }
     rhs.readBytes = node["readBytes"].as<long>();
     rhs.writtenBytes = node["writtenBytes"].as<long>();
     rhs.runTime = node["runTime"].as<int>();
+    if (rhs.runTime <= 0) {
+        std::cerr << "runTime <= 0 on node " << node["id"] << std::endl;
+        return false;
+    }
     rhs.startTime = node["startTime"].as<std::string>();
     rhs.sleepTime = node["sleep_simulation"].as<int>();
     rhs.endTime = node["endTime"].as<std::string>();

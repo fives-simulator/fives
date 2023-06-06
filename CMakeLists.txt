@@ -9,7 +9,7 @@ set(STORALLOC_VERSION_EXTRA "dev")
 
 add_definitions("-Wall -Wno-unused-variable -Wno-unused-private-field")
 
-set(CMAKE_CXX_STANDARD 17)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
@@ -48,6 +48,7 @@ find_library(YAML_CPP_LIBRARY NAMES yaml-cpp)
 #find_library(PUGIXML_LIBRARY NAMES pugixml)
 
 # generating the executable
+set(CMAKE_CXX_STANDARD 17)
 add_executable(storalloc_wrench src/main.cpp ${SOURCE_FILES})
 
 if (ENABLE_BATSCHED)
@@ -82,6 +83,7 @@ if(GTEST_LIBRARY)
     test/main.cpp
     test/FunctionalTest.cpp
     test/AllocationStrategyTest.cpp
+    test/UtilsTest.cpp
     test/include/TestWithFork.h
     test/include/UniqueTmpPathPrefix.h
     ${SOURCE_FILES}

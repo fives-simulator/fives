@@ -94,7 +94,13 @@ std::vector<storalloc::YamlJob> storalloc::loadYamlJobs(const std::string& yaml_
 
     std::vector<storalloc::YamlJob> job_list;
     for (const auto& job : jobs["jobs"]) {
-        job_list.push_back(job.as<storalloc::YamlJob>());
+        try {
+            job_list.push_back(job.as<storalloc::YamlJob>());
+        } catch (std::exception &e) {
+            std::cerr << "At least one of the jobs in file " << yaml_file_name << " has invalid caracteristics" << std::endl;
+            std::cerr << e.what() << std::endl;
+            throw runtime_error("At least one of the jobs in file " + yaml_file_name + " has invalid caracteristics"); 
+        }
     }
 
     std::cout << "# Loading " << std::to_string(job_list.size()) << " jobs" << std::endl;

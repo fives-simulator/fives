@@ -32,12 +32,12 @@ storage:
       template: *node_capa
 dragonfly:
   groups: 2         # Entire Dragonfly zone
-  group_links: 2
-  chassis: 2        # per group
-  chassis_links: 2
-  routers: 2        # per chassis
-  router_links: 2
-  nodes: 2          # per router
+  group_links: 3
+  chassis: 4        # per group
+  chassis_links: 5
+  routers: 6        # per chassis
+  router_links: 7
+  nodes: 8          # per router
   node_local_storage:
     enabled: no     # Not implemented yet anyway
     nb_disks: 1

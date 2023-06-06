@@ -35,13 +35,13 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
         {
             designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(storage_service), file);
             // std::cout << "Chose server " << current->first << storage_service->getBaseRootPath() << std::endl;
-            // Update for next function call
             std::advance(current, 1);
             if (current == resources.end())
             {
                 current = resources.begin();
                 current_disk_selection++;
             }
+            // Update for next function call
             last_selected_server = current->first;
             internal_disk_selection = current_disk_selection;
             // std::cout << "Next first server will be " << last_selected_server << std::endl;
@@ -73,7 +73,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
 storalloc::ba_min_max storalloc::lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources)
 {
 
-    storalloc::ba_min_max ba_min_max = {UINT64_MAX, 0};
+    ba_min_max ba_min_max = {LUSTRE_max_inodes, 0};
 
     for (const auto &resource : resources)
     {
@@ -313,7 +313,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
     }
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
-    if (temp_stripe_locations.size() != stripe_count)
+    if (temp_stripe_locations.size() < stripe_count)
     {
         std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
     }
@@ -322,24 +322,30 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
     return designated_locations;
 }
 
-uint64_t storalloc::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t free_inode_count, double active_service_count)
+uint64_t storalloc::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t used_inode_count, double active_service_count)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L532
+  
+    if (active_service_count == 0) {
+        throw std::runtime_error("lustreComputeOstPenalty: active_service_count cannot be = 0");
+    }
 
     free_space_b >>= 16; // Bitshift for overflow
+    uint64_t free_inode_count = (LUSTRE_max_inodes - used_inode_count);
     free_inode_count >>= 8;
-    uint64_t penalty = ((LUSTRE_prio_wide * free_space_b * free_inode_count) >> 8) / active_service_count;
+    uint64_t penalty = ((LUSTRE_prio_wide * free_space_b * free_inode_count) >> 8);
+    penalty /= active_service_count;
     penalty >>= 1;
     return penalty;
 }
 
-uint64_t storalloc::lustreComputeOstWeight(uint64_t free_space_b, uint64_t free_inode_count, uint64_t ost_penalty)
+uint64_t storalloc::lustreComputeOstWeight(uint64_t free_space_b, uint64_t used_inode_count, uint64_t ost_penalty)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L232
 
-    uint64_t weight = (free_space_b >> 16) * ((UINT64_MAX - free_inode_count) >> 8);
+    uint64_t weight = (free_space_b >> 16) * ((LUSTRE_max_inodes - used_inode_count) >> 8);
 
     if (weight < ost_penalty)
         return 0;
@@ -347,12 +353,18 @@ uint64_t storalloc::lustreComputeOstWeight(uint64_t free_space_b, uint64_t free_
         return (weight - ost_penalty);
 }
 
+
 uint64_t storalloc::lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count)
 {
 
+    // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L563
     /** Per server penalty:
-     *  ~ prio * current_free_space * current_free_inodes / number of targets in server / (number of server - 1) / 2
+     *  prio * current__srv_free_space * current_srv_free_inodes / number of targets in server / (number of server - 1) / 2
      */
+
+    if (ost_count == 0 or oss_count == 0) {
+        throw std::runtime_error("lustreComputeOstPenalty: active_service_count cannot be = 0");
+    }
 
     auto oss_penalty = (LUSTRE_prio_wide * free_space_b * free_inode_count) >> 8;
     oss_penalty /= (ost_count * oss_count);
@@ -394,7 +406,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
     {
 
         auto srv_free_space = 0;
-        auto srv_free_inodes = UINT64_MAX;
+        auto srv_free_inodes = 0;
         std::map<std::shared_ptr<wrench::StorageService>, uint64_t> weighted_oss_services = {};
 
         for (const auto &service : resource.second)
@@ -402,9 +414,9 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
 
             auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
             uint64_t current_free_space = ss_service->traceTotalFreeSpace();
-            srv_free_space += current_free_space;
+            srv_free_space += (current_free_space >> 16);                  // Bitshift for overflow
             uint64_t current_files = ss_service->traceTotalFiles();
-            srv_free_inodes -= current_files;
+            srv_free_inodes += ((LUSTRE_max_inodes - current_files) >> 8); // Bitshift for overflow, once again
 
             auto ost_penalty = lustreComputeOstPenalty(current_free_space, current_files, active_ost_count);
             auto weight = lustreComputeOstWeight(current_free_space, current_files, ost_penalty);
@@ -482,7 +494,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
     }
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
-    if (temp_stripe_locations.size() != stripe_count)
+    if (temp_stripe_locations.size() < stripe_count)
     {
         std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
     }
