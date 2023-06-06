@@ -171,6 +171,9 @@ namespace storalloc {
                         );
                         new_disk->set_property("size", std::to_string(disk.tpl.capacity)+"GB");
                         new_disk->set_property("mount", disk.tpl.mount_prefix + std::to_string(j));
+                        /*if (disk.tpl.id == "hdd_capa") {
+                            new_disk->set_concurrency_limit(500);
+                        }*/
 
                         // Input for contention and variability on HDD
                         new_disk->set_sharing_policy(sg4::Disk::Operation::READ, sg4::Disk::SharingPolicy::NONLINEAR, non_linear_disk_bw_read);

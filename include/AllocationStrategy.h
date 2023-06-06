@@ -2,6 +2,7 @@
 #define ALLOCATION_STRATEGY_H
 
 #include <memory>
+#include <cmath>
 
 #include <wrench-dev.h>
 
@@ -59,6 +60,7 @@ namespace storalloc {
      */
     const double LUSTRE_stripe_size = 512000000;    // how much data is written to a given OST before moving to the next one (512MB in this case)
     
+    const uint64_t LUSTRE_max_inodes = std::pow(2, 32);     // Approximate number of inodes on Linux
 
     /** 
      *  HELPER FUNCTION FOR LUSTRE STRATEGIES
