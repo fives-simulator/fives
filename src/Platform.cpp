@@ -172,7 +172,7 @@ namespace storalloc {
                         new_disk->set_property("size", std::to_string(disk.tpl.capacity)+"GB");
                         new_disk->set_property("mount", disk.tpl.mount_prefix + std::to_string(j));
                         /*if (disk.tpl.id == "hdd_capa") {
-                            new_disk->set_concurrency_limit(500);
+                            new_disk->set_concurrency_limit(500);       // Not working, but I don't why so far
                         }*/
 
                         // Input for contention and variability on HDD
