@@ -305,40 +305,65 @@ protected:
     }
 };
 
-/** 
+/**
  * @brief Basic custom controller for tests on Lustre allocation
-*/
+ */
 class LustreTestController : public wrench::ExecutionController
 {
 public:
-    LustreTestController(const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+    LustreTestController(const std::shared_ptr<wrench::ComputeService> &compute_service,
+                         const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                          const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
                          const std::string &hostname) : wrench::ExecutionController(hostname, "controller"),
-                                                        storage_services(storage_services), compound(compound_storage_svc) {}
+                                                        storage_services(storage_services), compound(compound_storage_svc), compute_svc(compute_service)
+    {
+
+        this->file_10GB = wrench::Simulation::addFile("file_10GB", 10000000000); // 10GB file
+        this->file_20GB = wrench::Simulation::addFile("file_20GB", 20000000000); // 20GB file
+        this->file_30GB = wrench::Simulation::addFile("file_30GB", 30000000000); // 30GB file
+        this->file_40GB = wrench::Simulation::addFile("file_40GB", 40000000000); // 40GB file
+        this->file_50GB = wrench::Simulation::addFile("file_50GB", 50000000000); // 50GB file
+    }
+
+    std::shared_ptr<wrench::DataFile> file_10GB;
+    std::shared_ptr<wrench::DataFile> file_20GB;
+    std::shared_ptr<wrench::DataFile> file_30GB;
+    std::shared_ptr<wrench::DataFile> file_40GB;
+    std::shared_ptr<wrench::DataFile> file_50GB;
 
     std::set<std::shared_ptr<wrench::StorageService>> storage_services;
     std::shared_ptr<wrench::CompoundStorageService> compound;
-
+    std::shared_ptr<wrench::ComputeService> compute_svc;
 };
 
-/** 
+/**
  * @brief Custom controller for testing lustreComputeMinMaxUtilization
-*/
+ */
 class LustreTestControllerMinMax : public LustreTestController
 {
 public:
+    LustreTestControllerMinMax(const std::shared_ptr<wrench::ComputeService> &compute_service,
+                            const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+                               const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
+                               const std::string &hostname) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname) {}
 
-    LustreTestControllerMinMax(const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
-                         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
-                         const std::string &hostname) : LustreTestController(storage_services, compound_storage_svc, hostname) {}
-    
-    int main() override {
+    int main() override
+    {
 
+        auto job_manager = this->createJobManager();
+        auto job = job_manager->createCompoundJob("Job1");
+
+        for (const auto &service : this->storage_services) {
+            std::cout << "service space " << std::to_string(service->getTotalSpace()) << std::endl;
+        }
+
+        auto write1 = job->addFileWriteAction(
+            "write1", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_10GB)
+        );
 
 
         return 0;
     }
-
 };
 
 TEST_F(FunctionalAllocTest, lustreComputeMinMaxUtilization_test)
@@ -363,6 +388,8 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test()
     auto platform_factory = storalloc::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+
     /* Simple storage services */
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
@@ -377,7 +404,7 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test()
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerMinMax(sstorageservices, compound_storage_service, "user0"));
+        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0"));
 
     simulation->launch();
 }
