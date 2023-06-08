@@ -48,7 +48,7 @@ namespace storalloc
         std::string config_name;
         std::string config_version;
         std::string bw;
-        std::string max_stripe_size;
+        unsigned int max_stripe_size;
         unsigned int d_groups;
         unsigned int d_group_links;
         unsigned int d_chassis;

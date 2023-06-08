@@ -3,6 +3,8 @@
 
 #include "AllocationStrategy.h"
 
+using namespace storalloc;
+
 std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
@@ -70,10 +72,12 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
         return std::vector<std::shared_ptr<wrench::FileLocation>>();
 }
 
-storalloc::ba_min_max storalloc::lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources)
+LustreAllocationStrategy::ba_min_max LustreAllocationStrategy::lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources)
 {
 
-    ba_min_max ba_min_max = {LUSTRE_max_inodes, 0};
+    // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L488
+    
+    LustreAllocationStrategy::ba_min_max ba_min_max = {UINT64_MAX, 0};
 
     for (const auto &resource : resources)
     {
@@ -90,8 +94,18 @@ storalloc::ba_min_max storalloc::lustreComputeMinMaxUtilization(const std::map<s
     return ba_min_max;
 }
 
-bool storalloc::lustreUseRR(struct ba_min_max ba_min_max)
+bool LustreAllocationStrategy::lustreUseRR(struct ba_min_max ba_min_max)
 {
+    // Unlike in Lustre, we select the allocator based on avail bytes only, and not avail byte + avail inodes
+    // This is because avail inodes is less relevant for us (no MDT model)
+    // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L587
+
+    // Also note : >> 8 is equivalent to "/ 256" only more optimised, so this is equivelent to computing :
+    // "is 83 % of 'max' greater than min"
+    // (Thus leading to the determining if the imbalance between most and least used OST is greater than 17%)
+
+    // Note : if your OSTs originally have != capacities, this will most likely not work as intended (but Lustre 
+    // has other mechanisms to look into for such use cases)
     return (ba_min_max.max * (256 - LUSTRE_lq_threshold_rr)) >> 8 < ba_min_max.min;
 }
 
@@ -101,7 +115,7 @@ bool storalloc::lustreUseRR(struct ba_min_max ba_min_max)
  *        (striping is done here).
  *
  */
-std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
+std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreStrategy(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -125,7 +139,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreStrategy(
     }
 }
 
-std::vector<std::shared_ptr<wrench::StorageService>> storalloc::lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
+std::vector<std::shared_ptr<wrench::StorageService>> LustreAllocationStrategy::lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
                                                                                       const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services)
 {
 
@@ -173,26 +187,30 @@ std::vector<std::shared_ptr<wrench::StorageService>> storalloc::lustreRROrderSer
     return rr_ordered_services;
 }
 
-unsigned int storalloc::lustreComputeStripesPerOST(double file_size_b, double stripe_size, size_t number_of_OSTs, double stripe_count)
+LustreAllocationStrategy::striping LustreAllocationStrategy::lustreComputeStriping(double file_size_b, size_t number_of_OSTs)
 {
 
-    unsigned int stripe_per_ost = 1;
+    LustreAllocationStrategy::striping ret_striping = {};
 
-    if (file_size_b > stripe_size)
+    // How many stripes we need in total, considering total file size and default stripe_size.
+    ret_striping.stripes_count = std::ceil(file_size_b / LUSTRE_stripe_size);
+    ret_striping.stripes_per_ost = 1;
+
+    if (file_size_b > LUSTRE_stripe_size)
     {
-        if (stripe_count > number_of_OSTs)
+        if (ret_striping.stripes_count > number_of_OSTs)
         {
-            while (stripe_count > number_of_OSTs * stripe_per_ost)
+            while (ret_striping.stripes_count > number_of_OSTs *  ret_striping.stripes_per_ost)
             {
-                stripe_per_ost++; // here we don't ask for more storage than needed because the condition of the allocation loop
+                 ret_striping.stripes_per_ost++; // here we don't ask for more storage than needed because the condition of the allocation loop
             }
         }
     }
 
-    return stripe_per_ost;
+    return ret_striping;
 }
 
-bool storalloc::lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping, const std::shared_ptr<wrench::StorageService> ost)
+bool LustreAllocationStrategy::lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping, const std::shared_ptr<wrench::StorageService> ost)
 {
 
     for (const auto &alloc_mapping : mapping)
@@ -210,7 +228,7 @@ bool storalloc::lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>
     return false;
 }
 
-std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations)
+std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations)
 {
 
     std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
@@ -226,7 +244,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreCreateFilePa
     return designated_locations;
 }
 
-std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
+std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreRRAllocator(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -253,8 +271,8 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
      *  size and the total number of OSTs.
      */
     auto file_size_b = file->getSize();
-    auto stripe_count = std::ceil(file_size_b / LUSTRE_stripe_size); // Here we potentially ask for more storage than needed due to the rounding
-    auto stripes_per_ost = lustreComputeStripesPerOST(file_size_b, LUSTRE_stripe_size, rr_services_count, stripe_count);
+    // auto stripe_count = std::ceil(file_size_b / LUSTRE_stripe_size); // Here we potentially ask for more storage than needed due to the rounding
+    auto current_striping = lustreComputeStriping(file_size_b, rr_services_count);
 
     // Randomly chosen index of first OST of the stripe pattern
     // (from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution)
@@ -270,7 +288,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
     // Some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
     for (auto speed = 0; speed < 2; speed++)
     {
-        for (size_t i = 0; i < rr_services_count * stripes_per_ost && stripe_idx < stripe_count; i++)
+        for (size_t i = 0; i < rr_services_count * current_striping.stripes_per_ost && stripe_idx < current_striping.stripes_count; i++)
         {
 
             auto array_idx = temp_start_ost_index % rr_services_count;
@@ -298,7 +316,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
             }
         }
 
-        if (stripe_idx == stripe_count)
+        if (stripe_idx == current_striping.stripes_count)
         {
             std::cout << "LustreAlloc : All stripes allocated/ Stopping" << std::endl;
             break;
@@ -313,16 +331,16 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreRRAllocator(
     }
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
-    if (temp_stripe_locations.size() < stripe_count)
+    if (temp_stripe_locations.size() < current_striping.stripes_count)
     {
-        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
+        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(current_striping.stripes_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
     }
 
     auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
     return designated_locations;
 }
 
-uint64_t storalloc::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t used_inode_count, double active_service_count)
+uint64_t LustreAllocationStrategy::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t used_inode_count, double active_service_count)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L532
@@ -340,7 +358,7 @@ uint64_t storalloc::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t used
     return penalty;
 }
 
-uint64_t storalloc::lustreComputeOstWeight(uint64_t free_space_b, uint64_t used_inode_count, uint64_t ost_penalty)
+uint64_t LustreAllocationStrategy::lustreComputeOstWeight(uint64_t free_space_b, uint64_t used_inode_count, uint64_t ost_penalty)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L232
@@ -354,7 +372,7 @@ uint64_t storalloc::lustreComputeOstWeight(uint64_t free_space_b, uint64_t used_
 }
 
 
-uint64_t storalloc::lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count)
+uint64_t LustreAllocationStrategy::lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L563
@@ -378,7 +396,7 @@ uint64_t storalloc::lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free
  *        (striping is done here).
  *
  */
-std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllocator(
+std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreWeightedAllocator(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -502,3 +520,23 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustreWeightedAllo
     auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
     return designated_locations;
 }
+
+
+
+
+// "Magic" default Lustre settings, that equals to computing whether or not the free space
+// diff between OSTs is greater thant 17% or not
+static constexpr uint64_t LUSTRE_lq_threshold_rr = 43;
+// In Lustre, this priority represents how important 
+// is free space compared to using a wide array of targets
+// Here we use the default priority, which balanced towards free space (91%)
+static constexpr uint64_t LUSTRE_lq_prio_free = 232;
+static constexpr uint64_t LUSTRE_prio_wide = 24; // 256 - 232
+static constexpr uint64_t LUSTRE_max_nb_ost = 2000;    // never stripe on more than 2000 OSTs, that's the Lustre limit when using ZFS.
+    
+/** Currently, the stripe size is arbitrarily set to 512MB (recommended size is between 1-4MB, and max is 4GB, but anyway, our allocations
+ *  do not necessarily represent files...)
+ */
+static uint64_t LUSTRE_stripe_size;   // how much data is written to a given OST before moving to the next one (512MB in this case)
+
+static constexpr uint64_t LUSTRE_max_inodes = (1ULL << 32);     // Approximate number of inodes on Linux

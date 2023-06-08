@@ -7,6 +7,7 @@
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
 #include "../include/ConfigDefinition.h"
+#include "../include/AllocationStrategy.h"
 
 class BasicUtilsTest : public ::testing::Test
 {
@@ -78,7 +79,7 @@ void BasicUtilsTest::loadConfig_test()
     ASSERT_EQ(config.bw, "25000MBps");
     ASSERT_EQ(config.config_version, "0.0.1");
     ASSERT_EQ(config.config_name, "StorAlloc_Test");
-    ASSERT_EQ(config.max_stripe_size, "960000000");
+    ASSERT_EQ(config.max_stripe_size, 960000000);
     ASSERT_EQ(config.d_groups, 2);
     ASSERT_EQ(config.d_group_links, 3);
     ASSERT_EQ(config.d_chassis, 4);
@@ -128,6 +129,8 @@ void BasicUtilsTest::loadConfig_test()
 
     auto disk_capa = disks_tpl["hdd_capa"];
     ASSERT_EQ(disk_capa.capacity, 200);
+
+    ASSERT_EQ(storalloc::LUSTRE_stripe_size, 960000000);
 
 }
 

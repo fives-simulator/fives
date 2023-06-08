@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include "AllocationStrategy.h"
 
 #include <simgrid/kernel/routing/NetPoint.hpp>
 
@@ -80,7 +81,16 @@ storalloc::Config storalloc::loadConfig(const std::string& yaml_file_name) {
 
     std::cout << "# Loading configuration : " << config["general"]["config_name"] << " (v" << config["general"]["config_version"] << ")" << std::endl;
 
-    return config.as<storalloc::Config>();
+    auto storalloc_cfg = config.as<storalloc::Config>();
+
+    if (storalloc_cfg.max_stripe_size != 0) {
+        LUSTRE_stripe_size = storalloc_cfg.max_stripe_size;
+    } else {
+        LUSTRE_stripe_size = 4096000; // 4MB stripe size
+        std::cout << "# Using default strip size of " << std::to_string(LUSTRE_stripe_size) << std::endl;
+    }
+
+    return storalloc_cfg;
 }
 
 
