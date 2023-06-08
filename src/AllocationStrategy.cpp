@@ -3,8 +3,6 @@
 
 #include "AllocationStrategy.h"
 
-using namespace storalloc;
-
 std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
@@ -72,12 +70,12 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::genericRRStrategy(
         return std::vector<std::shared_ptr<wrench::FileLocation>>();
 }
 
-LustreAllocationStrategy::ba_min_max LustreAllocationStrategy::lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources)
+storalloc::lustre::ba_min_max storalloc::lustre::lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L488
     
-    LustreAllocationStrategy::ba_min_max ba_min_max = {UINT64_MAX, 0};
+    storalloc::lustre::ba_min_max ba_min_max = {UINT64_MAX, 0};
 
     for (const auto &resource : resources)
     {
@@ -94,7 +92,7 @@ LustreAllocationStrategy::ba_min_max LustreAllocationStrategy::lustreComputeMinM
     return ba_min_max;
 }
 
-bool LustreAllocationStrategy::lustreUseRR(struct ba_min_max ba_min_max)
+bool storalloc::lustre::lustreUseRR(struct ba_min_max ba_min_max)
 {
     // Unlike in Lustre, we select the allocator based on avail bytes only, and not avail byte + avail inodes
     // This is because avail inodes is less relevant for us (no MDT model)
@@ -115,7 +113,7 @@ bool LustreAllocationStrategy::lustreUseRR(struct ba_min_max ba_min_max)
  *        (striping is done here).
  *
  */
-std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreStrategy(
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustre::lustreStrategy(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -139,7 +137,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lus
     }
 }
 
-std::vector<std::shared_ptr<wrench::StorageService>> LustreAllocationStrategy::lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
+std::vector<std::shared_ptr<wrench::StorageService>> storalloc::lustre::lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
                                                                                       const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services)
 {
 
@@ -187,10 +185,10 @@ std::vector<std::shared_ptr<wrench::StorageService>> LustreAllocationStrategy::l
     return rr_ordered_services;
 }
 
-LustreAllocationStrategy::striping LustreAllocationStrategy::lustreComputeStriping(double file_size_b, size_t number_of_OSTs)
+storalloc::lustre::striping storalloc::lustre::lustreComputeStriping(double file_size_b, size_t number_of_OSTs)
 {
 
-    LustreAllocationStrategy::striping ret_striping = {};
+    storalloc::lustre::striping ret_striping = {};
 
     // How many stripes we need in total, considering total file size and default stripe_size.
     ret_striping.stripes_count = std::ceil(file_size_b / LUSTRE_stripe_size);
@@ -210,7 +208,7 @@ LustreAllocationStrategy::striping LustreAllocationStrategy::lustreComputeStripi
     return ret_striping;
 }
 
-bool LustreAllocationStrategy::lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping, const std::shared_ptr<wrench::StorageService> ost)
+bool storalloc::lustre::lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping, const std::shared_ptr<wrench::StorageService> ost)
 {
 
     for (const auto &alloc_mapping : mapping)
@@ -228,7 +226,7 @@ bool LustreAllocationStrategy::lustreOstIsUsed(const std::map<std::shared_ptr<wr
     return false;
 }
 
-std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations)
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustre::lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations)
 {
 
     std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
@@ -244,7 +242,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lus
     return designated_locations;
 }
 
-std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreRRAllocator(
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustre::lustreRRAllocator(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -340,7 +338,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lus
     return designated_locations;
 }
 
-uint64_t LustreAllocationStrategy::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t used_inode_count, double active_service_count)
+uint64_t storalloc::lustre::lustreComputeOstPenalty(uint64_t free_space_b, uint64_t used_inode_count, double active_service_count)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L532
@@ -358,7 +356,7 @@ uint64_t LustreAllocationStrategy::lustreComputeOstPenalty(uint64_t free_space_b
     return penalty;
 }
 
-uint64_t LustreAllocationStrategy::lustreComputeOstWeight(uint64_t free_space_b, uint64_t used_inode_count, uint64_t ost_penalty)
+uint64_t storalloc::lustre::lustreComputeOstWeight(uint64_t free_space_b, uint64_t used_inode_count, uint64_t ost_penalty)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L232
@@ -372,7 +370,7 @@ uint64_t LustreAllocationStrategy::lustreComputeOstWeight(uint64_t free_space_b,
 }
 
 
-uint64_t LustreAllocationStrategy::lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count)
+uint64_t storalloc::lustre::lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count)
 {
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L563
@@ -396,7 +394,7 @@ uint64_t LustreAllocationStrategy::lustreComputeOssPenalty(uint64_t free_space_b
  *        (striping is done here).
  *
  */
-std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lustreWeightedAllocator(
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::lustre::lustreWeightedAllocator(
     const std::shared_ptr<wrench::DataFile> &file,
     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -520,23 +518,3 @@ std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocationStrategy::lus
     auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
     return designated_locations;
 }
-
-
-
-
-// "Magic" default Lustre settings, that equals to computing whether or not the free space
-// diff between OSTs is greater thant 17% or not
-static constexpr uint64_t LUSTRE_lq_threshold_rr = 43;
-// In Lustre, this priority represents how important 
-// is free space compared to using a wide array of targets
-// Here we use the default priority, which balanced towards free space (91%)
-static constexpr uint64_t LUSTRE_lq_prio_free = 232;
-static constexpr uint64_t LUSTRE_prio_wide = 24; // 256 - 232
-static constexpr uint64_t LUSTRE_max_nb_ost = 2000;    // never stripe on more than 2000 OSTs, that's the Lustre limit when using ZFS.
-    
-/** Currently, the stripe size is arbitrarily set to 512MB (recommended size is between 1-4MB, and max is 4GB, but anyway, our allocations
- *  do not necessarily represent files...)
- */
-static uint64_t LUSTRE_stripe_size;   // how much data is written to a given OST before moving to the next one (512MB in this case)
-
-static constexpr uint64_t LUSTRE_max_inodes = (1ULL << 32);     // Approximate number of inodes on Linux

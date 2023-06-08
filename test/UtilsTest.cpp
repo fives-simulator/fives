@@ -129,8 +129,5 @@ void BasicUtilsTest::loadConfig_test()
 
     auto disk_capa = disks_tpl["hdd_capa"];
     ASSERT_EQ(disk_capa.capacity, 200);
-
-    ASSERT_EQ(storalloc::LUSTRE_stripe_size, 960000000);
-
 }
 

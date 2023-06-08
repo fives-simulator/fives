@@ -118,7 +118,7 @@ int storalloc::run_simulation(int argc, char **argv)
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            LustreAllocationStrategy::lustreStrategy,
+            storalloc::lustre::lustreStrategy,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
