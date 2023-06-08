@@ -12,18 +12,18 @@ general:
   max_stripe_size: 640000000    # Max size for allocation stripes (in bytes)
 storage:
   disk_templates:
-    - &hdd_capa
-      id: hdd_OSS
-      capacity: 20   # GB
-      read_bw: 100    # MBps
-      write_bw: 50    # MBps
+    - &raid_OSS
+      id: raid_OSS
+      capacity: 20000    # GB
+      read_bw: 1000    # MBps
+      write_bw: 500    # MBps
       mount_prefix: /dev/hdd
   node_templates:
     - &node_capa
       id: lustre_OSS
       disks:
         - quantity: 2
-          template: *hdd_capa
+          template: *raid_OSS
   nodes:
     - quantity: 8
       template: *node_capa
