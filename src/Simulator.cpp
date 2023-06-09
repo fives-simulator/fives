@@ -113,12 +113,14 @@ int storalloc::run_simulation(int argc, char **argv)
     /* Simple storage services */
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
+    auto allocator = std::make_shared<storalloc::LustreAllocator>(config);
+
     /* Compound storage service*/
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            storalloc::lustre::lustreStrategy,
+            allocator,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
