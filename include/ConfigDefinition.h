@@ -8,10 +8,22 @@
 #define CFGDEFINITION_H
 
 #include <string>
+#include <cstdint>
 #include "yaml-cpp/yaml.h"
 
 namespace storalloc
 {
+
+    /**
+     * @brief Configuration specific to the Lustre Allocator
+    */
+    struct LustreConfig {
+        uint64_t lq_threshold_rr = 43;
+        uint64_t lq_prio_free = 232;
+        uint64_t max_nb_ost = 2000;
+        uint64_t max_inodes = (1ULL << 32);
+        uint64_t stripe_size = 50000000;
+    };
 
     struct DiskTemplate {
         std::string id;
@@ -44,6 +56,11 @@ namespace storalloc
         std::string to_string() const;
     };
 
+    enum AllocatorType {
+        Lustre,         // 'lustre' in config
+        GenericRR,      // 'rr in config
+    };
+
     struct Config {
         std::string config_name;
         std::string config_version;
@@ -59,6 +76,8 @@ namespace storalloc
         std::map<std::string, DiskTemplate> disk_templates;
         std::map<std::string, NodeTemplate> node_templates;
         std::vector<NodeEntry> nodes;
+        enum AllocatorType allocator;
+        struct LustreConfig lustre;
     };
 
     bool operator==(const Config& lhs, const Config& rhs);

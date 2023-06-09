@@ -22,6 +22,9 @@ public:
     void lustreComputeOstWeight_test();
     void lustreComputeStripesPerOST_test();
 
+    std::shared_ptr<Config> cfg;
+    
+
 protected:
     ~BasicAllocTest()
     {
@@ -29,6 +32,8 @@ protected:
 
     BasicAllocTest()
     {
+        cfg = std::make_shared<Config>();
+        this->cfg->lustre = LustreConfig();  // default lustre config
     }
 };
 
@@ -51,27 +56,29 @@ void BasicAllocTest::lustreUseRR_test()
     const uint64_t GB = 1000 * 1000 * 1000;
 
     // min and max free space in bytes
-    struct storalloc::lustre::ba_min_max test_min_max;
+    struct storalloc::ba_min_max test_min_max;
+
+    auto allocator = LustreAllocator(this->cfg);
 
     // Right above the 17% threshold
     test_min_max.min = 833 * GB;
     test_min_max.max = 1000 * GB;
-    ASSERT_TRUE(storalloc::lustre::lustreUseRR(test_min_max));
+    ASSERT_TRUE(allocator.lustreUseRR(test_min_max));
 
     // Slightly below the 17% threshold
     test_min_max.min = 830 * GB;
     test_min_max.max = 1000 * GB;
-    ASSERT_FALSE(storalloc::lustre::lustreUseRR(test_min_max));
+    ASSERT_FALSE(allocator.lustreUseRR(test_min_max));
 
     // Same free space
     test_min_max.min = 1000 * GB;
     test_min_max.max = 1000 * GB;
-    ASSERT_TRUE(storalloc::lustre::lustreUseRR(test_min_max));
+    ASSERT_TRUE(allocator.lustreUseRR(test_min_max));
 
     // High values (overflow testing)
     test_min_max.min = 1000 * 1000 * GB;
     test_min_max.max = 1000 * 1000 * GB;
-    ASSERT_TRUE(storalloc::lustre::lustreUseRR(test_min_max));
+    ASSERT_TRUE(allocator.lustreUseRR(test_min_max));
 }
 
 /**********************************************************************/
@@ -89,56 +96,58 @@ TEST_F(BasicAllocTest, lustreOstPenalty_test)
 void BasicAllocTest::lustreOstPenalty_test()
 {
 
+    auto allocator = LustreAllocator(this->cfg);
+
     const uint64_t GB = 1000 * 1000 * 1000;
 
     uint64_t free_space_b = 250 * GB; // 250 GB free
     uint64_t used_inode_count = 1'200'000;
     size_t active_service_count = 200; // ~ number of active targets, aka disks/raid in the whole system
 
-    ASSERT_EQ(storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+    ASSERT_EQ(allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  active_service_count),
               14995807557);
 
     free_space_b = 0;
-    ASSERT_EQ(storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+    ASSERT_EQ(allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  active_service_count),
               0);
 
     free_space_b = 250 * GB;
-    used_inode_count = storalloc::lustre::LUSTRE_max_inodes;
-    ASSERT_EQ(storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+    used_inode_count = this->cfg->lustre.max_inodes;
+    ASSERT_EQ(allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  active_service_count),
               0);
     used_inode_count = 1'200'000;
 
-    ASSERT_THROW(storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+    ASSERT_THROW(allocator.lustreComputeOstPenalty(free_space_b,
                                                     used_inode_count,
                                                     0),
                  std::runtime_error);
 
     // The more services / active targets, the smaller the penalty per target
-    ASSERT_GT(storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+    ASSERT_GT(allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  active_service_count),
-              storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+              allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  300));
     // The more bytes available for allocation, the larger the penalty
-    ASSERT_GT(storalloc::lustre::lustreComputeOstPenalty(400 * GB,
+    ASSERT_GT(allocator.lustreComputeOstPenalty(400 * GB,
                                                  used_inode_count,
                                                  active_service_count),
-              storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+              allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  active_service_count));
 
     // The more inodes available for allocation, the larger the penalty
-    ASSERT_GT(storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+    ASSERT_GT(allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count - 300000,
                                                  active_service_count),
-              storalloc::lustre::lustreComputeOstPenalty(free_space_b,
+              allocator.lustreComputeOstPenalty(free_space_b,
                                                  used_inode_count,
                                                  active_service_count));
 }
@@ -154,82 +163,84 @@ TEST_F(BasicAllocTest, lustreOssPenalty_test)
 void BasicAllocTest::lustreOssPenalty_test()
 {
 
+    auto allocator = LustreAllocator(this->cfg);
+
     const uint64_t GB = 1000 * 1000 * 1000;
 
     // Let's suppose we have 8 OSTs in this OSS, and a total of 10 OSS
     uint64_t srv_free_space_b = (250 * GB >> 16) * 8;
-    uint64_t srv_free_inode_count = ((storalloc::lustre::LUSTRE_max_inodes - 1'200'000) >> 8) * 8;
+    uint64_t srv_free_inode_count = ((this->cfg->lustre.max_inodes - 1'200'000) >> 8) * 8;
     size_t service_count = 200; // Targets / OSTs
     size_t oss_count = 10;      // Storage nodes /  OSS
 
-    ASSERT_EQ(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_EQ(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count),
               95973168366);
 
-    ASSERT_EQ(storalloc::lustre::lustreComputeOssPenalty(0,
+    ASSERT_EQ(allocator.lustreComputeOssPenalty(0,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count),
               0);
 
-    ASSERT_EQ(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_EQ(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  0,
                                                  service_count,
                                                  oss_count),
               0);
 
     // Divide / 0
-    ASSERT_THROW(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_THROW(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                     srv_free_inode_count,
                                                     0,
                                                     oss_count),
                  std::runtime_error);
 
     // Divide / 0
-    ASSERT_THROW(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_THROW(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                     srv_free_inode_count,
                                                     service_count,
                                                     0),
                  std::runtime_error);
 
     // The more OSS in the system, the lower the per-OSS penalty
-    ASSERT_GT(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count),
-              storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+              allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count + 40));
 
     // The more OSTs in the whole system, the lower the per-OSS penalty
-    ASSERT_GT(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count),
-              storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+              allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count + 60,
                                                  oss_count));
 
     // The more space avail on OSS the larger the penalty
-    ASSERT_GT(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b + 400 * GB,
+    ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b + 400 * GB,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count),
-              storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+              allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count));
 
     // The more inodes avail on OSS the larger the penalty
-    ASSERT_GT(storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+    ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count + 200'000,
                                                  service_count,
                                                  oss_count),
-              storalloc::lustre::lustreComputeOssPenalty(srv_free_space_b,
+              allocator.lustreComputeOssPenalty(srv_free_space_b,
                                                  srv_free_inode_count,
                                                  service_count,
                                                  oss_count));
@@ -246,47 +257,49 @@ TEST_F(BasicAllocTest, lustreComputeOstWeight_test)
 void BasicAllocTest::lustreComputeOstWeight_test()
 {
 
+    auto allocator = LustreAllocator(this->cfg);
+
     const uint64_t GB = 1000 * 1000 * 1000;
 
     uint64_t free_space_b = 250 * GB;
     uint64_t used_inode_count = 1'200'000;
     size_t service_count = 12;
 
-    auto ost_penalty = storalloc::lustre::lustreComputeOstPenalty(free_space_b,
-                                                          storalloc::lustre::LUSTRE_max_inodes - used_inode_count,
+    auto ost_penalty = allocator.lustreComputeOstPenalty(free_space_b,
+                                                          this->cfg->lustre.max_inodes - used_inode_count,
                                                           service_count);
 
-    ASSERT_EQ(storalloc::lustre::lustreComputeOstWeight(free_space_b,
+    ASSERT_EQ(allocator.lustreComputeOstWeight(free_space_b,
                                                 used_inode_count,
                                                 ost_penalty),
               63982042402279);
 
     // The more bytes available, the larger the weight
-    ost_penalty = storalloc::lustre::lustreComputeOstPenalty(free_space_b + (100 * GB),
-                                                     storalloc::lustre::LUSTRE_max_inodes - used_inode_count,
+    ost_penalty = allocator.lustreComputeOstPenalty(free_space_b + (100 * GB),
+                                                     this->cfg->lustre.max_inodes - used_inode_count,
                                                      service_count);
-    ASSERT_GT(storalloc::lustre::lustreComputeOstWeight(free_space_b + (100 * GB),
+    ASSERT_GT(allocator.lustreComputeOstWeight(free_space_b + (100 * GB),
                                                 used_inode_count,
                                                 ost_penalty),
-              storalloc::lustre::lustreComputeOstWeight(free_space_b,
+              allocator.lustreComputeOstWeight(free_space_b,
                                                 used_inode_count,
                                                 ost_penalty));
 
     // The more inodes available, the larger the weight
-    ost_penalty = storalloc::lustre::lustreComputeOstPenalty(free_space_b,
-                                                     storalloc::lustre::LUSTRE_max_inodes - used_inode_count - 300'000,
+    ost_penalty = allocator.lustreComputeOstPenalty(free_space_b,
+                                                     this->cfg->lustre.max_inodes - used_inode_count - 300'000,
                                                      service_count);
-    ASSERT_GT(storalloc::lustre::lustreComputeOstWeight(free_space_b,
+    ASSERT_GT(allocator.lustreComputeOstWeight(free_space_b,
                                                 used_inode_count - 300'000,
                                                 ost_penalty),
-              storalloc::lustre::lustreComputeOstWeight(free_space_b,
+              allocator.lustreComputeOstWeight(free_space_b,
                                                 used_inode_count,
                                                 ost_penalty));
 
     // If OST penalty is larger than weight, weight becomes 0
-    ASSERT_EQ(storalloc::lustre::lustreComputeOstWeight(free_space_b,
+    ASSERT_EQ(allocator.lustreComputeOstWeight(free_space_b,
                                                 used_inode_count,
-                                                (free_space_b >> 16) * ((storalloc::lustre::LUSTRE_max_inodes - used_inode_count) >> 8) + 1),
+                                                (free_space_b >> 16) * ((this->cfg->lustre.max_inodes - used_inode_count) >> 8) + 1),
               0);
 }
 
@@ -303,7 +316,7 @@ void BasicAllocTest::lustreComputeStripesPerOST_test() {
 
     /* Params : file_size (Bytes) ; stripe_size (bytes) ; OST number ; strip_count */
     // storalloc::lustre::LUSTRE_stripe_size = 96000000;
-    std::cout << "Test is using stripe size : " << std::to_string(storalloc::lustre::LUSTRE_stripe_size) << std::endl;
+    // std::cout << "Test is using stripe size : " << std::to_string(storalloc::lustre::LUSTRE_stripe_size) << std::endl;
 
 }
 
@@ -335,7 +348,8 @@ public:
     LustreTestController(const std::shared_ptr<wrench::ComputeService> &compute_service,
                          const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                          const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
-                         const std::string &hostname) : wrench::ExecutionController(hostname, "controller"),
+                         const std::string &hostname,
+                         std::shared_ptr<LustreAllocator> alloc) : wrench::ExecutionController(hostname, "controller"),
                                                         storage_services(storage_services), compound(compound_storage_svc), compute_svc(compute_service)
     {
 
@@ -355,6 +369,7 @@ public:
     std::set<std::shared_ptr<wrench::StorageService>> storage_services;
     std::shared_ptr<wrench::CompoundStorageService> compound;
     std::shared_ptr<wrench::ComputeService> compute_svc;
+    std::shared_ptr<storalloc::LustreAllocator> alloc;
 };
 
 /**
@@ -366,7 +381,8 @@ public:
     LustreTestControllerMinMax(const std::shared_ptr<wrench::ComputeService> &compute_service,
                                const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                                const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
-                               const std::string &hostname) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname) {}
+                               const std::string &hostname,
+                               std::shared_ptr<LustreAllocator> alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc) {}
 
     int main() override
     {
@@ -408,7 +424,7 @@ public:
 
 
         // Test lustreComputeMinMaxUtilization
-        auto ba_min_max = storalloc::lustre::lustreComputeMinMaxUtilization(storage_map);
+        auto ba_min_max = this->alloc->lustreComputeMinMaxUtilization(storage_map);
 
         // Max free space is 200 GB (>>8)
         uint64_t expected_max = 20000000000000 >> 8;  // bitshift for overflow, as computed in Lustre
@@ -425,7 +441,7 @@ public:
         }
 
         // While we're at it, also test whether or not we should use the weighted allocator in this case
-        if (!storalloc::lustre::lustreUseRR(ba_min_max)) {
+        if (!this->alloc->lustreUseRR(ba_min_max)) {
             throw std::runtime_error("We should be using the RR allocator");
         }
 
@@ -467,18 +483,20 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test()
     /* Simple storage services */
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
+    auto allocator = std::make_shared<LustreAllocator>(config);
+
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            storalloc::lustre::lustreStrategy,
+            allocator,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "30000000000"}},
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0"));
+        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0", allocator));
 
     simulation->launch();
 }

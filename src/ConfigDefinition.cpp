@@ -83,11 +83,27 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node& ynode, storalloc
             }
 
             rhs.nodes.push_back(node_entry);
-
         }
+
+        // Allocator
+        auto alloc = ynode["allocator"].as<std::string>();
+        if (alloc == "lustre") {
+            rhs.allocator = storalloc::AllocatorType::Lustre;
+
+            // Load specific config
+            rhs.lustre.lq_threshold_rr = ynode["lustre"]["lq_threshold_rr"].as<long long unsigned int>();
+            rhs.lustre.lq_prio_free = ynode["lustre"]["lq_prio_free"].as<long long unsigned int>();
+            rhs.lustre.max_nb_ost = ynode["lustre"]["max_nb_ost"].as<long long unsigned int>();
+            rhs.lustre.max_inodes = ynode["lustre"]["max_inodes"].as<long long unsigned int>();
+            rhs.lustre.stripe_size = ynode["lustre"]["stripe_size"].as<long long unsigned int>();
+
+        } else if (alloc == "rr") {
+            rhs.allocator = storalloc::AllocatorType::GenericRR;
+        } 
 
     } catch(YAML::ParserException& e) {
         std::cout << e.what() << std::endl;
+        return false;
     }
 
     return true;
