@@ -89,13 +89,18 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node& ynode, storalloc
         auto alloc = ynode["allocator"].as<std::string>();
         if (alloc == "lustre") {
             rhs.allocator = storalloc::AllocatorType::Lustre;
-
+            
             // Load specific config
-            rhs.lustre.lq_threshold_rr = ynode["lustre"]["lq_threshold_rr"].as<long long unsigned int>();
-            rhs.lustre.lq_prio_free = ynode["lustre"]["lq_prio_free"].as<long long unsigned int>();
-            rhs.lustre.max_nb_ost = ynode["lustre"]["max_nb_ost"].as<long long unsigned int>();
-            rhs.lustre.max_inodes = ynode["lustre"]["max_inodes"].as<long long unsigned int>();
-            rhs.lustre.stripe_size = ynode["lustre"]["stripe_size"].as<long long unsigned int>();
+            if (ynode["lustre"]["lq_threshold_rr"].IsDefined())
+                rhs.lustre.lq_threshold_rr = ynode["lustre"]["lq_threshold_rr"].as<long long unsigned int>();
+            if (ynode["lustre"]["lq_prio_free"].IsDefined())
+                rhs.lustre.lq_prio_free = ynode["lustre"]["lq_prio_free"].as<long long unsigned int>();
+            if (ynode["lustre"]["max_nb_ost"].IsDefined()) 
+                rhs.lustre.max_nb_ost = ynode["lustre"]["max_nb_ost"].as<long long unsigned int>();
+            if (ynode["lustre"]["max_inodes"].IsDefined())
+                rhs.lustre.max_inodes = ynode["lustre"]["max_inodes"].as<long long unsigned int>();
+            if (ynode["lustre"]["stripe_size"].IsDefined())
+                rhs.lustre.stripe_size = ynode["lustre"]["stripe_size"].as<long long unsigned int>();
 
         } else if (alloc == "rr") {
             rhs.allocator = storalloc::AllocatorType::GenericRR;

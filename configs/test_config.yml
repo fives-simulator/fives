@@ -44,5 +44,5 @@ dragonfly:
     capacity: 128 # GB
     read_bw: 1000 # MBps
     write_bw: 500 # MBps
-
+allocator: rr
 ...

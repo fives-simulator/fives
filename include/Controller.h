@@ -17,38 +17,40 @@
 #include <wrench-dev.h>
 
 
-namespace wrench {
+namespace storalloc {
 
     /**
      *  @brief A Workflow Management System (WMS) implementation
      */
-    class Controller : public ExecutionController {
+    class Controller : public wrench::ExecutionController {
 
     public:
         // Constructor
         Controller(
-                  const std::shared_ptr<ComputeService> &compute_service,
-                  const std::shared_ptr<SimpleStorageService> &storage_service,
-                  const std::shared_ptr<CompoundStorageService> &compound_storage_service,
+                  const std::shared_ptr<wrench::ComputeService> &compute_service,
+                  const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
+                  const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                   const std::string &hostname,
                   const std::vector<storalloc::YamlJob>& jobs);
 
+        void extractSSSIO();
+
     protected:
 
-        void processEventCompoundJobCompletion(std::shared_ptr<CompoundJobCompletedEvent>) override;
-        void processEventCompoundJobFailure(std::shared_ptr<CompoundJobFailedEvent>) override;
+        void processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent>) override;
+        void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
 
         void processCompletedJobs(const std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>>& jobs);
-        void extractSSSIO();
+        
 
 
     private:
 
         int main() override;
 
-        const std::shared_ptr<ComputeService> compute_service;
-        const std::shared_ptr<SimpleStorageService> storage_service;
-        const std::shared_ptr<CompoundStorageService> compound_storage_service;
+        const std::shared_ptr<wrench::ComputeService> compute_service;
+        const std::shared_ptr<wrench::SimpleStorageService> storage_service;
+        const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
         const std::vector<storalloc::YamlJob>& jobs;
 
     };

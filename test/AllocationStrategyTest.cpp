@@ -314,9 +314,28 @@ TEST_F(BasicAllocTest, lustreComputeStripesPerOST_test)
  */
 void BasicAllocTest::lustreComputeStripesPerOST_test() {
 
-    /* Params : file_size (Bytes) ; stripe_size (bytes) ; OST number ; strip_count */
-    // storalloc::lustre::LUSTRE_stripe_size = 96000000;
-    // std::cout << "Test is using stripe size : " << std::to_string(storalloc::lustre::LUSTRE_stripe_size) << std::endl;
+
+    auto allocator = LustreAllocator(this->cfg);
+
+    auto striping = allocator.lustreComputeStriping(3000000000, 85);
+
+    ASSERT_EQ(striping.stripe_size_b, this->cfg->lustre.stripe_size);
+    ASSERT_EQ(striping.stripes_count, 60);
+    ASSERT_EQ(striping.stripes_per_ost, 1);
+
+    striping = {};
+    striping = allocator.lustreComputeStriping(30000000000, 85);
+    ASSERT_EQ(striping.stripe_size_b, this->cfg->lustre.stripe_size);
+    ASSERT_EQ(striping.stripes_count, 600);
+    ASSERT_EQ(striping.stripes_per_ost, 8);
+
+
+    striping = {};
+    striping = allocator.lustreComputeStriping(3000000, 85);
+    ASSERT_EQ(striping.stripe_size_b, 3000000);
+    ASSERT_EQ(striping.stripes_count, 1);
+    ASSERT_EQ(striping.stripes_per_ost, 1);
+
 
 }
 
@@ -328,15 +347,16 @@ class FunctionalAllocTest : public ::testing::Test
 
 public:
     void lustreComputeMinMaxUtilization_test();
+    void lustreOstIsUsed_test();
+    void lustreRROrderServices_test();
+    void lustreRROrderServices2_test();     // != config file in simulation
+    void lustreRROrderServices3_test();     // != config file in simulation
+    void lustreCreateFileParts_test();
+    void lustreFullSim_test();
 
 protected:
-    ~FunctionalAllocTest()
-    {
-    }
-
-    FunctionalAllocTest()
-    {
-    }
+    ~FunctionalAllocTest() {}
+    FunctionalAllocTest() {}
 };
 
 /**
@@ -350,7 +370,10 @@ public:
                          const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
                          const std::string &hostname,
                          std::shared_ptr<LustreAllocator> alloc) : wrench::ExecutionController(hostname, "controller"),
-                                                        storage_services(storage_services), compound(compound_storage_svc), compute_svc(compute_service)
+                                                        storage_services(storage_services), 
+                                                        compound(compound_storage_svc), 
+                                                        compute_svc(compute_service), 
+                                                        alloc(alloc)
     {
 
         this->file_10GB = wrench::Simulation::addFile("file_10GB", 10000000000); // 10GB file
@@ -468,6 +491,122 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test()
 
     auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config.yml"));
 
+    // Check that the default value for max_inodes was not overriden during config load
+    ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
+    // Check that the default value for stripe size was correctly overrriden
+    ASSERT_EQ(config->lustre.stripe_size, 40000000);
+
+    auto simulation = wrench::Simulation::createSimulation();
+    int argc = 1;
+    char **argv = (char **)calloc(argc, sizeof(char *));
+    argv[0] = strdup("unit_test");
+    ASSERT_NO_THROW(simulation->init(&argc, argv));
+
+    auto platform_factory = storalloc::PlatformFactory(config);
+    simulation->instantiatePlatform(platform_factory);
+
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto allocator = std::make_shared<LustreAllocator>(config);
+
+    auto compound_storage_service = simulation->add(
+        new wrench::CompoundStorageService(
+            "compound_storage",
+            sstorageservices,
+            allocator,
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
+             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
+            // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "30000000000"}},
+            {}));
+
+    auto wms = simulation->add(
+        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0", allocator));
+
+    simulation->launch();
+}
+
+
+/**
+ * @brief Custom controller for testing lustreComputeMinMaxUtilization
+ */
+class LustreTestControllerUsage : public LustreTestController
+{
+public:
+    LustreTestControllerUsage(const std::shared_ptr<wrench::ComputeService> &compute_service,
+                               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+                               const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
+                               const std::string &hostname,
+                               std::shared_ptr<LustreAllocator> alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc) {}
+
+    int main() override
+    {
+        
+        // Prepare a map of services for lustreComputeMinMaxUtilization
+        std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> storage_map;
+        for (const auto &service: this->storage_services) {
+            if (storage_map.find(service->getHostname()) == storage_map.end() ) {
+                storage_map[service->getHostname()] = std::vector<std::shared_ptr<wrench::StorageService>>();
+            }
+            storage_map[service->getHostname()].push_back(service);
+        }
+
+        // Create a dummy job writing data
+        auto job_manager = this->createJobManager();
+        auto job = job_manager->createCompoundJob("Job1");
+        auto simple_1 = storage_map["lustre_OSS2"][0];
+        auto simple_2 = storage_map["lustre_OSS5"][0];
+
+        auto file_loc = wrench::FileLocation::LOCATION(simple_1, this->file_50GB);
+        job->addFileWriteAction("write1", file_loc);
+        std::map<std::string, std::string> service_specific_args =
+                    {{"-N", "2"},                           // nb of nodes
+                     {"-c", "16"},                          // core per node
+                     {"-t", "6000"}};                        // seconds
+        job_manager->submitJob(job, this->compute_svc, service_specific_args);
+        wrench::Simulation::sleep(300);
+
+        // ACTUAL TEST
+        std::vector<std::shared_ptr<wrench::FileLocation>> locations = {file_loc};   // Vector of locations for parts of a file
+        std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> usage_map = {{this->file_50GB, locations}};
+        bool used = this->alloc->lustreOstIsUsed(usage_map, simple_1);
+        if (not used) {
+            throw std::runtime_error("OSS 2 should be seen as used");
+        }
+        used = this->alloc->lustreOstIsUsed(usage_map, simple_2);
+        if (used) {
+            throw std::runtime_error("OSS 5 should not be used");
+        }
+        // --------------
+
+        // Wait for job completion (making sure nothing stalled)
+        auto event = this->waitForNextEvent();
+        if (std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event) == nullptr) {
+            throw std::runtime_error("Test failed because job did not complete");
+        }
+
+        return 0;
+    }
+};
+
+
+TEST_F(FunctionalAllocTest, lustreOstIsUsed_test)
+{
+    DO_TEST_WITH_FORK(lustreOstIsUsed_test);
+}
+
+/**
+ *  @brief Testing lustreComputeMinMaxUtilization()
+ */
+void FunctionalAllocTest::lustreOstIsUsed_test()
+{
+
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config.yml"));
+
+    // Check that the default value for max_inodes was not overriden during config load
+    ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
+    // Check that the default value for stripe size was correctly overrriden
+    ASSERT_EQ(config->lustre.stripe_size, 40000000);
+
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 1;
     char **argv = (char **)calloc(argc, sizeof(char *));
@@ -490,13 +629,344 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test()
             "compound_storage",
             sstorageservices,
             allocator,
-            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
-            // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "30000000000"}},
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0", allocator));
+        new LustreTestControllerUsage(batch_service, sstorageservices, compound_storage_service, "user0", allocator));
 
     simulation->launch();
+}
+
+
+/**
+ * @brief Custom controller for testing lustreComputeMinMaxUtilization
+ */
+class LustreTestControllerOrderRR : public LustreTestController
+{
+public:
+    LustreTestControllerOrderRR(const std::shared_ptr<wrench::ComputeService> &compute_service,
+                               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+                               const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
+                               const std::string &hostname,
+                               std::shared_ptr<LustreAllocator> alloc, 
+                               const std::vector<std::pair<std::string, std::string>> &ordered_alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc), ordered_alloc(ordered_alloc) {}
+
+    int main() override
+    {
+        
+        std::map<std::string, int> hostname_to_service_count;
+        std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services;
+        for (const auto &service: this->storage_services) {
+            if (hostname_to_service_count.find(service->getHostname()) == hostname_to_service_count.end()) {
+                hostname_to_service_count[service->getHostname()] = 1;
+            } else {
+                hostname_to_service_count[service->getHostname()] += 1;
+            }
+            disk_level_services.push_back(service);        
+        }
+
+        if (disk_level_services.size() != this->ordered_alloc.size()) {
+            throw std::runtime_error("Incorrect 'hostname_to_service_count' length (" + std::to_string(disk_level_services.size()) + ")");
+        }
+
+        auto ordered = this->alloc->lustreRROrderServices(hostname_to_service_count, disk_level_services);
+        
+        int index = 0;
+        for (const auto &service : ordered) {
+            if ((service->getHostname() != this->ordered_alloc[index].first) or (service->getName() != this->ordered_alloc[index].second)) {
+                throw std::runtime_error("Mismatch between computed list of ordered services and expected result");
+            }
+            index++;
+        }
+
+        hostname_to_service_count.clear();
+        disk_level_services.clear();
+        try {
+            this->alloc->lustreRROrderServices(hostname_to_service_count, disk_level_services);
+        } catch(std::runtime_error& e) {
+            // OK, exception raised as expected;
+            return 0;
+        } 
+        throw std::runtime_error("Error with lustreRROrderServices when given empty vector/map (no exception raised)");
+    }
+
+    std::vector<std::pair<std::string, std::string>> ordered_alloc = {};
+};
+
+
+TEST_F(FunctionalAllocTest, lustreRROrderServices_test)
+{
+    DO_TEST_WITH_FORK(lustreRROrderServices_test);
+}
+
+/**
+ *  @brief Testing lustreRROrderServices() with a config file presenting 1 OSS A with 3 OST and 1 OSS B with 5 OST
+ *         Expected result is a vector of OSTs from OSSs "ABABBABB"
+ */
+void FunctionalAllocTest::lustreRROrderServices_test()
+{
+
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_het_oss.yml"));
+
+    // Check that the default value for max_inodes was not overriden during config load
+    ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
+    // Check that the default value for stripe size was correctly overrriden
+    ASSERT_EQ(config->lustre.stripe_size, 40000000);
+
+    auto simulation = wrench::Simulation::createSimulation();
+    int argc = 1;
+    char **argv = (char **)calloc(argc, sizeof(char *));
+    argv[0] = strdup("unit_test");
+    ASSERT_NO_THROW(simulation->init(&argc, argv));
+
+    auto platform_factory = storalloc::PlatformFactory(config);
+    simulation->instantiatePlatform(platform_factory);
+
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto allocator = std::make_shared<LustreAllocator>(config);
+    auto compound_storage_service = simulation->add(
+        new wrench::CompoundStorageService(
+            "compound_storage",
+            sstorageservices,
+            allocator,
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
+             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
+            {}));
+
+    
+    std::vector<std::pair<std::string, std::string>> result = {
+        {"lustre_OSS_A0", "simple_storage_0_5003"},
+        {"lustre_OSS_B0", "simple_storage_3_5012"},
+        {"lustre_OSS_A0", "simple_storage_1_5006"},
+        {"lustre_OSS_B0", "simple_storage_4_5015"},
+        {"lustre_OSS_B0", "simple_storage_5_5018"},
+        {"lustre_OSS_A0", "simple_storage_2_5009"},
+        {"lustre_OSS_B0", "simple_storage_6_5021"},
+        {"lustre_OSS_B0", "simple_storage_7_5024"},
+    };
+
+    auto wms = simulation->add(
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", allocator, result));
+
+    ASSERT_NO_THROW(simulation->launch());
+}
+
+
+TEST_F(FunctionalAllocTest, lustreRROrderServices2_test)
+{
+    DO_TEST_WITH_FORK(lustreRROrderServices2_test);
+}
+
+/**
+ *  @brief Testing lustreRROrderServices() with a config file presenting 2 OSS (type A) with 3 OST and 2 OSS (type B) with 3 OST
+ *         Expected result is a vector of OSTs from OSSs "ABABABABABAB"
+ */
+void FunctionalAllocTest::lustreRROrderServices2_test()
+{
+
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_3OST1OSS.yml"));
+
+    // Check that the default value for max_inodes was not overriden during config load
+    ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
+    // Check that the default value for stripe size was correctly overrriden
+    ASSERT_EQ(config->lustre.stripe_size, 40000000);
+
+    auto simulation = wrench::Simulation::createSimulation();
+    int argc = 1;
+    char **argv = (char **)calloc(argc, sizeof(char *));
+    argv[0] = strdup("unit_test");
+    ASSERT_NO_THROW(simulation->init(&argc, argv));
+
+    auto platform_factory = storalloc::PlatformFactory(config);
+    simulation->instantiatePlatform(platform_factory);
+
+    /* Batch compute Service*/
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto allocator = std::make_shared<LustreAllocator>(config);
+    auto compound_storage_service = simulation->add(
+        new wrench::CompoundStorageService(
+            "compound_storage",
+            sstorageservices,
+            allocator,
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
+             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
+            {}));
+
+    std::vector<std::pair<std::string, std::string>> result = {
+        {"lustre_OSS_A0", "simple_storage_0_5003"},
+        {"lustre_OSS_B0", "simple_storage_3_5012"},
+        {"lustre_OSS_A0", "simple_storage_1_5006"},
+        {"lustre_OSS_B0", "simple_storage_4_5015"},
+        {"lustre_OSS_A0", "simple_storage_2_5009"},
+        {"lustre_OSS_B0", "simple_storage_5_5018"},
+    };
+
+    auto wms = simulation->add(
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", allocator, result));
+
+    ASSERT_NO_THROW(simulation->launch());
+}
+
+
+TEST_F(FunctionalAllocTest, lustreRROrderServices3_test)
+{
+    DO_TEST_WITH_FORK(lustreRROrderServices3_test);
+}
+
+/**
+ *  @brief Testing lustreRROrderServices() with a config file presenting 2 OSS (type A) with 3 OST and 2 OSS (type B) with 3 OST
+ *         Expected result is a vector of OSTs from OSSs "ABABABABABAB"
+ */
+void FunctionalAllocTest::lustreRROrderServices3_test()
+{
+
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_3OST3OSS.yml"));
+
+    // Check that the default value for max_inodes was not overriden during config load
+    ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
+    // Check that the default value for stripe size was correctly overrriden
+    ASSERT_EQ(config->lustre.stripe_size, 40000000);
+
+    auto simulation = wrench::Simulation::createSimulation();
+    int argc = 1;
+    char **argv = (char **)calloc(argc, sizeof(char *));
+    argv[0] = strdup("unit_test");
+    ASSERT_NO_THROW(simulation->init(&argc, argv));
+
+    auto platform_factory = storalloc::PlatformFactory(config);
+    simulation->instantiatePlatform(platform_factory);
+
+    /* Batch compute Service*/
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto allocator = std::make_shared<LustreAllocator>(config);
+    auto compound_storage_service = simulation->add(
+        new wrench::CompoundStorageService(
+            "compound_storage",
+            sstorageservices,
+            allocator,
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
+             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
+            {}));
+
+    std::vector<std::pair<std::string, std::string>> result = {
+        {"lustre_OSS_A0", "simple_storage_0_5003"},
+        {"lustre_OSS_B0", "simple_storage_3_5012"},
+        {"lustre_OSS_C0", "simple_storage_6_5021"},
+        {"lustre_OSS_A0", "simple_storage_1_5006"},
+        {"lustre_OSS_B0", "simple_storage_4_5015"},
+        {"lustre_OSS_C0", "simple_storage_7_5024"},
+        {"lustre_OSS_A0", "simple_storage_2_5009"},
+        {"lustre_OSS_B0", "simple_storage_5_5018"},
+        {"lustre_OSS_C0", "simple_storage_8_5027"},
+    };
+
+    auto wms = simulation->add(
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", allocator, result));
+
+    ASSERT_NO_THROW(simulation->launch());
+}
+
+TEST_F(FunctionalAllocTest, lustreCreateFileParts_test)
+{
+    DO_TEST_WITH_FORK(lustreCreateFileParts_test);
+}
+
+/**
+ *  @brief Testing lustreRROrderServices() with a config file presenting 2 OSS (type A) with 3 OST and 2 OSS (type B) with 3 OST
+ *         Expected result is a vector of OSTs from OSSs "ABABABABABAB"
+ */
+void FunctionalAllocTest::lustreCreateFileParts_test()
+{
+
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config.yml"));
+
+    // Check that the default value for max_inodes was not overriden during config load
+    ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
+    // Check that the default value for stripe size was correctly overrriden
+    ASSERT_EQ(config->lustre.stripe_size, 40000000);
+
+    auto simulation = wrench::Simulation::createSimulation();
+    int argc = 1;
+    char **argv = (char **)calloc(argc, sizeof(char *));
+    argv[0] = strdup("unit_test");
+    ASSERT_NO_THROW(simulation->init(&argc, argv));
+
+    auto platform_factory = storalloc::PlatformFactory(config);
+    simulation->instantiatePlatform(platform_factory);
+
+    /* Batch compute Service*/
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto allocator = std::make_shared<LustreAllocator>(config);
+
+    std::map<int, std::shared_ptr<wrench::StorageService>> alloc_map;
+    int index = 0;
+    for(const auto &svc : sstorageservices) {
+        alloc_map[index] = svc;
+        index++;
+    }
+
+    auto locations = allocator->lustreCreateFileParts("Test", alloc_map);
+    ASSERT_EQ(locations.size(), 16);
+
+    auto file_map = simulation->getFileMap();
+    ASSERT_EQ(file_map.size(), 16);
+
+    for(const auto& loc : locations) {
+        // Make sure every file parts from designated locations has correctly been added to the simulation
+        auto file_part = *(file_map.find(loc->getFile()->getID()));
+        ASSERT_EQ(file_part.second->getSize(), loc->getFile()->getSize());
+    }
+}
+
+
+TEST_F(FunctionalAllocTest, lustreFullSim_test)
+{
+    DO_TEST_WITH_FORK(lustreFullSim_test);
+}
+
+/**
+ *  @brief Testing lustreRROrderServices() with a config file presenting 1 OSS A with 3 OST and 1 OSS B with 5 OST
+ *         Expected result is a vector of OSTs from OSSs "ABABBABB"
+ */
+void FunctionalAllocTest::lustreFullSim_test()
+{
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_het_oss.yml"));
+    auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_small_IO.yml");
+
+    auto simulation = wrench::Simulation::createSimulation();
+    int argc = 1;
+    char **argv = (char **)calloc(argc, sizeof(char *));
+    argv[0] = strdup("unit_test_full_sim_lustre");
+    ASSERT_NO_THROW(simulation->init(&argc, argv));
+
+    auto platform_factory = storalloc::PlatformFactory(config);
+    simulation->instantiatePlatform(platform_factory);
+
+    // Services
+    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto allocator = std::make_shared<LustreAllocator>(config);
+    auto compound_storage_service = simulation->add(
+        new wrench::CompoundStorageService(
+            "compound_storage",
+            sstorageservices,
+            allocator,
+            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
+             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
+            {}));
+     auto permanent_storage = simulation->add(
+        wrench::SimpleStorageService::createSimpleStorageService(
+            "permanent_storage", {"/dev/disk0"}, {}, {}));
+    
+
+    // Controler
+    simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
+
+    ASSERT_NO_THROW(simulation->launch());
 }

@@ -134,8 +134,8 @@ int storalloc::run_simulation(int argc, char **argv)
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     
     /* Execution controller */
-    auto wms = simulation->add(
-        new wrench::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
+    auto ctrl = simulation->add(
+        new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
 
     /* Launch the simulation */
     std::cout << "Launching simulation..." << std::endl;
@@ -154,6 +154,9 @@ int storalloc::run_simulation(int argc, char **argv)
     {
         std::cerr << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
     }
+
+    // Extract traces
+    ctrl->extractSSSIO();
 
     return 0;
 }

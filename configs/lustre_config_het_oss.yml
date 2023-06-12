@@ -1,8 +1,8 @@
 ---
 
 # Test config for a tiny Lustre filesystem
-# - 2 HDD per node (200GB each)
-# - 8 nodes
+# - 1 node with 3 OST
+# - 1 node with 5 OST
 # - Small compute system on the side
 
 general:
@@ -19,14 +19,21 @@ storage:
       write_bw: 500    # MBps
       mount_prefix: /dev/hdd
   node_templates:
-    - &node_capa
-      id: lustre_OSS
+    - &node_capa_A
+      id: lustre_OSS_A
       disks:
-        - quantity: 2
+        - quantity: 3
+          template: *raid_OSS
+    - &node_capa_B
+      id: lustre_OSS_B
+      disks:
+        - quantity: 5
           template: *raid_OSS
   nodes:
-    - quantity: 8
-      template: *node_capa
+    - quantity: 1
+      template: *node_capa_A
+    - quantity: 1
+      template: *node_capa_B
 dragonfly:
   groups: 2         # Entire Dragonfly zone
   group_links: 2
