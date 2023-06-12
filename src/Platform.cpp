@@ -137,7 +137,6 @@ namespace storalloc {
         auto storage_router = storage_zone->create_router("storage_zone_router_0");
 
         // Simple storage services that will be accessed through CompoundStorageService
-        auto node_id = 0;
         for (const auto& node : config->nodes) {    // node types in use
 
             for(auto i = 0; i < node.qtt; i++) {    // qtt of each type

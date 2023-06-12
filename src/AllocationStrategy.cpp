@@ -1,7 +1,9 @@
+#include "AllocationStrategy.h"
+
 #include <random>
 #include <cstdint>
 
-#include "AllocationStrategy.h"
+WRENCH_LOG_CATEGORY(storalloc_alloc_strategy, "Log category for storalloc allocation strategies");
 
 std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::GenericRRAllocator::allocate(
     const std::shared_ptr<wrench::DataFile> &file,
@@ -144,6 +146,10 @@ std::vector<std::shared_ptr<wrench::StorageService>> storalloc::LustreAllocator:
                                                                                       const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services)
 {
 
+    if ((hostname_to_service_count.size() == 0) or (disk_level_services.size() == 0)) {
+        throw std::runtime_error("lustreRROrderService : Cannot return ordering on empty lists of services");
+    }
+
     std::vector<std::shared_ptr<wrench::StorageService>> rr_ordered_services(disk_level_services.size());
     fill(rr_ordered_services.begin(), rr_ordered_services.end(), nullptr);
 
@@ -159,7 +165,6 @@ std::vector<std::shared_ptr<wrench::StorageService>> storalloc::LustreAllocator:
         const auto disk_level_svc_count = disk_level_services.size();
         for (std::size_t i = 0; i < disk_level_svc_count; i++)
         {
-
             int next;
 
             if (disk_level_services[i]->getHostname() != srv_hostname)
@@ -192,6 +197,7 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(double fil
 {
 
     storalloc::striping ret_striping = {};
+    ret_striping.stripe_size_b = this->config->lustre.stripe_size;
 
     // How many stripes we need in total, considering total file size and default stripe_size.
     ret_striping.stripes_count = std::ceil(file_size_b / this->config->lustre.stripe_size);
@@ -206,6 +212,8 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(double fil
                  ret_striping.stripes_per_ost++; // here we don't ask for more storage than needed because the condition of the allocation loop
             }
         }
+    } else {
+        ret_striping.stripe_size_b = file_size_b;
     }
 
     return ret_striping;
@@ -225,7 +233,6 @@ bool storalloc::LustreAllocator::lustreOstIsUsed(const std::map<std::shared_ptr<
             }
         }
     }
-
     return false;
 }
 
@@ -272,7 +279,6 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
      *  size and the total number of OSTs.
      */
     auto file_size_b = file->getSize();
-    // auto stripe_count = std::ceil(file_size_b / LUSTRE_stripe_size); // Here we potentially ask for more storage than needed due to the rounding
     auto current_striping = lustreComputeStriping(file_size_b, rr_services_count);
 
     // Randomly chosen index of first OST of the stripe pattern
@@ -282,7 +288,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     std::uniform_int_distribution<> distrib(0, rr_services_count - 1);
     int start_ost_index = distrib(gen); // similar to when Lustre chooses the first OST to be used.
     int temp_start_ost_index = start_ost_index;
-    int stripe_idx = 0;
+    unsigned int stripe_idx = 0;
 
     std::map<int, std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
 
@@ -299,19 +305,19 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
             if (current_ost->traceTotalFreeSpace() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP))
             {
                 // Only keep running storage services associated with non-full disks
-                std::cout << "LustreAlloc: skipping OST (total Free space == " << std::to_string(current_ost->traceTotalFreeSpace()) << " and current state == " << current_ost->getState() << ")" << std::endl;
+                WRENCH_DEBUG("LustreAlloc: skipping OST (total Free space == %f and current state == %d)", current_ost->traceTotalFreeSpace(), current_ost->getState());
                 continue;
             }
 
             // For the first iteration, avoid services which already have an older allocation on them.
             if (speed == 0 && lustreOstIsUsed(mapping, current_ost))
             {
-                std::cout << "LustreAlloc : Skipping OST because another allocation is already using it" << std::endl;
+                WRENCH_DEBUG("LustreAlloc : Skipping OST because another allocation is already using it");
                 continue;
             }
             else
             {
-                std::cout << "LustreAlloc : Using OST " << current_ost->getHostname() << std::endl;
+                WRENCH_DEBUG("LustreAlloc : Using OST %s", current_ost->getHostname().c_str());
                 temp_stripe_locations[stripe_idx] = current_ost;
                 stripe_idx++;
             }
@@ -319,7 +325,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
 
         if (stripe_idx == current_striping.stripes_count)
         {
-            std::cout << "LustreAlloc : All stripes allocated/ Stopping" << std::endl;
+            WRENCH_DEBUG("LustreAlloc : All stripes allocated/ Stopping");
             break;
         }
         else
@@ -327,14 +333,14 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
             temp_stripe_locations.clear();
             temp_start_ost_index = start_ost_index; // back to original index, but this time we'll allow 'slow' OSTs
             stripe_idx = 0;
-            std::cout << "LustreAlloc : Starting over because stripe_idx != stripe_count and we reached the condition of this loop" << std::endl;
+            WRENCH_DEBUG("LustreAlloc : Starting over because stripe_idx != stripe_count and we reached the condition of this loop");
         }
     }
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
     if (temp_stripe_locations.size() < current_striping.stripes_count)
     {
-        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(current_striping.stripes_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
+        WRENCH_WARN("LustreAlloc: Expected to allocate %i  stripes, but could only allocate %li instead.", current_striping.stripes_count, temp_stripe_locations.size());
     }
 
     auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
@@ -475,13 +481,11 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
      */
     auto file_size_b = file->getSize();
     auto stripe_count = std::ceil(file_size_b / this->config->lustre.stripe_size); // Here we potentially ask for more storage than needed due to the rounding
-    // auto stripes_per_ost = lustreComputeStripesPerOST(file_size_b, LUSTRE_stripe_size, active_ost_count, stripe_count);
 
-    std::cout << "LUSTRE WEIGHT ALLOC DEBUG" << std::endl;
-    // std::cout << "Stripe per ost = " << std::to_string(stripes_per_ost) << std::endl;
-    std::cout << "Stripe count = " << std::to_string(stripe_count) << std::endl;
-    std::cout << "Current file_size = " << std::to_string(file_size_b) << std::endl;
-    std::cout << "Number of OST / services = " << std::to_string(active_ost_count) << std::endl;
+    WRENCH_DEBUG("LUSTRE WEIGHT ALLOC DEBUG");
+    WRENCH_DEBUG("Stripe count = %f", stripe_count);
+    WRENCH_DEBUG("Current file_size = %f", file_size_b);
+    WRENCH_DEBUG("Number of OST / services = %i", active_ost_count);
 
     // from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
     std::random_device rd;
@@ -513,9 +517,8 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     }
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
-    if (temp_stripe_locations.size() < stripe_count)
-    {
-        std::cout << "LustreAlloc: Expected to allocate " << std::to_string(stripe_count) << " stripes, but could only allocate " << std::to_string(temp_stripe_locations.size()) << " instead" << std::endl;
+    if (temp_stripe_locations.size() < stripe_count) {
+        WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %f  stripes, but could only allocate %li instead.", stripe_count, temp_stripe_locations.size()); 
     }
 
     auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);

@@ -25,9 +25,9 @@
 
 #include "yaml-cpp/yaml.h"
 
-WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for Controller");
+WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for storalloc controller");
 
-namespace wrench {
+namespace storalloc {
 
     template<typename E>
     constexpr auto
@@ -58,9 +58,9 @@ namespace wrench {
      * @param storage_services: a set of storage services available to store files
      * @param hostname: the name of the host on which to start the WMS
      */
-    Controller::Controller(const std::shared_ptr<ComputeService> &compute_service,
-                           const std::shared_ptr<SimpleStorageService> &storage_service,
-                           const std::shared_ptr<CompoundStorageService> &compound_storage_service,
+    Controller::Controller(const std::shared_ptr<wrench::ComputeService> &compute_service,
+                           const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
+                           const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
                            const std::vector<storalloc::YamlJob>& jobs) :
             ExecutionController(hostname,"controller"),
@@ -79,7 +79,7 @@ namespace wrench {
     int Controller::main() {
 
         /* Set the logging output to GREEN */
-        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller starting");
         WRENCH_INFO("Got %s jobs to prepare and submit", std::to_string(jobs.size()).c_str());
 
@@ -209,10 +209,10 @@ namespace wrench {
             job_manager->submitJob(job, this->compute_service, service_specific_args);
         }
             
-        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_BLUE);
+        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_BLUE);
         WRENCH_INFO("### All jobs submitted to the BatchComputeService");
         WRENCH_INFO("### Waiting for execution events");
-        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         auto nb_jobs = compound_jobs.size();
         for (size_t i = 0; i < nb_jobs; i++) {
             this->waitForAndProcessNextEvent();
@@ -222,20 +222,19 @@ namespace wrench {
 
         // List all action states and times
         for (auto const &a : actions) {
-            if (a->getState() != Action::State::COMPLETED) {
-                TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
+            if (a->getState() != wrench::Action::State::COMPLETED) {
+                wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
             }
             WRENCH_DEBUG("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
-            if (a->getState() != Action::State::COMPLETED) {
+            if (a->getState() != wrench::Action::State::COMPLETED) {
                 WRENCH_WARN("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
                 WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
-                TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+                wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
                 return 1;
             }
         }
 
         this->processCompletedJobs(compound_jobs);
-        this->extractSSSIO();
 
         return 0;
     }
@@ -245,7 +244,7 @@ namespace wrench {
      *
      * @param event: the event
      */
-    void Controller::processEventCompoundJobCompletion(std::shared_ptr<CompoundJobCompletedEvent> event) {
+    void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
         auto job = event->job;
         WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
     }
@@ -256,13 +255,13 @@ namespace wrench {
      *
      * @param event: the event
      */
-    void Controller::processEventCompoundJobFailure(std::shared_ptr<CompoundJobFailedEvent> event) {
+    void Controller::processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent> event) {
         /* Retrieve the job that this event is for and failure cause*/
         auto job = event->job;
         auto cause = event->failure_cause;
-        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_RED);
+        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
         WRENCH_WARN("Notified that compound job %s has failed: %s", job->getName().c_str(), cause->toString().c_str());
-        TerminalOutput::setThisProcessLoggingColor(TerminalOutput::COLOR_GREEN);
+        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
     }
 
     // DELETE Overload
@@ -369,11 +368,11 @@ namespace wrench {
             
             out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq;   // action sequence
             auto actions = job->getActions();
-            auto set_cmp = [](const std::shared_ptr<Action>& a, const std::shared_ptr<Action>& b)
+            auto set_cmp = [](const std::shared_ptr<wrench::Action>& a, const std::shared_ptr<wrench::Action>& b)
                                   {
                                       return (a->getStartDate() < b->getStartDate());
                                   };
-            auto sorted_actions = std::set<std::shared_ptr<Action>, decltype(set_cmp)>(set_cmp);
+            auto sorted_actions = std::set<std::shared_ptr<wrench::Action>, decltype(set_cmp)>(set_cmp);
             sorted_actions.insert(actions.begin(), actions.end());
         
             for (const auto& action : sorted_actions) {
@@ -395,7 +394,7 @@ namespace wrench {
 
                 std::cout << "ACTION TYPE:  " << act_type << " AT TS : " << std::to_string(action->getStartDate()) << std::endl;
 
-                if (auto fileRead = std::dynamic_pointer_cast<FileReadAction>(action)) {
+                if (auto fileRead = std::dynamic_pointer_cast<wrench::FileReadAction>(action)) {
 
                     auto usedLocation = fileRead->getUsedFileLocation();
                     auto usedFile = usedLocation->getFile();
@@ -420,7 +419,7 @@ namespace wrench {
                     out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
                     
-                } else if (auto fileWrite = std::dynamic_pointer_cast<FileWriteAction>(action)) {
+                } else if (auto fileWrite = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
                     auto usedLocation = fileWrite->getFileLocation();
                     auto usedFile = usedLocation->getFile();
 
@@ -462,7 +461,7 @@ namespace wrench {
                         out_ss << YAML::EndMap;
                     }
 
-                } else if (auto fileCopy = std::dynamic_pointer_cast<FileCopyAction>(action)) {
+                } else if (auto fileCopy = std::dynamic_pointer_cast<wrench::FileCopyAction>(action)) {
 
                     std::shared_ptr<wrench::FileLocation> css;
                     std::shared_ptr<wrench::FileLocation> sss;
@@ -529,7 +528,7 @@ namespace wrench {
                         }
                     }
 
-                } else if (auto fileDelete = std::dynamic_pointer_cast<FileDeleteAction>(action)) {
+                } else if (auto fileDelete = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {
                     auto usedLocation = fileDelete->getFileLocation();
                     auto usedFile = usedLocation->getFile();
 
