@@ -33,11 +33,13 @@ namespace storalloc {
                   const std::string &hostname,
                   const std::vector<storalloc::YamlJob>& jobs);
 
-        virtual void extractSSSIO();
+        std::shared_ptr<wrench::CompoundJob> getCompletedJobById(std::string id);
 
         virtual void processCompletedJobs();
 
-        virtual bool jobsCompleted();
+        virtual bool actionsAllCompleted();
+
+        virtual void extractSSSIO();
 
     protected:
 
@@ -74,7 +76,7 @@ namespace storalloc {
 
         std::vector<std::shared_ptr<wrench::Action>> actions = {};
 
-        std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
+        std::map<std::string, std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
 
         std::shared_ptr<wrench::JobManager> job_manager;
 

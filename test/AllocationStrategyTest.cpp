@@ -936,7 +936,7 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test)
  */
 void FunctionalAllocTest::lustreFullSim_test()
 {
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_het_oss.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_hdd.yml"));
     auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_small_IO.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
@@ -972,6 +972,81 @@ void FunctionalAllocTest::lustreFullSim_test()
 
     ASSERT_TRUE(ctrl->hasReturnedFromMain());
 
-    ASSERT_TRUE(ctrl->jobsCompleted());
+    ASSERT_TRUE(ctrl->actionsAllCompleted());
+
+    // Test individual job for completion
+    auto job_1 = ctrl->getCompletedJobById("1");
+    ASSERT_EQ(job_1->getState(), wrench::CompoundJob::State::COMPLETED);
+    ASSERT_TRUE(job_1->hasSuccessfullyCompleted());
+    ASSERT_EQ(job_1->getSubmitDate(), 0);
+
+    auto actions = job_1->getActions();
+    ASSERT_EQ(actions.size(), 11);
+
+    std::vector<std::string> action_types = {
+        "FILECOPY-", 
+        "FILEREAD-", 
+        "COMPUTE-",
+        "FILEWRITE-",
+        "FILECOPY-",
+        "SLEEP-",
+        "FILEDELETE-",
+        "FILEDELETE-",
+        "SLEEP-",
+        "FILEDELETE-",
+        "FILEDELETE-",
+    };
+    int index = 0;
+    for (const auto& action : actions) {
+
+        //std::cout << wrench::Action::getActionTypeAsString(action) << std::endl;
+        ASSERT_EQ(wrench::Action::getActionTypeAsString(action), action_types[index]);
+        
+        if (auto r_action = std::dynamic_pointer_cast<wrench::FileReadAction>(action)) {
+            auto file = r_action->getFile();
+            auto file_locations = r_action->getFileLocations();
+
+            ASSERT_EQ(file->getID(), "input_data_file_1");
+            ASSERT_EQ(file->getSize(), 20000000000);
+            ASSERT_EQ(file_locations.size(), 1);
+            ASSERT_EQ(file_locations[0]->getPath(), "/");
+            ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5051");
+        }
+
+        if (auto w_action = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
+            auto file = w_action->getFile();
+            auto file_location = w_action->getFileLocation();
+
+            ASSERT_EQ(file->getID(), "output_data_file_1");
+            ASSERT_EQ(file->getSize(), 25000000000);
+            ASSERT_EQ(file_location->getPath(), "/");
+            ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5051");
+        }
+        
+        index++;
+    }
+
+    // Test results from CompoundStorageService metrics
+    auto first_ts = compound_storage_service->internal_storage_use.front().first;
+    auto last_ts = compound_storage_service->internal_storage_use.back().first;
+    ASSERT_EQ(first_ts, 0);
+    ASSERT_NEAR(last_ts, 107700, 1000);
+
+    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 49);   // 8 traces * 6 jobs + initial trace
+
+    for (const auto& entry : compound_storage_service->internal_storage_use) {
+
+        auto ts = entry.first;        // ts
+        auto alloc = entry.second;    // AllocationTrace structure
+
+        ASSERT_EQ(alloc.ts, ts);
+
+        std::cout << std::to_string(alloc.disk_usage.size()) << std::endl;
+        
+        for (const auto& disk_usage : alloc.disk_usage) {
+            std::cout << disk_usage.file_name << std::endl;
+        }
+
+    }
 
 }
