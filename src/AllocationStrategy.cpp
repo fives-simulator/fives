@@ -131,13 +131,13 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::a
     if (this->lustreUseRR(ba_min_max))
     {
         // Consider that every target has roughly the same free space, and use RR allocator
-        std::cout << "[lustreStrategy] Using RR allocator" << std::endl;
+        WRENCH_DEBUG("[lustreStrategy] Using RR allocator");
         return this->lustreRRAllocator(file, resources, mapping, previous_allocations);
     }
     else
     {
         // Consider that targets free space use is too much imbalanced and go for the weighted allocator
-        std::cout << "[lustreStrategy] Using weighted allocator" << std::endl;
+        WRENCH_DEBUG("[lustreStrategy] Using weighted allocator");
         return this->lustreWeightedAllocator(file, resources, mapping, previous_allocations);
     }
 }

@@ -33,27 +33,61 @@ namespace storalloc {
                   const std::string &hostname,
                   const std::vector<storalloc::YamlJob>& jobs);
 
-        void extractSSSIO();
+        virtual void extractSSSIO();
+
+        virtual void processCompletedJobs();
+
+        virtual bool jobsCompleted();
 
     protected:
 
-        void processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent>) override;
-        void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
+        virtual int main() override;
 
-        void processCompletedJobs(const std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>>& jobs);
+
+        virtual void processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent>) override;
+    
+        virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
+
+
+
+        virtual std::shared_ptr<wrench::CompoundJob> createJob(const storalloc::YamlJob& yaml_job, storalloc::JobType jobType);
+
+        virtual std::shared_ptr<wrench::DataFile> copyFromPermanent();
+
+        virtual void readFromTemporary(std::shared_ptr<wrench::DataFile> input_data);
+        
+        virtual void compute();
+        
+        virtual std::shared_ptr<wrench::DataFile> writeToTemporary();
+        
+        virtual void copyToPermanent(std::shared_ptr<wrench::DataFile> output_data);
+
+        virtual void cleanupInput(std::shared_ptr<wrench::DataFile> input_data);
+
+        virtual void cleanupOutput(std::shared_ptr<wrench::DataFile> output_data);
+
+        // Temporary placeholder for the yaml data of the job being configured
+        storalloc::YamlJob current_yaml_job;
+        // Temporary placeholder for job being configured
+        std::shared_ptr<wrench::CompoundJob> current_job;
         
 
+        std::vector<std::shared_ptr<wrench::Action>> actions = {};
 
-    private:
+        std::vector<std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
 
-        int main() override;
+        std::shared_ptr<wrench::JobManager> job_manager;
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
+
         const std::shared_ptr<wrench::SimpleStorageService> storage_service;
+
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
+
         const std::vector<storalloc::YamlJob>& jobs;
 
     };
+
 } // namespace wrench
 
 #endif //CONTROLLER_H

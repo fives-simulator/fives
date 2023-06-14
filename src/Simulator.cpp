@@ -152,8 +152,10 @@ int storalloc::run_simulation(int argc, char **argv)
     auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
     for (auto const &item : trace)
     {
-        std::cerr << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
+        std::cout << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
     }
+
+    ctrl->jobsCompleted();
 
     // Extract traces
     ctrl->extractSSSIO();

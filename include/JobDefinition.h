@@ -25,6 +25,14 @@
 
 namespace storalloc
 {
+    enum JobType {
+        ReadComputeWrite,   // Copy data from permanent storage, read, compute, write results, copy results to permanent storage 
+        ComputeWrite,       // Compute, write results, copy results to permanent storage    
+        ReadCompute,        // Copy from permanent storage, read, compute
+        NReadComputeWrite,  // Copy/Read/Compute/Write/Copy cycle n times
+        Compute,            // Compute only (or marginal IO)
+    };
+
     struct YamlJob {
         std::string id;
         int mpiProcs;
