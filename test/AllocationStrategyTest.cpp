@@ -966,7 +966,12 @@ void FunctionalAllocTest::lustreFullSim_test()
     
 
     // Controler
-    simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
+    auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
+    
+    ASSERT_NO_THROW(simulation->launch());    
 
-    ASSERT_NO_THROW(simulation->launch());
+    ASSERT_TRUE(ctrl->hasReturnedFromMain());
+
+    ASSERT_TRUE(ctrl->jobsCompleted());
+
 }
