@@ -77,33 +77,24 @@ namespace storalloc {
      * @throw std::runtime_error
      */
     int Controller::main() {
-
-        /* Set the logging output to GREEN */
+    
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller starting");
         WRENCH_INFO("Got %s jobs to prepare and submit", std::to_string(jobs.size()).c_str());
-
-        /* Create a job manager so that we can create/submit jobs */
-        this->job_manager = this->createJobManager();
         
-        /**
-         *  Create CompoundJobs from the list provided in the yaml file.
-         *  All jobs have the same model so far (optional copy + read then compute, 
-         *  optional write, and cleanup with file delete).
-         * 
-        */
-        auto cumul_sleep = 0;
+        this->job_manager = this->createJobManager();
+
         for (const auto& yaml_job : jobs) {
             
             // So far we only use a single type of job
             auto job = this->createJob(yaml_job, storalloc::JobType::ReadComputeWrite);
         
-            // Determine runtime
+            // Determine job runtime
             auto runtime = 0;
             if (yaml_job.runTime < 1000) {
                 runtime = ((yaml_job.runTime + 20000) * 60);
             } else {
-                runtime = ((yaml_job.runTime) * 60);     // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
+                runtime = ((yaml_job.runTime));     // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
             }
             
             // Submit job
@@ -118,33 +109,40 @@ namespace storalloc {
             job_manager->submitJob(job, this->compute_service, service_specific_args);
             
             // Save job for future analysis
-            this->compound_jobs.push_back(std::make_pair(yaml_job, job));
+            this->compound_jobs[yaml_job.id] = std::make_pair(yaml_job, job);
         }
             
-        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_BLUE);
-        WRENCH_INFO("### All jobs submitted to the BatchComputeService");
-        WRENCH_INFO("### Waiting for execution events");
-        wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
-        
+
+        WRENCH_INFO("All jobs submitted to the BatchComputeService - Waiting for execution events");
         auto nb_jobs = this->compound_jobs.size();
         for (size_t i = 0; i < nb_jobs; i++) {
             this->waitForAndProcessNextEvent();
         }
 
-        WRENCH_INFO("Execution complete");
- 
+        WRENCH_INFO("Controller execution complete");
         return 0;
     }
 
+    std::shared_ptr<wrench::CompoundJob> Controller::getCompletedJobById(std::string id) { 
 
-    bool Controller::jobsCompleted() {
+        auto job_pair = this->compound_jobs.find(id);
+        if (job_pair == this->compound_jobs.end()) {
+            return nullptr;
+        }
+
+        return job_pair->second.second;
+    }
+
+
+    bool Controller::actionsAllCompleted() {
 
         // List all action that failed states and times 
         bool all_good = true;
 
         for (const auto & job : this->compound_jobs) {
 
-            for (const auto &a : job.second->getActions()) {
+            /* Access pair of yaml data / compound job, and then compound job inside the pair */
+            for (const auto &a : job.second.second->getActions()) {
 
                 if (a->getState() != wrench::Action::State::COMPLETED) {
                     wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
@@ -159,7 +157,6 @@ namespace storalloc {
 
         return all_good;
     }
-
 
 
     std::shared_ptr<wrench::CompoundJob> Controller::createJob(const storalloc::YamlJob& yJob, storalloc::JobType jobType) {
@@ -183,10 +180,13 @@ namespace storalloc {
             this->compute();
             auto output_data = this->writeToTemporary();
             this->copyToPermanent(output_data);
+            this->cleanupInput(input_data);
+            this->cleanupOutput(output_data);
         } else if (jobType == storalloc::JobType::ComputeWrite) {
             this->compute();
             auto output_data = this->writeToTemporary();
             this->copyToPermanent(output_data);
+            this->cleanupOutput(output_data);
         } // ...
 
         return job;
@@ -252,7 +252,7 @@ namespace storalloc {
 
         WRENCH_DEBUG("Creating write action for a file with size %ld", this->current_yaml_job.writtenBytes);
 
-        auto write_file = wrench::Simulation::addFile("ouptut_data_file_" + this->current_yaml_job.id, this->current_yaml_job.writtenBytes);
+        auto write_file = wrench::Simulation::addFile("output_data_file_" + this->current_yaml_job.id, this->current_yaml_job.writtenBytes);
         auto fileWriteAction = this->current_job->addFileWriteAction(
             "fWrite_" + this->current_yaml_job.id, 
             wrench::FileLocation::LOCATION(this->compound_storage_service, write_file)
@@ -326,6 +326,9 @@ namespace storalloc {
     void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
         auto job = event->job;
         WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
+    
+        // Extract relevant informations from job and write them to file / send them to DB ?            
+
     }
 
 
@@ -343,7 +346,7 @@ namespace storalloc {
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
     }
 
-    // DELETE Overload
+
     std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
 
         auto storage_service = location->getStorageService()->getName();
@@ -360,7 +363,6 @@ namespace storalloc {
         return std::make_pair(storage_service, mount_pt);
     }
 
-    // COPY overload
     std::pair<std::string, std::string> updateIoUsageCopy(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
         
         auto dst_storage_service = location->getStorageService()->getName();
@@ -387,7 +389,6 @@ namespace storalloc {
         return std::make_pair(dst_storage_service, dst_path);
     }
 
-    // WRITE overload
     std::pair<std::string, std::string> updateIoUsageWrite(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
 
         auto storage_service = location->getStorageService()->getName();
@@ -422,10 +423,11 @@ namespace storalloc {
         YAML::Emitter out;
         out << YAML::BeginSeq;
 
-        for (const auto& job_pair : this->compound_jobs) {
+        for (const auto& job_entry : this->compound_jobs) {
 
-            auto yaml_job = job_pair.first;
-            auto job = job_pair.second;
+            const auto & job_pair = job_entry.second;
+            const auto & yaml_job = job_pair.first;
+            const auto job = job_pair.second;
 
             out << YAML::BeginMap;  // Job map
 
@@ -678,23 +680,12 @@ namespace storalloc {
          	
     }
 
-    /*
-        struct AllocationTrace {
-            double ts;
-            IOAction act;
-            std::string file_name;
-            std::vector<DiskUsage> disk_usage;                              // new usage stats for updated disks
-            std::vector<std::shared_ptr<FileLocation>> internal_locations;  
-        };
-
-        struct DiskUsage {
-            std::shared_ptr<StorageService> service;
-            double free_space;
-            double load;        // not actually used so far
-        };
-    */
 
     void Controller::extractSSSIO() {
+
+        if (not this->hasReturnedFromMain()) {
+            throw std::runtime_error("Cannot extract IO traces before the controller has returned from main()");
+        }
 
         ofstream io_ops;
         io_ops.setf(std::ios_base::fixed);

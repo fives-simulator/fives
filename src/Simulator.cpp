@@ -155,7 +155,10 @@ int storalloc::run_simulation(int argc, char **argv)
         std::cout << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
     }
 
-    ctrl->jobsCompleted();
+    auto action_results = ctrl->actionsAllCompleted();
+    if (not action_results) {
+        std::cout << "Some actions have failed" << std::endl;
+    }
 
     // Extract traces
     ctrl->extractSSSIO();
