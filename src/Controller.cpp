@@ -62,7 +62,7 @@ namespace storalloc {
                            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
-                           const std::vector<storalloc::YamlJob>& jobs) :
+                           const std::map<std::string, storalloc::YamlJob>& jobs) :
             ExecutionController(hostname,"controller"),
             compute_service(compute_service), 
             storage_service(storage_service), 
@@ -84,8 +84,10 @@ namespace storalloc {
         
         this->job_manager = this->createJobManager();
 
-        for (const auto& yaml_job : jobs) {
+        for (const auto& yaml_entry : jobs) {
             
+            auto yaml_job = yaml_entry.second;
+
             // So far we only use a single type of job
             auto job = this->createJob(yaml_job, storalloc::JobType::ReadComputeWrite);
         

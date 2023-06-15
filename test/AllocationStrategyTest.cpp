@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <regex>
 
 #include <gtest/gtest.h>
 
@@ -23,7 +24,6 @@ public:
     void lustreComputeStripesPerOST_test();
 
     std::shared_ptr<Config> cfg;
-    
 
 protected:
     ~BasicAllocTest()
@@ -33,7 +33,7 @@ protected:
     BasicAllocTest()
     {
         cfg = std::make_shared<Config>();
-        this->cfg->lustre = LustreConfig();  // default lustre config
+        this->cfg->lustre = LustreConfig(); // default lustre config
     }
 };
 
@@ -105,51 +105,51 @@ void BasicAllocTest::lustreOstPenalty_test()
     size_t active_service_count = 200; // ~ number of active targets, aka disks/raid in the whole system
 
     ASSERT_EQ(allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 active_service_count),
+                                                used_inode_count,
+                                                active_service_count),
               14995807557);
 
     free_space_b = 0;
     ASSERT_EQ(allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 active_service_count),
+                                                used_inode_count,
+                                                active_service_count),
               0);
 
     free_space_b = 250 * GB;
     used_inode_count = this->cfg->lustre.max_inodes;
     ASSERT_EQ(allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 active_service_count),
+                                                used_inode_count,
+                                                active_service_count),
               0);
     used_inode_count = 1'200'000;
 
     ASSERT_THROW(allocator.lustreComputeOstPenalty(free_space_b,
-                                                    used_inode_count,
-                                                    0),
+                                                   used_inode_count,
+                                                   0),
                  std::runtime_error);
 
     // The more services / active targets, the smaller the penalty per target
     ASSERT_GT(allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 active_service_count),
+                                                used_inode_count,
+                                                active_service_count),
               allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 300));
+                                                used_inode_count,
+                                                300));
     // The more bytes available for allocation, the larger the penalty
     ASSERT_GT(allocator.lustreComputeOstPenalty(400 * GB,
-                                                 used_inode_count,
-                                                 active_service_count),
+                                                used_inode_count,
+                                                active_service_count),
               allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 active_service_count));
+                                                used_inode_count,
+                                                active_service_count));
 
     // The more inodes available for allocation, the larger the penalty
     ASSERT_GT(allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count - 300000,
-                                                 active_service_count),
+                                                used_inode_count - 300000,
+                                                active_service_count),
               allocator.lustreComputeOstPenalty(free_space_b,
-                                                 used_inode_count,
-                                                 active_service_count));
+                                                used_inode_count,
+                                                active_service_count));
 }
 
 TEST_F(BasicAllocTest, lustreOssPenalty_test)
@@ -174,76 +174,76 @@ void BasicAllocTest::lustreOssPenalty_test()
     size_t oss_count = 10;      // Storage nodes /  OSS
 
     ASSERT_EQ(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count),
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count),
               95973168366);
 
     ASSERT_EQ(allocator.lustreComputeOssPenalty(0,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count),
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count),
               0);
 
     ASSERT_EQ(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 0,
-                                                 service_count,
-                                                 oss_count),
+                                                0,
+                                                service_count,
+                                                oss_count),
               0);
 
     // Divide / 0
     ASSERT_THROW(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                    srv_free_inode_count,
-                                                    0,
-                                                    oss_count),
+                                                   srv_free_inode_count,
+                                                   0,
+                                                   oss_count),
                  std::runtime_error);
 
     // Divide / 0
     ASSERT_THROW(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                    srv_free_inode_count,
-                                                    service_count,
-                                                    0),
+                                                   srv_free_inode_count,
+                                                   service_count,
+                                                   0),
                  std::runtime_error);
 
     // The more OSS in the system, the lower the per-OSS penalty
     ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count),
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count),
               allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count + 40));
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count + 40));
 
     // The more OSTs in the whole system, the lower the per-OSS penalty
     ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count),
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count),
               allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count + 60,
-                                                 oss_count));
+                                                srv_free_inode_count,
+                                                service_count + 60,
+                                                oss_count));
 
     // The more space avail on OSS the larger the penalty
     ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b + 400 * GB,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count),
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count),
               allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count));
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count));
 
     // The more inodes avail on OSS the larger the penalty
     ASSERT_GT(allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count + 200'000,
-                                                 service_count,
-                                                 oss_count),
+                                                srv_free_inode_count + 200'000,
+                                                service_count,
+                                                oss_count),
               allocator.lustreComputeOssPenalty(srv_free_space_b,
-                                                 srv_free_inode_count,
-                                                 service_count,
-                                                 oss_count));
+                                                srv_free_inode_count,
+                                                service_count,
+                                                oss_count));
 }
 
 TEST_F(BasicAllocTest, lustreComputeOstWeight_test)
@@ -266,43 +266,42 @@ void BasicAllocTest::lustreComputeOstWeight_test()
     size_t service_count = 12;
 
     auto ost_penalty = allocator.lustreComputeOstPenalty(free_space_b,
-                                                          this->cfg->lustre.max_inodes - used_inode_count,
-                                                          service_count);
+                                                         this->cfg->lustre.max_inodes - used_inode_count,
+                                                         service_count);
 
     ASSERT_EQ(allocator.lustreComputeOstWeight(free_space_b,
-                                                used_inode_count,
-                                                ost_penalty),
+                                               used_inode_count,
+                                               ost_penalty),
               63982042402279);
 
     // The more bytes available, the larger the weight
     ost_penalty = allocator.lustreComputeOstPenalty(free_space_b + (100 * GB),
-                                                     this->cfg->lustre.max_inodes - used_inode_count,
-                                                     service_count);
+                                                    this->cfg->lustre.max_inodes - used_inode_count,
+                                                    service_count);
     ASSERT_GT(allocator.lustreComputeOstWeight(free_space_b + (100 * GB),
-                                                used_inode_count,
-                                                ost_penalty),
+                                               used_inode_count,
+                                               ost_penalty),
               allocator.lustreComputeOstWeight(free_space_b,
-                                                used_inode_count,
-                                                ost_penalty));
+                                               used_inode_count,
+                                               ost_penalty));
 
     // The more inodes available, the larger the weight
     ost_penalty = allocator.lustreComputeOstPenalty(free_space_b,
-                                                     this->cfg->lustre.max_inodes - used_inode_count - 300'000,
-                                                     service_count);
+                                                    this->cfg->lustre.max_inodes - used_inode_count - 300'000,
+                                                    service_count);
     ASSERT_GT(allocator.lustreComputeOstWeight(free_space_b,
-                                                used_inode_count - 300'000,
-                                                ost_penalty),
+                                               used_inode_count - 300'000,
+                                               ost_penalty),
               allocator.lustreComputeOstWeight(free_space_b,
-                                                used_inode_count,
-                                                ost_penalty));
+                                               used_inode_count,
+                                               ost_penalty));
 
     // If OST penalty is larger than weight, weight becomes 0
     ASSERT_EQ(allocator.lustreComputeOstWeight(free_space_b,
-                                                used_inode_count,
-                                                (free_space_b >> 16) * ((this->cfg->lustre.max_inodes - used_inode_count) >> 8) + 1),
+                                               used_inode_count,
+                                               (free_space_b >> 16) * ((this->cfg->lustre.max_inodes - used_inode_count) >> 8) + 1),
               0);
 }
-
 
 TEST_F(BasicAllocTest, lustreComputeStripesPerOST_test)
 {
@@ -312,8 +311,8 @@ TEST_F(BasicAllocTest, lustreComputeStripesPerOST_test)
 /**
  *  @brief Testing lustreComputeStripesPerOST() (disk/raid level)
  */
-void BasicAllocTest::lustreComputeStripesPerOST_test() {
-
+void BasicAllocTest::lustreComputeStripesPerOST_test()
+{
 
     auto allocator = LustreAllocator(this->cfg);
 
@@ -329,16 +328,12 @@ void BasicAllocTest::lustreComputeStripesPerOST_test() {
     ASSERT_EQ(striping.stripes_count, 600);
     ASSERT_EQ(striping.stripes_per_ost, 8);
 
-
     striping = {};
     striping = allocator.lustreComputeStriping(3000000, 85);
     ASSERT_EQ(striping.stripe_size_b, 3000000);
     ASSERT_EQ(striping.stripes_count, 1);
     ASSERT_EQ(striping.stripes_per_ost, 1);
-
-
 }
-
 
 // ###################################################################################################
 
@@ -349,8 +344,8 @@ public:
     void lustreComputeMinMaxUtilization_test();
     void lustreOstIsUsed_test();
     void lustreRROrderServices_test();
-    void lustreRROrderServices2_test();     // != config file in simulation
-    void lustreRROrderServices3_test();     // != config file in simulation
+    void lustreRROrderServices2_test(); // != config file in simulation
+    void lustreRROrderServices3_test(); // != config file in simulation
     void lustreCreateFileParts_test();
     void lustreFullSim_test();
 
@@ -370,10 +365,10 @@ public:
                          const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
                          const std::string &hostname,
                          std::shared_ptr<LustreAllocator> alloc) : wrench::ExecutionController(hostname, "controller"),
-                                                        storage_services(storage_services), 
-                                                        compound(compound_storage_svc), 
-                                                        compute_svc(compute_service), 
-                                                        alloc(alloc)
+                                                                   storage_services(storage_services),
+                                                                   compound(compound_storage_svc),
+                                                                   compute_svc(compute_service),
+                                                                   alloc(alloc)
     {
 
         this->file_10GB = wrench::Simulation::addFile("file_10GB", 10000000000); // 10GB file
@@ -409,13 +404,15 @@ public:
 
     int main() override
     {
-        
+
         // Prepare a map of services for lustreComputeMinMaxUtilization
         std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> storage_map;
-        for (const auto &service: this->storage_services) {
-            if (storage_map.find(service->getHostname()) == storage_map.end() ) {
+        for (const auto &service : this->storage_services)
+        {
+            if (storage_map.find(service->getHostname()) == storage_map.end())
+            {
                 storage_map[service->getHostname()] = std::vector<std::shared_ptr<wrench::StorageService>>();
-            } 
+            }
             storage_map[service->getHostname()].push_back(service);
         }
 
@@ -427,50 +424,50 @@ public:
         uint64_t free_space_in_service = simple->traceTotalFreeSpace();
 
         job->addFileWriteAction(
-            "write1", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB)
-        );
+            "write1", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB));
         job->addFileWriteAction(
-            "write2", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB)
-        );
+            "write2", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB));
         job->addFileWriteAction(
-            "write3", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB)
-        );
+            "write3", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB));
 
         std::map<std::string, std::string> service_specific_args =
-                    {{"-N", "2"},                           // nb of nodes
-                     {"-c", "16"},                          // core per node
-                     {"-t", "6000"}};                        // seconds
+            {{"-N", "2"},     // nb of nodes
+             {"-c", "16"},    // core per node
+             {"-t", "6000"}}; // seconds
         job_manager->submitJob(job, this->compute_svc, service_specific_args);
 
         // Sleep until we're sure the writes have begun (and thus, space is reserved on the service)
         wrench::Simulation::sleep(300);
 
-
         // Test lustreComputeMinMaxUtilization
         auto ba_min_max = this->alloc->lustreComputeMinMaxUtilization(storage_map);
 
         // Max free space is 200 GB (>>8)
-        uint64_t expected_max = 20000000000000 >> 8;  // bitshift for overflow, as computed in Lustre
+        uint64_t expected_max = 20000000000000 >> 8; // bitshift for overflow, as computed in Lustre
         // Min free space should be 200GB - 150GB (files being written) (>>8)
         uint64_t expected_min = (free_space_in_service - 150000000000) >> 8;
 
-        if (ba_min_max.max != expected_max) {
+        if (ba_min_max.max != expected_max)
+        {
             throw std::runtime_error("Max free space != from expected max");
         }
-        if (ba_min_max.min != expected_min) {
+        if (ba_min_max.min != expected_min)
+        {
             std::cout << "Free space in service (before job) " << std::to_string(free_space_in_service) << std::endl;
             std::cout << "Expected min " << std::to_string(expected_min) << std::endl;
             throw std::runtime_error("Min free space != from expected min");
         }
 
         // While we're at it, also test whether or not we should use the weighted allocator in this case
-        if (!this->alloc->lustreUseRR(ba_min_max)) {
+        if (!this->alloc->lustreUseRR(ba_min_max))
+        {
             throw std::runtime_error("We should be using the RR allocator");
         }
 
         // Wait for job completion (making sure nothing stalled)
         auto event = this->waitForNextEvent();
-        if (std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event) == nullptr) {
+        if (std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event) == nullptr)
+        {
             throw std::runtime_error("Test failed because job did not complete");
         }
 
@@ -525,7 +522,6 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test()
     simulation->launch();
 }
 
-
 /**
  * @brief Custom controller for testing lustreComputeMinMaxUtilization
  */
@@ -533,18 +529,20 @@ class LustreTestControllerUsage : public LustreTestController
 {
 public:
     LustreTestControllerUsage(const std::shared_ptr<wrench::ComputeService> &compute_service,
-                               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
-                               const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
-                               const std::string &hostname,
-                               std::shared_ptr<LustreAllocator> alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc) {}
+                              const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+                              const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
+                              const std::string &hostname,
+                              std::shared_ptr<LustreAllocator> alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc) {}
 
     int main() override
     {
-        
+
         // Prepare a map of services for lustreComputeMinMaxUtilization
         std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> storage_map;
-        for (const auto &service: this->storage_services) {
-            if (storage_map.find(service->getHostname()) == storage_map.end() ) {
+        for (const auto &service : this->storage_services)
+        {
+            if (storage_map.find(service->getHostname()) == storage_map.end())
+            {
                 storage_map[service->getHostname()] = std::vector<std::shared_ptr<wrench::StorageService>>();
             }
             storage_map[service->getHostname()].push_back(service);
@@ -559,35 +557,37 @@ public:
         auto file_loc = wrench::FileLocation::LOCATION(simple_1, this->file_50GB);
         job->addFileWriteAction("write1", file_loc);
         std::map<std::string, std::string> service_specific_args =
-                    {{"-N", "2"},                           // nb of nodes
-                     {"-c", "16"},                          // core per node
-                     {"-t", "6000"}};                        // seconds
+            {{"-N", "2"},     // nb of nodes
+             {"-c", "16"},    // core per node
+             {"-t", "6000"}}; // seconds
         job_manager->submitJob(job, this->compute_svc, service_specific_args);
         wrench::Simulation::sleep(300);
 
         // ACTUAL TEST
-        std::vector<std::shared_ptr<wrench::FileLocation>> locations = {file_loc};   // Vector of locations for parts of a file
+        std::vector<std::shared_ptr<wrench::FileLocation>> locations = {file_loc}; // Vector of locations for parts of a file
         std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> usage_map = {{this->file_50GB, locations}};
         bool used = this->alloc->lustreOstIsUsed(usage_map, simple_1);
-        if (not used) {
+        if (not used)
+        {
             throw std::runtime_error("OSS 2 should be seen as used");
         }
         used = this->alloc->lustreOstIsUsed(usage_map, simple_2);
-        if (used) {
+        if (used)
+        {
             throw std::runtime_error("OSS 5 should not be used");
         }
         // --------------
 
         // Wait for job completion (making sure nothing stalled)
         auto event = this->waitForNextEvent();
-        if (std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event) == nullptr) {
+        if (std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event) == nullptr)
+        {
             throw std::runtime_error("Test failed because job did not complete");
         }
 
         return 0;
     }
 };
-
 
 TEST_F(FunctionalAllocTest, lustreOstIsUsed_test)
 {
@@ -639,7 +639,6 @@ void FunctionalAllocTest::lustreOstIsUsed_test()
     simulation->launch();
 }
 
-
 /**
  * @brief Custom controller for testing lustreComputeMinMaxUtilization
  */
@@ -647,35 +646,42 @@ class LustreTestControllerOrderRR : public LustreTestController
 {
 public:
     LustreTestControllerOrderRR(const std::shared_ptr<wrench::ComputeService> &compute_service,
-                               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
-                               const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
-                               const std::string &hostname,
-                               std::shared_ptr<LustreAllocator> alloc, 
-                               const std::vector<std::pair<std::string, std::string>> &ordered_alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc), ordered_alloc(ordered_alloc) {}
+                                const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+                                const std::shared_ptr<wrench::CompoundStorageService> compound_storage_svc,
+                                const std::string &hostname,
+                                std::shared_ptr<LustreAllocator> alloc,
+                                const std::vector<std::pair<std::string, std::string>> &ordered_alloc) : LustreTestController(compute_service, storage_services, compound_storage_svc, hostname, alloc), ordered_alloc(ordered_alloc) {}
 
     int main() override
     {
-        
+
         std::map<std::string, int> hostname_to_service_count;
         std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services;
-        for (const auto &service: this->storage_services) {
-            if (hostname_to_service_count.find(service->getHostname()) == hostname_to_service_count.end()) {
+        for (const auto &service : this->storage_services)
+        {
+            if (hostname_to_service_count.find(service->getHostname()) == hostname_to_service_count.end())
+            {
                 hostname_to_service_count[service->getHostname()] = 1;
-            } else {
+            }
+            else
+            {
                 hostname_to_service_count[service->getHostname()] += 1;
             }
-            disk_level_services.push_back(service);        
+            disk_level_services.push_back(service);
         }
 
-        if (disk_level_services.size() != this->ordered_alloc.size()) {
+        if (disk_level_services.size() != this->ordered_alloc.size())
+        {
             throw std::runtime_error("Incorrect 'hostname_to_service_count' length (" + std::to_string(disk_level_services.size()) + ")");
         }
 
         auto ordered = this->alloc->lustreRROrderServices(hostname_to_service_count, disk_level_services);
-        
+
         int index = 0;
-        for (const auto &service : ordered) {
-            if ((service->getHostname() != this->ordered_alloc[index].first) or (service->getName() != this->ordered_alloc[index].second)) {
+        for (const auto &service : ordered)
+        {
+            if ((service->getHostname() != this->ordered_alloc[index].first) or (service->getName() != this->ordered_alloc[index].second))
+            {
                 throw std::runtime_error("Mismatch between computed list of ordered services and expected result");
             }
             index++;
@@ -683,18 +689,20 @@ public:
 
         hostname_to_service_count.clear();
         disk_level_services.clear();
-        try {
+        try
+        {
             this->alloc->lustreRROrderServices(hostname_to_service_count, disk_level_services);
-        } catch(std::runtime_error& e) {
+        }
+        catch (std::runtime_error &e)
+        {
             // OK, exception raised as expected;
             return 0;
-        } 
+        }
         throw std::runtime_error("Error with lustreRROrderServices when given empty vector/map (no exception raised)");
     }
 
     std::vector<std::pair<std::string, std::string>> ordered_alloc = {};
 };
-
 
 TEST_F(FunctionalAllocTest, lustreRROrderServices_test)
 {
@@ -736,7 +744,6 @@ void FunctionalAllocTest::lustreRROrderServices_test()
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
 
-    
     std::vector<std::pair<std::string, std::string>> result = {
         {"lustre_OSS_A0", "simple_storage_0_5003"},
         {"lustre_OSS_B0", "simple_storage_3_5012"},
@@ -753,7 +760,6 @@ void FunctionalAllocTest::lustreRROrderServices_test()
 
     ASSERT_NO_THROW(simulation->launch());
 }
-
 
 TEST_F(FunctionalAllocTest, lustreRROrderServices2_test)
 {
@@ -810,7 +816,6 @@ void FunctionalAllocTest::lustreRROrderServices2_test()
 
     ASSERT_NO_THROW(simulation->launch());
 }
-
 
 TEST_F(FunctionalAllocTest, lustreRROrderServices3_test)
 {
@@ -906,7 +911,8 @@ void FunctionalAllocTest::lustreCreateFileParts_test()
 
     std::map<int, std::shared_ptr<wrench::StorageService>> alloc_map;
     int index = 0;
-    for(const auto &svc : sstorageservices) {
+    for (const auto &svc : sstorageservices)
+    {
         alloc_map[index] = svc;
         index++;
     }
@@ -917,13 +923,13 @@ void FunctionalAllocTest::lustreCreateFileParts_test()
     auto file_map = simulation->getFileMap();
     ASSERT_EQ(file_map.size(), 16);
 
-    for(const auto& loc : locations) {
+    for (const auto &loc : locations)
+    {
         // Make sure every file parts from designated locations has correctly been added to the simulation
         auto file_part = *(file_map.find(loc->getFile()->getID()));
         ASSERT_EQ(file_part.second->getSize(), loc->getFile()->getSize());
     }
 }
-
 
 TEST_F(FunctionalAllocTest, lustreFullSim_test)
 {
@@ -931,11 +937,13 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test)
 }
 
 /**
- *  @brief Testing lustreRROrderServices() with a config file presenting 1 OSS A with 3 OST and 1 OSS B with 5 OST
- *         Expected result is a vector of OSTs from OSSs "ABABBABB"
+ *  @brief  Functional test with a complete simulation on a small dataset (6 jobs), and a small platform (Lustre-oriented)
+ *          The simulation uses the LustreAllocator (should only use the RR one in this case), and checks the correct execution
+ *          of the simulation and the validity of collected metrics.
  */
 void FunctionalAllocTest::lustreFullSim_test()
 {
+    // # Start a simulation with all components as they would be in a real case
     auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_hdd.yml"));
     auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_small_IO.yml");
 
@@ -960,49 +968,49 @@ void FunctionalAllocTest::lustreFullSim_test()
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
-     auto permanent_storage = simulation->add(
+    auto permanent_storage = simulation->add(
         wrench::SimpleStorageService::createSimpleStorageService(
             "permanent_storage", {"/dev/disk0"}, {}, {}));
-    
 
     // Controler
     auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
-    
-    ASSERT_NO_THROW(simulation->launch());    
 
+    ASSERT_NO_THROW(simulation->launch());
+
+    // Make sure that the controler finished and that all actions from all jobs completed
     ASSERT_TRUE(ctrl->hasReturnedFromMain());
-
     ASSERT_TRUE(ctrl->actionsAllCompleted());
 
-    // Test individual job for completion
+    // Run a few checks at test level ('randomly' using the first test)
     auto job_1 = ctrl->getCompletedJobById("1");
     ASSERT_EQ(job_1->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(job_1->hasSuccessfullyCompleted());
     ASSERT_EQ(job_1->getSubmitDate(), 0);
+    ASSERT_EQ(job_1->getActions().size(), 11);
+    ASSERT_EQ(job_1->getName(), "1");
+    ASSERT_EQ(job_1->getMinimumRequiredNumCores(), jobs["1"].coresUsed / jobs["1"].nodesUsed);
 
     auto actions = job_1->getActions();
     ASSERT_EQ(actions.size(), 11);
 
+    // This is the list of actions, in correct order, that every job should complete (due to the job type used in this test)
     std::vector<std::string> action_types = {
-        "FILECOPY-", 
-        "FILEREAD-", 
-        "COMPUTE-",
-        "FILEWRITE-",
-        "FILECOPY-",
-        "SLEEP-",
-        "FILEDELETE-",
-        "FILEDELETE-",
-        "SLEEP-",
-        "FILEDELETE-",
-        "FILEDELETE-",
+        "FILECOPY-", "FILEREAD-",               // Copy from permanent storage to local, read from local
+        "COMPUTE-",                             // Compute something
+        "FILEWRITE-", "FILECOPY-",              // Write results to local, archive it to permanent
+        "SLEEP-", "FILEDELETE-", "FILEDELETE-", // Clean up input data
+        "SLEEP-", "FILEDELETE-", "FILEDELETE-", // Clean up output data
     };
-    int index = 0;
-    for (const auto& action : actions) {
 
-        //std::cout << wrench::Action::getActionTypeAsString(action) << std::endl;
+    // Check actions from one job in details
+    int index = 0;
+    for (const auto &action : actions)
+    {
+
         ASSERT_EQ(wrench::Action::getActionTypeAsString(action), action_types[index]);
-        
-        if (auto r_action = std::dynamic_pointer_cast<wrench::FileReadAction>(action)) {
+
+        if (auto r_action = std::dynamic_pointer_cast<wrench::FileReadAction>(action))
+        {
             auto file = r_action->getFile();
             auto file_locations = r_action->getFileLocations();
 
@@ -1013,7 +1021,8 @@ void FunctionalAllocTest::lustreFullSim_test()
             ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5051");
         }
 
-        if (auto w_action = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
+        if (auto w_action = std::dynamic_pointer_cast<wrench::FileWriteAction>(action))
+        {
             auto file = w_action->getFile();
             auto file_location = w_action->getFileLocation();
 
@@ -1022,31 +1031,246 @@ void FunctionalAllocTest::lustreFullSim_test()
             ASSERT_EQ(file_location->getPath(), "/");
             ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5051");
         }
-        
+
+        if (auto c_action = std::dynamic_pointer_cast<wrench::ComputeAction>(action))
+        {
+            ASSERT_EQ(c_action->getFlops(), 1000ULL * 1000000000); // 1000 GFlops, this is the current default, but it will change and break the test soon
+        }
+
+        if (auto d_action = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action))
+        {
+            auto file = d_action->getFile();
+            if (file->getID() == "output_data_file_1")
+            {
+                ASSERT_EQ(file->getSize(), 25000000000);
+            }
+            else if (file->getID() == "input_data_file_1")
+            {
+                ASSERT_EQ(file->getSize(), 20000000000);
+            }
+            else
+            {
+                GTEST_FAIL();
+            }
+        }
+
         index++;
     }
 
-    // Test results from CompoundStorageService metrics
+    // Test results from CompoundStorageService internal metrics
     auto first_ts = compound_storage_service->internal_storage_use.front().first;
     auto last_ts = compound_storage_service->internal_storage_use.back().first;
-    ASSERT_EQ(first_ts, 0);
-    ASSERT_NEAR(last_ts, 107700, 1000);
+    ASSERT_EQ(first_ts, 0);                                               // Simulation starts at 0s here (no waiting time for first job)
+    ASSERT_NEAR(last_ts, 94700, 1000);                                    // Simulation should end close to 94700s, due to sleep times + last job runtime
+    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 49); // 8 traces * 6 jobs + initial trace
 
-    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 49);   // 8 traces * 6 jobs + initial trace
+    // That's how many file parts should exist for each actions (accounting for -Start and -End actions)
+    const std::vector<size_t> DISK_USAGE_SIZES = {
+        16,
+        500, 500, 625, 625, 500, 500, 625, 625,
+        150, 150, 75, 75, 150, 150, 75, 75,
+        100, 100, 63, 63, 100, 100, 63, 63,
+        375, 375, 63, 63, 375, 375, 63, 63,
+        100, 100, 1000, 1000, 63, 63, 100, 100,
+        63, 63, 63, 63, 1000, 1000, 63, 63};
 
-    for (const auto& entry : compound_storage_service->internal_storage_use) {
+    // All actions from all 6 jobs in the order in which they should execute (only two jobs slightly overlap)
+    std::vector<std::pair<std::string, wrench::IOAction>> action_list = {
+        {"0", wrench::IOAction::None},
+        {"1", wrench::IOAction::CopyToStart},
+        {"1", wrench::IOAction::CopyToEnd},
+        {"1", wrench::IOAction::WriteStart},
+        {"1", wrench::IOAction::WriteEnd},
+        {"1", wrench::IOAction::DeleteStart},
+        {"1", wrench::IOAction::DeleteEnd},
+        {"1", wrench::IOAction::DeleteStart},
+        {"1", wrench::IOAction::DeleteEnd},
+        {"2", wrench::IOAction::CopyToStart},
+        {"2", wrench::IOAction::CopyToEnd},
+        {"2", wrench::IOAction::WriteStart},
+        {"2", wrench::IOAction::WriteEnd},
+        {"2", wrench::IOAction::DeleteStart},
+        {"2", wrench::IOAction::DeleteEnd},
+        {"2", wrench::IOAction::DeleteStart},
+        {"2", wrench::IOAction::DeleteEnd},
+        {"3", wrench::IOAction::CopyToStart},
+        {"3", wrench::IOAction::CopyToEnd},
+        {"3", wrench::IOAction::WriteStart},
+        {"3", wrench::IOAction::WriteEnd},
+        {"3", wrench::IOAction::DeleteStart},
+        {"3", wrench::IOAction::DeleteEnd},
+        {"3", wrench::IOAction::DeleteStart},
+        {"3", wrench::IOAction::DeleteEnd},
+        {"4", wrench::IOAction::CopyToStart},
+        {"4", wrench::IOAction::CopyToEnd},
+        {"4", wrench::IOAction::WriteStart},
+        {"4", wrench::IOAction::WriteEnd},
+        {"4", wrench::IOAction::DeleteStart},
+        {"4", wrench::IOAction::DeleteEnd},
+        {"4", wrench::IOAction::DeleteStart},
+        {"4", wrench::IOAction::DeleteEnd},
+        {"5", wrench::IOAction::CopyToStart},
+        {"5", wrench::IOAction::CopyToEnd},
+        {"6", wrench::IOAction::CopyToStart},
+        {"6", wrench::IOAction::CopyToEnd},
+        {"5", wrench::IOAction::WriteStart},
+        {"5", wrench::IOAction::WriteEnd},
+        {"5", wrench::IOAction::DeleteStart},
+        {"5", wrench::IOAction::DeleteEnd},
+        {"5", wrench::IOAction::DeleteStart},
+        {"5", wrench::IOAction::DeleteEnd},
+        {"6", wrench::IOAction::WriteStart},
+        {"6", wrench::IOAction::WriteEnd},
+        {"6", wrench::IOAction::DeleteStart},
+        {"6", wrench::IOAction::DeleteEnd},
+        {"6", wrench::IOAction::DeleteStart},
+        {"6", wrench::IOAction::DeleteEnd},
+    };
 
-        auto ts = entry.first;        // ts
-        auto alloc = entry.second;    // AllocationTrace structure
+    // Check first trace (before any job action takes place), it's a special case before any IO happens
+    for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[0].second.disk_usage)
+    {
+        ASSERT_EQ(first_disk_usage.file_count, 0);
+        ASSERT_EQ(first_disk_usage.free_space, 20000000000);
+        ASSERT_EQ(first_disk_usage.file_name, "");
+        // std::cout << first_disk_usage.service->getHostname() << std::endl;
+    }
+
+    // Checking disk_usage for all traces
+    index = 0;
+    std::regex file_name_re("(?:(input)|(output))_data_file_([-\\w]+)_part_(\\d+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
+    for (const auto &entry : compound_storage_service->internal_storage_use)
+    {
+
+        auto ts = entry.first;     // ts
+        auto alloc = entry.second; // AllocationTrace structure
 
         ASSERT_EQ(alloc.ts, ts);
 
-        std::cout << std::to_string(alloc.disk_usage.size()) << std::endl;
-        
-        for (const auto& disk_usage : alloc.disk_usage) {
-            std::cout << disk_usage.file_name << std::endl;
+        /*
+        if ((entry.second.act == wrench::IOAction::CopyFromStart) or (entry.second.act == wrench::IOAction::CopyFromEnd))
+        {
+            std::cout << "# CopyFrom" << std::endl;
+        }
+        if ((entry.second.act == wrench::IOAction::CopyToStart) or (entry.second.act == wrench::IOAction::CopyToEnd))
+        {
+            std::cout << "# CopyTo" << std::endl;
+        }
+        if ((entry.second.act == wrench::IOAction::WriteStart) or (entry.second.act == wrench::IOAction::WriteEnd))
+        {
+            std::cout << "# Write" << std::endl;
+        }
+        if ((entry.second.act == wrench::IOAction::DeleteStart) or (entry.second.act == wrench::IOAction::DeleteEnd))
+        {
+            std::cout << "# Delete" << std::endl;
+        }
+        */
+
+        if (index > 0)
+        {
+            ASSERT_EQ(entry.second.act, action_list[index].second);
+            ASSERT_EQ(alloc.disk_usage.size(), DISK_USAGE_SIZES[index]);
         }
 
+        // Check correct initial values for all storage services at step 0
+        if (index == 0)
+        {
+            ASSERT_EQ(alloc.disk_usage.size(), 16);
+            for (const auto &disk_usage : alloc.disk_usage)
+            {
+                ASSERT_EQ(disk_usage.file_count, 0);
+                ASSERT_EQ(disk_usage.free_space, 20000000000);
+            }
+        }
+
+        // std::cout << " -- Number of files on " << alloc.disk_usage[3].service->getName() << " : " << alloc.disk_usage[3].file_count << std::endl;
+        // std::cout << " -- Free space on " << alloc.disk_usage[3].service->getName() << " : " << alloc.disk_usage[3].free_space << std::endl;
+
+        // Look into file names from all disk_usage structures (this gives for instance the job ID associated with each trace)
+        for (const auto &disk_usage : alloc.disk_usage)
+        {
+            auto file_name = disk_usage.file_name;
+            std::smatch base_match;
+            std::string input, output, job_id, file_part;
+            std::regex_match(file_name, base_match, file_name_re);
+
+            if (!file_name.empty())
+            {
+                if (base_match.size() == 5)
+                {
+                    input = base_match[1].str();
+                    output = base_match[2].str();
+                    job_id = base_match[3].str();
+                    file_part = base_match[4].str();
+                    // std::cout << input << "|" << output << "|" << job_id << "|" << file_part << std::endl;
+                }
+                else
+                {
+                    std::cout << "Unable to parse file name " << file_name << std::endl;
+                    GTEST_FAIL();
+                }
+
+                ASSERT_EQ(job_id, action_list[index].first);
+
+                // Find associated job
+                auto current_job = jobs[job_id];
+                /* TODO: MORE TESTS HERE */
+            }
+        }
+
+        index++;
     }
 
+    // Look at some of the traces and assess whether the storage system is the expected state or not, in terms of file count and free space (per disk)
+
+    // Check a random trace, where we know what should be the file count and free_space on each OSS
+    ASSERT_EQ(compound_storage_service->internal_storage_use[20].second.act, wrench::IOAction::WriteEnd);
+    for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[20].second.disk_usage)
+    {
+
+        // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
+
+        ASSERT_NEAR(first_disk_usage.file_count, 10, 1);                 // 9 or 10 files part per server after copying input data and writing output data (~6 + 4)
+        ASSERT_NEAR(first_disk_usage.free_space, 19600000000, 40000000); // each file part is 40 MB
+
+        std::smatch base_match;
+        auto parsed_filename = std::regex_match(first_disk_usage.file_name, base_match, file_name_re);
+        ASSERT_EQ(base_match[2].str(), "output");
+        ASSERT_EQ(base_match[3].str(), "3");
+        ASSERT_LT(stoi(base_match[4].str()), 100);
+    }
+
+    // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd)
+    ASSERT_EQ(compound_storage_service->internal_storage_use[8].second.act, wrench::IOAction::DeleteEnd);
+    for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[8].second.disk_usage)
+    {
+
+        // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
+
+        ASSERT_EQ(first_disk_usage.file_count, 0);
+        ASSERT_EQ(first_disk_usage.free_space, 20000000000);
+
+        std::smatch base_match;
+        auto parsed_filename = std::regex_match(first_disk_usage.file_name, base_match, file_name_re);
+        ASSERT_EQ(base_match[2].str(), "output");
+        ASSERT_EQ(base_match[3].str(), "1");
+        ASSERT_LT(stoi(base_match[4].str()), 625);
+    }
+
+    // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd, )
+    ASSERT_EQ(compound_storage_service->internal_storage_use[34].second.act, wrench::IOAction::CopyToEnd);
+    for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[34].second.disk_usage)
+    {
+
+        // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
+
+        ASSERT_NEAR(first_disk_usage.file_count, 7, 1);
+        ASSERT_NEAR(first_disk_usage.free_space, 19720000000, 40000000);
+
+        std::smatch base_match;
+        auto parsed_filename = std::regex_match(first_disk_usage.file_name, base_match, file_name_re);
+        ASSERT_EQ(base_match[1].str(), "input");
+        ASSERT_EQ(base_match[3].str(), "5");
+        ASSERT_LT(stoi(base_match[4].str()), 100);
+    }
 }

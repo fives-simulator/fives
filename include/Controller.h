@@ -31,7 +31,7 @@ namespace storalloc {
                   const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                   const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                   const std::string &hostname,
-                  const std::vector<storalloc::YamlJob>& jobs);
+                  const std::map<std::string, storalloc::YamlJob>& jobs);
 
         std::shared_ptr<wrench::CompoundJob> getCompletedJobById(std::string id);
 
@@ -86,7 +86,7 @@ namespace storalloc {
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
 
-        const std::vector<storalloc::YamlJob>& jobs;
+        const std::map<std::string, storalloc::YamlJob>& jobs;
 
     };
 
