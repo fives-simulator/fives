@@ -6,10 +6,13 @@
 # - Small compute system on the side
 
 general:
-  bandwidth: 25000MBps    # 200Gbps backbone...
+  backbone_bw: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
   config_name: StorAlloc_Lustre_TEST
   max_stripe_size: 640000000    # Max size for allocation stripes (in bytes) (when striping is done at CSS level)
+  permanent_storage_read_bw: 10000MBps
+  permanent_storage_write_bw: 10000MBps
+  permanent_storage_capacity: 10000TB
 storage:
   disk_templates:
     - &raid_OSS
@@ -42,6 +45,8 @@ dragonfly:
   routers: 2        # per chassis
   router_links: 2
   nodes: 2          # per router
+  core_count: 64    # Compute node core count - unused
+  ram: 192GB        # Compute node ram - unused
   node_local_storage:
     enabled: no     # Not implemented yet anyway
     nb_disks: 1

@@ -1,0 +1,56 @@
+---
+
+# Config for a look-alike Theta@ALCF system
+# - 41 HDD per node (6TB each) - configured into a distributed RAID 
+# - 1 OST per OSS, 56 OSS (considering one OSS per node)
+# - Total of 9.2 PB in Lustre (theta-fs0)
+# Compute side has 4392 nodes in a Dragonfly topo
+
+general:
+  backbone_bw: 240GBps    # Actual backbone is 9 TB/s at ALCF, but Theta theta-fs0 storage is capped at 240 GBps 
+  config_version: 0.0.1
+  config_name: StorAlloc_Theta_Lustre_fs0
+  max_stripe_size: 1048576    # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
+  permanent_storage_read_bw: 90GBps   # ALCF Tape archive cache speed / and also the link between HDR and FDR is 100GBps
+  permanent_storage_write_bw: 90GBps  # Same
+  permanent_storage_capacity: 3050TB  # Tape capacity is 305 PB
+storage:
+  disk_templates:
+    - &raid_OSS
+      id: raid_OSS
+      capacity: 164000    # GB (~ 164 TB, obtained from 9.2PB total capacity / 56 OSS  - 1 OST per OSS)
+      read_bw: 6000    # MBps   6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
+      write_bw: 3000    # MBps   randomly half of read bw
+      mount_prefix: /dev/hdd
+  node_templates:
+    - &node_capa
+      id: lustre_OSS
+      disks:
+        - quantity: 1
+          template: *raid_OSS
+  nodes:
+    - quantity: 56
+      template: *node_capa
+dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
+  groups: 12        # Entire Dragonfly zone (4392 nodes in total)
+  group_links: 1
+  chassis: 6        # Per group
+  chassis_links: 1
+  routers: 16       # Per chassis
+  router_links: 1
+  nodes: 4          # Per router
+  core_count: 64    # Compute node core count - unused
+  ram: 192GB        # Compute node ram - unused
+  node_local_storage:
+    enabled: no     # Not implemented yet anyway
+    nb_disks: 1
+    capacity: 128 # GB
+    read_bw: 1000 # MBps      # https://docs.alcf.anl.gov/data-management/filesystem-and-storage/file-systems/
+    write_bw: 500 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
+allocator: lustre
+lustre:
+  lq_threshold_rr: 43  # lustre default
+  lq_prio_free: 232    # lustre default
+  max_nb_ost: 56
+  stripe_size: 1048576 # default from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
+...

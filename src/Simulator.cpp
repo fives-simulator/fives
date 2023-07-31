@@ -12,35 +12,29 @@
 
 #include <simgrid/plugins/energy.h>
 
+#include "AllocationStrategy.h"
 #include "Controller.h"
 #include "Platform.h"
 #include "Utils.h"
-#include "AllocationStrategy.h"
 
 std::set<std::shared_ptr<wrench::StorageService>> storalloc::instantiateStorageServices(std::shared_ptr<wrench::Simulation> simulation,
-                                                                                        std::shared_ptr<storalloc::Config> config)
-{
+                                                                                        std::shared_ptr<storalloc::Config> config) {
 
     // Simple storage services that will be accessed through CompoundStorageService
     std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
 
-    for (const auto &node : config->nodes)
-    { // node types
+    for (const auto &node : config->nodes) { // node types
 
         // mount points list is the same for all nodes of a given type
         std::set<std::string> mount_points;
-        for (const auto &disk : node.tpl.disks)
-        {
-            for (auto j = 0; j < disk.qtt; j++)
-            {
+        for (const auto &disk : node.tpl.disks) {
+            for (auto j = 0; j < disk.qtt; j++) {
                 mount_points.insert(disk.tpl.mount_prefix + std::to_string(j));
             }
         }
 
-        for (auto i = 0; i < node.qtt; i++)
-        { // qtt of each type
-            for (const auto &mnt_pt : mount_points)
-            {
+        for (auto i = 0; i < node.qtt; i++) { // qtt of each type
+            for (const auto &mnt_pt : mount_points) {
                 // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
                 sstorageservices.insert(
                     simulation->add(
@@ -51,17 +45,17 @@ std::set<std::shared_ptr<wrench::StorageService>> storalloc::instantiateStorageS
         }
     }
 
+    std::cout << "# Using " << sstorageservices.size() << " storage nodes" << std::endl;
+
     return sstorageservices;
 }
 
-std::shared_ptr<wrench::BatchComputeService> storalloc::instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation, 
-                                                      std::shared_ptr<storalloc::Config> config)
-{
+std::shared_ptr<wrench::BatchComputeService> storalloc::instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
+                                                                                   std::shared_ptr<storalloc::Config> config) {
     std::vector<std::string> compute_nodes;
     auto nb_compute_nodes = config->d_nodes * config->d_routers * config->d_chassis * config->d_groups;
     std::cout << "# Using " << nb_compute_nodes << " compute nodes" << std::endl;
-    for (unsigned int i = 0; i < nb_compute_nodes; i++)
-    {
+    for (unsigned int i = 0; i < nb_compute_nodes; i++) {
         compute_nodes.push_back("compute" + std::to_string(i));
     }
     auto batch_service = simulation->add(new wrench::BatchComputeService(
@@ -78,11 +72,9 @@ std::shared_ptr<wrench::BatchComputeService> storalloc::instantiateComputeServic
  * @param argv: argument array
  * @return 0 on success, non-zero otherwise
  */
-int storalloc::run_simulation(int argc, char **argv)
-{
+int storalloc::run_simulation(int argc, char **argv) {
 
-    if (argc < 3)
-    {
+    if (argc < 3) {
         std::cout << "###############################################################" << std::endl;
         std::cout << "# USAGE: " << argv[0] << " <config file> <job file>" << std::endl;
         std::cout << "#          [Both files are expected to be YAML]" << std::endl;
@@ -96,7 +88,7 @@ int storalloc::run_simulation(int argc, char **argv)
 
     /* Loading jobs */
     auto jobs = storalloc::loadYamlJobs(argv[2]);
-    
+
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
 
@@ -132,7 +124,7 @@ int storalloc::run_simulation(int argc, char **argv)
 
     /* Batch compute service */
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    
+
     /* Execution controller */
     auto ctrl = simulation->add(
         new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
@@ -150,8 +142,7 @@ int storalloc::run_simulation(int argc, char **argv)
     // simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
 
     auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
-    for (auto const &item : trace)
-    {
+    for (auto const &item : trace) {
         std::cout << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
     }
 

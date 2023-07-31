@@ -1,10 +1,13 @@
 ---
 
 general:
-  bandwidth: 25000MBps    # 200Gbps backbone...
+  backbone_bw: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
   config_name: StorAlloc_Test
   max_stripe_size: 960000000    # Max size for allocation stripes (in bytes)
+  permanent_storage_read_bw: 10000MBps
+  permanent_storage_write_bw: 10000MBps
+  permanent_storage_capacity: 10000TB
 storage:
   disk_templates:
     - &hdd_capa
@@ -38,8 +41,10 @@ dragonfly:
   routers: 6        # per chassis
   router_links: 7
   nodes: 8          # per router
+  core_count: 64    # Compute node core count - unused
+  ram: 192GB        # Compute node ram - unused
   node_local_storage:
-    enabled: no     # Not implemented yet anyway
+    enabled: false     # Not implemented yet anyway
     nb_disks: 1
     capacity: 128 # GB
     read_bw: 1000 # MBps
