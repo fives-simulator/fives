@@ -6,9 +6,8 @@
                 "${default}",
                 "${workspaceFolder}/include",
                 "/opt/simgrid/include",
-                "/opt/simgrid/include",
-                "/opt/simgrid/include",
-                "/opt/simgrid/include"
+                "/usr/local/lib",
+                "/opt/simgrid/lib"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

@@ -18,9 +18,9 @@
 
 #include "Controller.h"
 
-#include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <wrench/util/UnitParser.h>
 
 #include "yaml-cpp/yaml.h"
@@ -29,13 +29,11 @@ WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for storalloc controller
 
 namespace storalloc {
 
-    template<typename E>
+    template <typename E>
     constexpr auto
-    toUType(E enumerator) noexcept
-    {
+    toUType(E enumerator) noexcept {
         return static_cast<std::underlying_type_t<E>>(enumerator);
     }
-
 
     struct DiskIOCounters {
         double total_capacity;
@@ -50,7 +48,6 @@ namespace storalloc {
         std::map<std::string, DiskIOCounters> disks;
     };
 
-
     /**
      * @brief Constructor
      *
@@ -62,12 +59,14 @@ namespace storalloc {
                            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
-                           const std::map<std::string, storalloc::YamlJob>& jobs) :
-            ExecutionController(hostname,"controller"),
-            compute_service(compute_service), 
-            storage_service(storage_service), 
-            compound_storage_service(compound_storage_service),
-            jobs(jobs) {}
+                           const std::map<std::string, storalloc::YamlJob> &jobs) : ExecutionController(hostname, "controller"),
+                                                                                    compute_service(compute_service),
+                                                                                    storage_service(storage_service),
+                                                                                    compound_storage_service(compound_storage_service),
+                                                                                    jobs(jobs) {
+
+        this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
+    }
 
     /**
      * @brief main method of the Controller
@@ -77,43 +76,43 @@ namespace storalloc {
      * @throw std::runtime_error
      */
     int Controller::main() {
-    
+
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller starting");
         WRENCH_INFO("Got %s jobs to prepare and submit", std::to_string(jobs.size()).c_str());
-        
+
         this->job_manager = this->createJobManager();
 
-        for (const auto& yaml_entry : jobs) {
-            
+        for (const auto &yaml_entry : jobs) {
+
             auto yaml_job = yaml_entry.second;
 
             // So far we only use a single type of job
             auto job = this->createJob(yaml_job, storalloc::JobType::ReadComputeWrite);
-        
+
             // Determine job runtime
+            /*
             auto runtime = 0;
             if (yaml_job.runTime < 1000) {
                 runtime = ((yaml_job.runTime + 20000) * 60);
             } else {
-                runtime = ((yaml_job.runTime));     // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
+                runtime = ((yaml_job.runTime)); // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
             }
-            
+            */
+
             // Submit job
             std::map<std::string, std::string> service_specific_args =
-                    {{"-N", std::to_string(yaml_job.nodesUsed)},                            // nb of nodes
-                     {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)},       // core per node
-                     {"-t", std::to_string(runtime)}};                                      // seconds
+                {{"-N", std::to_string(yaml_job.nodesUsed)},                      // nb of nodes
+                 {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)}, // core per node
+                 {"-t", std::to_string(yaml_job.runtimeSeconds)}};                // seconds
             WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
-                        job->getName().c_str(),
-                        yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, runtime
-            );
+                         job->getName().c_str(),
+                         yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, yaml_job.runtimeSeconds);
             job_manager->submitJob(job, this->compute_service, service_specific_args);
-            
+
             // Save job for future analysis
             this->compound_jobs[yaml_job.id] = std::make_pair(yaml_job, job);
         }
-            
 
         WRENCH_INFO("All jobs submitted to the BatchComputeService - Waiting for execution events");
         auto nb_jobs = this->compound_jobs.size();
@@ -125,7 +124,7 @@ namespace storalloc {
         return 0;
     }
 
-    std::shared_ptr<wrench::CompoundJob> Controller::getCompletedJobById(std::string id) { 
+    std::shared_ptr<wrench::CompoundJob> Controller::getCompletedJobById(std::string id) {
 
         auto job_pair = this->compound_jobs.find(id);
         if (job_pair == this->compound_jobs.end()) {
@@ -135,13 +134,12 @@ namespace storalloc {
         return job_pair->second.second;
     }
 
-
     bool Controller::actionsAllCompleted() {
 
-        // List all action that failed states and times 
+        // List all action that failed states and times
         bool all_good = true;
 
-        for (const auto & job : this->compound_jobs) {
+        for (const auto &job : this->compound_jobs) {
 
             /* Access pair of yaml data / compound job, and then compound job inside the pair */
             for (const auto &a : job.second.second->getActions()) {
@@ -153,29 +151,27 @@ namespace storalloc {
                     wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
                     all_good = false;
                 }
-
             }
         }
 
         return all_good;
     }
 
+    std::shared_ptr<wrench::CompoundJob> Controller::createJob(const storalloc::YamlJob &yJob, storalloc::JobType jobType) {
 
-    std::shared_ptr<wrench::CompoundJob> Controller::createJob(const storalloc::YamlJob& yJob, storalloc::JobType jobType) {
-        
         // Cleanup our temporary variables
         this->current_yaml_job = yJob;
         this->actions.clear();
 
         WRENCH_DEBUG("# New Job - SUBMISSION TIME = %s", this->current_yaml_job.submissionTime.c_str());
 
-        WRENCH_DEBUG("# Sleeping in simulation for = %d s", this->current_yaml_job.sleepTime);
-        simulation->sleep(this->current_yaml_job.sleepTime);
-    
+        WRENCH_DEBUG("# Sleeping in simulation for = %d s", this->current_yaml_job.sleepSimulationSeconds);
+        simulation->sleep(this->current_yaml_job.sleepSimulationSeconds); // Replace with timer ?
+
         auto job = this->job_manager->createCompoundJob(yJob.id);
         WRENCH_DEBUG(" # Job created with ID %s", this->current_yaml_job.id.c_str());
         this->current_job = job;
-        
+
         if (jobType == storalloc::JobType::ReadComputeWrite) {
             auto input_data = this->copyFromPermanent();
             this->readFromTemporary(input_data);
@@ -194,7 +190,6 @@ namespace storalloc {
         return job;
     }
 
-
     std::shared_ptr<wrench::DataFile> Controller::copyFromPermanent() {
 
         WRENCH_DEBUG("Creating copy action for a file with size %ld", this->current_yaml_job.readBytes);
@@ -203,10 +198,9 @@ namespace storalloc {
 
         wrench::StorageService::createFileAtLocation(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
         auto fileCopyAction = current_job->addFileCopyAction(
-            "stagingCopy_" + this->current_yaml_job.id, 
+            "stagingCopy_" + this->current_yaml_job.id,
             wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file),
-            wrench::FileLocation::LOCATION(this->compound_storage_service, read_file)
-        );
+            wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
 
         // Actions dependencies
         if (!this->actions.empty()) {
@@ -222,10 +216,9 @@ namespace storalloc {
         WRENCH_DEBUG("Creating read action for a file with size %ld", this->current_yaml_job.readBytes);
 
         auto fileReadAction = this->current_job->addFileReadAction(
-            "fRead_" + this->current_yaml_job.id, 
-            wrench::FileLocation::LOCATION(this->compound_storage_service, input_data)
-        );
-        
+            "fRead_" + this->current_yaml_job.id,
+            wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
+
         // Actions dependencies
         if (!this->actions.empty()) {
             this->current_job->addActionDependency(this->actions.back(), fileReadAction);
@@ -238,11 +231,24 @@ namespace storalloc {
         WRENCH_DEBUG("Creating compute action");
 
         // Random values (flops, ram, ...) to be adjusted.
-        // We could start from the theoreticak peak performance of modelled platform, and specify the flops based on the 
+        // We could start from the theoreticak peak performance of modelled platform, and specify the flops based on the
         // % of available compute resources used by the job and its execution time (minor a factor of the time spend in IO ?)
         auto cores_per_node = this->current_yaml_job.coresUsed / this->current_yaml_job.nodesUsed;
-        auto computeAction = this->current_job->addComputeAction("compute_" + this->current_yaml_job.id, 1000 * GFLOP, 64 * GBYTE, cores_per_node, cores_per_node, wrench::ParallelModel::AMDAHL(0.8));
-        
+
+        auto io_time = (this->current_yaml_job.writeTimeSeconds +
+                        this->current_yaml_job.readTimeSeconds +
+                        this->current_yaml_job.metaTimeSeconds) /
+                       this->current_yaml_job.nprocs;
+        auto compute_time = this->current_yaml_job.runtimeSeconds - io_time;
+
+        auto computeAction = this->current_job->addComputeAction(
+            "compute_" + this->current_yaml_job.id,
+            this->flopRate * compute_time,
+            16 * GBYTE,
+            cores_per_node, cores_per_node,
+            wrench::ParallelModel::AMDAHL(0.8));
+        // auto computeAction = this->current_job->addComputeAction("compute_" + this->current_yaml_job.id, 1000 * GFLOP, 64 * GBYTE, cores_per_node, cores_per_node, wrench::ParallelModel::AMDAHL(0.8));
+
         // Actions dependencies
         if (!this->actions.empty()) {
             this->current_job->addActionDependency(this->actions.back(), computeAction);
@@ -256,9 +262,8 @@ namespace storalloc {
 
         auto write_file = wrench::Simulation::addFile("output_data_file_" + this->current_yaml_job.id, this->current_yaml_job.writtenBytes);
         auto fileWriteAction = this->current_job->addFileWriteAction(
-            "fWrite_" + this->current_yaml_job.id, 
-            wrench::FileLocation::LOCATION(this->compound_storage_service, write_file)
-        );
+            "fWrite_" + this->current_yaml_job.id,
+            wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
 
         // Actions dependencies
         if (!this->actions.empty()) {
@@ -274,21 +279,19 @@ namespace storalloc {
         WRENCH_DEBUG("Creating copy action for a file with size %ld", this->current_yaml_job.writtenBytes);
 
         auto archiveAction = this->current_job->addFileCopyAction(
-            "archiveCopy_" + this->current_yaml_job.id, 
+            "archiveCopy_" + this->current_yaml_job.id,
             wrench::FileLocation::LOCATION(this->compound_storage_service, output_data),
-            wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data)
-        );
+            wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data));
 
         // Actions dependencies
         this->current_job->addActionDependency(this->actions.back(), archiveAction);
         this->actions.push_back(archiveAction);
     }
 
-
     void Controller::cleanupInput(std::shared_ptr<wrench::DataFile> input_data) {
 
         WRENCH_DEBUG("Creating cleanup actions for an input file with size %ld", this->current_yaml_job.readBytes);
-        
+
         auto readSleep = this->current_job->addSleepAction("sleepBeforeReadCleanup" + this->current_yaml_job.id, 1.0);
         this->current_job->addActionDependency(this->actions.back(), readSleep);
         this->actions.push_back(readSleep);
@@ -296,7 +299,7 @@ namespace storalloc {
         auto deleteReadAction = this->current_job->addFileDeleteAction("delRF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
         this->current_job->addActionDependency(this->actions.back(), deleteReadAction);
         this->actions.push_back(deleteReadAction);
-        
+
         auto deleteExternalReadAction = this->current_job->addFileDeleteAction("delERF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", input_data));
         this->current_job->addActionDependency(this->actions.back(), deleteExternalReadAction);
         this->actions.push_back(deleteExternalReadAction);
@@ -313,12 +316,11 @@ namespace storalloc {
         auto deleteWriteAction = this->current_job->addFileDeleteAction("delWF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
         this->current_job->addActionDependency(this->actions.back(), deleteWriteAction);
         this->actions.push_back(deleteWriteAction);
-        
+
         auto deleteExternalWriteAction = this->current_job->addFileDeleteAction("delEWF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data));
         this->current_job->addActionDependency(this->actions.back(), deleteExternalWriteAction);
         this->actions.push_back(deleteExternalWriteAction);
     }
-
 
     /**
      * @brief Process a compound job completion event
@@ -328,11 +330,9 @@ namespace storalloc {
     void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
         auto job = event->job;
         WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
-    
-        // Extract relevant informations from job and write them to file / send them to DB ?            
 
+        // Extract relevant informations from job and write them to file / send them to DB ?
     }
-
 
     /**
      * @brief Process a compound job failure event
@@ -348,27 +348,26 @@ namespace storalloc {
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
     }
 
-
-    std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
+    std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
 
         auto storage_service = location->getStorageService()->getName();
-        auto mount_pt = location->getPath();                   // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
-        auto volume = location->getFile()->getSize(); 
+        auto mount_pt = location->getPath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto volume = location->getFile()->getSize();
 
         // Update volume record with new write/copy/delete value
         volume_records[storage_service].total_allocation_count -= 1;
         volume_records[storage_service].total_capacity_used -= volume;
-        volume_records[storage_service].disks[mount_pt].total_allocation_count -= 1;           // allocation count on disk
-        volume_records[storage_service].disks[mount_pt].total_capacity_used -= volume;     // byte volume count
+        volume_records[storage_service].disks[mount_pt].total_allocation_count -= 1;   // allocation count on disk
+        volume_records[storage_service].disks[mount_pt].total_capacity_used -= volume; // byte volume count
 
         // Return latest updated keys for ease of use
         return std::make_pair(storage_service, mount_pt);
     }
 
-    std::pair<std::string, std::string> updateIoUsageCopy(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
-        
+    std::pair<std::string, std::string> updateIoUsageCopy(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
+
         auto dst_storage_service = location->getStorageService()->getName();
-        auto dst_path = location->getPath();        // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto dst_path = location->getPath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
         auto dst_volume = location->getFile()->getSize();
 
         if (volume_records.find(dst_storage_service) == volume_records.end()) {
@@ -382,20 +381,20 @@ namespace storalloc {
         }
 
         // Update volume record with new write/copy/delete value
-        volume_records[dst_storage_service].total_allocation_count += 1;  // allocation count on disk
-        volume_records[dst_storage_service].total_capacity_used += dst_volume;  // byte volume count
-        volume_records[dst_storage_service].disks[dst_path].total_allocation_count += 1;  // allocation count on disk
-        volume_records[dst_storage_service].disks[dst_path].total_capacity_used  += dst_volume;  // byte volume count
+        volume_records[dst_storage_service].total_allocation_count += 1;                       // allocation count on disk
+        volume_records[dst_storage_service].total_capacity_used += dst_volume;                 // byte volume count
+        volume_records[dst_storage_service].disks[dst_path].total_allocation_count += 1;       // allocation count on disk
+        volume_records[dst_storage_service].disks[dst_path].total_capacity_used += dst_volume; // byte volume count
 
         // Return latest updated keys for ease of use
         return std::make_pair(dst_storage_service, dst_path);
     }
 
-    std::pair<std::string, std::string> updateIoUsageWrite(std::map<std::string, StorageServiceIOCounters>& volume_records, const std::shared_ptr<wrench::FileLocation>& location) {
+    std::pair<std::string, std::string> updateIoUsageWrite(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
 
         auto storage_service = location->getStorageService()->getName();
-        auto path = location->getPath();        // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
-        auto volume = location->getFile()->getSize(); 
+        auto path = location->getPath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto volume = location->getFile()->getSize();
 
         if (volume_records.find(storage_service) == volume_records.end()) {
             volume_records[storage_service].disks = std::map<std::string, DiskIOCounters>();
@@ -406,17 +405,17 @@ namespace storalloc {
         }
 
         // Update volume record with new write/copy/delete value
-        volume_records[storage_service].total_allocation_count += 1;                    // allocation count on disk
-        volume_records[storage_service].total_capacity_used += volume;                  // byte volume count
-        volume_records[storage_service].disks[path].total_allocation_count += 1;        // allocation count on disk
-        volume_records[storage_service].disks[path].total_capacity_used += volume;      // byte volume count
+        volume_records[storage_service].total_allocation_count += 1;               // allocation count on disk
+        volume_records[storage_service].total_capacity_used += volume;             // byte volume count
+        volume_records[storage_service].disks[path].total_allocation_count += 1;   // allocation count on disk
+        volume_records[storage_service].disks[path].total_capacity_used += volume; // byte volume count
 
         // Return latest updated keys for ease of use
         return std::make_pair(storage_service, path);
     }
 
     void Controller::processCompletedJobs() {
-        
+
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
 
         YAML::Emitter out_ss;
@@ -425,51 +424,50 @@ namespace storalloc {
         YAML::Emitter out;
         out << YAML::BeginSeq;
 
-        for (const auto& job_entry : this->compound_jobs) {
+        for (const auto &job_entry : this->compound_jobs) {
 
-            const auto & job_pair = job_entry.second;
-            const auto & yaml_job = job_pair.first;
+            const auto &job_pair = job_entry.second;
+            const auto &yaml_job = job_pair.first;
             const auto job = job_pair.second;
 
-            out << YAML::BeginMap;  // Job map
+            out << YAML::BeginMap; // Job map
 
             auto job_uid = job->getName();
             WRENCH_DEBUG("In job %s", job_uid.c_str());
             auto job_id = job_uid.substr(0, job_uid.find("-"));
             out << YAML::Key << "job_uid" << YAML::Value << job_uid;
-            out << YAML::Key << "job_id" << YAML::Value << job_id;          // for use in group-by 
+            out << YAML::Key << "job_id" << YAML::Value << job_id; // for use in group-by
             out << YAML::Key << "job_status" << YAML::Value << job->getStateAsString();
             out << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
             out << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
             out << YAML::Key << "job_duration" << YAML::Value << (job->getEndDate() - job->getSubmitDate());
-            out << YAML::Key << "origin_runtime" << YAML::Value << yaml_job.runTime;
+            out << YAML::Key << "origin_runtime" << YAML::Value << yaml_job.runtimeSeconds;
             out << YAML::Key << "origin_read_bytes" << YAML::Value << yaml_job.readBytes;
             out << YAML::Key << "origin_written_bytes" << YAML::Value << yaml_job.writtenBytes;
             out << YAML::Key << "origin_core_used" << YAML::Value << yaml_job.coresUsed;
-            out << YAML::Key << "origin_mpi_procs" << YAML::Value << yaml_job.mpiProcs;
-            out << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepTime;
-            
-            out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq;   // action sequence
+            out << YAML::Key << "origin_mpi_procs" << YAML::Value << yaml_job.nprocs;
+            out << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
+
+            out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq; // action sequence
             auto actions = job->getActions();
-            auto set_cmp = [](const std::shared_ptr<wrench::Action>& a, const std::shared_ptr<wrench::Action>& b)
-                                  {
-                                      return (a->getStartDate() < b->getStartDate());
-                                  };
+            auto set_cmp = [](const std::shared_ptr<wrench::Action> &a, const std::shared_ptr<wrench::Action> &b) {
+                return (a->getStartDate() < b->getStartDate());
+            };
             auto sorted_actions = std::set<std::shared_ptr<wrench::Action>, decltype(set_cmp)>(set_cmp);
             sorted_actions.insert(actions.begin(), actions.end());
-        
-            for (const auto& action : sorted_actions) {
+
+            for (const auto &action : sorted_actions) {
 
                 if (action->getState() != wrench::Action::COMPLETED) {
                     WRENCH_WARN("Action %s is in state %s", action->getName().c_str(), action->getStateAsString().c_str());
                     throw std::runtime_error("Action is not in COMPLETED state");
                 }
 
-                out << YAML::BeginMap;  // action map
+                out << YAML::BeginMap; // action map
                 out << YAML::Key << "act_name" << YAML::Value << action->getName();
                 auto act_type = wrench::Action::getActionTypeAsString(action);
-                act_type.pop_back();  // removing a useless '-' at the end
-                out << YAML::Key << "act_type" << YAML::Value << act_type;  
+                act_type.pop_back(); // removing a useless '-' at the end
+                out << YAML::Key << "act_type" << YAML::Value << act_type;
                 out << YAML::Key << "act_status" << YAML::Value << action->getStateAsString();
                 out << YAML::Key << "act_start_ts" << YAML::Value << action->getStartDate();
                 out << YAML::Key << "act_end_ts" << YAML::Value << action->getEndDate();
@@ -485,7 +483,7 @@ namespace storalloc {
                     auto read_trace = this->compound_storage_service->read_traces[usedFile->getID()];
                     out << YAML::Key << "parts_count" << YAML::Value << read_trace.internal_locations.size();
                     out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
-                    for (const auto& trace_loc : read_trace.internal_locations) {
+                    for (const auto &trace_loc : read_trace.internal_locations) {
                         out << YAML::BeginMap;
                         out << YAML::Key << "storage_service" << YAML::Value << trace_loc->getStorageService()->getName();
                         out << YAML::Key << "storage_server" << YAML::Value << trace_loc->getStorageService()->getHostname();
@@ -501,7 +499,7 @@ namespace storalloc {
                     out << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
                     out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
-                    
+
                 } else if (auto fileWrite = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
                     auto usedLocation = fileWrite->getFileLocation();
                     auto usedFile = usedLocation->getFile();
@@ -509,7 +507,7 @@ namespace storalloc {
                     auto write_trace = this->compound_storage_service->write_traces[usedFile->getID()];
                     out << YAML::Key << "parts_count" << YAML::Value << write_trace.internal_locations.size();
                     out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
-                    for (const auto& trace_loc : write_trace.internal_locations) {
+                    for (const auto &trace_loc : write_trace.internal_locations) {
                         out << YAML::BeginMap;
                         out << YAML::Key << "storage_service" << YAML::Value << trace_loc->getStorageService()->getName();
                         out << YAML::Key << "storage_server" << YAML::Value << trace_loc->getStorageService()->getHostname();
@@ -527,10 +525,10 @@ namespace storalloc {
                     out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
 
-                    for (const auto& trace_loc : write_trace.internal_locations) {
+                    for (const auto &trace_loc : write_trace.internal_locations) {
                         auto keys = updateIoUsageWrite(volume_per_storage_service_disk, trace_loc);
                         out_ss << YAML::BeginMap;
-                        out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                        out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
                         out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
                         out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
                         out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
@@ -551,8 +549,7 @@ namespace storalloc {
 
                     // !!! We don't handle a sss <-> sss or css <-> css copy
                     if (std::dynamic_pointer_cast<wrench::CompoundStorageService>(
-                        fileCopy->getSourceFileLocation()->getStorageService()
-                    )) {
+                            fileCopy->getSourceFileLocation()->getStorageService())) {
                         css = fileCopy->getSourceFileLocation();
                         sss = fileCopy->getDestinationFileLocation();
                         out << YAML::Key << "copy_direction" << YAML::Value << "css_to_sss";
@@ -565,7 +562,7 @@ namespace storalloc {
                     auto copy_trace = this->compound_storage_service->copy_traces[css->getFile()->getID()];
                     out << YAML::Key << "parts_count" << YAML::Value << copy_trace.internal_locations.size();
                     out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
-                    for (const auto& trace_loc : copy_trace.internal_locations) {
+                    for (const auto &trace_loc : copy_trace.internal_locations) {
                         out << YAML::BeginMap;
                         out << YAML::Key << "storage_service" << YAML::Value << trace_loc->getStorageService()->getName();
                         out << YAML::Key << "storage_server" << YAML::Value << trace_loc->getStorageService()->getHostname();
@@ -590,19 +587,19 @@ namespace storalloc {
                     out << YAML::Key << "dst_file_name" << YAML::Value << css->getFile()->getID();
                     out << YAML::Key << "dst_file_size_bytes" << YAML::Value << css->getFile()->getSize();
 
-                    // only record a write if it's from SSS (external permanent storage) to CSS 
+                    // only record a write if it's from SSS (external permanent storage) to CSS
                     if (fileCopy->getDestinationFileLocation()->getStorageService()->getHostname() != "permanent_storage") {
-                        
-                        for (const auto& trace_loc : copy_trace.internal_locations) {
+
+                        for (const auto &trace_loc : copy_trace.internal_locations) {
                             auto keys = updateIoUsageCopy(volume_per_storage_service_disk, trace_loc);
                             out_ss << YAML::BeginMap;
-                            out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                            out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
                             out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
                             out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
                             out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
                             out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
                             out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
-                            out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << css->getFile()->getSize();      // dest file, because it's the one being written
+                            out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << css->getFile()->getSize(); // dest file, because it's the one being written
                             out_ss << YAML::Key << "total_allocation_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_allocation_count;
                             out_ss << YAML::Key << "total_used_volume_bytes_server" << YAML::Value << volume_per_storage_service_disk[keys.first].total_capacity_used;
                             out_ss << YAML::Key << "total_allocation_disk" << YAML::Value << volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
@@ -621,13 +618,12 @@ namespace storalloc {
                     out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
 
-                    
                     if (usedLocation->getStorageService()->getHostname() != "permanent_storage") {
 
                         auto delete_trace = this->compound_storage_service->delete_traces[usedFile->getID()];
                         out << YAML::Key << "parts_count" << YAML::Value << delete_trace.internal_locations.size();
                         out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
-                        for (const auto& trace_loc : delete_trace.internal_locations) {
+                        for (const auto &trace_loc : delete_trace.internal_locations) {
                             out << YAML::BeginMap;
                             out << YAML::Key << "storage_service" << YAML::Value << trace_loc->getStorageService()->getName();
                             out << YAML::Key << "storage_server" << YAML::Value << trace_loc->getStorageService()->getHostname();
@@ -638,10 +634,10 @@ namespace storalloc {
                         }
                         out << YAML::EndSeq;
 
-                        for (const auto& trace_loc : delete_trace.internal_locations) {
+                        for (const auto &trace_loc : delete_trace.internal_locations) {
                             auto keys = updateIoUsageDelete(volume_per_storage_service_disk, trace_loc);
                             out_ss << YAML::BeginMap;
-                            out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate();         // end_date, because we record the IO change when the write is completed
+                            out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
                             out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
                             out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
                             out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
@@ -666,7 +662,7 @@ namespace storalloc {
 
         // Write to YAML file
         ofstream io_ops;
-        io_ops.open ("io_operations.yml");
+        io_ops.open("io_operations.yml");
         io_ops << "---\n";
         io_ops << out.c_str();
         io_ops << "\n...\n";
@@ -674,14 +670,12 @@ namespace storalloc {
 
         // Write to YAML file
         ofstream io_ss_ops;
-        io_ss_ops.open ("storage_service_operations.yml");
+        io_ss_ops.open("storage_service_operations.yml");
         io_ss_ops << "---\n";
         io_ss_ops << out_ss.c_str();
         io_ss_ops << "\n...\n";
         io_ss_ops.close();
-         	
     }
-
 
     void Controller::extractSSSIO() {
 
@@ -695,37 +689,36 @@ namespace storalloc {
         io_ops << "ts,action_name,storage_service_name,storage_hostname,disk_id,disk_capacity,disk_free_space,file_name\n";
         // io_ops << setprecision(10);
 
-        for(const auto& entry : this->compound_storage_service->internal_storage_use) {
+        for (const auto &entry : this->compound_storage_service->internal_storage_use) {
 
-            auto ts = entry.first;        // ts
-            auto alloc = entry.second;    // AllocationTrace structure
+            auto ts = entry.first;     // ts
+            auto alloc = entry.second; // AllocationTrace structure
 
-            for (const auto& disk_usage : alloc.disk_usage) {
+            for (const auto &disk_usage : alloc.disk_usage) {
 
-                auto  simple_storage = std::dynamic_pointer_cast<wrench::SimpleStorageService>(disk_usage.service);
+                auto simple_storage = std::dynamic_pointer_cast<wrench::SimpleStorageService>(disk_usage.service);
                 std::string disk_capacity = simple_storage->getDiskForPathOrNull("/")->get_property("size");
                 auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
 
-                io_ops << ts << ",";                                                            // timestamp
-                io_ops <<  std::to_string(static_cast<u_int8_t>(alloc.act)) << ",";             // action code
-                io_ops << simple_storage->getName() << ",";                                     // storage_service_name
-                io_ops << simple_storage->getHostname() << ",";                                 // storage_hostname
-                io_ops << simple_storage->getBaseRootPath() << ",";                             // disk_id
-                io_ops << capacity_bytes << ",";                                                // disk_capacity
-                io_ops << disk_usage.free_space << ",";                                         // disk_free_space
-                io_ops << (disk_usage.file_name.empty() ? "NoFile" : disk_usage.file_name) << "\n";                                         // file_name
-
+                io_ops << ts << ",";                                                                // timestamp
+                io_ops << std::to_string(static_cast<u_int8_t>(alloc.act)) << ",";                  // action code
+                io_ops << simple_storage->getName() << ",";                                         // storage_service_name
+                io_ops << simple_storage->getHostname() << ",";                                     // storage_hostname
+                io_ops << simple_storage->getBaseRootPath() << ",";                                 // disk_id
+                io_ops << capacity_bytes << ",";                                                    // disk_capacity
+                io_ops << disk_usage.free_space << ",";                                             // disk_free_space
+                io_ops << (disk_usage.file_name.empty() ? "NoFile" : disk_usage.file_name) << "\n"; // file_name
             }
 
             /*
             for (const auto& map_entry : sss_map) {
-          
+
                 auto sss = std::dynamic_pointer_cast<wrench::SimpleStorageService>(map_entry.first);
                 std::string disk_capacity = sss->getDiskForPathOrNull("/")->get_property("size");
                 auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
 
                 io_ops << ts << ",";                                    // timestamp
-                io_ops << std::to_string(static_cast<int>(map_entry.second.act)) << ",";       // traced action type 
+                io_ops << std::to_string(static_cast<int>(map_entry.second.act)) << ",";       // traced action type
                 io_ops << map_entry.first->getName() << ",";            // storage_service_name
                 io_ops << map_entry.first->getHostname() << ",";        // storage_hostname
                 io_ops << map_entry.first->getBaseRootPath() << ",";    // disk_id
@@ -739,4 +732,4 @@ namespace storalloc {
         io_ops.close();
     }
 
-} // namespace wrench
+} // namespace storalloc

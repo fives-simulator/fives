@@ -4,13 +4,12 @@
 
 #include "./include/TestWithFork.h"
 
+#include "../include/AllocationStrategy.h"
+#include "../include/ConfigDefinition.h"
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
-#include "../include/ConfigDefinition.h"
-#include "../include/AllocationStrategy.h"
 
-class BasicUtilsTest : public ::testing::Test
-{
+class BasicUtilsTest : public ::testing::Test {
 
 public:
     void loadConfig_test();
@@ -23,9 +22,7 @@ protected:
     BasicUtilsTest() {}
 };
 
-
-TEST_F(BasicUtilsTest, loadYamlJobs_test)
-{
+TEST_F(BasicUtilsTest, loadYamlJobs_test) {
     DO_TEST_WITH_FORK(loadYamlJobs_test);
 }
 
@@ -50,33 +47,28 @@ void BasicUtilsTest::loadYamlJobs_test() {
     ASSERT_EQ(job_2.waitingTime, "0 days 00:05:00");
     ASSERT_EQ(job_2.writtenBytes, 3000000000);
 
-
     ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_coresUsed.yml"), std::runtime_error);
     ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_mpiProcs.yml"), std::runtime_error);
     ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_nodesUsed.yml"), std::runtime_error);
     ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_runTime.yml"), std::runtime_error);
-
 }
-
 
 /**********************************************************************/
 /**  Testing configuration loading                                   **/
 /**********************************************************************/
 
-TEST_F(BasicUtilsTest, loadConfig_test)
-{
+TEST_F(BasicUtilsTest, loadConfig_test) {
     DO_TEST_WITH_FORK(loadConfig_test);
 }
 
 /**
  *  @brief  Testing loadConfig() with a test config file
  */
-void BasicUtilsTest::loadConfig_test()
-{
+void BasicUtilsTest::loadConfig_test() {
 
     auto config = storalloc::loadConfig("../configs/test_config.yml");
 
-    ASSERT_EQ(config.bw, "25000MBps");
+    ASSERT_EQ(config.bkbone_bw, "25000MBps");
     ASSERT_EQ(config.config_version, "0.0.1");
     ASSERT_EQ(config.config_name, "StorAlloc_Test");
     ASSERT_EQ(config.max_stripe_size, 960000000);
@@ -89,10 +81,10 @@ void BasicUtilsTest::loadConfig_test()
 
     // nodes
     auto nodes = config.nodes;
-    
+
     auto capa0 = nodes[0];
-    ASSERT_EQ(capa0.qtt, 4);    // number of nodes of type capacity
-    
+    ASSERT_EQ(capa0.qtt, 4); // number of nodes of type capacity
+
     auto capa0_tpl = capa0.tpl;
     ASSERT_EQ(capa0_tpl.id, "capacity");
 
@@ -130,4 +122,3 @@ void BasicUtilsTest::loadConfig_test()
     auto disk_capa = disks_tpl["hdd_capa"];
     ASSERT_EQ(disk_capa.capacity, 200);
 }
-

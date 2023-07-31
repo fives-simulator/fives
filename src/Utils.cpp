@@ -5,19 +5,18 @@
 
 #include "yaml-cpp/yaml.h"
 
-
 /**
  * @brief Describe topology of zones, hosts and links.
  * (should be used to create a diagram..)
- * 
-*/
+ *
+ */
 void storalloc::describe_platform() {
-    
-    std::set<simgrid::kernel::routing::NetZoneImpl*> zones = {};
+
+    std::set<simgrid::kernel::routing::NetZoneImpl *> zones = {};
 
     // Dragonfly zone for controllers is actually seen as "clusters"
-    for (auto const & hostcluster : wrench::S4U_Simulation::getAllHostnamesByCluster()) {
-        for (auto const & host : hostcluster.second) {
+    for (auto const &hostcluster : wrench::S4U_Simulation::getAllHostnamesByCluster()) {
+        for (auto const &host : hostcluster.second) {
             std::cout << host << "@" << hostcluster.first << std::endl;
             auto netpt = wrench::S4U_Simulation::get_host_or_vm_by_name(host)->get_netpoint();
             auto zone = netpt->get_englobing_zone();
@@ -26,8 +25,8 @@ void storalloc::describe_platform() {
     }
 
     // Storage and control zone is considered as an actual zone (its created as a "floyd_zone")
-    for (auto const & hostzone : wrench::S4U_Simulation::getAllHostnamesByZone()) {
-        for (auto const & host : hostzone.second) {
+    for (auto const &hostzone : wrench::S4U_Simulation::getAllHostnamesByZone()) {
+        for (auto const &host : hostzone.second) {
             std::cout << host << "@" << hostzone.first << std::endl;
             auto netpt = wrench::S4U_Simulation::get_host_or_vm_by_name(host)->get_netpoint();
             auto zone = netpt->get_englobing_zone();
@@ -36,13 +35,13 @@ void storalloc::describe_platform() {
     }
 
     // Zone info recap
-    for (const auto& zone : zones) {
+    for (const auto &zone : zones) {
         std::cout << "Zone: " << zone->get_name() << std::endl;
         // std::cout << "  - Network model: " << zone->get_network_model() << std::endl;
         std::cout << "  - Host count: " << zone->get_host_count() << std::endl;
         std::cout << "  - Parent zone: " << zone->get_parent()->get_name() << std::endl;
         std::cout << "  - Links:" << std::endl;
-        for (const auto& link : zone->get_all_links()) {
+        for (const auto &link : zone->get_all_links()) {
             std::cout << "     - " << link->get_name() << std::endl;
         }
     }
@@ -67,10 +66,9 @@ void storalloc::describe_platform() {
         std::cout << link->get_name() << std::endl;
     }
     */
-
 }
 
-storalloc::Config storalloc::loadConfig(const std::string& yaml_file_name) {
+storalloc::Config storalloc::loadConfig(const std::string &yaml_file_name) {
 
     YAML::Node config = YAML::LoadFile(yaml_file_name);
 
@@ -83,12 +81,10 @@ storalloc::Config storalloc::loadConfig(const std::string& yaml_file_name) {
 
     auto storalloc_cfg = config.as<storalloc::Config>();
 
-
     return storalloc_cfg;
 }
 
-
-std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::string& yaml_file_name) {
+std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::string &yaml_file_name) {
 
     YAML::Node jobs = YAML::LoadFile(yaml_file_name);
     if (!(jobs["jobs"]) or !(jobs["jobs"].IsSequence())) {
@@ -97,13 +93,13 @@ std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::str
     }
 
     std::map<std::string, storalloc::YamlJob> job_list;
-    for (const auto & job : jobs["jobs"]) {
+    for (const auto &job : jobs["jobs"]) {
         try {
             job_list[job["id"].as<std::string>()] = job.as<storalloc::YamlJob>();
         } catch (std::exception &e) {
             std::cerr << "At least one of the jobs in file " << yaml_file_name << " has invalid caracteristics" << std::endl;
             std::cerr << e.what() << std::endl;
-            throw runtime_error("At least one of the jobs in file " + yaml_file_name + " has invalid caracteristics"); 
+            throw runtime_error("At least one of the jobs in file " + yaml_file_name + " has invalid caracteristics");
         }
     }
 
