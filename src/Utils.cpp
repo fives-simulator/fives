@@ -93,13 +93,15 @@ std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::str
     }
 
     std::map<std::string, storalloc::YamlJob> job_list;
+    std::string current_id;
     for (const auto &job : jobs["jobs"]) {
         try {
-            job_list[job["id"].as<std::string>()] = job.as<storalloc::YamlJob>();
+            current_id = job["id"].as<std::string>();
+            job_list[current_id] = job.as<storalloc::YamlJob>();
         } catch (std::exception &e) {
-            std::cerr << "At least one of the jobs in file " << yaml_file_name << " has invalid caracteristics" << std::endl;
+            std::cerr << "Job " << current_id << " in file " << yaml_file_name << " has invalid caracteristics" << std::endl;
             std::cerr << e.what() << std::endl;
-            throw runtime_error("At least one of the jobs in file " + yaml_file_name + " has invalid caracteristics");
+            throw runtime_error("Job " + current_id + " in file " + yaml_file_name + " has invalid caracteristics");
         }
     }
 

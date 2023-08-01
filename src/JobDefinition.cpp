@@ -25,8 +25,8 @@ bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJ
         lhs.id == rhs.id &&
         lhs.nprocs == rhs.nprocs &&
         lhs.coresUsed == rhs.coresUsed &&
-        lhs.coresHoursReq == rhs.coresHoursReq &&
-        lhs.coresHoursUsed == rhs.coresHoursUsed &&
+        lhs.coreHoursReq == rhs.coreHoursReq &&
+        lhs.coreHoursUsed == rhs.coreHoursUsed &&
         lhs.nodesUsed == rhs.nodesUsed &&
         lhs.readBytes == rhs.readBytes &&
         lhs.writtenBytes == rhs.writtenBytes &&
@@ -34,6 +34,7 @@ bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJ
         lhs.writeTimeSeconds == rhs.writeTimeSeconds &&
         lhs.metaTimeSeconds == rhs.metaTimeSeconds &&
         lhs.runtimeSeconds == rhs.runtimeSeconds &&
+        lhs.walltimeSeconds == rhs.walltimeSeconds &&
         lhs.waitingTimeSeconds == rhs.waitingTimeSeconds &&
         lhs.sleepSimulationSeconds == rhs.sleepSimulationSeconds &&
         lhs.startTime == rhs.startTime &&
@@ -48,8 +49,8 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
     node.push_back(rhs.nprocs);
 
     node.push_back(rhs.coresUsed);
-    node.push_back(rhs.coresHoursReq);
-    node.push_back(rhs.coresHoursUsed);
+    node.push_back(rhs.coreHoursReq);
+    node.push_back(rhs.coreHoursUsed);
     node.push_back(rhs.nodesUsed);
 
     node.push_back(rhs.readBytes);
@@ -60,6 +61,7 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
 
     node.push_back(rhs.runtimeSeconds);
     node.push_back(rhs.waitingTimeSeconds);
+    node.push_back(rhs.walltimeSeconds);
     node.push_back(rhs.sleepSimulationSeconds);
 
     node.push_back(rhs.submissionTime);
@@ -71,7 +73,7 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc::YamlJob &rhs) {
 
-    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 17) {
+    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 18) {
         return false;
     }
 
@@ -86,8 +88,8 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
         std::cerr << "coresUsed <= 0 on node " << node["id"] << std::endl;
         return false;
     }
-    rhs.coresHoursReq = node["coresHoursReq"].as<int>();
-    rhs.coresHoursUsed = node["coresHoursUsed"].as<int>();
+    rhs.coreHoursReq = node["coreHoursReq"].as<double>();
+    rhs.coreHoursUsed = node["coreHoursUsed"].as<double>();
     rhs.nodesUsed = node["nodesUsed"].as<int>();
     if (rhs.nodesUsed <= 0) {
         std::cerr << "nodesUsed <= 0 on node " << node["id"] << std::endl;
@@ -97,9 +99,9 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     // Total io operations sizes and durations.
     rhs.readBytes = node["readBytes"].as<long>();
     rhs.writtenBytes = node["writtenBytes"].as<long>();
-    rhs.readTimeSeconds = node["readTimeSeconds"].as<float>();
-    rhs.writeTimeSeconds = node["writeTimeSeconds"].as<float>();
-    rhs.metaTimeSeconds = node["metaTimeSeconds"].as<float>();
+    rhs.readTimeSeconds = node["readTimeSeconds"].as<double>();
+    rhs.writeTimeSeconds = node["writeTimeSeconds"].as<double>();
+    rhs.metaTimeSeconds = node["metaTimeSeconds"].as<double>();
 
     rhs.runtimeSeconds = node["runtimeSeconds"].as<int>();
     if (rhs.runtimeSeconds <= 0) {
@@ -111,6 +113,7 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     rhs.waitingTimeSeconds = node["waitingTimeSeconds"].as<int>();
     // Waiting time before submitting this job after the previous one was submitted
     rhs.sleepSimulationSeconds = node["sleepSimulationSeconds"].as<int>();
+    rhs.walltimeSeconds = node["walltimeSeconds"].as<int>();
 
     // String timedates
     rhs.submissionTime = node["submissionTime"].as<std::string>();

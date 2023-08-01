@@ -63,10 +63,7 @@ namespace storalloc {
                                                                                     compute_service(compute_service),
                                                                                     storage_service(storage_service),
                                                                                     compound_storage_service(compound_storage_service),
-                                                                                    jobs(jobs) {
-
-        this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
-    }
+                                                                                    jobs(jobs) {}
 
     /**
      * @brief main method of the Controller
@@ -81,43 +78,53 @@ namespace storalloc {
         WRENCH_INFO("Controller starting");
         WRENCH_INFO("Got %s jobs to prepare and submit", std::to_string(jobs.size()).c_str());
 
+        std::cout << "Getting flop rate" << std::endl;
+        this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
+        std::cout << "Flop rate is " << std::to_string(this->flopRate) << std::endl;
+
         this->job_manager = this->createJobManager();
+
+        auto total_events = 0;
+        auto processed_events = 0;
 
         for (const auto &yaml_entry : jobs) {
 
-            auto yaml_job = yaml_entry.second;
+            // Cleanup our temporary variables
+            this->current_yaml_job = yaml_entry.second; // this is the job we're going to submit next
+            this->actions.clear();
 
-            // So far we only use a single type of job
-            auto job = this->createJob(yaml_job, storalloc::JobType::ReadComputeWrite);
+            WRENCH_DEBUG("# Setting timer for = %d s", this->current_yaml_job.sleepSimulationSeconds);
+            double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + this->current_yaml_job.sleepSimulationSeconds;
+            total_events += 1;
+            this->setTimer(timer_off_date, "SleepBeforeNextJob");
 
-            // Determine job runtime
-            /*
-            auto runtime = 0;
-            if (yaml_job.runTime < 1000) {
-                runtime = ((yaml_job.runTime + 20000) * 60);
-            } else {
-                runtime = ((yaml_job.runTime)); // We artificially increase the runtime just to make sure no job times out, but this needs to be adjusted
+            auto nextSubmission = false;
+            while (!nextSubmission) {
+                auto event = this->waitForNextEvent(3600);
+                if (!event) {
+                    continue;
+                }
+
+                processed_events += 1;
+
+                if (auto timer_event = std::dynamic_pointer_cast<wrench::TimerEvent>(event)) {
+                    this->processEventTimer(timer_event);
+                    total_events += 1; // job that was just submitted
+                    nextSubmission = true;
+                } else if (auto completion_event = std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event)) {
+                    this->processEventCompoundJobCompletion(completion_event);
+                } else if (auto failure_event = std::dynamic_pointer_cast<wrench::CompoundJobFailedEvent>(event)) {
+                    this->processEventCompoundJobFailure(failure_event);
+                } else {
+                    throw std::runtime_error("Unexpected Controller Event : " + event->toString());
+                }
             }
-            */
-
-            // Submit job
-            std::map<std::string, std::string> service_specific_args =
-                {{"-N", std::to_string(yaml_job.nodesUsed)},                      // nb of nodes
-                 {"-c", std::to_string(yaml_job.coresUsed / yaml_job.nodesUsed)}, // core per node
-                 {"-t", std::to_string(yaml_job.runtimeSeconds)}};                // seconds
-            WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
-                         job->getName().c_str(),
-                         yaml_job.nodesUsed, yaml_job.coresUsed / yaml_job.nodesUsed, yaml_job.runtimeSeconds);
-            job_manager->submitJob(job, this->compute_service, service_specific_args);
-
-            // Save job for future analysis
-            this->compound_jobs[yaml_job.id] = std::make_pair(yaml_job, job);
         }
 
-        WRENCH_INFO("All jobs submitted to the BatchComputeService - Waiting for execution events");
-        auto nb_jobs = this->compound_jobs.size();
-        for (size_t i = 0; i < nb_jobs; i++) {
+        // Process any remaining events (number unknown, depends on jobs runtime vs simulation sleep between jobs)
+        while (processed_events < total_events) {
             this->waitForAndProcessNextEvent();
+            processed_events += 1;
         }
 
         WRENCH_INFO("Controller execution complete");
@@ -146,8 +153,10 @@ namespace storalloc {
 
                 if (a->getState() != wrench::Action::State::COMPLETED) {
                     wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
-                    WRENCH_WARN("Action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
-                    WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
+                    WRENCH_WARN("Error for action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+                    if (a->getFailureCause()) {
+                        WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
+                    }
                     wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
                     all_good = false;
                 }
@@ -157,19 +166,14 @@ namespace storalloc {
         return all_good;
     }
 
-    std::shared_ptr<wrench::CompoundJob> Controller::createJob(const storalloc::YamlJob &yJob, storalloc::JobType jobType) {
-
-        // Cleanup our temporary variables
-        this->current_yaml_job = yJob;
-        this->actions.clear();
+    void Controller::submitJob() {
 
         WRENCH_DEBUG("# New Job - SUBMISSION TIME = %s", this->current_yaml_job.submissionTime.c_str());
-
-        WRENCH_DEBUG("# Sleeping in simulation for = %d s", this->current_yaml_job.sleepSimulationSeconds);
-        simulation->sleep(this->current_yaml_job.sleepSimulationSeconds); // Replace with timer ?
+        auto yJob = this->current_yaml_job;
+        auto jobType = storalloc::ReadComputeWrite; // hardcoded jobtype for now.
 
         auto job = this->job_manager->createCompoundJob(yJob.id);
-        WRENCH_DEBUG(" # Job created with ID %s", this->current_yaml_job.id.c_str());
+        WRENCH_DEBUG(" # Job created with ID %s", yJob.id.c_str());
         this->current_job = job;
 
         if (jobType == storalloc::JobType::ReadComputeWrite) {
@@ -187,7 +191,18 @@ namespace storalloc {
             this->cleanupOutput(output_data);
         } // ...
 
-        return job;
+        // Submit job
+        std::map<std::string, std::string> service_specific_args =
+            {{"-N", std::to_string(yJob.nodesUsed)},                  // nb of nodes
+             {"-c", std::to_string(yJob.coresUsed / yJob.nodesUsed)}, // core per node
+             {"-t", std::to_string(yJob.walltimeSeconds)}};           // seconds
+        WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
+                     job->getName().c_str(),
+                     yJob.nodesUsed, yJob.coresUsed / yJob.nodesUsed, yJob.walltimeSeconds);
+        job_manager->submitJob(job, this->compute_service, service_specific_args);
+
+        // Save job for future analysis
+        this->compound_jobs[yJob.id] = std::make_pair(yJob, job);
     }
 
     std::shared_ptr<wrench::DataFile> Controller::copyFromPermanent() {
@@ -332,6 +347,10 @@ namespace storalloc {
         WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
 
         // Extract relevant informations from job and write them to file / send them to DB ?
+    }
+
+    void Controller::processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) {
+        this->submitJob();
     }
 
     /**
