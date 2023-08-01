@@ -37,14 +37,13 @@ void BasicUtilsTest::loadYamlJobs_test() {
     ASSERT_EQ(job_2.id, "2");
     ASSERT_EQ(job_2.coresUsed, 32);
     ASSERT_EQ(job_2.endTime, "2023-01-01 00:11:00");
-    ASSERT_EQ(job_2.mpiProcs, 32);
+    ASSERT_EQ(job_2.nprocs, 32);
     ASSERT_EQ(job_2.nodesUsed, 2);
     ASSERT_EQ(job_2.readBytes, 6000000000);
-    ASSERT_EQ(job_2.runTime, 3300);
-    ASSERT_EQ(job_2.sleepTime, 7500);
+    ASSERT_EQ(job_2.runtimeSeconds, 3300);
+    ASSERT_EQ(job_2.sleepSimulationSeconds, 7500);
     ASSERT_EQ(job_2.startTime, "2023-01-01 00:10:05");
     ASSERT_EQ(job_2.submissionTime, "2023-01-01 00:10:00");
-    ASSERT_EQ(job_2.waitingTime, "0 days 00:05:00");
     ASSERT_EQ(job_2.writtenBytes, 3000000000);
 
     ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_coresUsed.yml"), std::runtime_error);

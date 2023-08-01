@@ -10,7 +10,7 @@ general:
   backbone_bw: 240GBps    # Actual backbone is 9 TB/s at ALCF, but Theta theta-fs0 storage is capped at 240 GBps 
   config_version: 0.0.1
   config_name: StorAlloc_Theta_Lustre_fs0
-  max_stripe_size: 1048576    # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
+  max_stripe_size: 1000048576    # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
   permanent_storage_read_bw: 90GBps   # ALCF Tape archive cache speed / and also the link between HDR and FDR is 100GBps
   permanent_storage_write_bw: 90GBps  # Same
   permanent_storage_capacity: 3050TB  # Tape capacity is 305 PB
@@ -52,5 +52,5 @@ lustre:
   lq_threshold_rr: 43  # lustre default
   lq_prio_free: 232    # lustre default
   max_nb_ost: 56
-  stripe_size: 1048576 # default from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
+  stripe_size: 1000048576 # default from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
 ...

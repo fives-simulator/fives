@@ -42,11 +42,13 @@ namespace storalloc {
     protected:
         virtual int main() override;
 
+        virtual void processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) override;
+
         virtual void processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent>) override;
 
         virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
 
-        virtual std::shared_ptr<wrench::CompoundJob> createJob(const storalloc::YamlJob &yaml_job, storalloc::JobType jobType);
+        virtual void submitJob();
 
         virtual std::shared_ptr<wrench::DataFile> copyFromPermanent();
 

@@ -179,7 +179,7 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(double fil
 
     // How many stripes we need in total, considering total file size and default stripe_size.
     ret_striping.stripes_count = std::ceil(file_size_b / this->config->lustre.stripe_size);
-    ret_striping.stripes_per_ost = 1;
+    ret_striping.stripes_per_ost = 1; // hardcoded, but needs more thoughts
 
     if (file_size_b > this->config->lustre.stripe_size) {
         if (ret_striping.stripes_count > number_of_OSTs) {

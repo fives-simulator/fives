@@ -34,20 +34,21 @@ namespace storalloc {
         std::string id;
         int nprocs;
         int coresUsed;
-        int coresHoursReq;
-        int coresHoursUsed;
+        double coreHoursReq;
+        double coreHoursUsed;
         int nodesUsed;
         long readBytes;
         long writtenBytes;
         int runtimeSeconds;
+        int walltimeSeconds;
         int waitingTimeSeconds;
         int sleepSimulationSeconds;
         std::string submissionTime;
         std::string startTime;
         std::string endTime;
-        float readTimeSeconds;
-        float writeTimeSeconds;
-        float metaTimeSeconds;
+        double readTimeSeconds;
+        double writeTimeSeconds;
+        double metaTimeSeconds;
     };
 
     bool operator==(const YamlJob &lhs, const YamlJob &rhs);
