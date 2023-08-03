@@ -34,12 +34,14 @@ bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJ
         lhs.writeTimeSeconds == rhs.writeTimeSeconds &&
         lhs.metaTimeSeconds == rhs.metaTimeSeconds &&
         lhs.runtimeSeconds == rhs.runtimeSeconds &&
+        lhs.approxComputeTimeSeconds == rhs.approxComputeTimeSeconds &&
         lhs.walltimeSeconds == rhs.walltimeSeconds &&
         lhs.waitingTimeSeconds == rhs.waitingTimeSeconds &&
         lhs.sleepSimulationSeconds == rhs.sleepSimulationSeconds &&
         lhs.startTime == rhs.startTime &&
         lhs.endTime == rhs.endTime &&
-        lhs.submissionTime == rhs.submissionTime);
+        lhs.submissionTime == rhs.submissionTime &&
+        lhs.model == rhs.model);
 }
 
 YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &rhs) {
@@ -60,6 +62,7 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
     node.push_back(rhs.metaTimeSeconds);
 
     node.push_back(rhs.runtimeSeconds);
+    node.push_back(rhs.approxComputeTimeSeconds);
     node.push_back(rhs.waitingTimeSeconds);
     node.push_back(rhs.walltimeSeconds);
     node.push_back(rhs.sleepSimulationSeconds);
@@ -68,12 +71,15 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
     node.push_back(rhs.startTime);
     node.push_back(rhs.endTime);
 
+    node.push_back(storalloc::JobTypeTranslations[rhs.model]);
+
     return node;
 }
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc::YamlJob &rhs) {
 
-    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 18) {
+    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 20) {
+        std::cerr << "Invalid node format or incorrect number of keys in node map" << std::endl;
         return false;
     }
 
@@ -109,6 +115,9 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
         return false;
     }
 
+    // Computed approximate compute time (based on runtime - Darshan traced IO time)
+    rhs.approxComputeTimeSeconds = node["approxComputeTimeSeconds"].as<double>();
+
     // Waiting time between job submission and start
     rhs.waitingTimeSeconds = node["waitingTimeSeconds"].as<int>();
     // Waiting time before submitting this job after the previous one was submitted
@@ -119,6 +128,21 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     rhs.submissionTime = node["submissionTime"].as<std::string>();
     rhs.startTime = node["startTime"].as<std::string>();
     rhs.endTime = node["endTime"].as<std::string>();
+
+    auto model_str = node["model"].as<std::string>();
+
+    if (model_str == "RCW") {
+        rhs.model = storalloc::JobType::ReadComputeWrite;
+    } else if (model_str == "RC") {
+        rhs.model = storalloc::JobType::ReadCompute;
+    } else if (model_str == "CW") {
+        rhs.model = storalloc::JobType::ComputeWrite;
+    } else if (model_str == "C") {
+        rhs.model = storalloc::JobType::Compute;
+    } else {
+        std::cerr << "Invalide job model for job " << node["id"] << std::endl;
+        return false;
+    }
 
     return true;
 }

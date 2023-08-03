@@ -153,6 +153,7 @@ int storalloc::run_simulation(int argc, char **argv) {
 
     // Extract traces
     ctrl->extractSSSIO();
+    ctrl->processCompletedJobs();
 
     return 0;
 }

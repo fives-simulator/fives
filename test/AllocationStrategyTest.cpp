@@ -979,7 +979,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
         }
 
         if (auto c_action = std::dynamic_pointer_cast<wrench::ComputeAction>(action)) {
-            ASSERT_EQ(c_action->getFlops(), 7221794649062500); // 1000 GFlops, this is the current default, but it will change and break the test soon
+            ASSERT_EQ(c_action->getFlops(), 7150000000000000); // 1000 GFlops, this is the current default, but it will change and break the test soon
         }
 
         if (auto d_action = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {

@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.20)
 message(STATUS "Cmake version ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
 project(storalloc_wrench)
 set(STORALLOC_VERSION_MAJOR "0")
 set(STORALLOC_VERSION_MINOR "0")
-set(STORALLOC_VERSION_PATCH "1")
+set(STORALLOC_VERSION_PATCH "2")
 set(STORALLOC_VERSION_EXTRA "dev")
 
 add_definitions("-Wall -Wno-unused-variable -Wno-unused-private-field")

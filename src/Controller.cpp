@@ -176,7 +176,7 @@ namespace storalloc {
         WRENCH_DEBUG(" # Job created with ID %s", yJob.id.c_str());
         this->current_job = job;
 
-        if (jobType == storalloc::JobType::ReadComputeWrite) {
+        if (this->current_yaml_job.model == storalloc::JobType::ReadComputeWrite) {
             auto input_data = this->copyFromPermanent();
             this->readFromTemporary(input_data);
             this->compute();
@@ -184,12 +184,19 @@ namespace storalloc {
             this->copyToPermanent(output_data);
             this->cleanupInput(input_data);
             this->cleanupOutput(output_data);
-        } else if (jobType == storalloc::JobType::ComputeWrite) {
+        } else if (this->current_yaml_job.model == storalloc::JobType::ComputeWrite) {
             this->compute();
             auto output_data = this->writeToTemporary();
             this->copyToPermanent(output_data);
             this->cleanupOutput(output_data);
-        } // ...
+        } else if (this->current_yaml_job.model == storalloc::JobType::ReadCompute) {
+            auto input_data = this->copyFromPermanent();
+            this->readFromTemporary(input_data);
+            this->compute();
+            this->cleanupInput(input_data);
+        } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
+            this->compute();
+        }
 
         // Submit job
         std::map<std::string, std::string> service_specific_args =
@@ -250,15 +257,9 @@ namespace storalloc {
         // % of available compute resources used by the job and its execution time (minor a factor of the time spend in IO ?)
         auto cores_per_node = this->current_yaml_job.coresUsed / this->current_yaml_job.nodesUsed;
 
-        auto io_time = (this->current_yaml_job.writeTimeSeconds +
-                        this->current_yaml_job.readTimeSeconds +
-                        this->current_yaml_job.metaTimeSeconds) /
-                       this->current_yaml_job.nprocs;
-        auto compute_time = this->current_yaml_job.runtimeSeconds - io_time;
-
         auto computeAction = this->current_job->addComputeAction(
             "compute_" + this->current_yaml_job.id,
-            this->flopRate * compute_time,
+            this->flopRate * this->current_yaml_job.approxComputeTimeSeconds,
             16 * GBYTE,
             cores_per_node, cores_per_node,
             wrench::ParallelModel::AMDAHL(0.8));
@@ -449,31 +450,41 @@ namespace storalloc {
             const auto &yaml_job = job_pair.first;
             const auto job = job_pair.second;
 
-            out << YAML::BeginMap; // Job map
-
-            auto job_uid = job->getName();
-            WRENCH_DEBUG("In job %s", job_uid.c_str());
-            auto job_id = job_uid.substr(0, job_uid.find("-"));
-            out << YAML::Key << "job_uid" << YAML::Value << job_uid;
-            out << YAML::Key << "job_id" << YAML::Value << job_id; // for use in group-by
-            out << YAML::Key << "job_status" << YAML::Value << job->getStateAsString();
-            out << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
-            out << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
-            out << YAML::Key << "job_duration" << YAML::Value << (job->getEndDate() - job->getSubmitDate());
-            out << YAML::Key << "origin_runtime" << YAML::Value << yaml_job.runtimeSeconds;
-            out << YAML::Key << "origin_read_bytes" << YAML::Value << yaml_job.readBytes;
-            out << YAML::Key << "origin_written_bytes" << YAML::Value << yaml_job.writtenBytes;
-            out << YAML::Key << "origin_core_used" << YAML::Value << yaml_job.coresUsed;
-            out << YAML::Key << "origin_mpi_procs" << YAML::Value << yaml_job.nprocs;
-            out << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
-
-            out << YAML::Key << "job_actions" << YAML::Value << YAML::BeginSeq; // action sequence
             auto actions = job->getActions();
             auto set_cmp = [](const std::shared_ptr<wrench::Action> &a, const std::shared_ptr<wrench::Action> &b) {
                 return (a->getStartDate() < b->getStartDate());
             };
             auto sorted_actions = std::set<std::shared_ptr<wrench::Action>, decltype(set_cmp)>(set_cmp);
             sorted_actions.insert(actions.begin(), actions.end());
+
+            out << YAML::BeginMap; // Job map
+
+            auto job_uid = job->getName();
+            WRENCH_DEBUG("In job %s", job_uid.c_str());
+            // auto job_id = job_uid.substr(0, job_uid.find("-"));
+            out << YAML::Key << "job_uid" << YAML::Value << job_uid;
+            // out << YAML::Key << "job_id" << YAML::Value << job_id; // for use in group-by
+            out << YAML::Key << "job_status" << YAML::Value << job->getStateAsString();
+            out << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
+            out << YAML::Key << "job_start_ts" << YAML::Value << sorted_actions.begin()->get()->getStartDate();
+            auto waiting_time = sorted_actions.begin()->get()->getStartDate() - job->getSubmitDate();
+            if (waiting_time <= 0.001)
+                waiting_time = 0;
+            out << YAML::Key << "job_waiting_time_s" << YAML::Value << waiting_time;
+            out << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
+            out << YAML::Key << "job_runtime_s" << YAML::Value << (job->getEndDate() - job->getSubmitDate());
+            out << YAML::Key << "real_runtime_s" << YAML::Value << yaml_job.runtimeSeconds;
+            out << YAML::Key << "real_read_bytes" << YAML::Value << yaml_job.readBytes;
+            out << YAML::Key << "real_written_bytes" << YAML::Value << yaml_job.writtenBytes;
+            out << YAML::Key << "real_core_used" << YAML::Value << yaml_job.coresUsed;
+            out << YAML::Key << "real_mpi_procs" << YAML::Value << yaml_job.nprocs;
+            out << YAML::Key << "real_waiting_time_s" << YAML::Value << yaml_job.waitingTimeSeconds;
+            out << YAML::Key << "real_readTime_s" << YAML::Value << yaml_job.readTimeSeconds;
+            out << YAML::Key << "real_writeTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
+            out << YAML::Key << "real_metaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
+            out << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
+
+            out << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq; // action sequence
 
             for (const auto &action : sorted_actions) {
 
@@ -499,8 +510,9 @@ namespace storalloc {
                     auto usedLocation = fileRead->getUsedFileLocation();
                     auto usedFile = usedLocation->getFile();
 
-                    auto read_trace = this->compound_storage_service->read_traces[usedFile->getID()];
-                    out << YAML::Key << "parts_count" << YAML::Value << read_trace.internal_locations.size();
+                    // auto read_trace = this->compound_storage_service->read_traces[usedFile->getID()];
+                    // out << YAML::Key << "parts_count" << YAML::Value << read_trace.internal_locations.size();
+                    /*
                     out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
                     for (const auto &trace_loc : read_trace.internal_locations) {
                         out << YAML::BeginMap;
@@ -512,10 +524,11 @@ namespace storalloc {
                         out << YAML::EndMap;
                     }
                     out << YAML::EndSeq;
+                    */
 
-                    out << YAML::Key << "css" << YAML::Value << usedLocation->getStorageService()->getName();
-                    out << YAML::Key << "css_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
-                    out << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
+                    // out << YAML::Key << "css" << YAML::Value << usedLocation->getStorageService()->getName();
+                    // out << YAML::Key << "css_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
+                    // out << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
                     out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
 
@@ -525,6 +538,8 @@ namespace storalloc {
 
                     auto write_trace = this->compound_storage_service->write_traces[usedFile->getID()];
                     out << YAML::Key << "parts_count" << YAML::Value << write_trace.internal_locations.size();
+
+                    /*
                     out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
                     for (const auto &trace_loc : write_trace.internal_locations) {
                         out << YAML::BeginMap;
@@ -536,11 +551,12 @@ namespace storalloc {
                         out << YAML::EndMap;
                     }
                     out << YAML::EndSeq;
+                    */
 
-                    out << YAML::Key << "css" << YAML::Value << usedLocation->getStorageService()->getName();
-                    out << YAML::Key << "css_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
+                    // out << YAML::Key << "css" << YAML::Value << usedLocation->getStorageService()->getName();
+                    // out << YAML::Key << "css_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
                     // out << YAML::Key << "dst_storage_disk" << YAML::Value << usedLocation->getMountPoint();
-                    out << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
+                    // out << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
                     out << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                     out << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
 
@@ -580,6 +596,7 @@ namespace storalloc {
 
                     auto copy_trace = this->compound_storage_service->copy_traces[css->getFile()->getID()];
                     out << YAML::Key << "parts_count" << YAML::Value << copy_trace.internal_locations.size();
+                    /*
                     out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
                     for (const auto &trace_loc : copy_trace.internal_locations) {
                         out << YAML::BeginMap;
@@ -591,6 +608,7 @@ namespace storalloc {
                         out << YAML::EndMap;
                     }
                     out << YAML::EndSeq;
+                    */
 
                     out << YAML::Key << "sss" << YAML::Value << sss->getStorageService()->getName();
                     out << YAML::Key << "sss_server" << YAML::Value << sss->getStorageService()->getHostname();
@@ -641,6 +659,7 @@ namespace storalloc {
 
                         auto delete_trace = this->compound_storage_service->delete_traces[usedFile->getID()];
                         out << YAML::Key << "parts_count" << YAML::Value << delete_trace.internal_locations.size();
+                        /*
                         out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
                         for (const auto &trace_loc : delete_trace.internal_locations) {
                             out << YAML::BeginMap;
@@ -652,6 +671,7 @@ namespace storalloc {
                             out << YAML::EndMap;
                         }
                         out << YAML::EndSeq;
+                        */
 
                         for (const auto &trace_loc : delete_trace.internal_locations) {
                             auto keys = updateIoUsageDelete(volume_per_storage_service_disk, trace_loc);
@@ -719,14 +739,14 @@ namespace storalloc {
                 std::string disk_capacity = simple_storage->getDiskForPathOrNull("/")->get_property("size");
                 auto capacity_bytes = wrench::UnitParser::parse_size(disk_capacity.c_str());
 
-                io_ops << ts << ",";                                                                // timestamp
-                io_ops << std::to_string(static_cast<u_int8_t>(alloc.act)) << ",";                  // action code
-                io_ops << simple_storage->getName() << ",";                                         // storage_service_name
-                io_ops << simple_storage->getHostname() << ",";                                     // storage_hostname
-                io_ops << simple_storage->getBaseRootPath() << ",";                                 // disk_id
-                io_ops << capacity_bytes << ",";                                                    // disk_capacity
-                io_ops << disk_usage.free_space << ",";                                             // disk_free_space
-                io_ops << (disk_usage.file_name.empty() ? "NoFile" : disk_usage.file_name) << "\n"; // file_name
+                io_ops << ts << ",";                                               // timestamp
+                io_ops << std::to_string(static_cast<u_int8_t>(alloc.act)) << ","; // action code
+                io_ops << simple_storage->getName() << ",";                        // storage_service_name
+                io_ops << simple_storage->getHostname() << ",";                    // storage_hostname
+                io_ops << simple_storage->getBaseRootPath() << ",";                // disk_id
+                io_ops << capacity_bytes << ",";                                   // disk_capacity
+                io_ops << disk_usage.free_space << ",";                            // disk_free_space
+                // io_ops << (disk_usage.file_name.empty() ? "NoFile" : disk_usage.file_name) << "\n"; // file_name
             }
 
             /*
