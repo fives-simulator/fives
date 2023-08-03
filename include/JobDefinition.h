@@ -22,6 +22,7 @@
 #include <string>
 
 namespace storalloc {
+
     enum JobType {
         ReadComputeWrite,  // Copy data from permanent storage, read, compute, write results, copy results to permanent storage
         ComputeWrite,      // Compute, write results, copy results to permanent storage
@@ -29,6 +30,7 @@ namespace storalloc {
         NReadComputeWrite, // Copy/Read/Compute/Write/Copy cycle n times
         Compute,           // Compute only (or marginal IO)
     };
+    const std::array<std::string, 5> JobTypeTranslations = {"RCW", "CW", "RC", "nRCW", "C"};
 
     struct YamlJob {
         std::string id;
@@ -49,6 +51,8 @@ namespace storalloc {
         double readTimeSeconds;
         double writeTimeSeconds;
         double metaTimeSeconds;
+        double approxComputeTimeSeconds;
+        JobType model;
     };
 
     bool operator==(const YamlJob &lhs, const YamlJob &rhs);
