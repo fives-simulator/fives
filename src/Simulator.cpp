@@ -34,18 +34,19 @@ std::set<std::shared_ptr<wrench::StorageService>> storalloc::instantiateStorageS
         }
 
         for (auto i = 0; i < node.qtt; i++) { // qtt of each type
+            auto disk_count = 0;
             for (const auto &mnt_pt : mount_points) {
                 // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
                 sstorageservices.insert(
                     simulation->add(
                         wrench::SimpleStorageService::createSimpleStorageService(
-                            node.tpl.id + std::to_string(i), // ID based on node template and global index
+                            node.tpl.id + std::to_string(i),
                             {mnt_pt}, {}, {})));
             }
         }
     }
 
-    std::cout << "# Using " << sstorageservices.size() << " storage nodes" << std::endl;
+    std::cout << "# Using " << sstorageservices.size() << " storage services" << std::endl;
 
     return sstorageservices;
 }
