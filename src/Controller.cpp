@@ -567,6 +567,7 @@ namespace storalloc {
                         out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
                         out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
                         out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                        out_ss << YAML::Key << "filename" << YAML::Value << trace_loc->getFile()->getID();
                         out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
                         out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
                         out_ss << YAML::Key << "volume_change_bytes" << YAML::Value << usedFile->getSize();
@@ -633,6 +634,7 @@ namespace storalloc {
                             out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
                             out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
                             out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                            out_ss << YAML::Key << "filename" << YAML::Value << trace_loc->getFile()->getID();
                             out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
                             out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
                             out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
@@ -670,7 +672,7 @@ namespace storalloc {
                             out << YAML::Key << "part_size_bytes" << YAML::Value << trace_loc->getFile()->getSize();
                             out << YAML::EndMap;
                         }
-                        out << YAML::EndSeq;
+                        out << YAML::EndSeq;::q
                         */
 
                         for (const auto &trace_loc : delete_trace.internal_locations) {
@@ -679,6 +681,7 @@ namespace storalloc {
                             out_ss << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
                             out_ss << YAML::Key << "action_type" << YAML::Value << act_type;
                             out_ss << YAML::Key << "action_name" << YAML::Value << action->getName();
+                            out_ss << YAML::Key << "filename" << YAML::Value << trace_loc->getFile()->getID();
                             out_ss << YAML::Key << "action_job" << YAML::Value << job_uid;
                             out_ss << YAML::Key << "storage_service" << YAML::Value << keys.first;
                             out_ss << YAML::Key << "disk" << YAML::Value << keys.second;
@@ -746,7 +749,7 @@ namespace storalloc {
                 io_ops << simple_storage->getBaseRootPath() << ",";                // disk_id
                 io_ops << capacity_bytes << ",";                                   // disk_capacity
                 io_ops << disk_usage.free_space << ",";                            // disk_free_space
-                // io_ops << (disk_usage.file_name.empty() ? "NoFile" : disk_usage.file_name) << "\n"; // file_name
+                io_ops << alloc.file_name << "\n";                                 // file_name
             }
 
             /*

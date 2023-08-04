@@ -900,6 +900,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
     // Services
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    ASSERT_EQ(sstorageservices.size(), 16);
     auto allocator = std::make_shared<LustreAllocator>(config);
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
@@ -922,6 +923,8 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_TRUE(ctrl->hasReturnedFromMain());
     ASSERT_TRUE(ctrl->actionsAllCompleted());
 
+    ///  END OF SIMULATION - STARTING TESTS
+
     // Run a few checks at test level ('randomly' using the first test)
     auto job_1 = ctrl->getCompletedJobById("1");
     ASSERT_EQ(job_1->getState(), wrench::CompoundJob::State::COMPLETED);
@@ -930,9 +933,6 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_EQ(job_1->getActions().size(), 11);
     ASSERT_EQ(job_1->getName(), "1");
     ASSERT_EQ(job_1->getMinimumRequiredNumCores(), jobs["1"].coresUsed / jobs["1"].nodesUsed);
-
-    auto actions = job_1->getActions();
-    ASSERT_EQ(actions.size(), 11);
 
     // This is the list of actions, in correct order, that every job should complete (due to the job type used in this test)
     std::vector<std::string> action_types = {
@@ -943,9 +943,6 @@ void FunctionalAllocTest::lustreFullSim_test() {
         "SLEEP-", "FILEDELETE-", "FILEDELETE-", // Clean up output data
     };
 
-    // Check actions from one job in details
-    int index = 0;
-
     /*
     for (const auto &action : ctrl->getCompletedJobById("2")->getActions()) {
         std::cout << "Action : " << action->getName() << " (" << wrench::Action::getActionTypeAsString(action) << ")" << std::endl;
@@ -953,9 +950,18 @@ void FunctionalAllocTest::lustreFullSim_test() {
     }
     */
 
-    for (const auto &action : actions) {
+    // Check actions from one job in details
+    auto job_1_actions = job_1->getActions();
+    ASSERT_EQ(job_1_actions.size(), 11);
+    auto set_cmp = [](const std::shared_ptr<wrench::Action> &a, const std::shared_ptr<wrench::Action> &b) {
+        return (a->getStartDate() < b->getStartDate());
+    };
+    auto sorted_actions = std::set<std::shared_ptr<wrench::Action>, decltype(set_cmp)>(set_cmp);
+    sorted_actions.insert(job_1_actions.begin(), job_1_actions.end());
+    int index = 0;
+    for (const auto &action : sorted_actions) {
 
-        // ASSERT_EQ(wrench::Action::getActionTypeAsString(action), action_types[index]);
+        ASSERT_EQ(wrench::Action::getActionTypeAsString(action), action_types[index]);
 
         if (auto r_action = std::dynamic_pointer_cast<wrench::FileReadAction>(action)) {
             auto file = r_action->getFile();
@@ -1002,16 +1008,6 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_EQ(first_ts, 0);                                               // Simulation starts at 0s here (no waiting time for first job)
     ASSERT_NEAR(last_ts, 92500, 1000);                                    // Simulation should end close to 94700s, due to sleep times + last job runtime
     ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 49); // 8 traces * 6 jobs + initial trace
-
-    // That's how many file parts should exist for each actions (accounting for -Start and -End actions)
-    const std::vector<size_t> DISK_USAGE_SIZES = {
-        16,
-        500, 500, 625, 625, 500, 500, 625, 625,
-        150, 150, 75, 75, 150, 150, 75, 75,
-        100, 100, 63, 63, 100, 100, 63, 63,
-        375, 375, 63, 63, 375, 375, 63, 63,
-        100, 100, 63, 63, 100, 100, 63, 63,
-        1000, 1000, 63, 63, 1000, 1000, 63, 63};
 
     // All actions from all 6 jobs in the order in which they should execute (only two jobs slightly overlap)
     std::vector<std::pair<std::string, wrench::IOAction>> action_list = {
@@ -1068,23 +1064,28 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
     // Check first trace (before any job action takes place), it's a special case before any IO happens
     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[0].second.disk_usage) {
+        // std::cout << first_disk_usage.service->getHostname() << " / " << first_disk_usage.service->getName() << " : " << first_disk_usage.free_space << std::endl;
         ASSERT_EQ(first_disk_usage.file_count, 0);
         ASSERT_EQ(first_disk_usage.free_space, 20000000000);
-        ASSERT_EQ(first_disk_usage.file_name, "");
-        // std::cout << first_disk_usage.service->getHostname() << std::endl;
     }
 
     // Checking disk_usage for all traces
     index = 0;
+    auto previous_ts = first_ts;
     std::regex file_name_re("(?:(input)|(output))_data_file_([-\\w]+)_part_(\\d+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
     for (const auto &entry : compound_storage_service->internal_storage_use) {
 
         auto ts = entry.first;     // ts
         auto alloc = entry.second; // AllocationTrace structure
 
-        ASSERT_EQ(alloc.ts, ts);
+        // Order of entries in the trace and coherence between the two timestamp for each entry
+        ASSERT_EQ(ts, alloc.ts);
+        ASSERT_GE(ts, previous_ts);
+        previous_ts = ts;
 
         /*
+        std::cout << " INDEX " << index << std::endl;
+        std::cout << "## " << alloc.file_name << std::endl;
         if ((entry.second.act == wrench::IOAction::CopyFromStart) or (entry.second.act == wrench::IOAction::CopyFromEnd)) {
             std::cout << "# CopyFrom" << std::endl;
         }
@@ -1097,21 +1098,17 @@ void FunctionalAllocTest::lustreFullSim_test() {
         if ((entry.second.act == wrench::IOAction::DeleteStart) or (entry.second.act == wrench::IOAction::DeleteEnd)) {
             std::cout << "# Delete" << std::endl;
         }
-
-        std::cout << alloc.disk_usage.size() << std::endl;
         */
 
-        if (index > 0) {
-            ASSERT_EQ(entry.second.act, action_list[index].second);
-            ASSERT_EQ(alloc.disk_usage.size(), DISK_USAGE_SIZES[index]);
-        }
+        ASSERT_EQ(entry.second.act, action_list[index].second);
+        ASSERT_EQ(alloc.disk_usage.size(), 16);
 
         // Check correct initial values for all storage services at step 0
         if (index == 0) {
-            ASSERT_EQ(alloc.disk_usage.size(), 16);
-            for (const auto &disk_usage : alloc.disk_usage) {
-                ASSERT_EQ(disk_usage.file_count, 0);
-                ASSERT_EQ(disk_usage.free_space, 20000000000);
+            for (const auto &usage : alloc.disk_usage) {
+                std::cout << usage.service->getHostname() << " / " << usage.service->getName() << " : " << usage.free_space << std::endl;
+                ASSERT_EQ(usage.file_count, 0);
+                ASSERT_EQ(usage.free_space, 20000000000);
             }
         }
 
@@ -1119,30 +1116,33 @@ void FunctionalAllocTest::lustreFullSim_test() {
         // std::cout << " -- Free space on " << alloc.disk_usage[3].service->getName() << " : " << alloc.disk_usage[3].free_space << std::endl;
 
         // Look into file names from all disk_usage structures (this gives for instance the job ID associated with each trace)
-        for (const auto &disk_usage : alloc.disk_usage) {
-            auto file_name = disk_usage.file_name;
-            std::smatch base_match;
-            std::string input, output, job_id, file_part;
-            std::regex_match(file_name, base_match, file_name_re);
 
-            if (!file_name.empty()) {
-                if (base_match.size() == 5) {
-                    input = base_match[1].str();
-                    output = base_match[2].str();
-                    job_id = base_match[3].str();
-                    file_part = base_match[4].str();
-                    // std::cout << input << "|" << output << "|" << job_id << "|" << file_part << std::endl;
+        auto file_name = alloc.file_name;
+        std::smatch base_match;
+        std::string input, output, job_id, file_part;
+        std::regex_match(file_name, base_match, file_name_re);
+
+        if (!file_name.empty()) {
+            if (base_match.size() == 5) {
+                input = base_match[1].str();
+                output = base_match[2].str();
+                job_id = base_match[3].str();
+                file_part = base_match[4].str();
+                // std::cout << input << "|" << output << "|" << job_id << "|" << file_part << std::endl;
+                ASSERT_EQ(job_id, action_list[index].first);
+            } else {
+                if (file_name == "nofile") {
+                    index++;
+                    continue;
                 } else {
                     std::cout << "Unable to parse file name " << file_name << std::endl;
                     GTEST_FAIL();
                 }
-
-                ASSERT_EQ(job_id, action_list[index].first);
-
-                // Find associated job
-                auto current_job = jobs[job_id];
-                /* TODO: MORE TESTS HERE */
             }
+
+            // Find associated job
+            auto current_job = jobs[job_id];
+            /* TODO: MORE TESTS HERE */
         }
 
         index++;
@@ -1158,13 +1158,14 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
         ASSERT_NEAR(first_disk_usage.file_count, 10, 1);                 // 9 or 10 files part per server after copying input data and writing output data (~6 + 4)
         ASSERT_NEAR(first_disk_usage.free_space, 19600000000, 40000000); // each file part is 40 MB
-
-        std::smatch base_match;
-        auto parsed_filename = std::regex_match(first_disk_usage.file_name, base_match, file_name_re);
-        ASSERT_EQ(base_match[2].str(), "output");
-        ASSERT_EQ(base_match[3].str(), "3");
-        ASSERT_LT(stoi(base_match[4].str()), 100);
     }
+
+    auto alloc_filename = compound_storage_service->internal_storage_use[20].second.file_name;
+    std::smatch base_match1;
+    std::regex_match(alloc_filename, base_match1, file_name_re);
+    ASSERT_EQ(base_match1[2].str(), "output");
+    ASSERT_EQ(base_match1[3].str(), "3");
+    ASSERT_LT(stoi(base_match1[4].str()), 100);
 
     // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd)
     ASSERT_EQ(compound_storage_service->internal_storage_use[8].second.act, wrench::IOAction::DeleteEnd);
@@ -1174,13 +1175,14 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
         ASSERT_EQ(first_disk_usage.file_count, 0);
         ASSERT_EQ(first_disk_usage.free_space, 20000000000);
-
-        std::smatch base_match;
-        auto parsed_filename = std::regex_match(first_disk_usage.file_name, base_match, file_name_re);
-        ASSERT_EQ(base_match[2].str(), "output");
-        ASSERT_EQ(base_match[3].str(), "1");
-        ASSERT_LT(stoi(base_match[4].str()), 625);
     }
+
+    alloc_filename = compound_storage_service->internal_storage_use[8].second.file_name;
+    std::smatch base_match2;
+    std::regex_match(alloc_filename, base_match2, file_name_re);
+    ASSERT_EQ(base_match2[2].str(), "output");
+    ASSERT_EQ(base_match2[3].str(), "1");
+    ASSERT_LT(stoi(base_match2[4].str()), 625);
 
     // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd, )
     ASSERT_EQ(compound_storage_service->internal_storage_use[34].second.act, wrench::IOAction::CopyToEnd);
@@ -1190,11 +1192,12 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
         ASSERT_NEAR(first_disk_usage.file_count, 7, 1);
         ASSERT_NEAR(first_disk_usage.free_space, 19720000000, 40000000);
-
-        std::smatch base_match;
-        auto parsed_filename = std::regex_match(first_disk_usage.file_name, base_match, file_name_re);
-        ASSERT_EQ(base_match[1].str(), "input");
-        ASSERT_EQ(base_match[3].str(), "5");
-        ASSERT_LT(stoi(base_match[4].str()), 100);
     }
+
+    alloc_filename = compound_storage_service->internal_storage_use[34].second.file_name;
+    std::smatch base_match3;
+    std::regex_match(alloc_filename, base_match3, file_name_re);
+    ASSERT_EQ(base_match3[1].str(), "input");
+    ASSERT_EQ(base_match3[3].str(), "5");
+    ASSERT_LT(stoi(base_match3[4].str()), 100);
 }
