@@ -33,11 +33,11 @@ namespace storalloc {
 
         std::shared_ptr<wrench::CompoundJob> getCompletedJobById(std::string id);
 
-        virtual void processCompletedJobs();
+        virtual void processCompletedJobs(const std::string &jobsFilename, const std::string &config_version);
 
         virtual bool actionsAllCompleted();
 
-        virtual void extractSSSIO();
+        virtual void extractSSSIO(const std::string &jobsFilename, const std::string &configVersion);
 
     protected:
         virtual int main() override;
