@@ -78,7 +78,7 @@ if(GTEST_LIBRARY)
   add_definitions(-DGTEST_USED)
 
   add_executable(
-    unit_test
+    unit_tests
     EXCLUDE_FROM_ALL
     test/main.cpp
     test/FunctionalTest.cpp
@@ -89,13 +89,13 @@ if(GTEST_LIBRARY)
     ${SOURCE_FILES}
   )
   target_link_libraries(
-    unit_test
+    unit_tests
     ${GTEST_LIBRARY}
     ${WRENCH_LIBRARY} ${SimGrid_LIBRARY} ${PUGIXML_LIBRARY} ${YAML_CPP_LIBRARY}
   )
 
-  set_target_properties(unit_test PROPERTIES COMPILE_FLAGS "-g -O0 --coverage")
-  set_target_properties(unit_test PROPERTIES LINK_FLAGS "--coverage")
-  add_custom_command(TARGET unit_test COMMAND find . -name *.gcda -delete)
+  set_target_properties(unit_tests PROPERTIES COMPILE_FLAGS "-g -O0 --coverage")
+  set_target_properties(unit_tests PROPERTIES LINK_FLAGS "--coverage")
+  add_custom_command(TARGET unit_tests COMMAND find . -name *.gcda -delete)
 
 endif()

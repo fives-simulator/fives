@@ -86,9 +86,17 @@ int storalloc::run_simulation(int argc, char **argv) {
 
     // Load Compute and Storage configuration
     auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(argv[1]));
+    std::string configFilename = argv[1];
+    auto start = configFilename.find_last_of("/") + 1;
+    configFilename = configFilename.substr(start, configFilename.find_last_of(".") - start);
+    std::cout << "Config filename (no ext) : " << configFilename << std::endl;
 
     /* Loading jobs */
     auto jobs = storalloc::loadYamlJobs(argv[2]);
+    std::string jobFilename = argv[2];
+    start = jobFilename.find_last_of("/") + 1;
+    jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
+    std::cout << "Jobs filename (no ext) : " << jobFilename << std::endl;
 
     /* Create a WRENCH simulation object */
     auto simulation = wrench::Simulation::createSimulation();
@@ -138,7 +146,6 @@ int storalloc::run_simulation(int argc, char **argv) {
     // auto storage_host = sg4::Host::by_name("compound_storage");
     // auto consummed = sg_host_get_consumed_energy(storage_host);
     // std::cout << "Energy consumed : " << consummed << std::endl;
-
     // simulation->getOutput().dumpDiskOperationsJSON("./wrench_disk_ops.json", true);
     // simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
 
@@ -152,9 +159,9 @@ int storalloc::run_simulation(int argc, char **argv) {
         std::cout << "Some actions have failed" << std::endl;
     }
 
-    // Extract traces
-    ctrl->extractSSSIO();
-    ctrl->processCompletedJobs();
+    // Extract traces into files tagged with dataset and config version.
+    ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version);
+    ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version);
 
     return 0;
 }
