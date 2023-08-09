@@ -27,14 +27,15 @@ namespace storalloc {
         ReadComputeWrite,  // Copy data from permanent storage, read, compute, write results, copy results to permanent storage
         ComputeWrite,      // Compute, write results, copy results to permanent storage
         ReadCompute,       // Copy from permanent storage, read, compute
+        ReadWrite,         // For a few jobs having large IO but marginal compute time (or incorrectly computed )
         NReadComputeWrite, // Copy/Read/Compute/Write/Copy cycle n times
         Compute,           // Compute only (or marginal IO)
     };
-    const std::array<std::string, 5> JobTypeTranslations = {"RCW", "CW", "RC", "nRCW", "C"};
+    const std::array<std::string, 6> JobTypeTranslations = {"RCW", "CW", "RC", "RW", "nRCW", "C"};
 
     struct YamlJob {
         std::string id;
-        int nprocs;
+        // int nprocs;
         int coresUsed;
         double coreHoursReq;
         double coreHoursUsed;
