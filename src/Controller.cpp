@@ -196,6 +196,15 @@ namespace storalloc {
             this->cleanupInput(input_data);
         } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
             this->compute();
+        } else if (this->current_yaml_job.model == storalloc::JobType::ReadWrite) {
+            auto input_data = this->copyFromPermanent();
+            this->readFromTemporary(input_data);
+            auto output_data = this->writeToTemporary();
+            this->copyToPermanent(output_data);
+            this->cleanupInput(input_data);
+            this->cleanupOutput(output_data);
+        } else {
+            throw std::runtime_error("Unknown job model for job " + yJob.id);
         }
 
         // Submit job
@@ -480,12 +489,13 @@ namespace storalloc {
             out_jobs << YAML::Key << "real_runtime_s" << YAML::Value << yaml_job.runtimeSeconds;
             out_jobs << YAML::Key << "real_read_bytes" << YAML::Value << yaml_job.readBytes;
             out_jobs << YAML::Key << "real_written_bytes" << YAML::Value << yaml_job.writtenBytes;
-            out_jobs << YAML::Key << "real_core_used" << YAML::Value << yaml_job.coresUsed;
-            out_jobs << YAML::Key << "real_mpi_procs" << YAML::Value << yaml_job.nprocs;
+            out_jobs << YAML::Key << "real_cores_used" << YAML::Value << yaml_job.coresUsed;
+            // out_jobs << YAML::Key << "real_mpi_procs" << YAML::Value << yaml_job.nprocs;
             out_jobs << YAML::Key << "real_waiting_time_s" << YAML::Value << yaml_job.waitingTimeSeconds;
-            out_jobs << YAML::Key << "real_readTime_s" << YAML::Value << yaml_job.readTimeSeconds;
-            out_jobs << YAML::Key << "real_writeTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
-            out_jobs << YAML::Key << "real_metaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
+            out_jobs << YAML::Key << "real_cReadTime_s" << YAML::Value << yaml_job.readTimeSeconds;
+            out_jobs << YAML::Key << "real_cWriteTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
+            out_jobs << YAML::Key << "real_cMetaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
+            out_jobs << YAML::Key << "approx_cComputeTime_s" << YAML::Value << yaml_job.approxComputeTimeSeconds;
             out_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
 
             out_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq; // action sequence

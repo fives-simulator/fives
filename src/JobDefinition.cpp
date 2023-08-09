@@ -23,7 +23,7 @@
 bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJob &rhs) {
     return (
         lhs.id == rhs.id &&
-        lhs.nprocs == rhs.nprocs &&
+        // lhs.nprocs == rhs.nprocs &&
         lhs.coresUsed == rhs.coresUsed &&
         lhs.coreHoursReq == rhs.coreHoursReq &&
         lhs.coreHoursUsed == rhs.coreHoursUsed &&
@@ -48,7 +48,7 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
 
     YAML::Node node;
     node.push_back(rhs.id);
-    node.push_back(rhs.nprocs);
+    // node.push_back(rhs.nprocs);
 
     node.push_back(rhs.coresUsed);
     node.push_back(rhs.coreHoursReq);
@@ -78,17 +78,17 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc::YamlJob &rhs) {
 
-    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 20) {
+    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 19) {
         std::cerr << "Invalid node format or incorrect number of keys in node map" << std::endl;
         return false;
     }
 
     rhs.id = node["id"].as<std::string>();
-    rhs.nprocs = node["nprocs"].as<int>();
-    if (rhs.nprocs <= 0) {
-        std::cerr << "nprocs <= 0 on node " << node["id"] << std::endl;
-        return false;
-    }
+    // rhs.nprocs = node["nprocs"].as<int>();
+    //  if (rhs.nprocs <= 0) {
+    //     std::cerr << "nprocs <= 0 on node " << node["id"] << std::endl;
+    //     return false;
+    //  }
     rhs.coresUsed = node["coresUsed"].as<int>();
     if (rhs.coresUsed <= 0) {
         std::cerr << "coresUsed <= 0 on node " << node["id"] << std::endl;
@@ -139,6 +139,8 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
         rhs.model = storalloc::JobType::ComputeWrite;
     } else if (model_str == "C") {
         rhs.model = storalloc::JobType::Compute;
+    } else if (model_str == "RW") {
+        rhs.model = storalloc::JobType::ReadWrite;
     } else {
         std::cerr << "Invalide job model for job " << node["id"] << std::endl;
         return false;
