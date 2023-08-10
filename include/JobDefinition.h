@@ -33,6 +33,40 @@ namespace storalloc {
     };
     const std::array<std::string, 6> JobTypeTranslations = {"RCW", "CW", "RC", "RW", "nRCW", "C"};
 
+    /**
+     * @brief Structure for data from the header of the job file,
+     *        which contain statistics over the entire dataset of jobs.
+     *        These stats are useful for creating a few 'preload' jobs before
+     *        replaying the actual dataset, in order to simulate existing load
+     *        on the platform.
+     */
+    struct JobsStats {
+        uint64_t first_ts;
+        uint64_t last_ts;
+        uint64_t duration;
+        uint64_t mean_runtime_s;
+        uint64_t median_runtime_s;
+        uint64_t runtime_s_norm_var;
+        uint64_t max_runtime_s;
+        uint64_t min_runtime_s;
+        int job_count;
+        int mean_cores_used;
+        int mean_nodes_used;
+        int median_cores_used;
+        int median_nodes_used;
+        uint64_t mean_read_bytes;
+        uint64_t mean_written_bytes;
+        uint64_t median_read_bytes;
+        uint64_t median_written_bytes;
+        double mean_jobs_per_hour;
+    };
+
+    bool operator==(const JobsStats &lhs, const JobsStats &rhs);
+
+    /**
+     * @brief Structure for data from each job in the dataset.
+     *
+     */
     struct YamlJob {
         std::string id;
         // int nprocs;
@@ -65,6 +99,12 @@ namespace YAML {
     struct convert<storalloc::YamlJob> {
         static Node encode(const storalloc::YamlJob &rhs);
         static bool decode(const Node &node, storalloc::YamlJob &rhs);
+    };
+
+    template <>
+    struct convert<storalloc::JobsStats> {
+        static Node encode(const storalloc::JobsStats &rhs);
+        static bool decode(const Node &node, storalloc::JobsStats &rhs);
     };
 
 } // namespace YAML

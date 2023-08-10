@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+#include "yaml-cpp/yaml.h"
 #include <simgrid/plugins/energy.h>
 
 #include "AllocationStrategy.h"
@@ -85,15 +86,27 @@ int storalloc::run_simulation(int argc, char **argv) {
     }
 
     // Load Compute and Storage configuration
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(argv[1]));
     std::string configFilename = argv[1];
+    std::shared_ptr<storalloc::Config> config;
+    try {
+        config = std::make_shared<storalloc::Config>(storalloc::loadConfig(configFilename));
+    } catch (const YAML::TypedBadConversion<storalloc::Config> &e) {
+        cout << "ERROR : Unable to load config due to bad type conversion : " << e.what() << std::endl;
+        return 1;
+    } catch (const YAML::InvalidNode &e) {
+        cout << "ERROR : Unable to load config due to invalid config format : " << e.what() << std::endl;
+        return 1;
+    }
+
     auto start = configFilename.find_last_of("/") + 1;
     configFilename = configFilename.substr(start, configFilename.find_last_of(".") - start);
     std::cout << "Config filename (no ext) : " << configFilename << std::endl;
 
     /* Loading jobs */
-    auto jobs = storalloc::loadYamlJobs(argv[2]);
     std::string jobFilename = argv[2];
+    auto header = storalloc::loadYamlHeader(jobFilename);
+
+    auto jobs = storalloc::loadYamlJobs(jobFilename);
     start = jobFilename.find_last_of("/") + 1;
     jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
     std::cout << "Jobs filename (no ext) : " << jobFilename << std::endl;
@@ -136,7 +149,7 @@ int storalloc::run_simulation(int argc, char **argv) {
 
     /* Execution controller */
     auto ctrl = simulation->add(
-        new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
+        new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs));
 
     /* Launch the simulation */
     std::cout << "Launching simulation..." << std::endl;

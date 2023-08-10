@@ -10,9 +10,11 @@ namespace storalloc {
 
     void describe_platform();
 
-    storalloc::Config loadConfig(const std::string &yaml_file_name);
+    Config loadConfig(const std::string &yaml_file_name);
 
-    std::map<std::string, storalloc::YamlJob> loadYamlJobs(const std::string &yaml_file_name);
+    std::map<std::string, YamlJob> loadYamlJobs(const std::string &yaml_file_name);
+
+    JobsStats loadYamlHeader(const std::string &yaml_file_name);
 
 } // namespace storalloc
 
