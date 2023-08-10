@@ -59,10 +59,12 @@ namespace storalloc {
                            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
+                           const storalloc::JobsStats &header,
                            const std::map<std::string, storalloc::YamlJob> &jobs) : ExecutionController(hostname, "controller"),
                                                                                     compute_service(compute_service),
                                                                                     storage_service(storage_service),
                                                                                     compound_storage_service(compound_storage_service),
+                                                                                    preload_header(header),
                                                                                     jobs(jobs) {}
 
     /**
@@ -94,9 +96,9 @@ namespace storalloc {
             this->actions.clear();
 
             WRENCH_DEBUG("# Setting timer for = %d s", this->current_yaml_job.sleepSimulationSeconds);
-            double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + this->current_yaml_job.sleepSimulationSeconds;
+            double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + this->current_yaml_job.sleepSimulationSeconds + 1; // some simulation sleep values are 0, we don't want that
             total_events += 1;
-            this->setTimer(timer_off_date, "SleepBeforeNextJob");
+            this->setTimer(timer_off_date, "SleepBeforeNextJob" + this->current_yaml_job.id);
 
             auto nextSubmission = false;
             while (!nextSubmission) {
@@ -196,14 +198,15 @@ namespace storalloc {
             this->cleanupInput(input_data);
         } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
             this->compute();
-        } else if (this->current_yaml_job.model == storalloc::JobType::ReadWrite) {
+        } /*else if (this->current_yaml_job.model == storalloc::JobType::ReadWrite) {
             auto input_data = this->copyFromPermanent();
             this->readFromTemporary(input_data);
             auto output_data = this->writeToTemporary();
             this->copyToPermanent(output_data);
             this->cleanupInput(input_data);
             this->cleanupOutput(output_data);
-        } else {
+        }*/
+        else {
             throw std::runtime_error("Unknown job model for job " + yJob.id);
         }
 
@@ -353,12 +356,14 @@ namespace storalloc {
      */
     void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
         auto job = event->job;
+        std::cout << "# Notified that compound job " << job->getName() << " has completed" << std::endl;
         WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
 
         // Extract relevant informations from job and write them to file / send them to DB ?
     }
 
     void Controller::processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) {
+        std::cout << "Timer Event : " << timerEvent->toString() << std::endl;
         this->submitJob();
     }
 

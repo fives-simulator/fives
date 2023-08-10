@@ -29,7 +29,8 @@ namespace storalloc {
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
-            const std::map<std::string, storalloc::YamlJob> &jobs);
+            const JobsStats &header,
+            const std::map<std::string, YamlJob> &jobs);
 
         std::shared_ptr<wrench::CompoundJob> getCompletedJobById(std::string id);
 
@@ -65,15 +66,13 @@ namespace storalloc {
         virtual void cleanupOutput(std::shared_ptr<wrench::DataFile> output_data);
 
         // Temporary placeholder for the yaml data of the job being configured
-        storalloc::YamlJob current_yaml_job;
+        YamlJob current_yaml_job;
         // Temporary placeholder for job being configured
         std::shared_ptr<wrench::CompoundJob> current_job;
 
         std::vector<std::shared_ptr<wrench::Action>> actions = {};
 
-        std::map<std::string, std::pair<storalloc::YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
-
-        std::shared_ptr<wrench::JobManager> job_manager;
+        std::map<std::string, std::pair<YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
 
@@ -81,7 +80,11 @@ namespace storalloc {
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
 
+        JobsStats preload_header = {};
+
         const std::map<std::string, storalloc::YamlJob> &jobs;
+
+        std::shared_ptr<wrench::JobManager> job_manager;
 
         double flopRate;
     };

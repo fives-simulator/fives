@@ -86,15 +86,15 @@ storalloc::Config storalloc::loadConfig(const std::string &yaml_file_name) {
 
 std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::string &yaml_file_name) {
 
-    YAML::Node jobs = YAML::LoadFile(yaml_file_name);
-    if (!(jobs["jobs"]) or !(jobs["jobs"].IsSequence())) {
+    YAML::Node dataset = YAML::LoadFile(yaml_file_name);
+    if (!(dataset["jobs"]) or !(dataset["jobs"].IsSequence())) {
         std::cout << "# Invalid job file" << std::endl;
         throw std::invalid_argument("Invalid job file as input data");
     }
 
     std::map<std::string, storalloc::YamlJob> job_list;
     std::string current_id;
-    for (const auto &job : jobs["jobs"]) {
+    for (const auto &job : dataset["jobs"]) {
         try {
             current_id = job["id"].as<std::string>();
             job_list[current_id] = job.as<storalloc::YamlJob>();
@@ -108,4 +108,15 @@ std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::str
     std::cout << "# Loading " << std::to_string(job_list.size()) << " jobs" << std::endl;
 
     return job_list;
+}
+
+storalloc::JobsStats storalloc::loadYamlHeader(const std::string &yaml_file_name) {
+
+    YAML::Node dataset = YAML::LoadFile(yaml_file_name);
+    if (!dataset["preload"]) {
+        std::cout << "# Missing preload header in job file" << std::endl;
+        throw std::invalid_argument("Missing preload header in job file");
+    }
+
+    return dataset["preload"].as<storalloc::JobsStats>();
 }

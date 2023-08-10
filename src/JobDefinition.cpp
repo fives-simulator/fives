@@ -148,3 +148,78 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
 
     return true;
 }
+
+bool storalloc::operator==(const storalloc::JobsStats &lhs, const storalloc::JobsStats &rhs) {
+    // Note; we're note using every structure field here, because it seems overkill..
+    return (
+        lhs.job_count == rhs.job_count &&
+        lhs.first_ts == rhs.first_ts &&
+        lhs.last_ts == rhs.last_ts &&
+        lhs.mean_cores_used == rhs.mean_cores_used &&
+        lhs.mean_nodes_used == rhs.mean_nodes_used &&
+        lhs.median_cores_used == rhs.median_cores_used &&
+        lhs.median_nodes_used == rhs.median_nodes_used &&
+        lhs.mean_read_bytes == rhs.mean_read_bytes &&
+        lhs.mean_written_bytes == rhs.mean_written_bytes &&
+        lhs.median_read_bytes == rhs.median_read_bytes &&
+        lhs.median_written_bytes == rhs.median_written_bytes);
+}
+
+YAML::Node YAML::convert<storalloc::JobsStats>::encode(const storalloc::JobsStats &rhs) {
+
+    YAML::Node node;
+    node.push_back(rhs.first_ts);
+    node.push_back(rhs.last_ts);
+    node.push_back(rhs.duration);
+    node.push_back(rhs.mean_runtime_s);
+    node.push_back(rhs.median_runtime_s);
+    node.push_back(rhs.runtime_s_norm_var);
+    node.push_back(rhs.max_runtime_s);
+    node.push_back(rhs.min_runtime_s);
+    node.push_back(rhs.job_count);
+    node.push_back(rhs.mean_cores_used);
+    node.push_back(rhs.mean_nodes_used);
+    node.push_back(rhs.median_cores_used);
+    node.push_back(rhs.median_nodes_used);
+    node.push_back(rhs.mean_read_bytes);
+    node.push_back(rhs.mean_written_bytes);
+    node.push_back(rhs.median_read_bytes);
+    node.push_back(rhs.median_written_bytes);
+    node.push_back(rhs.mean_jobs_per_hour);
+
+    return node;
+}
+
+bool YAML::convert<storalloc::JobsStats>::decode(const YAML::Node &node, storalloc::JobsStats &rhs) {
+
+    if (!(node.Type() == YAML::NodeType::Map)) {
+        std::cerr << "Invalid node format for dataset (Header)" << std::endl;
+        return false;
+    }
+
+    if (node.size() != 18) {
+        std::cerr << "Incorrect number of keys in node map (header)" << std::endl;
+        return false;
+    }
+
+    rhs.first_ts = node["first_ts"].as<uint64_t>();
+    rhs.last_ts = node["last_ts"].as<uint64_t>();
+    rhs.duration = node["duration"].as<uint64_t>();
+    rhs.mean_runtime_s = node["mean_runtime_s"].as<uint64_t>();
+    rhs.median_runtime_s = node["median_runtime_s"].as<uint64_t>();
+    rhs.runtime_s_norm_var = node["runtime_s_norm_var"].as<uint64_t>();
+    rhs.max_runtime_s = node["max_runtime_s"].as<uint64_t>();
+    rhs.min_runtime_s = node["min_runtime_s"].as<uint64_t>();
+    rhs.job_count = node["job_count"].as<int>();
+    rhs.mean_cores_used = node["mean_cores_used"].as<int>();
+    rhs.mean_nodes_used = node["mean_nodes_used"].as<int>();
+    rhs.median_cores_used = node["median_cores_used"].as<int>();
+    rhs.median_nodes_used = node["median_nodes_used"].as<int>();
+    rhs.mean_read_bytes = node["mean_read_bytes"].as<uint64_t>();
+    rhs.mean_written_bytes = node["mean_written_bytes"].as<uint64_t>();
+    rhs.median_read_bytes = node["median_read_bytes"].as<uint64_t>();
+    rhs.median_written_bytes = node["median_written_bytes"].as<uint64_t>();
+    rhs.mean_jobs_per_hour = node["mean_jobs_per_hour"].as<double>();
+
+    return true;
+}
