@@ -18,6 +18,7 @@
 
 #include "Controller.h"
 
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -86,6 +87,10 @@ namespace storalloc {
 
         this->job_manager = this->createJobManager();
 
+        // Simulate 'fake' load before the actual dataset is used
+        this->preloadSimulation();
+
+        // Simulate jobs
         auto total_events = 0;
         auto processed_events = 0;
 
@@ -168,6 +173,129 @@ namespace storalloc {
         return all_good;
     }
 
+    void Controller::preloadSimulation() {
+
+        // How many preload jobs to create :
+        auto preloadJobsCount = std::ceil(this->preload_header.job_count * 0.2);
+        std::cout << "Preparing " << preloadJobsCount << " preload jobs" << std::endl;
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        // Runtimes :
+        std::cout << "Mean runtime (s) : " << this->preload_header.mean_runtime_s << std::endl;
+        std::cout << "Median runtime (s) : " << this->preload_header.median_runtime_s << std::endl;
+        std::cout << "Max runtime (s) : " << this->preload_header.max_runtime_s << std::endl;
+
+        std::vector<int> rand_runtimes_s;
+        std::lognormal_distribution<> dr(
+            std::log(this->preload_header.mean_runtime_s / std::sqrt(this->preload_header.var_runtime_s / std::pow(this->preload_header.mean_runtime_s, 2) + 1)),
+            std::sqrt(std::log((this->preload_header.var_runtime_s / std::pow(this->preload_header.mean_runtime_s, 2)) + 1)));
+        while (rand_runtimes_s.size() != preloadJobsCount) {
+            auto val = std::floor(dr(gen));
+            if (val <= this->preload_header.max_runtime_s) {
+                rand_runtimes_s.push_back(val);
+                std::cout << "Adding " << val << " to runtimes" << std::endl;
+            }
+        }
+
+        // Interval between jobs :
+        std::cout << "Mean interval (s) : " << this->preload_header.mean_interval_s << std::endl;
+        std::cout << "Median interval (s) : " << this->preload_header.median_interval_s << std::endl;
+        std::cout << "Max interval (s) : " << this->preload_header.max_interval_s << std::endl;
+
+        std::vector<int> rand_intervals_s;
+        std::lognormal_distribution<> di(
+            std::log(this->preload_header.mean_interval_s / std::sqrt(this->preload_header.var_interval_s / std::pow(this->preload_header.mean_interval_s, 2) + 1)),
+            std::sqrt(std::log((this->preload_header.var_interval_s / std::pow(this->preload_header.mean_interval_s, 2)) + 1)));
+        while (rand_intervals_s.size() != preloadJobsCount) {
+            auto val = std::floor(di(gen));
+            if (val <= this->preload_header.max_interval_s) {
+                rand_intervals_s.push_back(val);
+                std::cout << "Adding " << val << " to intervals" << std::endl;
+            }
+        }
+
+        // Nodes used:
+        std::cout << "Mean nodes used : " << this->preload_header.mean_nodes_used << std::endl;
+        std::cout << "Median nodes used : " << this->preload_header.median_nodes_used << std::endl;
+        std::cout << "Max nodes used : " << this->preload_header.max_nodes_used << std::endl;
+
+        std::vector<int> rand_nodes_count;
+        std::lognormal_distribution<> dn(
+            std::log(this->preload_header.mean_nodes_used / std::sqrt(this->preload_header.var_nodes_used / std::pow(this->preload_header.mean_nodes_used, 2) + 1)),
+            std::sqrt(std::log((this->preload_header.var_nodes_used / std::pow(this->preload_header.mean_nodes_used, 2)) + 1)));
+        while (rand_nodes_count.size() != preloadJobsCount) {
+            auto val = std::floor(dn(gen));
+            if (val <= this->preload_header.max_nodes_used) {
+                rand_nodes_count.push_back(val);
+                std::cout << "Adding " << val << " to nodes count" << std::endl;
+            }
+        }
+
+        // Bytes READ
+        std::cout << "Mean bytes read : " << this->preload_header.mean_read_tbytes << std::endl;
+        std::cout << "Median bytes read : " << this->preload_header.median_read_tbytes << std::endl;
+        std::cout << "Var bytes read : " << this->preload_header.var_read_tbytes << std::endl;
+        std::cout << "Max bytes read : " << this->preload_header.max_read_tbytes << std::endl;
+
+        std::vector<double> rand_read_tbytes;
+        std::lognormal_distribution<> drb(
+            std::log(this->preload_header.mean_read_tbytes / std::sqrt(this->preload_header.var_read_tbytes / std::pow(this->preload_header.mean_read_tbytes, 2) + 1)),
+            std::sqrt(std::log((this->preload_header.var_read_tbytes / std::pow(this->preload_header.mean_read_tbytes, 2)) + 1)));
+        while (rand_read_tbytes.size() != preloadJobsCount) {
+            auto val = drb(gen);
+            if (val <= this->preload_header.max_read_tbytes) {
+                rand_read_tbytes.push_back(val);
+                std::cout << "Adding " << val << " to read terabytes" << std::endl;
+            }
+        }
+
+        // Bytes WRITTEN
+        std::cout << "Mean bytes written : " << this->preload_header.mean_written_tbytes << std::endl;
+        std::cout << "Median bytes written : " << this->preload_header.median_written_tbytes << std::endl;
+        std::cout << "Var bytes written : " << this->preload_header.var_written_tbytes << std::endl;
+        std::cout << "Max bytes written : " << this->preload_header.max_written_tbytes << std::endl;
+
+        std::vector<double> rand_written_tbytes;
+        std::lognormal_distribution<> dwb(
+            std::log(this->preload_header.mean_written_tbytes / std::sqrt(this->preload_header.var_written_tbytes / std::pow(this->preload_header.mean_written_tbytes, 2) + 1)),
+            std::sqrt(std::log((this->preload_header.var_written_tbytes / std::pow(this->preload_header.mean_written_tbytes, 2)) + 1)));
+        while (rand_written_tbytes.size() != preloadJobsCount) {
+            auto val = dwb(gen);
+            if (val <= this->preload_header.max_written_tbytes) {
+                rand_written_tbytes.push_back(val);
+                std::cout << "Adding " << val << " to written terabytes" << std::endl;
+            }
+        }
+
+        auto core_per_node = this->compute_service->getPerHostNumCores().begin()->second;
+        std::cout << "Number of core per node : " << core_per_node << std::endl;
+        auto i = 0;
+        while (i <= preloadJobsCount) {
+            storalloc::YamlJob job = {};
+            job.approxComputeTimeSeconds = rand_runtimes_s[i] * 0.9 * (rand_nodes_count[i] * core_per_node);
+            job.coreHoursReq = 0;  // not used
+            job.coreHoursUsed = 0; // not used
+            job.endTime = "NA";    // not used
+            job.id = "preload_" + std::to_string(i);
+            job.metaTimeSeconds = 0; // not used
+            job.model = storalloc::JobType::ReadComputeWrite;
+            job.nodesUsed = rand_nodes_count[i];
+            job.readBytes = rand_read_tbytes[i] * 1'000'000'000; // converting back to bytes
+            job.readTimeSeconds = 0;                             // not used
+            job.runtimeSeconds = rand_runtimes_s[i];
+            job.sleepSimulationSeconds = rand_intervals_s[i]; // not used
+            job.startTime = "NA";                             // not used
+            job.submissionTime = "NA";                        // not used
+            job.waitingTimeSeconds = 0;                       // not used
+            job.walltimeSeconds = rand_runtimes_s[i] * 1.2;
+            job.writeTimeSeconds = 0;                                  // not used
+            job.writtenBytes = rand_written_tbytes[i] * 1'000'000'000; // converting back to bytes
+            job.coresUsed = rand_nodes_count[i] * core_per_node;
+        }
+    }
+
     void Controller::submitJob() {
 
         WRENCH_DEBUG("# New Job - SUBMISSION TIME = %s", this->current_yaml_job.submissionTime.c_str());
@@ -198,7 +326,7 @@ namespace storalloc {
             this->cleanupInput(input_data);
         } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
             this->compute();
-        } /*else if (this->current_yaml_job.model == storalloc::JobType::ReadWrite) {
+        } /*else if (this->current_yaml_job.model == storalloc::JobType::ReadWrite) {       // Currently still adding a fake tiny compute phase to "RW" jobs
             auto input_data = this->copyFromPermanent();
             this->readFromTemporary(input_data);
             auto output_data = this->writeToTemporary();

@@ -49,6 +49,8 @@ namespace storalloc {
 
         virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
 
+        virtual void preloadSimulation();
+
         virtual void submitJob();
 
         virtual std::shared_ptr<wrench::DataFile> copyFromPermanent();
