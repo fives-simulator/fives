@@ -159,10 +159,10 @@ bool storalloc::operator==(const storalloc::JobsStats &lhs, const storalloc::Job
         lhs.mean_nodes_used == rhs.mean_nodes_used &&
         lhs.median_cores_used == rhs.median_cores_used &&
         lhs.median_nodes_used == rhs.median_nodes_used &&
-        lhs.mean_read_bytes == rhs.mean_read_bytes &&
-        lhs.mean_written_bytes == rhs.mean_written_bytes &&
-        lhs.median_read_bytes == rhs.median_read_bytes &&
-        lhs.median_written_bytes == rhs.median_written_bytes);
+        lhs.mean_read_tbytes == rhs.mean_read_tbytes &&
+        lhs.mean_written_tbytes == rhs.mean_written_tbytes &&
+        lhs.median_read_tbytes == rhs.median_read_tbytes &&
+        lhs.median_written_tbytes == rhs.median_written_tbytes);
 }
 
 YAML::Node YAML::convert<storalloc::JobsStats>::encode(const storalloc::JobsStats &rhs) {
@@ -173,18 +173,29 @@ YAML::Node YAML::convert<storalloc::JobsStats>::encode(const storalloc::JobsStat
     node.push_back(rhs.duration);
     node.push_back(rhs.mean_runtime_s);
     node.push_back(rhs.median_runtime_s);
-    node.push_back(rhs.runtime_s_norm_var);
+    node.push_back(rhs.var_runtime_s);
     node.push_back(rhs.max_runtime_s);
     node.push_back(rhs.min_runtime_s);
+    node.push_back(rhs.min_interval_s);
+    node.push_back(rhs.max_interval_s);
+    node.push_back(rhs.mean_interval_s);
+    node.push_back(rhs.var_interval_s);
+    node.push_back(rhs.median_interval_s);
     node.push_back(rhs.job_count);
     node.push_back(rhs.mean_cores_used);
     node.push_back(rhs.mean_nodes_used);
     node.push_back(rhs.median_cores_used);
     node.push_back(rhs.median_nodes_used);
-    node.push_back(rhs.mean_read_bytes);
-    node.push_back(rhs.mean_written_bytes);
-    node.push_back(rhs.median_read_bytes);
-    node.push_back(rhs.median_written_bytes);
+    node.push_back(rhs.var_nodes_used);
+    node.push_back(rhs.max_nodes_used);
+    node.push_back(rhs.mean_read_tbytes);
+    node.push_back(rhs.mean_written_tbytes);
+    node.push_back(rhs.median_read_tbytes);
+    node.push_back(rhs.median_written_tbytes);
+    node.push_back(rhs.max_read_tbytes);
+    node.push_back(rhs.max_written_tbytes);
+    node.push_back(rhs.var_read_tbytes);
+    node.push_back(rhs.var_written_tbytes);
     node.push_back(rhs.mean_jobs_per_hour);
 
     return node;
@@ -197,7 +208,7 @@ bool YAML::convert<storalloc::JobsStats>::decode(const YAML::Node &node, storall
         return false;
     }
 
-    if (node.size() != 18) {
+    if (node.size() != 29) {
         std::cerr << "Incorrect number of keys in node map (header)" << std::endl;
         return false;
     }
@@ -207,18 +218,29 @@ bool YAML::convert<storalloc::JobsStats>::decode(const YAML::Node &node, storall
     rhs.duration = node["duration"].as<uint64_t>();
     rhs.mean_runtime_s = node["mean_runtime_s"].as<uint64_t>();
     rhs.median_runtime_s = node["median_runtime_s"].as<uint64_t>();
-    rhs.runtime_s_norm_var = node["runtime_s_norm_var"].as<uint64_t>();
+    rhs.var_runtime_s = node["var_runtime_s"].as<uint64_t>();
     rhs.max_runtime_s = node["max_runtime_s"].as<uint64_t>();
     rhs.min_runtime_s = node["min_runtime_s"].as<uint64_t>();
+    rhs.min_interval_s = node["min_interval_s"].as<uint64_t>();
+    rhs.max_interval_s = node["max_interval_s"].as<uint64_t>();
+    rhs.mean_interval_s = node["mean_interval_s"].as<uint64_t>();
+    rhs.median_interval_s = node["median_interval_s"].as<uint64_t>();
+    rhs.var_interval_s = node["var_interval_s"].as<uint64_t>();
     rhs.job_count = node["job_count"].as<int>();
     rhs.mean_cores_used = node["mean_cores_used"].as<int>();
     rhs.mean_nodes_used = node["mean_nodes_used"].as<int>();
     rhs.median_cores_used = node["median_cores_used"].as<int>();
     rhs.median_nodes_used = node["median_nodes_used"].as<int>();
-    rhs.mean_read_bytes = node["mean_read_bytes"].as<uint64_t>();
-    rhs.mean_written_bytes = node["mean_written_bytes"].as<uint64_t>();
-    rhs.median_read_bytes = node["median_read_bytes"].as<uint64_t>();
-    rhs.median_written_bytes = node["median_written_bytes"].as<uint64_t>();
+    rhs.max_nodes_used = node["max_nodes_used"].as<int>();
+    rhs.var_nodes_used = node["var_nodes_used"].as<int>();
+    rhs.mean_read_tbytes = node["mean_read_tbytes"].as<double>();
+    rhs.mean_written_tbytes = node["mean_written_tbytes"].as<double>();
+    rhs.var_written_tbytes = node["var_written_tbytes"].as<double>();
+    rhs.var_read_tbytes = node["var_read_tbytes"].as<double>();
+    rhs.median_read_tbytes = node["median_read_tbytes"].as<double>();
+    rhs.median_written_tbytes = node["median_written_tbytes"].as<double>();
+    rhs.max_read_tbytes = node["max_read_tbytes"].as<double>();
+    rhs.max_written_tbytes = node["max_written_tbytes"].as<double>();
     rhs.mean_jobs_per_hour = node["mean_jobs_per_hour"].as<double>();
 
     return true;

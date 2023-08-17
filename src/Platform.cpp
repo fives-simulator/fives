@@ -182,12 +182,14 @@ namespace storalloc {
                                                std::to_string(disk.tpl.capacity) + "GB");
                         new_disk->set_property("mount",
                                                disk.tpl.mount_prefix + std::to_string(j));
+
                         /*if (disk.tpl.id == "hdd_capa") {
                             new_disk->set_concurrency_limit(500);       // Not working, but I
                         don't why so far
                         }*/
 
                         // Input for contention and variability on HDD
+                        /*
                         new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                      sg4::Disk::SharingPolicy::NONLINEAR,
                                                      non_linear_disk_bw_read);
@@ -197,6 +199,7 @@ namespace storalloc {
                         new_disk->set_factor_cb(
                             hdd_variability); // TODO: Add config parameter to select which
                                               // variability function should be used
+                        */
                     }
                 }
             }
