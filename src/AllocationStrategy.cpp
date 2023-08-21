@@ -172,15 +172,53 @@ std::vector<std::shared_ptr<wrench::StorageService>> storalloc::LustreAllocator:
     return rr_ordered_services;
 }
 
-storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(double file_size_b, size_t number_of_OSTs) {
+storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t number_of_OSTs) {
 
+    // Find the minimum stripe size that ensure no more than "max_file_stripes_per_ost"
+    uint64_t volume_per_ost_b = file_size_b / number_of_OSTs;                                                 // Volume to be allocated on each OST, assuming an equal distribution of the file parts
+    uint64_t min_stripe_size_b = std::ceil(volume_per_ost_b / this->config->lustre.max_file_stripes_per_ost); // max_file_stripes_per_ost has a default value set to 3 stripe per OST
+
+    /*
+    std::cout << "_____________________________________________" << std::endl;
+    std::cout << "File size is                   : " << file_size_b << " bytes" << std::endl;
+    std::cout << "We are using " << number_of_OSTs << " OSTs" << std::endl;
+    std::cout << "Volume per OST will be around  : " << volume_per_ost_b << " bytes" << std::endl;
+    std::cout << "Minimum stripe size should be  : " << min_stripe_size_b << " bytes" << std::endl;
+    std::cout << "User configured stripe size is : " << this->config->lustre.stripe_size << " bytes" << std::endl;
+    */
     storalloc::striping ret_striping = {};
+
+    // STRIPE SIZE:
+    // Use the user defined stripe size, or the min stripe size if it's larger than user-defined value
     ret_striping.stripe_size_b = this->config->lustre.stripe_size;
+    if (ret_striping.stripe_size_b < min_stripe_size_b) {
+        // std::cout << " - Updating stripe size to min_stripe_size_b" << std::endl;
+        ret_striping.stripe_size_b = min_stripe_size_b;
+    }
+    // Corner case: If the file size is actually smaller than selected stripe_size, then we use
+    // it as stripe size so as to not allocate more storage space than necessary
+    if (file_size_b < ret_striping.stripe_size_b) {
+        // std::cout << " - Updating stripe size to file_size_b" << std::endl;
+        ret_striping.stripe_size_b = file_size_b;
+    }
+    // std::cout << "Selected stripe size is        : " << ret_striping.stripe_size_b << " bytes" << std::endl;
 
-    // How many stripes we need in total, considering total file size and default stripe_size.
-    ret_striping.stripes_count = std::ceil(file_size_b / this->config->lustre.stripe_size);
-    ret_striping.stripes_per_ost = 1; // hardcoded, but needs more thoughts
+    // STRIPE COUNT
+    // How many stripes we need in total, considering total file size and selected stripe_size.
+    ret_striping.stripes_count = std::ceil(file_size_b / ret_striping.stripe_size_b);
+    // std::cout << "We'll be needing " << ret_striping.stripes_count << " in total (all OSTs)" << std::endl;
+    if (ret_striping.stripes_count > number_of_OSTs) {
+        while (number_of_OSTs * ret_striping.stripes_per_ost < ret_striping.stripes_count) {
+            ret_striping.stripes_per_ost++; // here we don't ask for more storage than needed because the condition of the allocation loop
+        }
+    } else {
+        ret_striping.stripes_per_ost = 1;
+    }
 
+    // std::cout << "Total stripe count is " << ret_striping.stripes_count << std::endl;
+    // std::cout << "Final stripe count per OST is " << ret_striping.stripes_per_ost << std::endl;
+
+    /*
     if (file_size_b > this->config->lustre.stripe_size) {
         if (ret_striping.stripes_count > number_of_OSTs) {
             while (ret_striping.stripes_count > number_of_OSTs * ret_striping.stripes_per_ost) {
@@ -190,6 +228,7 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(double fil
     } else {
         ret_striping.stripe_size_b = file_size_b;
     }
+    */
 
     return ret_striping;
 }

@@ -149,7 +149,7 @@ int storalloc::run_simulation(int argc, char **argv) {
 
     /* Execution controller */
     auto ctrl = simulation->add(
-        new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs));
+        new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
 
     /* Launch the simulation */
     std::cout << "Launching simulation..." << std::endl;
