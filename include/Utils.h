@@ -12,7 +12,7 @@ namespace storalloc {
 
     Config loadConfig(const std::string &yaml_file_name);
 
-    std::map<std::string, YamlJob> loadYamlJobs(const std::string &yaml_file_name);
+    std::vector<YamlJob> loadYamlJobs(const std::string &yaml_file_name);
 
     JobsStats loadYamlHeader(const std::string &yaml_file_name);
 

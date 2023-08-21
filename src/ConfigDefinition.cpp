@@ -34,7 +34,6 @@ bool storalloc::operator==(const storalloc::Config &lhs, const storalloc::Config
 bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc::Config &rhs) {
 
     try {
-
         // General
         rhs.config_name = ynode["general"]["config_name"].as<std::string>();
         rhs.config_version = ynode["general"]["config_version"].as<std::string>();
@@ -43,6 +42,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         rhs.perm_storage_w_bw = ynode["general"]["permanent_storage_write_bw"].as<std::string>();
         rhs.perm_storage_capa = ynode["general"]["permanent_storage_capacity"].as<std::string>();
         rhs.max_stripe_size = ynode["general"]["max_stripe_size"].as<unsigned int>();
+        rhs.preload_percent = ynode["general"]["preload_percent"].as<float>();
 
         // Dragonfly
         rhs.d_groups = ynode["dragonfly"]["groups"].as<int>();
@@ -98,15 +98,17 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
 
             // Load specific config
             if (ynode["lustre"]["lq_threshold_rr"].IsDefined())
-                rhs.lustre.lq_threshold_rr = ynode["lustre"]["lq_threshold_rr"].as<long long unsigned int>();
+                rhs.lustre.lq_threshold_rr = ynode["lustre"]["lq_threshold_rr"].as<uint64_t>();
             if (ynode["lustre"]["lq_prio_free"].IsDefined())
-                rhs.lustre.lq_prio_free = ynode["lustre"]["lq_prio_free"].as<long long unsigned int>();
+                rhs.lustre.lq_prio_free = ynode["lustre"]["lq_prio_free"].as<uint64_t>();
             if (ynode["lustre"]["max_nb_ost"].IsDefined())
-                rhs.lustre.max_nb_ost = ynode["lustre"]["max_nb_ost"].as<long long unsigned int>();
+                rhs.lustre.max_nb_ost = ynode["lustre"]["max_nb_ost"].as<uint64_t>();
             if (ynode["lustre"]["max_inodes"].IsDefined())
-                rhs.lustre.max_inodes = ynode["lustre"]["max_inodes"].as<long long unsigned int>();
+                rhs.lustre.max_inodes = ynode["lustre"]["max_inodes"].as<uint64_t>();
             if (ynode["lustre"]["stripe_size"].IsDefined())
-                rhs.lustre.stripe_size = ynode["lustre"]["stripe_size"].as<long long unsigned int>();
+                rhs.lustre.stripe_size = ynode["lustre"]["stripe_size"].as<uint64_t>();
+            if (ynode["lustre"]["max_file_stripes_per_ost"].IsDefined())
+                rhs.lustre.max_file_stripes_per_ost = ynode["lustre"]["max_file_stripes_per_ost"].as<uint64_t>();
 
         } else if (alloc == "rr") {
             rhs.allocator = storalloc::AllocatorType::GenericRR;

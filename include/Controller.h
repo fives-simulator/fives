@@ -11,6 +11,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include "ConfigDefinition.h"
 #include "JobDefinition.h"
 
 #include <wrench-dev.h>
@@ -30,7 +31,8 @@ namespace storalloc {
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
             const JobsStats &header,
-            const std::map<std::string, YamlJob> &jobs);
+            const std::vector<YamlJob> &jobs,
+            const std::shared_ptr<storalloc::Config> &storalloc_config);
 
         std::shared_ptr<wrench::CompoundJob> getCompletedJobById(std::string id);
 
@@ -49,7 +51,7 @@ namespace storalloc {
 
         virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
 
-        virtual void preloadSimulation();
+        virtual std::vector<storalloc::YamlJob> createPreloadJobs() const;
 
         virtual void submitJob();
 
@@ -84,11 +86,13 @@ namespace storalloc {
 
         JobsStats preload_header = {};
 
-        const std::map<std::string, storalloc::YamlJob> &jobs;
+        const std::vector<storalloc::YamlJob> &jobs;
 
         std::shared_ptr<wrench::JobManager> job_manager;
 
         double flopRate;
+
+        std::shared_ptr<storalloc::Config> config;
     };
 
 } // namespace storalloc

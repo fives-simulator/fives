@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <wrench/util/UnitParser.h>
 
 #include "yaml-cpp/yaml.h"
@@ -61,12 +62,14 @@ namespace storalloc {
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
                            const storalloc::JobsStats &header,
-                           const std::map<std::string, storalloc::YamlJob> &jobs) : ExecutionController(hostname, "controller"),
-                                                                                    compute_service(compute_service),
-                                                                                    storage_service(storage_service),
-                                                                                    compound_storage_service(compound_storage_service),
-                                                                                    preload_header(header),
-                                                                                    jobs(jobs) {}
+                           const std::vector<storalloc::YamlJob> &jobs,
+                           const std::shared_ptr<storalloc::Config> &storalloc_config) : ExecutionController(hostname, "controller"),
+                                                                                         compute_service(compute_service),
+                                                                                         storage_service(storage_service),
+                                                                                         compound_storage_service(compound_storage_service),
+                                                                                         preload_header(header),
+                                                                                         jobs(jobs),
+                                                                                         config(storalloc_config) {}
 
     /**
      * @brief main method of the Controller
@@ -88,22 +91,26 @@ namespace storalloc {
         this->job_manager = this->createJobManager();
 
         // Simulate 'fake' load before the actual dataset is used
-        this->preloadSimulation();
+        auto preload_jobs = this->createPreloadJobs();
+
+        // concat preload jobs with dataset
+        std::vector<storalloc::YamlJob> jobsWithPreload(preload_jobs);
+        jobsWithPreload.insert(jobsWithPreload.end(), this->jobs.begin(), this->jobs.end());
 
         // Simulate jobs
         auto total_events = 0;
         auto processed_events = 0;
 
-        for (const auto &yaml_entry : jobs) {
+        for (const auto &yaml_entry : jobsWithPreload) {
 
             // Cleanup our temporary variables
-            this->current_yaml_job = yaml_entry.second; // this is the job we're going to submit next
+            this->current_yaml_job = yaml_entry; // this is the job we're going to submit next
             this->actions.clear();
 
             WRENCH_DEBUG("# Setting timer for = %d s", this->current_yaml_job.sleepSimulationSeconds);
             double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + this->current_yaml_job.sleepSimulationSeconds + 1; // some simulation sleep values are 0, we don't want that
             total_events += 1;
-            this->setTimer(timer_off_date, "SleepBeforeNextJob" + this->current_yaml_job.id);
+            this->setTimer(timer_off_date, "SleepBeforeNextJob_" + this->current_yaml_job.id);
 
             auto nextSubmission = false;
             while (!nextSubmission) {
@@ -161,6 +168,7 @@ namespace storalloc {
                 if (a->getState() != wrench::Action::State::COMPLETED) {
                     wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
                     WRENCH_WARN("Error for action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+                    std::cout << "Failed action for job : " << job.first << " : " << a->getName() << std::endl;
                     if (a->getFailureCause()) {
                         WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
                     }
@@ -173,10 +181,10 @@ namespace storalloc {
         return all_good;
     }
 
-    void Controller::preloadSimulation() {
+    std::vector<storalloc::YamlJob> Controller::createPreloadJobs() const {
 
-        // How many preload jobs to create :
-        auto preloadJobsCount = std::ceil(this->preload_header.job_count * 0.2);
+        // How many preload jobs to create (20% of the total number of jobs):
+        auto preloadJobsCount = std::ceil(this->preload_header.job_count * this->config->preload_percent);
         std::cout << "Preparing " << preloadJobsCount << " preload jobs" << std::endl;
 
         std::random_device rd;
@@ -185,6 +193,7 @@ namespace storalloc {
         // Runtimes :
         std::cout << "Mean runtime (s) : " << this->preload_header.mean_runtime_s << std::endl;
         std::cout << "Median runtime (s) : " << this->preload_header.median_runtime_s << std::endl;
+        std::cout << "Runtime var : " << this->preload_header.var_runtime_s << std::endl;
         std::cout << "Max runtime (s) : " << this->preload_header.max_runtime_s << std::endl;
 
         std::vector<int> rand_runtimes_s;
@@ -202,6 +211,7 @@ namespace storalloc {
         // Interval between jobs :
         std::cout << "Mean interval (s) : " << this->preload_header.mean_interval_s << std::endl;
         std::cout << "Median interval (s) : " << this->preload_header.median_interval_s << std::endl;
+        std::cout << "Interval var : " << this->preload_header.var_interval_s << std::endl;
         std::cout << "Max interval (s) : " << this->preload_header.max_interval_s << std::endl;
 
         std::vector<int> rand_intervals_s;
@@ -219,6 +229,7 @@ namespace storalloc {
         // Nodes used:
         std::cout << "Mean nodes used : " << this->preload_header.mean_nodes_used << std::endl;
         std::cout << "Median nodes used : " << this->preload_header.median_nodes_used << std::endl;
+        std::cout << "Nodes used var : " << this->preload_header.var_nodes_used << std::endl;
         std::cout << "Max nodes used : " << this->preload_header.max_nodes_used << std::endl;
 
         std::vector<int> rand_nodes_count;
@@ -234,10 +245,10 @@ namespace storalloc {
         }
 
         // Bytes READ
-        std::cout << "Mean bytes read : " << this->preload_header.mean_read_tbytes << std::endl;
-        std::cout << "Median bytes read : " << this->preload_header.median_read_tbytes << std::endl;
-        std::cout << "Var bytes read : " << this->preload_header.var_read_tbytes << std::endl;
-        std::cout << "Max bytes read : " << this->preload_header.max_read_tbytes << std::endl;
+        std::cout << "Mean terabytes read : " << this->preload_header.mean_read_tbytes << std::endl;
+        std::cout << "Median terabytes read : " << this->preload_header.median_read_tbytes << std::endl;
+        std::cout << "Var terabytes read : " << this->preload_header.var_read_tbytes << std::endl;
+        std::cout << "Max terabytes read : " << this->preload_header.max_read_tbytes << std::endl;
 
         std::vector<double> rand_read_tbytes;
         std::lognormal_distribution<> drb(
@@ -252,10 +263,10 @@ namespace storalloc {
         }
 
         // Bytes WRITTEN
-        std::cout << "Mean bytes written : " << this->preload_header.mean_written_tbytes << std::endl;
-        std::cout << "Median bytes written : " << this->preload_header.median_written_tbytes << std::endl;
-        std::cout << "Var bytes written : " << this->preload_header.var_written_tbytes << std::endl;
-        std::cout << "Max bytes written : " << this->preload_header.max_written_tbytes << std::endl;
+        std::cout << "Mean terabytes written : " << this->preload_header.mean_written_tbytes << std::endl;
+        std::cout << "Median terabytes written : " << this->preload_header.median_written_tbytes << std::endl;
+        std::cout << "Var terabytes written : " << this->preload_header.var_written_tbytes << std::endl;
+        std::cout << "Max terabytes written : " << this->preload_header.max_written_tbytes << std::endl;
 
         std::vector<double> rand_written_tbytes;
         std::lognormal_distribution<> dwb(
@@ -269,38 +280,49 @@ namespace storalloc {
             }
         }
 
-        auto core_per_node = this->compute_service->getPerHostNumCores().begin()->second;
-        std::cout << "Number of core per node : " << core_per_node << std::endl;
+        auto cores_per_node = this->compute_service->getPerHostNumCores().begin()->second;
+        std::cout << "Using " << cores_per_node << " cores for each reserved node" << std::endl;
+        std::vector<storalloc::YamlJob> preload_jobs;
         auto i = 0;
-        while (i <= preloadJobsCount) {
+        while (i < preloadJobsCount) {
             storalloc::YamlJob job = {};
-            job.approxComputeTimeSeconds = rand_runtimes_s[i] * 0.9 * (rand_nodes_count[i] * core_per_node);
-            job.coreHoursReq = 0;  // not used
-            job.coreHoursUsed = 0; // not used
-            job.endTime = "NA";    // not used
-            job.id = "preload_" + std::to_string(i);
-            job.metaTimeSeconds = 0; // not used
-            job.model = storalloc::JobType::ReadComputeWrite;
+
+            auto read_bytes = rand_read_tbytes[i] * 1'000'000'000'000;
+            auto written_bytes = rand_written_tbytes[i] * 1'000'000'000'000;
+
+            job.approxComputeTimeSeconds = rand_runtimes_s[i] * 0.9;
+            job.coreHoursReq = 0;                             // not used
+            job.coreHoursUsed = 0;                            // not used
+            job.endTime = "NA";                               // not used
+            job.id = "preload_" + std::to_string(i);          // used to filter out jobs in the end.
+            job.metaTimeSeconds = 0;                          // not used
+            job.model = storalloc::JobType::ReadComputeWrite; // Not bothering using != types of jobs
             job.nodesUsed = rand_nodes_count[i];
-            job.readBytes = rand_read_tbytes[i] * 1'000'000'000; // converting back to bytes
-            job.readTimeSeconds = 0;                             // not used
-            job.runtimeSeconds = rand_runtimes_s[i];
+            job.readBytes = read_bytes; // converting back to bytes from terabytes
+            job.readTimeSeconds = 0;    // not used
+            job.runtimeSeconds = rand_runtimes_s[i] + written_bytes / 100000 + read_bytes / 200000;
             job.sleepSimulationSeconds = rand_intervals_s[i]; // not used
             job.startTime = "NA";                             // not used
             job.submissionTime = "NA";                        // not used
             job.waitingTimeSeconds = 0;                       // not used
-            job.walltimeSeconds = rand_runtimes_s[i] * 1.2;
-            job.writeTimeSeconds = 0;                                  // not used
-            job.writtenBytes = rand_written_tbytes[i] * 1'000'000'000; // converting back to bytes
-            job.coresUsed = rand_nodes_count[i] * core_per_node;
+            job.walltimeSeconds = rand_runtimes_s[i] * 2 + written_bytes / 100000 + read_bytes / 200000;
+            job.writeTimeSeconds = 0;         // not used
+            job.writtenBytes = written_bytes; // converting back to bytes from terabytes
+            job.coresUsed = rand_nodes_count[i] * cores_per_node;
+
+            preload_jobs.push_back(job);
+            i++;
         }
+
+        std::cout << "Preload jobs created" << std::endl;
+
+        return preload_jobs;
     }
 
     void Controller::submitJob() {
 
         WRENCH_DEBUG("# New Job - SUBMISSION TIME = %s", this->current_yaml_job.submissionTime.c_str());
         auto yJob = this->current_yaml_job;
-        auto jobType = storalloc::ReadComputeWrite; // hardcoded jobtype for now.
 
         auto job = this->job_manager->createCompoundJob(yJob.id);
         WRENCH_DEBUG(" # Job created with ID %s", yJob.id.c_str());
@@ -598,6 +620,11 @@ namespace storalloc {
             const auto &yaml_job = job_pair.first;
             const auto job = job_pair.second;
 
+            // Ignore preload jobs in the output results
+            if (job->getName().substr(0, 7) == "preload") {
+                continue;
+            }
+
             auto actions = job->getActions();
             auto set_cmp = [](const std::shared_ptr<wrench::Action> &a, const std::shared_ptr<wrench::Action> &b) {
                 return (a->getStartDate() < b->getStartDate());
@@ -614,8 +641,8 @@ namespace storalloc {
             out_jobs << YAML::Key << "job_submit_ts" << YAML::Value << job->getSubmitDate();
             out_jobs << YAML::Key << "job_start_ts" << YAML::Value << sorted_actions.begin()->get()->getStartDate();
             auto waiting_time = sorted_actions.begin()->get()->getStartDate() - job->getSubmitDate();
-            if (waiting_time <= 0.001)
-                waiting_time = 0;
+            //  if (waiting_time <= 0.001)
+            //      waiting_time = 0;
             out_jobs << YAML::Key << "job_waiting_time_s" << YAML::Value << waiting_time;
             out_jobs << YAML::Key << "job_end_ts" << YAML::Value << job->getEndDate();
             out_jobs << YAML::Key << "job_runtime_s" << YAML::Value << (job->getEndDate() - job->getSubmitDate());

@@ -84,7 +84,7 @@ storalloc::Config storalloc::loadConfig(const std::string &yaml_file_name) {
     return storalloc_cfg;
 }
 
-std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::string &yaml_file_name) {
+std::vector<storalloc::YamlJob> storalloc::loadYamlJobs(const std::string &yaml_file_name) {
 
     YAML::Node dataset = YAML::LoadFile(yaml_file_name);
     if (!(dataset["jobs"]) or !(dataset["jobs"].IsSequence())) {
@@ -92,16 +92,16 @@ std::map<std::string, storalloc::YamlJob> storalloc::loadYamlJobs(const std::str
         throw std::invalid_argument("Invalid job file as input data");
     }
 
-    std::map<std::string, storalloc::YamlJob> job_list;
-    std::string current_id;
+    std::vector<storalloc::YamlJob> job_list;
     for (const auto &job : dataset["jobs"]) {
         try {
-            current_id = job["id"].as<std::string>();
-            job_list[current_id] = job.as<storalloc::YamlJob>();
+            // current_id = job["id"].as<std::string>();
+            job_list.push_back(job.as<storalloc::YamlJob>());
         } catch (std::exception &e) {
-            std::cerr << "Job " << current_id << " in file " << yaml_file_name << " has invalid caracteristics" << std::endl;
+            std::string id = job["id"].as<std::string>();
+            std::cerr << "Job " << id << " in file " << yaml_file_name << " has invalid caracteristics" << std::endl;
             std::cerr << e.what() << std::endl;
-            throw runtime_error("Job " + current_id + " in file " + yaml_file_name + " has invalid caracteristics");
+            throw runtime_error("Job " + id + " in file " + yaml_file_name + " has invalid caracteristics");
         }
     }
 

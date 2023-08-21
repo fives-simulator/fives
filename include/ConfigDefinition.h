@@ -18,9 +18,10 @@ namespace storalloc {
     struct LustreConfig {
         uint64_t lq_threshold_rr = 43;
         uint64_t lq_prio_free = 232;
-        uint64_t max_nb_ost = 2000;
-        uint64_t max_inodes = (1ULL << 32);
+        uint64_t max_nb_ost = 2000;         // Lustre limit - not really used so far
+        uint64_t max_inodes = (1ULL << 32); // Unix limit - not really used so far
         uint64_t stripe_size = 50000000;
+        uint64_t max_file_stripes_per_ost = 3; // For each file/storage allocation, maximum number of stripes on ea
     };
 
     struct DiskTemplate {
@@ -66,6 +67,7 @@ namespace storalloc {
         std::string perm_storage_r_bw;
         std::string perm_storage_w_bw;
         std::string perm_storage_capa;
+        float preload_percent;
         unsigned int max_stripe_size;
         unsigned int d_groups;
         unsigned int d_group_links;
