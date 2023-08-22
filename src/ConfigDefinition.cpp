@@ -107,8 +107,10 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
                 rhs.lustre.max_inodes = ynode["lustre"]["max_inodes"].as<uint64_t>();
             if (ynode["lustre"]["stripe_size"].IsDefined())
                 rhs.lustre.stripe_size = ynode["lustre"]["stripe_size"].as<uint64_t>();
-            if (ynode["lustre"]["max_file_stripes_per_ost"].IsDefined())
-                rhs.lustre.max_file_stripes_per_ost = ynode["lustre"]["max_file_stripes_per_ost"].as<uint64_t>();
+            if (ynode["lustre"]["stripe_count"].IsDefined())
+                rhs.lustre.stripe_count = ynode["lustre"]["stripe_count"].as<uint64_t>();
+            if (ynode["lustre"]["max_chunks_per_ost"].IsDefined())
+                rhs.lustre.max_chunks_per_ost = ynode["lustre"]["max_chunks_per_ost"].as<uint64_t>();
 
         } else if (alloc == "rr") {
             rhs.allocator = storalloc::AllocatorType::GenericRR;

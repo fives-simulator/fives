@@ -32,7 +32,7 @@ void BasicUtilsTest::loadYamlJobs_test() {
 
     ASSERT_EQ(jobs.size(), 6);
 
-    auto job_2 = jobs["2"];
+    auto job_2 = jobs[1];
 
     ASSERT_EQ(job_2.id, "2");
     ASSERT_EQ(job_2.coresUsed, 32);

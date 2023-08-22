@@ -61,7 +61,7 @@ namespace storalloc {
                            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
-                           const storalloc::JobsStats &header,
+                           const std::shared_ptr<storalloc::JobsStats> &header,
                            const std::vector<storalloc::YamlJob> &jobs,
                            const std::shared_ptr<storalloc::Config> &storalloc_config) : ExecutionController(hostname, "controller"),
                                                                                          compute_service(compute_service),
@@ -184,97 +184,97 @@ namespace storalloc {
     std::vector<storalloc::YamlJob> Controller::createPreloadJobs() const {
 
         // How many preload jobs to create (20% of the total number of jobs):
-        auto preloadJobsCount = std::ceil(this->preload_header.job_count * this->config->preload_percent);
+        auto preloadJobsCount = std::ceil(this->preload_header->job_count * this->config->preload_percent);
         std::cout << "Preparing " << preloadJobsCount << " preload jobs" << std::endl;
 
         std::random_device rd;
         std::mt19937 gen(rd());
 
         // Runtimes :
-        std::cout << "Mean runtime (s) : " << this->preload_header.mean_runtime_s << std::endl;
-        std::cout << "Median runtime (s) : " << this->preload_header.median_runtime_s << std::endl;
-        std::cout << "Runtime var : " << this->preload_header.var_runtime_s << std::endl;
-        std::cout << "Max runtime (s) : " << this->preload_header.max_runtime_s << std::endl;
+        std::cout << "Mean runtime (s) : " << this->preload_header->mean_runtime_s << std::endl;
+        std::cout << "Median runtime (s) : " << this->preload_header->median_runtime_s << std::endl;
+        std::cout << "Runtime var : " << this->preload_header->var_runtime_s << std::endl;
+        std::cout << "Max runtime (s) : " << this->preload_header->max_runtime_s << std::endl;
 
         std::vector<int> rand_runtimes_s;
         std::lognormal_distribution<> dr(
-            std::log(this->preload_header.mean_runtime_s / std::sqrt(this->preload_header.var_runtime_s / std::pow(this->preload_header.mean_runtime_s, 2) + 1)),
-            std::sqrt(std::log((this->preload_header.var_runtime_s / std::pow(this->preload_header.mean_runtime_s, 2)) + 1)));
+            std::log(this->preload_header->mean_runtime_s / std::sqrt(this->preload_header->var_runtime_s / std::pow(this->preload_header->mean_runtime_s, 2) + 1)),
+            std::sqrt(std::log((this->preload_header->var_runtime_s / std::pow(this->preload_header->mean_runtime_s, 2)) + 1)));
         while (rand_runtimes_s.size() != preloadJobsCount) {
             auto val = std::floor(dr(gen));
-            if (val <= this->preload_header.max_runtime_s) {
+            if (val <= this->preload_header->max_runtime_s) {
                 rand_runtimes_s.push_back(val);
                 std::cout << "Adding " << val << " to runtimes" << std::endl;
             }
         }
 
         // Interval between jobs :
-        std::cout << "Mean interval (s) : " << this->preload_header.mean_interval_s << std::endl;
-        std::cout << "Median interval (s) : " << this->preload_header.median_interval_s << std::endl;
-        std::cout << "Interval var : " << this->preload_header.var_interval_s << std::endl;
-        std::cout << "Max interval (s) : " << this->preload_header.max_interval_s << std::endl;
+        std::cout << "Mean interval (s) : " << this->preload_header->mean_interval_s << std::endl;
+        std::cout << "Median interval (s) : " << this->preload_header->median_interval_s << std::endl;
+        std::cout << "Interval var : " << this->preload_header->var_interval_s << std::endl;
+        std::cout << "Max interval (s) : " << this->preload_header->max_interval_s << std::endl;
 
         std::vector<int> rand_intervals_s;
         std::lognormal_distribution<> di(
-            std::log(this->preload_header.mean_interval_s / std::sqrt(this->preload_header.var_interval_s / std::pow(this->preload_header.mean_interval_s, 2) + 1)),
-            std::sqrt(std::log((this->preload_header.var_interval_s / std::pow(this->preload_header.mean_interval_s, 2)) + 1)));
+            std::log(this->preload_header->mean_interval_s / std::sqrt(this->preload_header->var_interval_s / std::pow(this->preload_header->mean_interval_s, 2) + 1)),
+            std::sqrt(std::log((this->preload_header->var_interval_s / std::pow(this->preload_header->mean_interval_s, 2)) + 1)));
         while (rand_intervals_s.size() != preloadJobsCount) {
             auto val = std::floor(di(gen));
-            if (val <= this->preload_header.max_interval_s) {
+            if (val <= this->preload_header->max_interval_s) {
                 rand_intervals_s.push_back(val);
                 std::cout << "Adding " << val << " to intervals" << std::endl;
             }
         }
 
         // Nodes used:
-        std::cout << "Mean nodes used : " << this->preload_header.mean_nodes_used << std::endl;
-        std::cout << "Median nodes used : " << this->preload_header.median_nodes_used << std::endl;
-        std::cout << "Nodes used var : " << this->preload_header.var_nodes_used << std::endl;
-        std::cout << "Max nodes used : " << this->preload_header.max_nodes_used << std::endl;
+        std::cout << "Mean nodes used : " << this->preload_header->mean_nodes_used << std::endl;
+        std::cout << "Median nodes used : " << this->preload_header->median_nodes_used << std::endl;
+        std::cout << "Nodes used var : " << this->preload_header->var_nodes_used << std::endl;
+        std::cout << "Max nodes used : " << this->preload_header->max_nodes_used << std::endl;
 
         std::vector<int> rand_nodes_count;
         std::lognormal_distribution<> dn(
-            std::log(this->preload_header.mean_nodes_used / std::sqrt(this->preload_header.var_nodes_used / std::pow(this->preload_header.mean_nodes_used, 2) + 1)),
-            std::sqrt(std::log((this->preload_header.var_nodes_used / std::pow(this->preload_header.mean_nodes_used, 2)) + 1)));
+            std::log(this->preload_header->mean_nodes_used / std::sqrt(this->preload_header->var_nodes_used / std::pow(this->preload_header->mean_nodes_used, 2) + 1)),
+            std::sqrt(std::log((this->preload_header->var_nodes_used / std::pow(this->preload_header->mean_nodes_used, 2)) + 1)));
         while (rand_nodes_count.size() != preloadJobsCount) {
             auto val = std::floor(dn(gen));
-            if (val <= this->preload_header.max_nodes_used) {
+            if (val <= this->preload_header->max_nodes_used) {
                 rand_nodes_count.push_back(val);
                 std::cout << "Adding " << val << " to nodes count" << std::endl;
             }
         }
 
         // Bytes READ
-        std::cout << "Mean terabytes read : " << this->preload_header.mean_read_tbytes << std::endl;
-        std::cout << "Median terabytes read : " << this->preload_header.median_read_tbytes << std::endl;
-        std::cout << "Var terabytes read : " << this->preload_header.var_read_tbytes << std::endl;
-        std::cout << "Max terabytes read : " << this->preload_header.max_read_tbytes << std::endl;
+        std::cout << "Mean terabytes read : " << this->preload_header->mean_read_tbytes << std::endl;
+        std::cout << "Median terabytes read : " << this->preload_header->median_read_tbytes << std::endl;
+        std::cout << "Var terabytes read : " << this->preload_header->var_read_tbytes << std::endl;
+        std::cout << "Max terabytes read : " << this->preload_header->max_read_tbytes << std::endl;
 
         std::vector<double> rand_read_tbytes;
         std::lognormal_distribution<> drb(
-            std::log(this->preload_header.mean_read_tbytes / std::sqrt(this->preload_header.var_read_tbytes / std::pow(this->preload_header.mean_read_tbytes, 2) + 1)),
-            std::sqrt(std::log((this->preload_header.var_read_tbytes / std::pow(this->preload_header.mean_read_tbytes, 2)) + 1)));
+            std::log(this->preload_header->mean_read_tbytes / std::sqrt(this->preload_header->var_read_tbytes / std::pow(this->preload_header->mean_read_tbytes, 2) + 1)),
+            std::sqrt(std::log((this->preload_header->var_read_tbytes / std::pow(this->preload_header->mean_read_tbytes, 2)) + 1)));
         while (rand_read_tbytes.size() != preloadJobsCount) {
             auto val = drb(gen);
-            if (val <= this->preload_header.max_read_tbytes) {
+            if (val <= this->preload_header->max_read_tbytes) {
                 rand_read_tbytes.push_back(val);
                 std::cout << "Adding " << val << " to read terabytes" << std::endl;
             }
         }
 
         // Bytes WRITTEN
-        std::cout << "Mean terabytes written : " << this->preload_header.mean_written_tbytes << std::endl;
-        std::cout << "Median terabytes written : " << this->preload_header.median_written_tbytes << std::endl;
-        std::cout << "Var terabytes written : " << this->preload_header.var_written_tbytes << std::endl;
-        std::cout << "Max terabytes written : " << this->preload_header.max_written_tbytes << std::endl;
+        std::cout << "Mean terabytes written : " << this->preload_header->mean_written_tbytes << std::endl;
+        std::cout << "Median terabytes written : " << this->preload_header->median_written_tbytes << std::endl;
+        std::cout << "Var terabytes written : " << this->preload_header->var_written_tbytes << std::endl;
+        std::cout << "Max terabytes written : " << this->preload_header->max_written_tbytes << std::endl;
 
         std::vector<double> rand_written_tbytes;
         std::lognormal_distribution<> dwb(
-            std::log(this->preload_header.mean_written_tbytes / std::sqrt(this->preload_header.var_written_tbytes / std::pow(this->preload_header.mean_written_tbytes, 2) + 1)),
-            std::sqrt(std::log((this->preload_header.var_written_tbytes / std::pow(this->preload_header.mean_written_tbytes, 2)) + 1)));
+            std::log(this->preload_header->mean_written_tbytes / std::sqrt(this->preload_header->var_written_tbytes / std::pow(this->preload_header->mean_written_tbytes, 2) + 1)),
+            std::sqrt(std::log((this->preload_header->var_written_tbytes / std::pow(this->preload_header->mean_written_tbytes, 2)) + 1)));
         while (rand_written_tbytes.size() != preloadJobsCount) {
             auto val = dwb(gen);
-            if (val <= this->preload_header.max_written_tbytes) {
+            if (val <= this->preload_header->max_written_tbytes) {
                 rand_written_tbytes.push_back(val);
                 std::cout << "Adding " << val << " to written terabytes" << std::endl;
             }

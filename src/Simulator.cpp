@@ -104,7 +104,7 @@ int storalloc::run_simulation(int argc, char **argv) {
 
     /* Loading jobs */
     std::string jobFilename = argv[2];
-    auto header = storalloc::loadYamlHeader(jobFilename);
+    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader(jobFilename));
 
     auto jobs = storalloc::loadYamlJobs(jobFilename);
     start = jobFilename.find_last_of("/") + 1;

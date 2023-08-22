@@ -7,18 +7,17 @@ namespace storalloc {
      */
     static double non_linear_disk_bw_read(double capacities, int n_activities) {
         // Slowdown disk in regard to current number of activities
-        return capacities * (1 / n_activities) * 0.9;
+        return capacities * (1 / n_activities) * 0.8;
     }
 
     static double non_linear_disk_bw_write(double capacities, int n_activities) {
         // Slowdown disk in regard to current number of activities
-        return capacities * (1 / n_activities) * 0.8;
+        return capacities * (1 / n_activities) * 0.7;
     }
 
     static double hdd_variability(sg_size_t size, sg4::Io::OpType op) {
         if (op == sg4::Io::OpType::READ) {
-            return 1.2; // accelerate read operation (always the same value in this
-                        // case)
+            return 1;
         } else {
             return 0.8; // slowdown writes
         }
@@ -189,7 +188,6 @@ namespace storalloc {
                         }*/
 
                         // Input for contention and variability on HDD
-                        /*
                         new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                      sg4::Disk::SharingPolicy::NONLINEAR,
                                                      non_linear_disk_bw_read);
@@ -199,7 +197,6 @@ namespace storalloc {
                         new_disk->set_factor_cb(
                             hdd_variability); // TODO: Add config parameter to select which
                                               // variability function should be used
-                        */
                     }
                 }
             }
