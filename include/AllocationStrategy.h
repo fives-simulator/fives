@@ -67,7 +67,7 @@ namespace storalloc {
 
         striping lustreComputeStriping(uint64_t file_size_b, size_t number_of_OSTs);
 
-        std::vector<std::shared_ptr<wrench::FileLocation>> lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations);
+        std::vector<std::shared_ptr<wrench::FileLocation>> lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations, storalloc::striping &striping);
 
         ba_min_max lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &);
 

@@ -224,17 +224,24 @@ bool storalloc::LustreAllocator::lustreOstIsUsed(const std::map<std::shared_ptr<
     return false;
 }
 
-std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations) {
+/**
+ * @brief Homemade helper to actually distribute file parts on the selected OSTs,
+ */
+std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations, storalloc::striping &striping) {
 
     std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
 
-    for (const auto &stripe_entry : temp_allocations) {
-        auto part = wrench::Simulation::addFile(file_id + "_part_" + std::to_string(stripe_entry.first), this->config->lustre.stripe_size);
-        designated_locations.push_back(
-            wrench::FileLocation::LOCATION(
-                std::shared_ptr<wrench::StorageService>(stripe_entry.second), part));
-    }
+    /*uint64_t allocated = 0;
 
+    while (allocated < file_size)
+
+        for (const auto &stripe_entry : temp_allocations) {
+            auto part = wrench::Simulation::addFile(file_id + "_part_" + std::to_string(stripe_entry.first), this->config->lustre.stripe_size);
+            designated_locations.push_back(
+                wrench::FileLocation::LOCATION(
+                    std::shared_ptr<wrench::StorageService>(stripe_entry.second), part));
+        }
+    */
     return designated_locations;
 }
 
@@ -274,7 +281,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     int temp_start_ost_index = start_ost_index;
     unsigned int stripe_idx = 0;
 
-    std::map<int, std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
+    std::vector<std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
 
     // Some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
     for (auto speed = 0; speed < 2; speed++) {
@@ -296,7 +303,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
                 continue;
             } else {
                 WRENCH_DEBUG("LustreAlloc : Using OST %s", current_ost->getHostname().c_str());
-                temp_stripe_locations[stripe_idx] = current_ost;
+                temp_stripe_locations.push_back(current_ost);
                 stripe_idx++;
             }
         }
@@ -314,10 +321,28 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
     if (temp_stripe_locations.size() < current_striping.stripes_count) {
-        WRENCH_WARN("LustreAlloc: Expected to allocate %i  stripes, but could only allocate %li instead.", current_striping.stripes_count, temp_stripe_locations.size());
+        WRENCH_WARN("LustreAlloc: Expected to find %i OSTs, but could only select %li instead.", current_striping.stripes_count, temp_stripe_locations.size());
     }
 
-    auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
+    // Actually create file_parts load-balanced on selected OSTs
+    std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
+    uint64_t allocated, chunk_idx = 0;
+    auto service = temp_stripe_locations.begin();
+    while (allocated < file_size_b) {
+        auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(chunk_idx), current_striping.stripe_size_b);
+        designated_locations.push_back(
+            wrench::FileLocation::LOCATION(
+                std::shared_ptr<wrench::StorageService>(service->get()), part));
+
+        allocated += current_striping.stripe_size_b;
+        chunk_idx++;
+        if ((service != temp_stripe_locations.end()) && (next(service) == temp_stripe_locations.end())) {
+            service = temp_stripe_locations.begin();
+        } else {
+            service++;
+        }
+    }
+
     return designated_locations;
 }
 
@@ -457,7 +482,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     std::mt19937 gen(rd()); // replace rd() by a static seed for reproducibility
     std::uniform_int_distribution<> distrib(0, total_weight);
 
-    std::map<int, std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
+    std::vector<std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
 
     // Let's find enough OSTs for our allocation
     auto nfound = 0;
@@ -474,7 +499,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
             if (cur_weight < rand)
                 continue;
 
-            temp_stripe_locations[nfound] = service.first;
+            temp_stripe_locations.push_back(service.first);
             nfound++;
         }
     }
@@ -484,6 +509,26 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
         WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %f  stripes, but could only allocate %li instead.", stripe_count, temp_stripe_locations.size());
     }
 
-    auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
+    // Actually create file_parts load-balanced on selected OSTs
+    std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
+    uint64_t allocated = 0;
+    uint64_t chunk_idx = 0;
+    auto service = temp_stripe_locations.begin();
+    while (allocated < file_size_b) {
+        auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(chunk_idx), this->config->lustre.stripe_size);
+        designated_locations.push_back(
+            wrench::FileLocation::LOCATION(
+                std::shared_ptr<wrench::StorageService>(*service), part));
+
+        allocated += this->config->lustre.stripe_size;
+        chunk_idx++;
+        if ((service != temp_stripe_locations.end()) && (next(service) == temp_stripe_locations.end())) {
+            service = temp_stripe_locations.begin();
+        } else {
+            service++;
+        }
+    }
+
+    // auto designated_locations = lustreCreateFileParts(file->getID(), temp_stripe_locations);
     return designated_locations;
 }
