@@ -20,7 +20,7 @@ public:
     void lustreOstPenalty_test();
     void lustreOssPenalty_test();
     void lustreComputeOstWeight_test();
-    void lustreComputeStripesPerOST_test();
+    void lustreComputeStriping_test();
 
     std::shared_ptr<Config> cfg;
 
@@ -292,33 +292,43 @@ void BasicAllocTest::lustreComputeOstWeight_test() {
               0);
 }
 
-TEST_F(BasicAllocTest, lustreComputeStripesPerOST_test) {
-    DO_TEST_WITH_FORK(lustreComputeStripesPerOST_test);
+TEST_F(BasicAllocTest, lustreComputeStriping_test) {
+    DO_TEST_WITH_FORK(lustreComputeStriping_test);
 }
 
 /**
  *  @brief Testing lustreComputeStripesPerOST() (disk/raid level)
  */
-void BasicAllocTest::lustreComputeStripesPerOST_test() {
+void BasicAllocTest::lustreComputeStriping_test() {
 
     auto allocator = LustreAllocator(this->cfg);
-
     auto striping = allocator.lustreComputeStriping(3000000000, 85);
-
-    ASSERT_EQ(striping.stripe_size_b, this->cfg->lustre.stripe_size);
-    ASSERT_EQ(striping.stripes_count, 60);
+    ASSERT_EQ(striping.stripe_size_b, 300000000);
+    ASSERT_EQ(striping.stripes_count, 1);
     ASSERT_EQ(striping.stripes_per_ost, 1);
+    ASSERT_THROW(allocator.lustreComputeStriping(3000000000, 0), std::runtime_error);
+
+    auto cfg_2 = std::make_shared<Config>();
+    cfg_2->lustre = LustreConfig();  // default lustre config
+    cfg_2->lustre.stripe_count = 50; // load-balancing on 50 OSTs
+    allocator = LustreAllocator(cfg_2);
 
     striping = {};
     striping = allocator.lustreComputeStriping(30000000000, 85);
-    ASSERT_EQ(striping.stripe_size_b, this->cfg->lustre.stripe_size);
-    ASSERT_EQ(striping.stripes_count, 600);
-    ASSERT_EQ(striping.stripes_per_ost, 8);
+    ASSERT_EQ(striping.stripe_size_b, 60000000);
+    ASSERT_EQ(striping.stripes_count, 50);
+    ASSERT_EQ(striping.stripes_per_ost, 1);
+
+    auto cfg_3 = std::make_shared<Config>();
+    cfg_3->lustre = LustreConfig();        // default lustre config
+    cfg_3->lustre.stripe_count = 50;       // load-balancing on 50 OSTs
+    cfg_3->lustre.max_chunks_per_ost = 45; // allowing for more chunks on each OST
+    allocator = LustreAllocator(cfg_3);
 
     striping = {};
     striping = allocator.lustreComputeStriping(3000000, 85);
-    ASSERT_EQ(striping.stripe_size_b, 3000000);
-    ASSERT_EQ(striping.stripes_count, 1);
+    ASSERT_EQ(striping.stripe_size_b, 2097152);
+    ASSERT_EQ(striping.stripes_count, 50);
     ASSERT_EQ(striping.stripes_per_ost, 1);
 }
 
@@ -886,6 +896,7 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test) {
 void FunctionalAllocTest::lustreFullSim_test() {
     // # Start a simulation with all components as they would be in a real case
     auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_hdd.yml"));
+    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader("../data/IOJobsTest_6_small_IO.yml"));
     auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_small_IO.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
@@ -915,7 +926,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             "permanent_storage", {"/dev/disk0"}, {}, {}));
 
     // Controler
-    auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", jobs));
+    auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
 
     ASSERT_NO_THROW(simulation->launch());
 
@@ -929,10 +940,10 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto job_1 = ctrl->getCompletedJobById("1");
     ASSERT_EQ(job_1->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(job_1->hasSuccessfullyCompleted());
-    ASSERT_NEAR(job_1->getSubmitDate(), 0, 0.4);
+    ASSERT_NEAR(job_1->getSubmitDate(), 0, 2);
     ASSERT_EQ(job_1->getActions().size(), 11);
     ASSERT_EQ(job_1->getName(), "1");
-    ASSERT_EQ(job_1->getMinimumRequiredNumCores(), jobs["1"].coresUsed / jobs["1"].nodesUsed);
+    ASSERT_EQ(job_1->getMinimumRequiredNumCores(), jobs[0].coresUsed / jobs[0].nodesUsed);
 
     // This is the list of actions, in correct order, that every job should complete (due to the job type used in this test)
     std::vector<std::string> action_types = {
@@ -1119,17 +1130,18 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
         auto file_name = alloc.file_name;
         std::smatch base_match;
-        std::string input, output, job_id, file_part;
+        std::string input, output, file_part;
+        int job_id;
         std::regex_match(file_name, base_match, file_name_re);
 
         if (!file_name.empty()) {
             if (base_match.size() == 5) {
                 input = base_match[1].str();
                 output = base_match[2].str();
-                job_id = base_match[3].str();
+                job_id = stoi(base_match[3].str());
                 file_part = base_match[4].str();
                 // std::cout << input << "|" << output << "|" << job_id << "|" << file_part << std::endl;
-                ASSERT_EQ(job_id, action_list[index].first);
+                ASSERT_EQ(job_id, index);
             } else {
                 if (file_name == "nofile") {
                     index++;

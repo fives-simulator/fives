@@ -16,12 +16,13 @@ namespace storalloc {
      * @brief Configuration specific to the Lustre Allocator
      */
     struct LustreConfig {
-        uint64_t lq_threshold_rr = 43;
-        uint64_t lq_prio_free = 232;
+        uint64_t lq_threshold_rr = 43;      // Internal Lustre parameter (not often changed)
+        uint64_t lq_prio_free = 232;        // Internal Lustre parameter (not often changed)
         uint64_t max_nb_ost = 2000;         // Lustre limit - not really used so far
         uint64_t max_inodes = (1ULL << 32); // Unix limit - not really used so far
-        uint64_t stripe_size = 50000000;
-        uint64_t max_file_stripes_per_ost = 3; // For each file/storage allocation, maximum number of stripes on ea
+        uint64_t stripe_size = 2097152;     // 2MiB by default
+        uint64_t stripe_count = 1;          // One OST by default
+        uint64_t max_chunks_per_ost = 10;  // Maximum number of chunks per OST for each allocation (for simulation speed-up purpose)
     };
 
     struct DiskTemplate {

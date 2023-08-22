@@ -30,7 +30,7 @@ namespace storalloc {
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
-            const JobsStats &header,
+            const std::shared_ptr<storalloc::JobsStats> &header,
             const std::vector<YamlJob> &jobs,
             const std::shared_ptr<storalloc::Config> &storalloc_config);
 
@@ -84,7 +84,7 @@ namespace storalloc {
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
 
-        JobsStats preload_header = {};
+        std::shared_ptr<storalloc::JobsStats> preload_header;
 
         const std::vector<storalloc::YamlJob> &jobs;
 

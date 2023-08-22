@@ -26,9 +26,9 @@ namespace storalloc {
     };
 
     struct striping {
-        uint64_t stripe_size_b;       //  Size of a stripe in bytes
-        unsigned int stripes_per_ost; //  Number of stripes on each OST
-        unsigned int stripes_count;   //  Total number of stripes
+        uint64_t stripe_size_b;           //  Size of a stripe in bytes (ie. how many bytes to write/read to/from an OST before using the next one in the current selection)
+        unsigned int stripes_per_ost = 1; //  Number of stripes on each OST (used only in PATTERN_OVERSTRIPING case, default to 1)
+        unsigned int stripes_count;       //  Number of OSTs used (on how many OSTs to load balance the reads / writes)
     };
 
     class LustreAllocator : public wrench::StorageAllocator {

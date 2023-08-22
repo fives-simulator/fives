@@ -8,6 +8,7 @@ general:
   permanent_storage_read_bw: 10000MBps
   permanent_storage_write_bw: 10000MBps
   permanent_storage_capacity: 10000TB
+  preload_percent: 0
 storage:
   disk_templates:
     - &hdd_capa

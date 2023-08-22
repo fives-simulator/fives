@@ -20,8 +20,8 @@ storage:
     - &raid_OSS
       id: raid_OSS
       capacity: 164000    # GB (~ 164 TB, obtained from 9.2PB total capacity / 56 OSS  - 1 OST per OSS)
-      read_bw: 600    # MBps   6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
-      write_bw: 300    # MBps   randomly half of read bw
+      read_bw: 60    # MBps   6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
+      write_bw: 30    # MBps   randomly half of read bw
       mount_prefix: /dev/hdd
   node_templates:
     - &node_capa
@@ -50,9 +50,9 @@ dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html 
     write_bw: 500 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
 allocator: lustre
 lustre:
-  lq_threshold_rr: 43  # lustre default
-  lq_prio_free: 232    # lustre default
-  max_nb_ost: 56       # Same as the number of storage nodes
-  stripe_size: 10048576 # default from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
-  max_file_stripes_per_ost: 10
+  lq_threshold_rr: 43     # lustre default
+  lq_prio_free: 232       # lustre default
+  stripe_size: 2097152   # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
+  stripe_count: 4         # Default number of OSTs used for each IO operation
+  max_chunks_per_ost: 40  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 ...
