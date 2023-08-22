@@ -187,6 +187,7 @@ namespace storalloc {
                         don't why so far
                         }*/
 
+                        /*
                         // Input for contention and variability on HDD
                         new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                      sg4::Disk::SharingPolicy::NONLINEAR,
@@ -197,6 +198,7 @@ namespace storalloc {
                         new_disk->set_factor_cb(
                             hdd_variability); // TODO: Add config parameter to select which
                                               // variability function should be used
+                        */
                     }
                 }
             }
