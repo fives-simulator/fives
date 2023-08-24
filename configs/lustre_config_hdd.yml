@@ -38,7 +38,7 @@ dragonfly:
   chassis_links: 2
   routers: 2        # per chassis
   router_links: 2
-  nodes: 2          # per router
+  nodes: 4          # per router
   core_count: 64    # Compute node core count - unused
   ram: 192GB        # Compute node ram - unused
   node_local_storage:
@@ -52,5 +52,6 @@ lustre:
   lq_threshold_rr: 43
   lq_prio_free: 232
   max_nb_ost: 2000
-  stripe_size: 40000000
+  stripe_size: 40000000  # 40MB
+  stripe_count: 8
 ...

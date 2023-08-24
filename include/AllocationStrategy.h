@@ -13,7 +13,7 @@ namespace storalloc {
     class GenericRRAllocator : public wrench::StorageAllocator {
 
     public:
-        std::vector<std::shared_ptr<wrench::FileLocation>> allocate(
+        std::vector<std::shared_ptr<wrench::FileLocation>> operator()(
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
@@ -43,46 +43,48 @@ namespace storalloc {
          *          The choice of the allocator is decided by the imbalance in terms of free space
          *          between "OST" (modeled by SimpleStorageServices with one disk in our case)
          */
-        std::vector<std::shared_ptr<wrench::FileLocation>> allocate(
-            const std::shared_ptr<wrench::DataFile> &file,
-            const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
-            const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) override;
+        std::vector<std::shared_ptr<wrench::FileLocation>> operator()(const std::shared_ptr<wrench::DataFile> &file,
+                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                      const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const override;
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreRRAllocator(
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const;
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreWeightedAllocator(
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const;
 
         /**
          *  HELPER FUNCTION FOR LUSTRE STRATEGIES
          */
 
-        striping lustreComputeStriping(uint64_t file_size_b, size_t number_of_OSTs);
+        striping lustreComputeStriping(uint64_t file_size_b, size_t number_of_OSTs) const;
 
-        std::vector<std::shared_ptr<wrench::FileLocation>> lustreCreateFileParts(const std::string &file_id, std::map<int, std::shared_ptr<wrench::StorageService>> temp_allocations, storalloc::striping &striping);
+        std::vector<std::shared_ptr<wrench::FileLocation>> lustreCreateFileParts(const std::shared_ptr<wrench::DataFile> &file,
+                                                                                 std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs,
+                                                                                 uint64_t stripeSize) const;
 
-        ba_min_max lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &);
+        ba_min_max lustreComputeMinMaxUtilization(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &) const;
 
-        bool lustreUseRR(struct ba_min_max ba_min_max);
+        bool lustreUseRR(struct ba_min_max ba_min_max) const;
 
         std::vector<std::shared_ptr<wrench::StorageService>> lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
-                                                                                   const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services);
+                                                                                   const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services) const;
 
-        bool lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping, const std::shared_ptr<wrench::StorageService> ost);
+        bool lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                             const std::shared_ptr<wrench::StorageService> ost) const;
 
-        uint64_t lustreComputeOstPenalty(uint64_t free_space_b, uint64_t free_inode_count, double active_service_count);
+        uint64_t lustreComputeOstPenalty(uint64_t free_space_b, uint64_t free_inode_count, double active_service_count) const;
 
-        uint64_t lustreComputeOstWeight(uint64_t free_space_b, uint64_t free_inode_count, uint64_t ost_penalty);
+        uint64_t lustreComputeOstWeight(uint64_t free_space_b, uint64_t free_inode_count, uint64_t ost_penalty) const;
 
-        uint64_t lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count);
+        uint64_t lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count) const;
 
         // shared config from main simulation
         std::shared_ptr<Config> config = nullptr;
