@@ -864,18 +864,17 @@ void FunctionalAllocTest::lustreCreateFileParts_test() {
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
     auto allocator = std::make_shared<LustreAllocator>(config);
 
-    std::map<int, std::shared_ptr<wrench::StorageService>> alloc_map;
-    int index = 0;
+    std::vector<std::shared_ptr<wrench::StorageService>> alloc_map;
     for (const auto &svc : sstorageservices) {
-        alloc_map[index] = svc;
-        index++;
+        alloc_map.push_back(svc);
     }
 
-    auto locations = allocator->lustreCreateFileParts("Test", alloc_map);
-    ASSERT_EQ(locations.size(), 16);
+    auto file = simulation->addFile("Test", 2000000000);
+    auto locations = allocator->lustreCreateFileParts(file, alloc_map, config->lustre.stripe_size);
+    ASSERT_EQ(locations.size(), 50);
 
     auto file_map = simulation->getFileMap();
-    ASSERT_EQ(file_map.size(), 16);
+    ASSERT_EQ(file_map.size(), 51); // 50 parts + original file still present in map
 
     for (const auto &loc : locations) {
         // Make sure every file parts from designated locations has correctly been added to the simulation
@@ -896,8 +895,8 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test) {
 void FunctionalAllocTest::lustreFullSim_test() {
     // # Start a simulation with all components as they would be in a real case
     auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_hdd.yml"));
-    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader("../data/IOJobsTest_6_small_IO.yml"));
-    auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_small_IO.yml");
+    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader("../data/IOJobsTest_6_LustreSim.yml"));
+    auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_LustreSim.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 1;

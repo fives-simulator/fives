@@ -10,18 +10,18 @@ general:
   backbone_bw: 240GBps    # Actual backbone is 9 TB/s at ALCF, but Theta theta-fs0 storage is capped at 240 GBps 
   config_version: 0.0.1
   config_name: StorAlloc_Theta_Lustre_fs0
-  max_stripe_size: 100048576    # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
-  permanent_storage_read_bw: 20GBps   # ALCF Tape archive cache speed is 90Gbps / and also the link between HDR and FDR is 100GBps. Here we reduce the link speed
-  permanent_storage_write_bw: 20GBps  # Same
+  max_stripe_size: 100048576          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
+  permanent_storage_read_bw: 90GBps   # ALCF Tape archive cache speed is 90Gbps / and also the link between HDR and FDR is 100GBps. Here we reduce the link speed
+  permanent_storage_write_bw: 90GBps  # Same
   permanent_storage_capacity: 3050TB  # Tape capacity is 305 PB
-  preload_percent: 0.2
+  preload_percent: 0.3
 storage:
   disk_templates:
     - &raid_OSS
       id: raid_OSS
       capacity: 164000    # GB (~ 164 TB, obtained from 9.2PB total capacity / 56 OSS  - 1 OST per OSS)
-      read_bw: 600    # MBps   6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
-      write_bw: 300    # MBps   randomly half of read bw
+      read_bw: 6000    # MBps   6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
+      write_bw: 3000    # MBps   randomly half of read bw
       mount_prefix: /dev/hdd
   node_templates:
     - &node_capa
@@ -52,7 +52,7 @@ allocator: lustre
 lustre:
   lq_threshold_rr: 43     # lustre default
   lq_prio_free: 232       # lustre default
-  stripe_size: 2097152    # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
-  stripe_count: 4         # Default number of OSTs used for each IO operation
+  stripe_size: 2097152    # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
+  stripe_count: 2         # Default number of OSTs used for each IO operation
   max_chunks_per_ost: 40  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 ...
