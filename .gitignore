@@ -1,3 +1,8 @@
 build
 IOJobs*
-results
+results/*.png
+results/*.csv
+results/*.yml
+results/*.yaml
+results/*.pdf
+results/.python-version
