@@ -10,14 +10,14 @@
 
 namespace storalloc {
 
-    class GenericRRAllocator : public wrench::StorageAllocator {
+    class GenericRRAllocator {
 
     public:
         std::vector<std::shared_ptr<wrench::FileLocation>> operator()(
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) override;
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
     };
 
     struct ba_min_max {
@@ -31,10 +31,16 @@ namespace storalloc {
         unsigned int stripes_count;       //  Number of OSTs used (on how many OSTs to load balance the reads / writes)
     };
 
-    class LustreAllocator : public wrench::StorageAllocator {
+    class LustreAllocator {
 
     public:
-        LustreAllocator(std::shared_ptr<Config> config) : config(config), prio_wide(256 - config->lustre.lq_prio_free){};
+        LustreAllocator(const storalloc::Config &config) : config(config), prio_wide(256 - config.lustre.lq_prio_free) {
+            std::cout << "Initializing LustreAllocator with Lustre config from file " << this->config.config_name << std::endl;
+        }
+
+        ~LustreAllocator() {
+            std::cout << "In Lustre Allocator DESTRUCTOR" << std::endl;
+        }
 
         /** @brief  Main entry point for the implementation of Lustre allocation strategy
          *          which redirects either to the Round-Robin allocator (lustreRRStrategy)
@@ -46,7 +52,7 @@ namespace storalloc {
         std::vector<std::shared_ptr<wrench::FileLocation>> operator()(const std::shared_ptr<wrench::DataFile> &file,
                                                                       const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                       const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                      const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const override;
+                                                                      const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const;
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreRRAllocator(
             const std::shared_ptr<wrench::DataFile> &file,
@@ -87,7 +93,7 @@ namespace storalloc {
         uint64_t lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count) const;
 
         // shared config from main simulation
-        std::shared_ptr<Config> config = nullptr;
+        const storalloc::Config &config;
 
         uint64_t prio_wide;
     };

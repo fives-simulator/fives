@@ -117,7 +117,7 @@ bool storalloc::LustreAllocator::lustreUseRR(struct ba_min_max ba_min_max) const
 
     // Note : if your OSTs originally have != capacities, this will most likely not work as intended (but Lustre
     // has other mechanisms to look into for such use cases)
-    return (ba_min_max.max * (256 - this->config->lustre.lq_threshold_rr)) >> 8 < ba_min_max.min;
+    return (ba_min_max.max * (256 - this->config.lustre.lq_threshold_rr)) >> 8 < ba_min_max.min;
 }
 
 std::vector<std::shared_ptr<wrench::StorageService>> storalloc::LustreAllocator::lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
@@ -176,10 +176,10 @@ std::vector<std::shared_ptr<wrench::StorageService>> storalloc::LustreAllocator:
 storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t total_number_of_OSTs) const {
 
     storalloc::striping ret_striping = {};
-    ret_striping.stripe_size_b = config->lustre.stripe_size;
-    ret_striping.stripes_count = config->lustre.stripe_count;
+    ret_striping.stripe_size_b = this->config.lustre.stripe_size;
+    ret_striping.stripes_count = this->config.lustre.stripe_count;
 
-    if (config->lustre.stripe_count > total_number_of_OSTs) {
+    if (this->config.lustre.stripe_count > total_number_of_OSTs) {
         throw std::runtime_error("The configured 'stripe_count' is higher than the actual number of available OSTs");
     }
 
@@ -187,18 +187,18 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(uint64_t f
     uint64_t nb_chunks_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
 
     // At this point, if we have too many chunks on each OST, recompute the stripe_size to fit the user definded bounds
-    if (nb_chunks_per_ost > config->lustre.max_chunks_per_ost) {
-        ret_striping.stripe_size_b = std::ceil(file_size_b / (ret_striping.stripes_count * config->lustre.max_chunks_per_ost));
+    if (nb_chunks_per_ost > config.lustre.max_chunks_per_ost) {
+        ret_striping.stripe_size_b = std::ceil(file_size_b / (ret_striping.stripes_count * config.lustre.max_chunks_per_ost));
     }
 
     std::cout << "_____________________________________________" << std::endl;
     std::cout << "File size is                   : " << file_size_b << " bytes" << std::endl;
     std::cout << "We can use up to " << total_number_of_OSTs << " OSTs" << std::endl;
-    std::cout << "Volume per OST will be around  : " << file_size_b / config->lustre.stripe_count << " bytes" << std::endl;
-    std::cout << "User configured stripe size is : " << this->config->lustre.stripe_size << " bytes" << std::endl;
-    std::cout << "User configured stripe count is : " << this->config->lustre.stripe_count << std::endl;
+    std::cout << "Volume per OST will be around  : " << file_size_b / config.lustre.stripe_count << " bytes" << std::endl;
+    std::cout << "User configured stripe size is : " << this->config.lustre.stripe_size << " bytes" << std::endl;
+    std::cout << "User configured stripe count is : " << this->config.lustre.stripe_count << std::endl;
     std::cout << "Computed number of chunks per OSTs is " << nb_chunks_per_ost << std::endl;
-    std::cout << "Max number of chunk per ost is " << config->lustre.max_chunks_per_ost << std::endl;
+    std::cout << "Max number of chunk per ost is " << config.lustre.max_chunks_per_ost << std::endl;
     std::cout << "Final stripe size will be " << ret_striping.stripe_size_b << std::endl;
 
     return ret_striping;
@@ -230,6 +230,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     auto service = selectedOSTs.begin();
     while (allocated < file_size_b) {
         auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(chunk_idx), stripeSize);
+        // std::cout << "     - Creating file part " << file->getID() << "_" << std::to_string(chunk_idx) << " on " << service->get()->getName() << std::endl;
         designated_locations.push_back(
             wrench::FileLocation::LOCATION(
                 std::shared_ptr<wrench::StorageService>(*service), part));
@@ -291,7 +292,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
             ++temp_start_ost_index;
             auto current_ost = rr_ordered_services[array_idx];
 
-            if (current_ost->traceTotalFreeSpace() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
+            if (current_ost->traceTotalFreeSpace() < this->config.lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                 // Only keep running storage services associated with non-full disks
                 WRENCH_DEBUG("LustreAlloc: skipping OST (total Free space == %f and current state == %d)", current_ost->traceTotalFreeSpace(), current_ost->getState());
                 continue;
@@ -336,7 +337,7 @@ uint64_t storalloc::LustreAllocator::lustreComputeOstPenalty(uint64_t free_space
     }
 
     free_space_b >>= 16; // Bitshift for overflow
-    uint64_t free_inode_count = (this->config->lustre.max_inodes - used_inode_count);
+    uint64_t free_inode_count = (this->config.lustre.max_inodes - used_inode_count);
     free_inode_count >>= 8;
     uint64_t penalty = ((this->prio_wide * free_space_b * free_inode_count) >> 8);
     penalty /= active_service_count;
@@ -348,7 +349,7 @@ uint64_t storalloc::LustreAllocator::lustreComputeOstWeight(uint64_t free_space_
 
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L232
 
-    uint64_t weight = (free_space_b >> 16) * ((this->config->lustre.max_inodes - used_inode_count) >> 8);
+    uint64_t weight = (free_space_b >> 16) * ((this->config.lustre.max_inodes - used_inode_count) >> 8);
 
     if (weight < ost_penalty)
         return 0;
@@ -397,6 +398,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     for (const auto &resource : resources) {
         active_ost_count += resource.second.size();
     }
+    std::cout << "Active OST count : " << active_ost_count << std::endl;
 
     uint64_t total_weight = 0;
     std::map<std::shared_ptr<wrench::StorageService>, uint64_t> weighted_services = {};
@@ -407,20 +409,25 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
         auto srv_free_inodes = 0;
         std::map<std::shared_ptr<wrench::StorageService>, uint64_t> weighted_oss_services = {};
 
+        std::cout << "Computing weights for " << resource.first << std::endl;
         for (const auto &service : resource.second) {
 
+            std::cout << " - " << service->getName() << " has :" << std::endl;
             auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
             uint64_t current_free_space = ss_service->traceTotalFreeSpace();
+            std::cout << "    - " << current_free_space << " free bytes" << std::endl;
             srv_free_space += (current_free_space >> 16); // Bitshift for overflow
             uint64_t current_files = ss_service->traceTotalFiles();
-            srv_free_inodes += ((this->config->lustre.max_inodes - current_files) >> 8); // Bitshift for overflow, once again
+            std::cout << "    - " << current_files << " known files" << std::endl;
+            srv_free_inodes += ((this->config.lustre.max_inodes - current_files) >> 8); // Bitshift for overflow, once again
 
             auto ost_penalty = lustreComputeOstPenalty(current_free_space, current_files, active_ost_count);
+            std::cout << "    - The OST penalty is : " << ost_penalty << std::endl;
             auto weight = lustreComputeOstWeight(current_free_space, current_files, ost_penalty);
+            std::cout << "    - The weight is : " << weight << std::endl;
 
             // At this point we should also take into account for how long the OST has been IDLE.
             // So far we don't because... it's very complex to get it right in the simulation.
-
             weighted_oss_services[service] = weight;
         }
 
@@ -429,6 +436,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
 
         // Update all weights with server penalty
         auto oss_penalty = lustreComputeOssPenalty(srv_free_space, srv_free_inodes, weighted_oss_services.size(), resources.size());
+        std::cout << "The full OSS penalty is " << oss_penalty << std::endl;
 
         for (auto &oss_service : weighted_oss_services) {
             if (oss_service.second < oss_penalty)
@@ -442,6 +450,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
         // Update global weight map
         weighted_services.insert(weighted_oss_services.begin(), weighted_oss_services.end());
     }
+    std::cout << "IN LUSTRE ALLOCATOR 3 - 4" << std::endl;
 
     // 2. Pick OST at random, but favor larger weights
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/lod/lod_qos.c#L1503
@@ -451,44 +460,59 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
      *  size and the total number of OSTs, with some homemade rule.
      */
     auto file_size_b = file->getSize();
-    auto stripe_count = std::ceil(file_size_b / this->config->lustre.stripe_size); // Here we potentially ask for more storage than needed due to the rounding
+    std::cout << "We need to find storage a file of size " << file_size_b << " bytes" << std::endl;
+    // auto stripe_count = std::ceil(file_size_b / this->config.lustre.stripe_size); // Here we potentially ask for more storage than needed due to the rounding
+
+    auto striping = lustreComputeStriping(file_size_b, active_ost_count);
+
+    std::cout << "Stripe size " << striping.stripe_size_b << std::endl;
+    std::cout << "Stripe count " << striping.stripes_count << std::endl;
+    std::cout << "Stripes per ost " << striping.stripes_per_ost << std::endl;
+    std::cout << "TOTAL WEIGHT : " << total_weight << std::endl;
 
     WRENCH_DEBUG("LUSTRE WEIGHT ALLOC DEBUG");
-    WRENCH_DEBUG("Stripe count = %f", stripe_count);
+    WRENCH_DEBUG("Stripe count = %d", striping.stripes_count);
     WRENCH_DEBUG("Current file_size = %f", file_size_b);
     WRENCH_DEBUG("Number of OST / services = %i", active_ost_count);
 
     // from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
     std::random_device rd;
     std::mt19937 gen(rd()); // replace rd() by a static seed for reproducibility
-    std::uniform_int_distribution<> distrib(0, total_weight);
+    std::uniform_int_distribution<uint64_t> distrib(0, total_weight);
 
-    std::vector<std::shared_ptr<wrench::StorageService>> temp_stripe_locations;
+    std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs;
 
     // Let's find enough OSTs for our allocation
-    auto nfound = 0;
-    while (nfound < stripe_count) {
+    std::cout << "IN LUSTRE ALLOCATOR 3 - 5" << std::endl;
+    uint64_t nfound = 0;
+    while (nfound < striping.stripes_count) {
+
+        std::cout << "IN LUSTRE ALLOCATOR 3 - 5.0" << std::endl;
         uint64_t rand, cur_weight;
 
         cur_weight = 0;
         rand = distrib(gen);
+        std::cout << "IN LUSTRE ALLOCATOR 3 - 5.1" << std::endl;
+        std::cout << "Curr. rand : " << rand << std::endl;
 
         auto stripe_idx = 0;
         for (const auto &service : weighted_services) {
 
             cur_weight += service.second;
+            std::cout << "  Curr weight : " << cur_weight << std::endl;
             if (cur_weight < rand)
                 continue;
 
-            temp_stripe_locations.push_back(service.first);
+            selectedOSTs.push_back(service.first);
             nfound++;
         }
     }
+    std::cout << "IN LUSTRE ALLOCATOR 3 - 6" << std::endl;
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
-    if (temp_stripe_locations.size() < stripe_count) {
-        WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %f  stripes, but could only allocate %li instead.", stripe_count, temp_stripe_locations.size());
+    if (selectedOSTs.size() < striping.stripes_count) {
+        WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %d  stripes, but could only allocate %li instead.", striping.stripes_count, selectedOSTs.size());
     }
 
-    return lustreCreateFileParts(file, temp_stripe_locations, this->config->lustre.stripe_size);
+    return lustreCreateFileParts(file, selectedOSTs, striping.stripe_size_b);
 }
