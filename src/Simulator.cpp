@@ -127,7 +127,8 @@ int storalloc::run_simulation(int argc, char **argv) {
     /* Simple storage services */
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
-    auto allocator = std::make_shared<storalloc::LustreAllocator>(config);
+    auto config_ref = *(config);
+    auto allocator = LustreAllocator(config_ref);
 
     /* Compound storage service*/
     auto compound_storage_service = simulation->add(
@@ -138,6 +139,7 @@ int storalloc::run_simulation(int argc, char **argv) {
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
+    std::cout << "Right after CSS creation" << std::endl;
 
     /* Permanent storage */
     auto permanent_storage = simulation->add(
@@ -153,6 +155,7 @@ int storalloc::run_simulation(int argc, char **argv) {
 
     /* Launch the simulation */
     std::cout << "Launching simulation..." << std::endl;
+    std::cout << "Right before launching simulation, use_count on config is " << config.use_count() << std::endl;
     simulation->launch();
 
     // Playing around with energy plugin, not useful so far

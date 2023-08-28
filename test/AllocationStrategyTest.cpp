@@ -53,7 +53,7 @@ void BasicAllocTest::lustreUseRR_test() {
     // min and max free space in bytes
     struct storalloc::ba_min_max test_min_max;
 
-    auto allocator = LustreAllocator(this->cfg);
+    auto allocator = LustreAllocator(*(this->cfg));
 
     // Right above the 17% threshold
     test_min_max.min = 833 * GB;
@@ -89,7 +89,7 @@ TEST_F(BasicAllocTest, lustreOstPenalty_test) {
  */
 void BasicAllocTest::lustreOstPenalty_test() {
 
-    auto allocator = LustreAllocator(this->cfg);
+    auto allocator = LustreAllocator(*(this->cfg));
 
     const uint64_t GB = 1000 * 1000 * 1000;
 
@@ -154,7 +154,7 @@ TEST_F(BasicAllocTest, lustreOssPenalty_test) {
  */
 void BasicAllocTest::lustreOssPenalty_test() {
 
-    auto allocator = LustreAllocator(this->cfg);
+    auto allocator = LustreAllocator(*(this->cfg));
 
     const uint64_t GB = 1000 * 1000 * 1000;
 
@@ -246,7 +246,7 @@ TEST_F(BasicAllocTest, lustreComputeOstWeight_test) {
  */
 void BasicAllocTest::lustreComputeOstWeight_test() {
 
-    auto allocator = LustreAllocator(this->cfg);
+    auto allocator = LustreAllocator(*(this->cfg));
 
     const uint64_t GB = 1000 * 1000 * 1000;
 
@@ -301,32 +301,32 @@ TEST_F(BasicAllocTest, lustreComputeStriping_test) {
  */
 void BasicAllocTest::lustreComputeStriping_test() {
 
-    auto allocator = LustreAllocator(this->cfg);
+    auto allocator = LustreAllocator(*(this->cfg));
     auto striping = allocator.lustreComputeStriping(3000000000, 85);
     ASSERT_EQ(striping.stripe_size_b, 300000000);
     ASSERT_EQ(striping.stripes_count, 1);
     ASSERT_EQ(striping.stripes_per_ost, 1);
     ASSERT_THROW(allocator.lustreComputeStriping(3000000000, 0), std::runtime_error);
 
-    auto cfg_2 = std::make_shared<Config>();
-    cfg_2->lustre = LustreConfig();  // default lustre config
-    cfg_2->lustre.stripe_count = 50; // load-balancing on 50 OSTs
-    allocator = LustreAllocator(cfg_2);
+    auto cfg_2 = Config();
+    cfg_2.lustre = LustreConfig();  // default lustre config
+    cfg_2.lustre.stripe_count = 50; // load-balancing on 50 OSTs
+    auto allocator2 = LustreAllocator(cfg_2);
 
     striping = {};
-    striping = allocator.lustreComputeStriping(30000000000, 85);
+    striping = allocator2.lustreComputeStriping(30000000000, 85);
     ASSERT_EQ(striping.stripe_size_b, 60000000);
     ASSERT_EQ(striping.stripes_count, 50);
     ASSERT_EQ(striping.stripes_per_ost, 1);
 
-    auto cfg_3 = std::make_shared<Config>();
-    cfg_3->lustre = LustreConfig();        // default lustre config
-    cfg_3->lustre.stripe_count = 50;       // load-balancing on 50 OSTs
-    cfg_3->lustre.max_chunks_per_ost = 45; // allowing for more chunks on each OST
-    allocator = LustreAllocator(cfg_3);
+    auto cfg_3 = Config();
+    cfg_3.lustre = LustreConfig();        // default lustre config
+    cfg_3.lustre.stripe_count = 50;       // load-balancing on 50 OSTs
+    cfg_3.lustre.max_chunks_per_ost = 45; // allowing for more chunks on each OST
+    auto allocator3 = LustreAllocator(cfg_3);
 
     striping = {};
-    striping = allocator.lustreComputeStriping(3000000, 85);
+    striping = allocator3.lustreComputeStriping(3000000, 85);
     ASSERT_EQ(striping.stripe_size_b, 2097152);
     ASSERT_EQ(striping.stripes_count, 50);
     ASSERT_EQ(striping.stripes_per_ost, 1);
@@ -488,7 +488,7 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
 
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    LustreAllocator allocator(*(config));
 
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
@@ -501,7 +501,7 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0", allocator));
+        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator)));
 
     simulation->launch();
 }
@@ -597,7 +597,7 @@ void FunctionalAllocTest::lustreOstIsUsed_test() {
     /* Simple storage services */
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    LustreAllocator allocator(*(config));
 
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
@@ -609,7 +609,7 @@ void FunctionalAllocTest::lustreOstIsUsed_test() {
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerUsage(batch_service, sstorageservices, compound_storage_service, "user0", allocator));
+        new LustreTestControllerUsage(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator)));
 
     simulation->launch();
 }
@@ -695,7 +695,7 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
 
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    LustreAllocator allocator(*(config));
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
@@ -717,7 +717,7 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
     };
 
     auto wms = simulation->add(
-        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", allocator, result));
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator), result));
 
     ASSERT_NO_THROW(simulation->launch());
 }
@@ -751,7 +751,7 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
     /* Batch compute Service*/
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    LustreAllocator allocator(*(config));
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
@@ -771,7 +771,7 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
     };
 
     auto wms = simulation->add(
-        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", allocator, result));
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator), result));
 
     ASSERT_NO_THROW(simulation->launch());
 }
@@ -805,7 +805,7 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
     /* Batch compute Service*/
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    LustreAllocator allocator(*(config));
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
@@ -828,7 +828,7 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
     };
 
     auto wms = simulation->add(
-        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", allocator, result));
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator), result));
 
     ASSERT_NO_THROW(simulation->launch());
 }
@@ -862,7 +862,7 @@ void FunctionalAllocTest::lustreCreateFileParts_test() {
     /* Batch compute Service*/
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    auto allocator = std::make_shared<LustreAllocator>(*(config));
 
     std::vector<std::shared_ptr<wrench::StorageService>> alloc_map;
     for (const auto &svc : sstorageservices) {
@@ -911,7 +911,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
     ASSERT_EQ(sstorageservices.size(), 16);
-    auto allocator = std::make_shared<LustreAllocator>(config);
+    LustreAllocator allocator(*(config));
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
@@ -978,7 +978,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             auto file_locations = r_action->getFileLocations();
 
             ASSERT_EQ(file->getID(), "input_data_file_1");
-            ASSERT_EQ(file->getSize(), 20000000000);
+            ASSERT_EQ(file->getSize(), 2000000000);
             ASSERT_EQ(file_locations.size(), 1);
             ASSERT_EQ(file_locations[0]->getPath(), "/");
             ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5051");
@@ -989,21 +989,21 @@ void FunctionalAllocTest::lustreFullSim_test() {
             auto file_location = w_action->getFileLocation();
 
             ASSERT_EQ(file->getID(), "output_data_file_1");
-            ASSERT_EQ(file->getSize(), 25000000000);
+            ASSERT_EQ(file->getSize(), 2500000000);
             ASSERT_EQ(file_location->getPath(), "/");
             ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5051");
         }
 
         if (auto c_action = std::dynamic_pointer_cast<wrench::ComputeAction>(action)) {
-            ASSERT_EQ(c_action->getFlops(), 7150000000000000); // 1000 GFlops, this is the current default, but it will change and break the test soon
+            ASSERT_EQ(c_action->getFlops(), 7020000000000000); // 1000 GFlops, this is the current default, but it will change and break the test soon
         }
 
         if (auto d_action = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {
             auto file = d_action->getFile();
             if (file->getID() == "output_data_file_1") {
-                ASSERT_EQ(file->getSize(), 25000000000);
+                ASSERT_EQ(file->getSize(), 2500000000);
             } else if (file->getID() == "input_data_file_1") {
-                ASSERT_EQ(file->getSize(), 20000000000);
+                ASSERT_EQ(file->getSize(), 2000000000);
             } else {
                 GTEST_FAIL();
             }
@@ -1020,56 +1020,114 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 49); // 8 traces * 6 jobs + initial trace
 
     // All actions from all 6 jobs in the order in which they should execute (only two jobs slightly overlap)
-    std::vector<std::pair<std::string, wrench::IOAction>> action_list = {
-        {"0", wrench::IOAction::None},
-        {"1", wrench::IOAction::CopyToStart},
-        {"1", wrench::IOAction::CopyToEnd},
-        {"1", wrench::IOAction::WriteStart},
-        {"1", wrench::IOAction::WriteEnd},
-        {"1", wrench::IOAction::DeleteStart},
-        {"1", wrench::IOAction::DeleteEnd},
-        {"1", wrench::IOAction::DeleteStart},
-        {"1", wrench::IOAction::DeleteEnd},
-        {"2", wrench::IOAction::CopyToStart},
-        {"2", wrench::IOAction::CopyToEnd},
-        {"2", wrench::IOAction::WriteStart},
-        {"2", wrench::IOAction::WriteEnd},
-        {"2", wrench::IOAction::DeleteStart},
-        {"2", wrench::IOAction::DeleteEnd},
-        {"2", wrench::IOAction::DeleteStart},
-        {"2", wrench::IOAction::DeleteEnd},
-        {"3", wrench::IOAction::CopyToStart},
-        {"3", wrench::IOAction::CopyToEnd},
-        {"3", wrench::IOAction::WriteStart},
-        {"3", wrench::IOAction::WriteEnd},
-        {"3", wrench::IOAction::DeleteStart},
-        {"3", wrench::IOAction::DeleteEnd},
-        {"3", wrench::IOAction::DeleteStart},
-        {"3", wrench::IOAction::DeleteEnd},
-        {"4", wrench::IOAction::CopyToStart},
-        {"4", wrench::IOAction::CopyToEnd},
-        {"4", wrench::IOAction::WriteStart},
-        {"4", wrench::IOAction::WriteEnd},
-        {"4", wrench::IOAction::DeleteStart},
-        {"4", wrench::IOAction::DeleteEnd},
-        {"4", wrench::IOAction::DeleteStart},
-        {"4", wrench::IOAction::DeleteEnd},
-        {"5", wrench::IOAction::CopyToStart},
-        {"5", wrench::IOAction::CopyToEnd},
-        {"5", wrench::IOAction::WriteStart},
-        {"5", wrench::IOAction::WriteEnd},
-        {"5", wrench::IOAction::DeleteStart},
-        {"5", wrench::IOAction::DeleteEnd},
-        {"5", wrench::IOAction::DeleteStart},
-        {"5", wrench::IOAction::DeleteEnd},
-        {"6", wrench::IOAction::CopyToStart},
-        {"6", wrench::IOAction::CopyToEnd},
-        {"6", wrench::IOAction::WriteStart},
-        {"6", wrench::IOAction::WriteEnd},
-        {"6", wrench::IOAction::DeleteStart},
-        {"6", wrench::IOAction::DeleteEnd},
-        {"6", wrench::IOAction::DeleteStart},
-        {"6", wrench::IOAction::DeleteEnd},
+    std::vector<std::pair<int, wrench::IOAction>> action_list = {
+        {0, wrench::IOAction::None},
+        {1, wrench::IOAction::CopyToStart},
+        {1, wrench::IOAction::CopyToEnd},
+        {1, wrench::IOAction::WriteStart},
+        {1, wrench::IOAction::WriteEnd},
+        {1, wrench::IOAction::DeleteStart},
+        {1, wrench::IOAction::DeleteEnd},
+        {1, wrench::IOAction::DeleteStart},
+        {1, wrench::IOAction::DeleteEnd},
+        {2, wrench::IOAction::CopyToStart},
+        {2, wrench::IOAction::CopyToEnd},
+        {2, wrench::IOAction::WriteStart},
+        {2, wrench::IOAction::WriteEnd},
+        {2, wrench::IOAction::DeleteStart},
+        {2, wrench::IOAction::DeleteEnd},
+        {2, wrench::IOAction::DeleteStart},
+        {2, wrench::IOAction::DeleteEnd},
+        {3, wrench::IOAction::CopyToStart},
+        {3, wrench::IOAction::CopyToEnd},
+        {3, wrench::IOAction::WriteStart},
+        {3, wrench::IOAction::WriteEnd},
+        {3, wrench::IOAction::DeleteStart},
+        {3, wrench::IOAction::DeleteEnd},
+        {3, wrench::IOAction::DeleteStart},
+        {3, wrench::IOAction::DeleteEnd},
+        {4, wrench::IOAction::CopyToStart},
+        {4, wrench::IOAction::CopyToEnd},
+        {4, wrench::IOAction::WriteStart},
+        {4, wrench::IOAction::WriteEnd},
+        {4, wrench::IOAction::DeleteStart},
+        {4, wrench::IOAction::DeleteEnd},
+        {4, wrench::IOAction::DeleteStart},
+        {4, wrench::IOAction::DeleteEnd},
+        {5, wrench::IOAction::CopyToStart},
+        {5, wrench::IOAction::CopyToEnd},
+        {5, wrench::IOAction::WriteStart},
+        {5, wrench::IOAction::WriteEnd},
+        {5, wrench::IOAction::DeleteStart},
+        {5, wrench::IOAction::DeleteEnd},
+        {5, wrench::IOAction::DeleteStart},
+        {5, wrench::IOAction::DeleteEnd},
+        {6, wrench::IOAction::CopyToStart},
+        {6, wrench::IOAction::CopyToEnd},
+        {6, wrench::IOAction::WriteStart},
+        {6, wrench::IOAction::WriteEnd},
+        {6, wrench::IOAction::DeleteStart},
+        {6, wrench::IOAction::DeleteEnd},
+        {6, wrench::IOAction::DeleteStart},
+        {6, wrench::IOAction::DeleteEnd},
+    };
+
+    std::vector<int> disk_usage_sizes = {
+        16,
+
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+
+        15,
+        15,
+        8,
+        8,
+        15,
+        15,
+        8,
+        8,
+
+        16,
+        16,
+        7,
+        7,
+        16,
+        16,
+        7,
+        7,
+
+        16,
+        16,
+        7,
+        7,
+        16,
+        16,
+        7,
+        7,
+
+        10,
+        10,
+        7,
+        7,
+        10,
+        10,
+        7,
+        7,
+
+        16,
+        16,
+        7,
+        7,
+        16,
+        16,
+        7,
+        7,
     };
 
     // Check first trace (before any job action takes place), it's a special case before any IO happens
@@ -1111,7 +1169,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
         */
 
         ASSERT_EQ(entry.second.act, action_list[index].second);
-        ASSERT_EQ(alloc.disk_usage.size(), 16);
+        ASSERT_EQ(alloc.disk_usage.size(), disk_usage_sizes[index]);
 
         // Check correct initial values for all storage services at step 0
         if (index == 0) {
@@ -1139,8 +1197,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
                 output = base_match[2].str();
                 job_id = stoi(base_match[3].str());
                 file_part = base_match[4].str();
-                // std::cout << input << "|" << output << "|" << job_id << "|" << file_part << std::endl;
-                ASSERT_EQ(job_id, index);
+                ASSERT_EQ(job_id, action_list[index].first);
             } else {
                 if (file_name == "nofile") {
                     index++;
@@ -1152,7 +1209,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             }
 
             // Find associated job
-            auto current_job = jobs[job_id];
+            auto current_job = jobs[job_id - 1];
             /* TODO: MORE TESTS HERE */
         }
 
@@ -1164,11 +1221,10 @@ void FunctionalAllocTest::lustreFullSim_test() {
     // Check a random trace, where we know what should be the file count and free_space on each OSS
     ASSERT_EQ(compound_storage_service->internal_storage_use[20].second.act, wrench::IOAction::WriteEnd);
     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[20].second.disk_usage) {
-
         // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
-
-        ASSERT_NEAR(first_disk_usage.file_count, 10, 1);                 // 9 or 10 files part per server after copying input data and writing output data (~6 + 4)
-        ASSERT_NEAR(first_disk_usage.free_space, 19600000000, 40000000); // each file part is 40 MB
+        // assertions with more or less one file part as error, to account for small irregularities in rounding
+        ASSERT_NEAR(first_disk_usage.file_count, 4, 1);                  // 4/5 files parts/server after copying input parts (~4 per OST) and writing output data (1 for some OSTs)
+        ASSERT_NEAR(first_disk_usage.free_space, 19840000000, 40000000); // each file part is 40 MB
     }
 
     auto alloc_filename = compound_storage_service->internal_storage_use[20].second.file_name;
@@ -1181,7 +1237,6 @@ void FunctionalAllocTest::lustreFullSim_test() {
     // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd)
     ASSERT_EQ(compound_storage_service->internal_storage_use[8].second.act, wrench::IOAction::DeleteEnd);
     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[8].second.disk_usage) {
-
         // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
 
         ASSERT_EQ(first_disk_usage.file_count, 0);
@@ -1201,8 +1256,8 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
         // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
 
-        ASSERT_NEAR(first_disk_usage.file_count, 7, 1);
-        ASSERT_NEAR(first_disk_usage.free_space, 19720000000, 40000000);
+        ASSERT_NEAR(first_disk_usage.file_count, 1, 1);
+        ASSERT_NEAR(first_disk_usage.free_space, 19960000000, 40000000);
     }
 
     alloc_filename = compound_storage_service->internal_storage_use[34].second.file_name;

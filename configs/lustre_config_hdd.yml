@@ -53,5 +53,5 @@ lustre:
   lq_prio_free: 232
   max_nb_ost: 2000
   stripe_size: 40000000  # 40MB
-  stripe_count: 8
+  stripe_count: 16
 ...

@@ -191,10 +191,10 @@ namespace storalloc {
         std::mt19937 gen(rd());
 
         // Runtimes :
-        std::cout << "Mean runtime (s) : " << this->preload_header->mean_runtime_s << std::endl;
-        std::cout << "Median runtime (s) : " << this->preload_header->median_runtime_s << std::endl;
-        std::cout << "Runtime var : " << this->preload_header->var_runtime_s << std::endl;
-        std::cout << "Max runtime (s) : " << this->preload_header->max_runtime_s << std::endl;
+        // std::cout << "Mean runtime (s) : " << this->preload_header->mean_runtime_s << std::endl;
+        // std::cout << "Median runtime (s) : " << this->preload_header->median_runtime_s << std::endl;
+        // std::cout << "Runtime var : " << this->preload_header->var_runtime_s << std::endl;
+        // std::cout << "Max runtime (s) : " << this->preload_header->max_runtime_s << std::endl;
 
         std::vector<int> rand_runtimes_s;
         std::lognormal_distribution<> dr(
@@ -204,15 +204,15 @@ namespace storalloc {
             auto val = std::floor(dr(gen));
             if (val <= this->preload_header->max_runtime_s) {
                 rand_runtimes_s.push_back(val);
-                std::cout << "Adding " << val << " to runtimes" << std::endl;
+                // std::cout << "Adding " << val << " to runtimes" << std::endl;
             }
         }
 
         // Interval between jobs :
-        std::cout << "Mean interval (s) : " << this->preload_header->mean_interval_s << std::endl;
-        std::cout << "Median interval (s) : " << this->preload_header->median_interval_s << std::endl;
-        std::cout << "Interval var : " << this->preload_header->var_interval_s << std::endl;
-        std::cout << "Max interval (s) : " << this->preload_header->max_interval_s << std::endl;
+        // std::cout << "Mean interval (s) : " << this->preload_header->mean_interval_s << std::endl;
+        // std::cout << "Median interval (s) : " << this->preload_header->median_interval_s << std::endl;
+        // std::cout << "Interval var : " << this->preload_header->var_interval_s << std::endl;
+        // std::cout << "Max interval (s) : " << this->preload_header->max_interval_s << std::endl;
 
         std::vector<int> rand_intervals_s;
         std::lognormal_distribution<> di(
@@ -222,15 +222,15 @@ namespace storalloc {
             auto val = std::floor(di(gen));
             if (val <= this->preload_header->max_interval_s) {
                 rand_intervals_s.push_back(val);
-                std::cout << "Adding " << val << " to intervals" << std::endl;
+                // std::cout << "Adding " << val << " to intervals" << std::endl;
             }
         }
 
         // Nodes used:
-        std::cout << "Mean nodes used : " << this->preload_header->mean_nodes_used << std::endl;
-        std::cout << "Median nodes used : " << this->preload_header->median_nodes_used << std::endl;
-        std::cout << "Nodes used var : " << this->preload_header->var_nodes_used << std::endl;
-        std::cout << "Max nodes used : " << this->preload_header->max_nodes_used << std::endl;
+        // std::cout << "Mean nodes used : " << this->preload_header->mean_nodes_used << std::endl;
+        // std::cout << "Median nodes used : " << this->preload_header->median_nodes_used << std::endl;
+        // std::cout << "Nodes used var : " << this->preload_header->var_nodes_used << std::endl;
+        // std::cout << "Max nodes used : " << this->preload_header->max_nodes_used << std::endl;
 
         std::vector<int> rand_nodes_count;
         std::lognormal_distribution<> dn(
@@ -240,15 +240,15 @@ namespace storalloc {
             auto val = std::floor(dn(gen));
             if (val <= this->preload_header->max_nodes_used) {
                 rand_nodes_count.push_back(val);
-                std::cout << "Adding " << val << " to nodes count" << std::endl;
+                // std::cout << "Adding " << val << " to nodes count" << std::endl;
             }
         }
 
         // Bytes READ
-        std::cout << "Mean terabytes read : " << this->preload_header->mean_read_tbytes << std::endl;
-        std::cout << "Median terabytes read : " << this->preload_header->median_read_tbytes << std::endl;
-        std::cout << "Var terabytes read : " << this->preload_header->var_read_tbytes << std::endl;
-        std::cout << "Max terabytes read : " << this->preload_header->max_read_tbytes << std::endl;
+        // std::cout << "Mean terabytes read : " << this->preload_header->mean_read_tbytes << std::endl;
+        // std::cout << "Median terabytes read : " << this->preload_header->median_read_tbytes << std::endl;
+        // std::cout << "Var terabytes read : " << this->preload_header->var_read_tbytes << std::endl;
+        // std::cout << "Max terabytes read : " << this->preload_header->max_read_tbytes << std::endl;
 
         std::vector<double> rand_read_tbytes;
         std::lognormal_distribution<> drb(
@@ -258,15 +258,15 @@ namespace storalloc {
             auto val = drb(gen);
             if (val <= this->preload_header->max_read_tbytes) {
                 rand_read_tbytes.push_back(val);
-                std::cout << "Adding " << val << " to read terabytes" << std::endl;
+                // std::cout << "Adding " << val << " to read terabytes" << std::endl;
             }
         }
 
         // Bytes WRITTEN
-        std::cout << "Mean terabytes written : " << this->preload_header->mean_written_tbytes << std::endl;
-        std::cout << "Median terabytes written : " << this->preload_header->median_written_tbytes << std::endl;
-        std::cout << "Var terabytes written : " << this->preload_header->var_written_tbytes << std::endl;
-        std::cout << "Max terabytes written : " << this->preload_header->max_written_tbytes << std::endl;
+        // std::cout << "Mean terabytes written : " << this->preload_header->mean_written_tbytes << std::endl;
+        // std::cout << "Median terabytes written : " << this->preload_header->median_written_tbytes << std::endl;
+        // std::cout << "Var terabytes written : " << this->preload_header->var_written_tbytes << std::endl;
+        // std::cout << "Max terabytes written : " << this->preload_header->max_written_tbytes << std::endl;
 
         std::vector<double> rand_written_tbytes;
         std::lognormal_distribution<> dwb(
@@ -276,12 +276,12 @@ namespace storalloc {
             auto val = dwb(gen);
             if (val <= this->preload_header->max_written_tbytes) {
                 rand_written_tbytes.push_back(val);
-                std::cout << "Adding " << val << " to written terabytes" << std::endl;
+                // std::cout << "Adding " << val << " to written terabytes" << std::endl;
             }
         }
 
         auto cores_per_node = this->compute_service->getPerHostNumCores().begin()->second;
-        std::cout << "Using " << cores_per_node << " cores for each reserved node" << std::endl;
+        // std::cout << "Using " << cores_per_node << " cores for each reserved node" << std::endl;
         std::vector<storalloc::YamlJob> preload_jobs;
         auto i = 0;
         while (i < preloadJobsCount) {
