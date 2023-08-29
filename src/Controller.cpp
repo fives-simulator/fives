@@ -362,9 +362,9 @@ namespace storalloc {
 
         // Submit job
         std::map<std::string, std::string> service_specific_args =
-            {{"-N", std::to_string(yJob.nodesUsed)},                  // nb of nodes
-             {"-c", std::to_string(yJob.coresUsed / yJob.nodesUsed)}, // cores per node
-             {"-t", std::to_string(yJob.walltimeSeconds)}};           // seconds
+            {{"-N", std::to_string(yJob.nodesUsed)},                                                             // nb of nodes
+             {"-c", std::to_string(yJob.coresUsed / yJob.nodesUsed)},                                            // cores per node
+             {"-t", std::to_string(static_cast<int>(yJob.walltimeSeconds * this->config->walltime_extension))}}; // seconds
         WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
                      job->getName().c_str(),
                      yJob.nodesUsed, yJob.coresUsed / yJob.nodesUsed, yJob.walltimeSeconds);
@@ -424,7 +424,7 @@ namespace storalloc {
             this->flopRate * this->current_yaml_job.approxComputeTimeSeconds,
             16 * GBYTE,
             cores_per_node, cores_per_node,
-            wrench::ParallelModel::AMDAHL(0.75));
+            wrench::ParallelModel::AMDAHL(this->config->amdahl));
 
         // Actions dependencies
         if (!this->actions.empty()) {

@@ -15,6 +15,8 @@ general:
   permanent_storage_write_bw: 90GBps  # Same
   permanent_storage_capacity: 3050TB  # Tape capacity is 305 PB
   preload_percent: 0.3
+  amdahl: 0.5                         # From 0 to 1, degree of // in compute tasks
+  walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
 storage:
   disk_templates:
     - &raid_OSS
@@ -53,6 +55,6 @@ lustre:
   lq_threshold_rr: 43     # lustre default
   lq_prio_free: 232       # lustre default
   stripe_size: 2097152    # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
-  stripe_count: 2         # Default number of OSTs used for each IO operation
-  max_chunks_per_ost: 40  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
+  stripe_count: 1         # Default number of OSTs used for each IO operation
+  max_chunks_per_ost: 80  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 ...

@@ -43,6 +43,16 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         rhs.perm_storage_capa = ynode["general"]["permanent_storage_capacity"].as<std::string>();
         rhs.max_stripe_size = ynode["general"]["max_stripe_size"].as<unsigned int>();
         rhs.preload_percent = ynode["general"]["preload_percent"].as<float>();
+        if (ynode["general"]["amdahl"].IsDefined()) {
+            rhs.amdahl = ynode["general"]["amdahl"].as<float>();
+        } else {
+            rhs.amdahl = 0.7; // "sensible" default value ?
+        }
+        if (ynode["general"]["walltime_extension"].IsDefined()) {
+            rhs.walltime_extension = ynode["general"]["walltime_extension"].as<float>();
+        } else {
+            rhs.walltime_extension = 1; // no walltime_extension
+        }
 
         // Dragonfly
         rhs.d_groups = ynode["dragonfly"]["groups"].as<int>();
