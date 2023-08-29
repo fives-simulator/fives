@@ -22,7 +22,7 @@ namespace storalloc {
         uint64_t max_inodes = (1ULL << 32); // Unix limit - not really used so far
         uint64_t stripe_size = 2097152;     // 2MiB by default
         uint64_t stripe_count = 1;          // One OST by default
-        uint64_t max_chunks_per_ost = 10;  // Maximum number of chunks per OST for each allocation (for simulation speed-up purpose)
+        uint64_t max_chunks_per_ost = 10;   // Maximum number of chunks per OST for each allocation (for simulation speed-up purpose)
     };
 
     struct DiskTemplate {
@@ -69,6 +69,8 @@ namespace storalloc {
         std::string perm_storage_w_bw;
         std::string perm_storage_capa;
         float preload_percent;
+        float amdahl;
+        float walltime_extension;
         unsigned int max_stripe_size;
         unsigned int d_groups;
         unsigned int d_group_links;
