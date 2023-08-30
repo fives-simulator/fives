@@ -604,7 +604,7 @@ namespace storalloc {
      *          - The second one contains a list of all actions, with more details on storage services for each action.
      *        Both files can be correlated with the jobs ID.
      */
-    void Controller::processCompletedJobs(const std::string &jobsFilename, const std::string &configVersion) {
+    void Controller::processCompletedJobs(const std::string &jobsFilename, const std::string &configVersion, const std::string &tag) {
 
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
 
@@ -811,7 +811,7 @@ namespace storalloc {
 
         // Write to YAML file
         ofstream simulatedJobs;
-        simulatedJobs.open("simulatedJobs_" + jobsFilename + "__" + configVersion + ".yml");
+        simulatedJobs.open("simulatedJobs_" + jobsFilename + "__" + configVersion + "_" + tag + ".yml");
         simulatedJobs << "---\n";
         simulatedJobs << out_jobs.c_str();
         simulatedJobs << "\n...\n";
@@ -819,7 +819,7 @@ namespace storalloc {
 
         // Write to YAML file
         ofstream io_ss_actions;
-        io_ss_actions.open("io_actions_ts_" + jobsFilename + "__" + configVersion + ".yml");
+        io_ss_actions.open("io_actions_ts_" + jobsFilename + "__" + configVersion + "_" + tag + ".yml");
         io_ss_actions << "---\n";
         io_ss_actions << out_actions.c_str();
         io_ss_actions << "\n...\n";
@@ -833,7 +833,7 @@ namespace storalloc {
      *        We write that information into a CSV which can be used to replay the storage service activity (excluding copies from the CSS
      *        and reads on the CSS, which don't incur changes in the free capacity or number of files on the storage services).
      */
-    void Controller::extractSSSIO(const std::string &jobsFilename, const std::string &configVersion) {
+    void Controller::extractSSSIO(const std::string &jobsFilename, const std::string &configVersion, const std::string &tag) {
 
         if (not this->hasReturnedFromMain()) {
             throw std::runtime_error("Cannot extract IO traces before the controller has returned from main()");
@@ -841,7 +841,7 @@ namespace storalloc {
 
         ofstream io_ops;
         io_ops.setf(std::ios_base::fixed);
-        io_ops.open("storage_services_operations_" + jobsFilename + "__" + configVersion + ".csv");
+        io_ops.open("storage_services_operations_" + jobsFilename + "__" + configVersion + "_" + tag + ".csv");
         io_ops << "ts,action_name,storage_service_name,storage_hostname,disk_id,disk_capacity,disk_file_count,disk_free_space,file_name,parts_count\n";
         // io_ops << setprecision(10);
 
