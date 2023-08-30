@@ -85,6 +85,11 @@ int storalloc::run_simulation(int argc, char **argv) {
         return 1;
     }
 
+    std::string tag = "i";
+    if (argc == 4) {
+        tag = argv[3];
+    }
+
     // Load Compute and Storage configuration
     std::string configFilename = argv[1];
     std::shared_ptr<storalloc::Config> config;
@@ -176,8 +181,8 @@ int storalloc::run_simulation(int argc, char **argv) {
     }
 
     // Extract traces into files tagged with dataset and config version.
-    ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version);
-    ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version);
+    ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
+    ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
 
     return 0;
 }

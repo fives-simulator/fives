@@ -191,6 +191,7 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(uint64_t f
         ret_striping.stripe_size_b = std::ceil(file_size_b / (ret_striping.stripes_count * config.lustre.max_chunks_per_ost));
     }
 
+    /*
     std::cout << "_____________________________________________" << std::endl;
     std::cout << "File size is                   : " << file_size_b << " bytes" << std::endl;
     std::cout << "We can use up to " << total_number_of_OSTs << " OSTs" << std::endl;
@@ -200,6 +201,7 @@ storalloc::striping storalloc::LustreAllocator::lustreComputeStriping(uint64_t f
     std::cout << "Computed number of chunks per OSTs is " << nb_chunks_per_ost << std::endl;
     std::cout << "Max number of chunk per ost is " << config.lustre.max_chunks_per_ost << std::endl;
     std::cout << "Final stripe size will be " << ret_striping.stripe_size_b << std::endl;
+    */
 
     return ret_striping;
 }
