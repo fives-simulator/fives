@@ -513,7 +513,7 @@ namespace storalloc {
     }
 
     void Controller::processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) {
-        std::cout << "Timer Event : " << timerEvent->toString() << std::endl;
+        // std::cout << "Timer Event : " << timerEvent->toString() << std::endl;
         this->submitJob();
     }
 
