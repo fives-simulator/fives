@@ -23,17 +23,13 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::GenericRRAllocator
 
     do {
 
-        // std::cout << "Considering disk index " << std::to_string(current_disk_selection) << std::endl;
         unsigned int nb_of_local_disks = current->second.size();
         auto storage_service = current->second[current_disk_selection % nb_of_local_disks];
-        // std::cout << "- Looking at storage service " << storage_service->getName() << std::endl;
 
         auto free_space = storage_service->getTotalFreeSpace();
-        // std::cout << "- It has " << free_space << "B of free space" << std::endl;
 
         if (free_space >= capacity_req) {
             designated_location = wrench::FileLocation::LOCATION(std::shared_ptr<wrench::StorageService>(storage_service), file);
-            // std::cout << "Chose server " << current->first << storage_service->getBaseRootPath() << std::endl;
             std::advance(current, 1);
             if (current == resources.end()) {
                 current = resources.begin();
@@ -42,7 +38,6 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::GenericRRAllocator
             // Update for next function call
             last_selected_server = current->first;
             internal_disk_selection = current_disk_selection;
-            // std::cout << "Next first server will be " << last_selected_server << std::endl;
             break;
         }
 
@@ -52,17 +47,13 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::GenericRRAllocator
             current_disk_selection++;
         }
         if (current_disk_selection > (internal_disk_selection + nb_of_local_disks + 1)) {
-            // std::cout << "Stopping continue_disk_loop" << std::endl;
             continue_disk_loop = false;
         }
-        // std::cout << "Next server will be " << current->first << std::endl;
     } while ((current->first != last_selected_server) or (continue_disk_loop));
 
     if (designated_location)
-        // std::cout << "genericRRStrategy has completed" << std::endl;
         return std::vector<std::shared_ptr<wrench::FileLocation>>{designated_location};
     else
-        // std::cout << "genericRRStrategy has completed with failure" << std::endl;
         return std::vector<std::shared_ptr<wrench::FileLocation>>();
 }
 
@@ -400,7 +391,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     for (const auto &resource : resources) {
         active_ost_count += resource.second.size();
     }
-    std::cout << "Active OST count : " << active_ost_count << std::endl;
+    // std::cout << "Active OST count : " << active_ost_count << std::endl;
 
     uint64_t total_weight = 0;
     std::map<std::shared_ptr<wrench::StorageService>, uint64_t> weighted_services = {};
@@ -411,22 +402,22 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
         auto srv_free_inodes = 0;
         std::map<std::shared_ptr<wrench::StorageService>, uint64_t> weighted_oss_services = {};
 
-        std::cout << "Computing weights for " << resource.first << std::endl;
+        // std::cout << "Computing weights for " << resource.first << std::endl;
         for (const auto &service : resource.second) {
 
-            std::cout << " - " << service->getName() << " has :" << std::endl;
+            // std::cout << " - " << service->getName() << " has :" << std::endl;
             auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
             uint64_t current_free_space = ss_service->traceTotalFreeSpace();
-            std::cout << "    - " << current_free_space << " free bytes" << std::endl;
+            // std::cout << "    - " << current_free_space << " free bytes" << std::endl;
             srv_free_space += (current_free_space >> 16); // Bitshift for overflow
             uint64_t current_files = ss_service->traceTotalFiles();
-            std::cout << "    - " << current_files << " known files" << std::endl;
+            // std::cout << "    - " << current_files << " known files" << std::endl;
             srv_free_inodes += ((this->config.lustre.max_inodes - current_files) >> 8); // Bitshift for overflow, once again
 
             auto ost_penalty = lustreComputeOstPenalty(current_free_space, current_files, active_ost_count);
-            std::cout << "    - The OST penalty is : " << ost_penalty << std::endl;
+            // std::cout << "    - The OST penalty is : " << ost_penalty << std::endl;
             auto weight = lustreComputeOstWeight(current_free_space, current_files, ost_penalty);
-            std::cout << "    - The weight is : " << weight << std::endl;
+            // std::cout << "    - The weight is : " << weight << std::endl;
 
             // At this point we should also take into account for how long the OST has been IDLE.
             // So far we don't because... it's very complex to get it right in the simulation.
@@ -438,7 +429,7 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
 
         // Update all weights with server penalty
         auto oss_penalty = lustreComputeOssPenalty(srv_free_space, srv_free_inodes, weighted_oss_services.size(), resources.size());
-        std::cout << "The full OSS penalty is " << oss_penalty << std::endl;
+        // std::cout << "The full OSS penalty is " << oss_penalty << std::endl;
 
         for (auto &oss_service : weighted_oss_services) {
             if (oss_service.second < oss_penalty)
@@ -452,7 +443,6 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
         // Update global weight map
         weighted_services.insert(weighted_oss_services.begin(), weighted_oss_services.end());
     }
-    std::cout << "IN LUSTRE ALLOCATOR 3 - 4" << std::endl;
 
     // 2. Pick OST at random, but favor larger weights
     // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/lod/lod_qos.c#L1503
@@ -462,15 +452,15 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
      *  size and the total number of OSTs, with some homemade rule.
      */
     auto file_size_b = file->getSize();
-    std::cout << "We need to find storage a file of size " << file_size_b << " bytes" << std::endl;
+    // std::cout << "We need to find storage a file of size " << file_size_b << " bytes" << std::endl;
     // auto stripe_count = std::ceil(file_size_b / this->config.lustre.stripe_size); // Here we potentially ask for more storage than needed due to the rounding
 
     auto striping = lustreComputeStriping(file_size_b, active_ost_count);
 
-    std::cout << "Stripe size " << striping.stripe_size_b << std::endl;
-    std::cout << "Stripe count " << striping.stripes_count << std::endl;
-    std::cout << "Stripes per ost " << striping.stripes_per_ost << std::endl;
-    std::cout << "TOTAL WEIGHT : " << total_weight << std::endl;
+    // std::cout << "Stripe size " << striping.stripe_size_b << std::endl;
+    // std::cout << "Stripe count " << striping.stripes_count << std::endl;
+    // std::cout << "Stripes per ost " << striping.stripes_per_ost << std::endl;
+    // std::cout << "TOTAL WEIGHT : " << total_weight << std::endl;
 
     WRENCH_DEBUG("LUSTRE WEIGHT ALLOC DEBUG");
     WRENCH_DEBUG("Stripe count = %d", striping.stripes_count);
@@ -485,23 +475,18 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
     std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs;
 
     // Let's find enough OSTs for our allocation
-    std::cout << "IN LUSTRE ALLOCATOR 3 - 5" << std::endl;
     uint64_t nfound = 0;
     while (nfound < striping.stripes_count) {
 
-        std::cout << "IN LUSTRE ALLOCATOR 3 - 5.0" << std::endl;
         uint64_t rand, cur_weight;
 
         cur_weight = 0;
         rand = distrib(gen);
-        std::cout << "IN LUSTRE ALLOCATOR 3 - 5.1" << std::endl;
-        std::cout << "Curr. rand : " << rand << std::endl;
 
         auto stripe_idx = 0;
         for (const auto &service : weighted_services) {
 
             cur_weight += service.second;
-            std::cout << "  Curr weight : " << cur_weight << std::endl;
             if (cur_weight < rand)
                 continue;
 
@@ -509,7 +494,6 @@ std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::l
             nfound++;
         }
     }
-    std::cout << "IN LUSTRE ALLOCATOR 3 - 6" << std::endl;
 
     // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
     if (selectedOSTs.size() < striping.stripes_count) {
