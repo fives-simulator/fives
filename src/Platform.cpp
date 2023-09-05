@@ -1,26 +1,30 @@
 #include "Platform.h"
 
+#include <random>
+
 namespace storalloc {
 
-    /*  Contention and variability models.
-     *  (just placeholders so far)
-     */
-    static double non_linear_disk_bw_read(double capacities, int n_activities) {
-        // Slowdown disk in regard to current number of activities
-        return capacities * (1 / n_activities) * 0.8;
+    static auto non_linear_disk_bw_factory(float non_linear_coef) {
+        return [non_linear_coef](double capacities, int n_activities) {
+            return capacities * (1 / n_activities) * non_linear_coef;
+        };
     }
 
-    static double non_linear_disk_bw_write(double capacities, int n_activities) {
-        // Slowdown disk in regard to current number of activities
-        return capacities * (1 / n_activities) * 0.7;
-    }
+    static auto hdd_variability_factory(double read_variability, double write_variability) {
 
-    static double hdd_variability(sg_size_t size, sg4::Io::OpType op) {
-        if (op == sg4::Io::OpType::READ) {
-            return 1;
-        } else {
-            return 0.8; // slowdown writes
-        }
+        auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
+            std::random_device rd{};
+            std::mt19937 gen{rd()};
+            std::normal_distribution read_distrib{read_variability, 0.1};
+            std::normal_distribution write_distrib{write_variability, 0.1};
+
+            if (op == sg4::Io::OpType::READ) {
+                return read_distrib(gen);
+            } else {
+                return write_distrib(gen);
+            }
+        };
+        return variability;
     }
 
     /*************************************************************************************************/
@@ -67,10 +71,10 @@ namespace storalloc {
 
         std::string hostname = "compute" + std::to_string(id);
         auto compute_host =
-            zone->create_host(hostname, "2.6Tf");
-        compute_host->set_core_count(64);           // Theta specs
-        compute_host->set_property("ram", "192GB"); // Theta specs
-        // compute_host->set_property("speed", "2.7Tf"); // Theta specs
+            zone->create_host(hostname, "2.2Tf");     // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
+        compute_host->set_core_count(64);             // Theta specs
+        compute_host->set_property("ram", "192GB");   // Theta specs
+        compute_host->set_property("speed", "2.2Tf"); // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
         // compute_host->set_property(
         //    "wattage_per_state",
         //    "95.0:120.0:200.0");
@@ -187,16 +191,15 @@ namespace storalloc {
                         don't why so far
                         }*/
 
-                        // Input for contention and variability on HDD
+                        // Input for contention and variability on HDDs
                         new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                      sg4::Disk::SharingPolicy::NONLINEAR,
-                                                     non_linear_disk_bw_read);
+                                                     non_linear_disk_bw_factory(config->non_linear_coef_read));
                         new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
                                                      sg4::Disk::SharingPolicy::NONLINEAR,
-                                                     non_linear_disk_bw_write);
+                                                     non_linear_disk_bw_factory(config->non_linear_coef_write));
                         new_disk->set_factor_cb(
-                            hdd_variability); // TODO: Add config parameter to select which
-                                              // variability function should be used
+                            hdd_variability_factory(config->read_variability, config->write_variability));
                     }
                 }
             }

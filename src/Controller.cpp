@@ -31,12 +31,6 @@ WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for storalloc controller
 
 namespace storalloc {
 
-    template <typename E>
-    constexpr auto
-    toUType(E enumerator) noexcept {
-        return static_cast<std::underlying_type_t<E>>(enumerator);
-    }
-
     struct DiskIOCounters {
         double total_capacity;
         double total_capacity_used;
@@ -422,7 +416,7 @@ namespace storalloc {
         auto computeAction = this->current_job->addComputeAction(
             "compute_" + this->current_yaml_job.id,
             this->flopRate * this->current_yaml_job.approxComputeTimeSeconds,
-            16 * GBYTE,
+            192 * GBYTE,
             cores_per_node, cores_per_node,
             wrench::ParallelModel::AMDAHL(this->config->amdahl));
 

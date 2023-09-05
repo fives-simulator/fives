@@ -54,6 +54,11 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             rhs.walltime_extension = 1; // no walltime_extension
         }
 
+        rhs.non_linear_coef_read = ynode["general"]["non_linear_coef_read"].as<float>();
+        rhs.non_linear_coef_write = ynode["general"]["non_linear_coef_write"].as<float>();
+        rhs.read_variability = ynode["general"]["read_variability"].as<float>();
+        rhs.write_variability = ynode["general"]["write_variability"].as<float>();
+
         // Dragonfly
         rhs.d_groups = ynode["dragonfly"]["groups"].as<int>();
         rhs.d_group_links = ynode["dragonfly"]["group_links"].as<int>();

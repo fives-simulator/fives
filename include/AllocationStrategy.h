@@ -38,9 +38,7 @@ namespace storalloc {
             std::cout << "Initializing LustreAllocator with Lustre config from file " << this->config.config_name << std::endl;
         }
 
-        ~LustreAllocator() {
-            std::cout << "In Lustre Allocator DESTRUCTOR" << std::endl;
-        }
+        ~LustreAllocator() {}
 
         /** @brief  Main entry point for the implementation of Lustre allocation strategy
          *          which redirects either to the Round-Robin allocator (lustreRRStrategy)

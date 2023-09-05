@@ -1,3 +1,4 @@
 exp_configurations
 exp_results
 *.ipynb
+.ipynb_checkpoints/

@@ -17,6 +17,10 @@ general:
   preload_percent: 0.3
   amdahl: 0.5                         # From 0 to 1, degree of // in compute tasks
   walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
+  non_linear_coef_read: 0.9
+  non_linear_coef_write: 0.6
+  read_variability: 1.0
+  write_variability: 0.8
 storage:
   disk_templates:
     - &raid_OSS
@@ -35,7 +39,7 @@ storage:
     - quantity: 56
       template: *node_capa
 dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
-  groups: 12        # Entire Dragonfly zone (4392 nodes in total)
+  groups: 11        # Entire Dragonfly zone (shoudl be 4392 nodes in total, we use slightly less)
   group_links: 1
   chassis: 6        # Per group
   chassis_links: 1
