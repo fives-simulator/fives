@@ -71,6 +71,10 @@ namespace storalloc {
         float preload_percent;
         float amdahl;
         float walltime_extension;
+        float non_linear_coef_read;
+        float non_linear_coef_write;
+        float read_variability;
+        float write_variability;
         unsigned int max_stripe_size;
         unsigned int d_groups;
         unsigned int d_group_links;
