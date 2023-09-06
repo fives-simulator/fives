@@ -103,11 +103,12 @@ namespace storalloc {
 
             WRENCH_DEBUG("# Setting timer for = %d s", this->current_yaml_job.sleepSimulationSeconds);
             double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + this->current_yaml_job.sleepSimulationSeconds + 1; // some simulation sleep values are 0, we don't want that
-            total_events += 1;
             this->setTimer(timer_off_date, "SleepBeforeNextJob_" + this->current_yaml_job.id);
+            total_events += 1;
 
             auto nextSubmission = false;
             while (!nextSubmission) {
+
                 auto event = this->waitForNextEvent(3600);
                 if (!event) {
                     continue;
@@ -342,15 +343,7 @@ namespace storalloc {
             this->cleanupInput(input_data);
         } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
             this->compute();
-        } /*else if (this->current_yaml_job.model == storalloc::JobType::ReadWrite) {       // Currently still adding a fake tiny compute phase to "RW" jobs
-            auto input_data = this->copyFromPermanent();
-            this->readFromTemporary(input_data);
-            auto output_data = this->writeToTemporary();
-            this->copyToPermanent(output_data);
-            this->cleanupInput(input_data);
-            this->cleanupOutput(output_data);
-        }*/
-        else {
+        } else {
             throw std::runtime_error("Unknown job model for job " + yJob.id);
         }
 
@@ -415,7 +408,7 @@ namespace storalloc {
 
         auto computeAction = this->current_job->addComputeAction(
             "compute_" + this->current_yaml_job.id,
-            this->flopRate * this->current_yaml_job.approxComputeTimeSeconds,
+            this->flopRate * this->current_yaml_job.approxComputeTimeSeconds * 1.2,
             192 * GBYTE,
             cores_per_node, cores_per_node,
             wrench::ParallelModel::AMDAHL(this->config->amdahl));

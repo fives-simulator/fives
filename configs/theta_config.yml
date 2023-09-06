@@ -39,7 +39,7 @@ storage:
     - quantity: 56
       template: *node_capa
 dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
-  groups: 11        # Entire Dragonfly zone (shoudl be 4392 nodes in total, we use slightly less)
+  groups: 12        # Entire Dragonfly zone (should be 4392 nodes in total, we use slightly more)
   group_links: 1
   chassis: 6        # Per group
   chassis_links: 1
