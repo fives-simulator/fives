@@ -1,0 +1,6663 @@
+---
+jobs:
+- approxComputeTimeSeconds: 41201
+  coreHoursReq: 491520.0
+  coreHoursUsed: 470209.4213
+  coresUsed: 40960
+  endTime: '2022-01-29 23:16:48'
+  id: 577696
+  metaTimeSeconds: 6257.505921999999
+  model: CW
+  nodesUsed: 640
+  readBytes: 320
+  readTimeSeconds: 0.027415
+  runtimeSeconds: 41265
+  sleepSimulationSeconds: 18753
+  startTime: '2022-01-29 11:49:03'
+  submissionTime: '2022-01-22 22:54:41'
+  waitingTimeSeconds: 0
+  walltimeSeconds: 43200
+  writeTimeSeconds: 2604886.08036
+  writtenBytes: 108507863920
+- approxComputeTimeSeconds: 41149
+  coreHoursReq: 491520.0
+  coreHoursUsed: 469515.3745
+  coresUsed: 40960
+  endTime: '2022-01-30 17:48:06'
+  id: 577697
+  metaTimeSeconds: 5944.444087
+  model: CW
+  nodesUsed: 640
+  readBytes: 320
+  readTimeSeconds: 0.032987
+  runtimeSeconds: 41210
+  sleepSimulationSeconds: 19
+  startTime: '2022-01-30 06:21:15'
+  submissionTime: '2022-01-22 22:55:00'
+  waitingTimeSeconds: 631575
+  walltimeSeconds: 43200
+  writeTimeSeconds: 2521469.087258
+  writtenBytes: 108507863920
+- approxComputeTimeSeconds: 41701
+  coreHoursReq: 491520.0
+  coreHoursUsed: 475170.1319
+  coresUsed: 40960
+  endTime: '2022-01-31 15:01:57'
+  id: 577698
+  metaTimeSeconds: 9589.159589
+  model: CW
+  nodesUsed: 640
+  readBytes: 320
+  readTimeSeconds: 0.020633
+  runtimeSeconds: 41763
+  sleepSimulationSeconds: 8
+  startTime: '2022-01-31 03:25:54'
+  submissionTime: '2022-01-22 22:55:08'
+  waitingTimeSeconds: 707446
+  walltimeSeconds: 43200
+  writeTimeSeconds: 2527497.981992
+  writtenBytes: 108507863920
+- approxComputeTimeSeconds: 40048
+  coreHoursReq: 491520.0
+  coreHoursUsed: 456999.8213
+  coresUsed: 40960
+  endTime: '2022-02-03 19:50:34'
+  id: 577699
+  metaTimeSeconds: 5844.578025999999
+  model: CW
+  nodesUsed: 640
+  readBytes: 320
+  readTimeSeconds: 0.034253
+  runtimeSeconds: 40110
+  sleepSimulationSeconds: 15
+  startTime: '2022-02-03 08:42:03'
+  submissionTime: '2022-01-22 22:55:23'
+  waitingTimeSeconds: 985600
+  walltimeSeconds: 43200
+  writeTimeSeconds: 2518934.2523600003
+  writtenBytes: 108507863920
+- approxComputeTimeSeconds: 8517
+  coreHoursReq: 65536.0
+  coreHoursUsed: 77532.7285
+  coresUsed: 32768
+  endTime: '2022-01-29 06:27:42'
+  id: 579114
+  metaTimeSeconds: 7961.811487
+  model: RCW
+  nodesUsed: 512
+  readBytes: 19781189208
+  readTimeSeconds: 1991.858778
+  runtimeSeconds: 8518
+  sleepSimulationSeconds: 83
+  startTime: '2022-01-29 04:05:44'
+  submissionTime: '2022-01-26 15:58:57'
+  waitingTimeSeconds: 216407
+  walltimeSeconds: 7200
+  writeTimeSeconds: 567.4870099999999
+  writtenBytes: 3170057765
+- approxComputeTimeSeconds: 7204
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32790.754
+  coresUsed: 16384
+  endTime: '2022-01-29 04:52:49'
+  id: 579119
+  metaTimeSeconds: 3623.7411620000003
+  model: RCW
+  nodesUsed: 256
+  readBytes: 13188361928
+  readTimeSeconds: 1509.136028
+  runtimeSeconds: 7205
+  sleepSimulationSeconds: 18
+  startTime: '2022-01-29 02:52:44'
+  submissionTime: '2022-01-26 15:59:19'
+  waitingTimeSeconds: 212005
+  walltimeSeconds: 7200
+  writeTimeSeconds: 387.056799
+  writtenBytes: 2454807824
+- approxComputeTimeSeconds: 9878
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22914.8442
+  coresUsed: 8192
+  endTime: '2022-01-29 04:33:52'
+  id: 579402
+  metaTimeSeconds: 167240.27781200001
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 819407.377656
+  runtimeSeconds: 10070
+  sleepSimulationSeconds: 12
+  startTime: '2022-01-29 01:46:02'
+  submissionTime: '2022-01-27 09:35:56'
+  waitingTimeSeconds: 144606
+  walltimeSeconds: 10740
+  writeTimeSeconds: 579273.293293
+  writtenBytes: 21290110598
+- approxComputeTimeSeconds: 7191
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32731.5898
+  coresUsed: 16384
+  endTime: '2022-01-29 06:54:12'
+  id: 579416
+  metaTimeSeconds: 4192.289543
+  model: RCW
+  nodesUsed: 256
+  readBytes: 16482543268
+  readTimeSeconds: 1624.931635
+  runtimeSeconds: 7192
+  sleepSimulationSeconds: 1130
+  startTime: '2022-01-29 04:54:20'
+  submissionTime: '2022-01-27 09:56:48'
+  waitingTimeSeconds: 154652
+  walltimeSeconds: 7200
+  writeTimeSeconds: 366.147278
+  writtenBytes: 2337439307
+- approxComputeTimeSeconds: 7131
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32640.5685
+  coresUsed: 16384
+  endTime: '2022-01-29 07:55:36'
+  id: 579425
+  metaTimeSeconds: 2150.636009
+  model: RCW
+  nodesUsed: 256
+  readBytes: 9895814952
+  readTimeSeconds: 1087.781146
+  runtimeSeconds: 7132
+  sleepSimulationSeconds: 1044
+  startTime: '2022-01-29 05:56:44'
+  submissionTime: '2022-01-27 10:40:11'
+  waitingTimeSeconds: 155793
+  walltimeSeconds: 7200
+  writeTimeSeconds: 285.906273
+  writtenBytes: 1838470097
+- approxComputeTimeSeconds: 3539
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32886.3285
+  coresUsed: 32768
+  endTime: '2022-01-30 12:27:09'
+  id: 579432
+  metaTimeSeconds: 3638.036953
+  model: RCW
+  nodesUsed: 512
+  readBytes: 6557454204
+  readTimeSeconds: 465.318322
+  runtimeSeconds: 3539
+  sleepSimulationSeconds: 2542
+  startTime: '2022-01-30 11:28:09'
+  submissionTime: '2022-01-27 11:22:53'
+  waitingTimeSeconds: 259516
+  walltimeSeconds: 3600
+  writeTimeSeconds: 78.736054
+  writtenBytes: 498267470
+- approxComputeTimeSeconds: 7119
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32681.5285
+  coresUsed: 16384
+  endTime: '2022-01-31 02:07:38'
+  id: 579477
+  metaTimeSeconds: 7768.797504
+  model: RCW
+  nodesUsed: 256
+  readBytes: 29553116600
+  readTimeSeconds: 2540.866549
+  runtimeSeconds: 7119
+  sleepSimulationSeconds: 676
+  startTime: '2022-01-31 00:08:59'
+  submissionTime: '2022-01-27 15:59:50'
+  waitingTimeSeconds: 288549
+  walltimeSeconds: 7200
+  writeTimeSeconds: 473.412823
+  writtenBytes: 2971093941
+- approxComputeTimeSeconds: 3530
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32576.8511
+  coresUsed: 32768
+  endTime: '2022-01-30 14:08:53'
+  id: 579478
+  metaTimeSeconds: 11706.152466
+  model: RCW
+  nodesUsed: 512
+  readBytes: 19695496832
+  readTimeSeconds: 1418.891351
+  runtimeSeconds: 3530
+  sleepSimulationSeconds: 13
+  startTime: '2022-01-30 13:10:02'
+  submissionTime: '2022-01-27 16:00:03'
+  waitingTimeSeconds: 248999
+  walltimeSeconds: 3600
+  writeTimeSeconds: 262.56113
+  writtenBytes: 1639834104
+- approxComputeTimeSeconds: 7134
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32736.1413
+  coresUsed: 16384
+  endTime: '2022-01-31 02:50:13'
+  id: 579489
+  metaTimeSeconds: 3736.4176340000004
+  model: RCW
+  nodesUsed: 256
+  readBytes: 13195259628
+  readTimeSeconds: 1298.451572
+  runtimeSeconds: 7134
+  sleepSimulationSeconds: 657
+  startTime: '2022-01-31 00:51:19'
+  submissionTime: '2022-01-27 16:58:49'
+  waitingTimeSeconds: 287550
+  walltimeSeconds: 7200
+  writeTimeSeconds: 317.86530500000003
+  writtenBytes: 2017550837
+- approxComputeTimeSeconds: 9911
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22985.3863
+  coresUsed: 8192
+  endTime: '2022-01-29 07:22:21'
+  id: 579672
+  metaTimeSeconds: 166130.312099
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 806534.507784
+  runtimeSeconds: 10101
+  sleepSimulationSeconds: 1066
+  startTime: '2022-01-29 04:34:00'
+  submissionTime: '2022-01-28 06:11:42'
+  waitingTimeSeconds: 80538
+  walltimeSeconds: 10740
+  writeTimeSeconds: 581591.4970730001
+  writtenBytes: 21290110301
+- approxComputeTimeSeconds: 9873
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 26105.1727
+  coresUsed: 8192
+  endTime: '2022-01-29 10:35:21'
+  id: 579673
+  metaTimeSeconds: 155944.462114
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 812272.953992
+  runtimeSeconds: 10063
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-29 07:47:37'
+  submissionTime: '2022-01-28 06:11:47'
+  waitingTimeSeconds: 92150
+  walltimeSeconds: 10740
+  writeTimeSeconds: 587009.242979
+  writtenBytes: 21290108374
+- approxComputeTimeSeconds: 9866
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23062.7548
+  coresUsed: 8192
+  endTime: '2022-01-29 13:25:33'
+  id: 579674
+  metaTimeSeconds: 161293.698969
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 845393.312029
+  runtimeSeconds: 10073
+  sleepSimulationSeconds: 15
+  startTime: '2022-01-29 10:37:39'
+  submissionTime: '2022-01-28 06:12:02'
+  waitingTimeSeconds: 102337
+  walltimeSeconds: 10740
+  writeTimeSeconds: 689332.187777
+  writtenBytes: 21290108051
+- approxComputeTimeSeconds: 9842
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22971.7327
+  coresUsed: 8192
+  endTime: '2022-01-29 16:58:30'
+  id: 579675
+  metaTimeSeconds: 169916.02272100002
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 847294.020319
+  runtimeSeconds: 10042
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-29 14:11:07'
+  submissionTime: '2022-01-28 06:12:06'
+  waitingTimeSeconds: 115141
+  walltimeSeconds: 10740
+  writeTimeSeconds: 620793.388941
+  writtenBytes: 21290109019
+- approxComputeTimeSeconds: 9857
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23005.8663
+  coresUsed: 8192
+  endTime: '2022-01-29 21:15:43'
+  id: 579676
+  metaTimeSeconds: 173994.910644
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 833101.813407
+  runtimeSeconds: 10056
+  sleepSimulationSeconds: 15
+  startTime: '2022-01-29 18:28:06'
+  submissionTime: '2022-01-28 06:12:21'
+  waitingTimeSeconds: 130545
+  walltimeSeconds: 10740
+  writeTimeSeconds: 621843.520388
+  writtenBytes: 21290110600
+- approxComputeTimeSeconds: 9923
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23019.52
+  coresUsed: 8192
+  endTime: '2022-01-29 05:11:46'
+  id: 579681
+  metaTimeSeconds: 167544.187729
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 807434.3689410001
+  runtimeSeconds: 10116
+  sleepSimulationSeconds: 18
+  startTime: '2022-01-29 02:23:10'
+  submissionTime: '2022-01-28 06:13:07'
+  waitingTimeSeconds: 72603
+  walltimeSeconds: 10740
+  writeTimeSeconds: 604161.4389
+  writtenBytes: 21290108912
+- approxComputeTimeSeconds: 9844
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22978.56
+  coresUsed: 8192
+  endTime: '2022-01-29 08:00:04'
+  id: 579682
+  metaTimeSeconds: 166925.993134
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 820859.8037970001
+  runtimeSeconds: 10036
+  sleepSimulationSeconds: 64
+  startTime: '2022-01-29 05:12:48'
+  submissionTime: '2022-01-28 06:14:11'
+  waitingTimeSeconds: 82717
+  walltimeSeconds: 10740
+  writeTimeSeconds: 578896.285998
+  writtenBytes: 21290109551
+- approxComputeTimeSeconds: 9865
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 26057.3863
+  coresUsed: 8192
+  endTime: '2022-01-29 11:12:37'
+  id: 579683
+  metaTimeSeconds: 173608.947615
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 839620.1274750001
+  runtimeSeconds: 10065
+  sleepSimulationSeconds: 141
+  startTime: '2022-01-29 08:24:51'
+  submissionTime: '2022-01-28 06:16:32'
+  waitingTimeSeconds: 94099
+  walltimeSeconds: 10740
+  writeTimeSeconds: 626513.859371
+  writtenBytes: 21290110173
+- approxComputeTimeSeconds: 9870
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23033.1727
+  coresUsed: 8192
+  endTime: '2022-01-29 14:02:38'
+  id: 579684
+  metaTimeSeconds: 169635.00529
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 802284.229531
+  runtimeSeconds: 10061
+  sleepSimulationSeconds: 38
+  startTime: '2022-01-29 11:14:56'
+  submissionTime: '2022-01-28 06:17:10'
+  waitingTimeSeconds: 104266
+  walltimeSeconds: 10740
+  writeTimeSeconds: 596275.1197019999
+  writtenBytes: 21290109552
+- approxComputeTimeSeconds: 9856
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23033.1727
+  coresUsed: 8192
+  endTime: '2022-01-29 19:48:32'
+  id: 579685
+  metaTimeSeconds: 164543.408437
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 823464.843047
+  runtimeSeconds: 10056
+  sleepSimulationSeconds: 101
+  startTime: '2022-01-29 17:00:55'
+  submissionTime: '2022-01-28 06:18:51'
+  waitingTimeSeconds: 124924
+  walltimeSeconds: 10740
+  writeTimeSeconds: 652113.69026
+  writtenBytes: 21290107960
+- approxComputeTimeSeconds: 9837
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22951.2527
+  coresUsed: 8192
+  endTime: '2022-01-29 22:36:48'
+  id: 579688
+  metaTimeSeconds: 165026.896519
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 830976.349852
+  runtimeSeconds: 10032
+  sleepSimulationSeconds: 695
+  startTime: '2022-01-29 19:49:36'
+  submissionTime: '2022-01-28 06:30:26'
+  waitingTimeSeconds: 134350
+  walltimeSeconds: 10740
+  writeTimeSeconds: 603250.489359
+  writtenBytes: 21290108674
+- approxComputeTimeSeconds: 7199
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16384.0
+  coresUsed: 8192
+  endTime: '2022-01-29 04:52:49'
+  id: 579776
+  metaTimeSeconds: 3009.741455
+  model: RCW
+  nodesUsed: 128
+  readBytes: 13141313264
+  readTimeSeconds: 1299.596083
+  runtimeSeconds: 7200
+  sleepSimulationSeconds: 43
+  startTime: '2022-01-29 02:52:49'
+  submissionTime: '2022-01-28 15:41:15'
+  waitingTimeSeconds: 40294
+  walltimeSeconds: 7200
+  writeTimeSeconds: 227.274871
+  writtenBytes: 1431531563
+- approxComputeTimeSeconds: 8486
+  coreHoursReq: 16384.0
+  coreHoursUsed: 19312.64
+  coresUsed: 8192
+  endTime: '2022-01-29 06:21:19'
+  id: 579796
+  metaTimeSeconds: 732.905775
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3318835132
+  readTimeSeconds: 339.220247
+  runtimeSeconds: 8487
+  sleepSimulationSeconds: 630
+  startTime: '2022-01-29 03:59:52'
+  submissionTime: '2022-01-28 16:14:58'
+  waitingTimeSeconds: 42294
+  walltimeSeconds: 7200
+  writeTimeSeconds: 85.013319
+  writtenBytes: 541132028
+- approxComputeTimeSeconds: 7176
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16331.662
+  coresUsed: 8192
+  endTime: '2022-01-29 06:16:55'
+  id: 579809
+  metaTimeSeconds: 2197.934045
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9865266996
+  readTimeSeconds: 801.9227619999999
+  runtimeSeconds: 7177
+  sleepSimulationSeconds: 1490
+  startTime: '2022-01-29 04:17:18'
+  submissionTime: '2022-01-28 17:05:49'
+  waitingTimeSeconds: 40289
+  walltimeSeconds: 7200
+  writeTimeSeconds: 171.971252
+  writtenBytes: 965122095
+- approxComputeTimeSeconds: 2388
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5436.302
+  coresUsed: 8192
+  endTime: '2022-01-29 05:34:22'
+  id: 579811
+  metaTimeSeconds: 658.080206
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3269031872
+  readTimeSeconds: 203.621324
+  runtimeSeconds: 2389
+  sleepSimulationSeconds: 22
+  startTime: '2022-01-29 04:54:33'
+  submissionTime: '2022-01-28 17:06:11'
+  waitingTimeSeconds: 42502
+  walltimeSeconds: 2400
+  writeTimeSeconds: 29.191377
+  writtenBytes: 176148727
+- approxComputeTimeSeconds: 7376
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16786.7727
+  coresUsed: 8192
+  endTime: '2022-01-29 07:06:01'
+  id: 579812
+  metaTimeSeconds: 2255.450216
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9862207264
+  readTimeSeconds: 1117.537317
+  runtimeSeconds: 7377
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-29 05:03:04'
+  submissionTime: '2022-01-28 17:06:15'
+  waitingTimeSeconds: 43009
+  walltimeSeconds: 7200
+  writeTimeSeconds: 221.139433
+  writtenBytes: 1402572054
+- approxComputeTimeSeconds: 38
+  coreHoursReq: 4096.0
+  coreHoursUsed: 209.3506
+  coresUsed: 8192
+  endTime: '2022-01-29 02:00:25'
+  id: 579821
+  metaTimeSeconds: 824.797683
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 38
+  sleepSimulationSeconds: 1801
+  startTime: '2022-01-29 01:59:46'
+  submissionTime: '2022-01-28 17:49:30'
+  waitingTimeSeconds: 29416
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1274
+  coreHoursReq: 24576.0
+  coreHoursUsed: 3026.4885
+  coresUsed: 8192
+  endTime: '2022-01-29 02:21:21'
+  id: 579830
+  metaTimeSeconds: 253.740179
+  model: RCW
+  nodesUsed: 128
+  readBytes: 283542777129
+  readTimeSeconds: 943.623895
+  runtimeSeconds: 1275
+  sleepSimulationSeconds: 1807
+  startTime: '2022-01-29 02:00:06'
+  submissionTime: '2022-01-28 18:55:38'
+  waitingTimeSeconds: 25468
+  walltimeSeconds: 10800
+  writeTimeSeconds: 1246.453338
+  writtenBytes: 192361217968
+- approxComputeTimeSeconds: 10878
+  coreHoursReq: 24576.0
+  coreHoursUsed: 24892.302
+  coresUsed: 8192
+  endTime: '2022-01-29 03:31:40'
+  id: 579836
+  metaTimeSeconds: 8890.19849
+  model: RCW
+  nodesUsed: 128
+  readBytes: 28545312864
+  readTimeSeconds: 3025.904258
+  runtimeSeconds: 10880
+  sleepSimulationSeconds: 635
+  startTime: '2022-01-29 00:30:20'
+  submissionTime: '2022-01-28 19:12:01'
+  waitingTimeSeconds: 19099
+  walltimeSeconds: 10800
+  writeTimeSeconds: 429.899089
+  writtenBytes: 13011045362
+- approxComputeTimeSeconds: 85
+  coreHoursReq: 98030.9333
+  coreHoursUsed: 623.5013
+  coresUsed: 16384
+  endTime: '2022-01-29 01:47:42'
+  id: 579856
+  metaTimeSeconds: 2527.732623
+  model: RC
+  nodesUsed: 256
+  readBytes: 33577040896
+  readTimeSeconds: 2704.745092
+  runtimeSeconds: 85
+  sleepSimulationSeconds: 3442
+  startTime: '2022-01-29 01:46:16'
+  submissionTime: '2022-01-28 20:16:23'
+  waitingTimeSeconds: 19793
+  walltimeSeconds: 21540
+  writeTimeSeconds: 14.149147
+  writtenBytes: 6132630
+- approxComputeTimeSeconds: 3755
+  coreHoursReq: 8192.0
+  coreHoursUsed: 11659.9463
+  coresUsed: 8192
+  endTime: '2022-01-29 02:31:56'
+  id: 579869
+  metaTimeSeconds: 22.724498
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 3755
+  sleepSimulationSeconds: 1140
+  startTime: '2022-01-29 01:29:21'
+  submissionTime: '2022-01-28 21:06:14'
+  waitingTimeSeconds: 15787
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 10307
+  coreHoursReq: 32821.3333
+  coreHoursUsed: 33168.8529
+  coresUsed: 11584
+  endTime: '2022-01-29 04:57:00'
+  id: 579874
+  metaTimeSeconds: 2400.698406
+  model: RCW
+  nodesUsed: 181
+  readBytes: 335355596323
+  readTimeSeconds: 1960.147509
+  runtimeSeconds: 10308
+  sleepSimulationSeconds: 348
+  startTime: '2022-01-29 02:05:12'
+  submissionTime: '2022-01-28 21:31:47'
+  waitingTimeSeconds: 16405
+  walltimeSeconds: 10200
+  writeTimeSeconds: 2943.264771
+  writtenBytes: 432633343932
+- approxComputeTimeSeconds: 60
+  coreHoursReq: 4096.0
+  coreHoursUsed: 263.9642
+  coresUsed: 8192
+  endTime: '2022-01-29 02:18:37'
+  id: 579881
+  metaTimeSeconds: 846.643062
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 60
+  sleepSimulationSeconds: 219
+  startTime: '2022-01-29 02:17:37'
+  submissionTime: '2022-01-28 22:22:18'
+  waitingTimeSeconds: 14119
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 78
+  coreHoursReq: 4096.0
+  coreHoursUsed: 300.3727
+  coresUsed: 8192
+  endTime: '2022-01-29 02:06:49'
+  id: 579887
+  metaTimeSeconds: 0.301669
+  model: RC
+  nodesUsed: 128
+  readBytes: 209445632
+  readTimeSeconds: 12.762821
+  runtimeSeconds: 78
+  sleepSimulationSeconds: 2120
+  startTime: '2022-01-29 02:05:30'
+  submissionTime: '2022-01-28 22:57:38'
+  waitingTimeSeconds: 11272
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 182
+  coreHoursReq: 24576.0
+  coreHoursUsed: 550.6842
+  coresUsed: 8192
+  endTime: '2022-01-29 02:14:38'
+  id: 579900
+  metaTimeSeconds: 1000.3368869999999
+  model: RCW
+  nodesUsed: 128
+  readBytes: 5023964244
+  readTimeSeconds: 871.331929
+  runtimeSeconds: 182
+  sleepSimulationSeconds: 865
+  startTime: '2022-01-29 02:11:35'
+  submissionTime: '2022-01-29 00:04:31'
+  waitingTimeSeconds: 7624
+  walltimeSeconds: 10800
+  writeTimeSeconds: 108.474083
+  writtenBytes: 3537071904
+- approxComputeTimeSeconds: 57
+  coreHoursReq: 10.6666
+  coreHoursUsed: 2.0088
+  coresUsed: 64
+  endTime: '2022-01-29 00:56:03'
+  id: 579901
+  metaTimeSeconds: 1.702173
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 57
+  sleepSimulationSeconds: 2993
+  startTime: '2022-01-29 00:55:05'
+  submissionTime: '2022-01-29 00:54:24'
+  waitingTimeSeconds: 41
+  walltimeSeconds: 600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 59
+  coreHoursReq: 256.0
+  coreHoursUsed: 17.351
+  coresUsed: 512
+  endTime: '2022-01-29 01:06:51'
+  id: 579902
+  metaTimeSeconds: 9.371641
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 59
+  sleepSimulationSeconds: 628
+  startTime: '2022-01-29 01:05:52'
+  submissionTime: '2022-01-29 01:04:52'
+  waitingTimeSeconds: 60
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 3702
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8426.382
+  coresUsed: 8192
+  endTime: '2022-01-29 03:50:40'
+  id: 579903
+  metaTimeSeconds: 107.46611899999999
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 3703
+  sleepSimulationSeconds: 6229
+  startTime: '2022-01-29 02:48:57'
+  submissionTime: '2022-01-29 02:48:41'
+  waitingTimeSeconds: 16
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 21730
+  coreHoursReq: 294912.0
+  coreHoursUsed: 204590.6485
+  coresUsed: 32768
+  endTime: '2022-01-29 21:39:43'
+  id: 579904
+  metaTimeSeconds: 32745.845067
+  model: RCW
+  nodesUsed: 512
+  readBytes: 17315039250
+  readTimeSeconds: 1416795.334653
+  runtimeSeconds: 22425
+  sleepSimulationSeconds: 1322
+  startTime: '2022-01-29 15:25:58'
+  submissionTime: '2022-01-29 03:10:43'
+  waitingTimeSeconds: 44115
+  walltimeSeconds: 32400
+  writeTimeSeconds: 21319660.951178998
+  writtenBytes: 130018528696
+- approxComputeTimeSeconds: 118
+  coreHoursReq: 4096.0
+  coreHoursUsed: 270.7906
+  coresUsed: 8192
+  endTime: '2022-01-29 03:54:04'
+  id: 579906
+  metaTimeSeconds: 484.898046
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 119
+  sleepSimulationSeconds: 2467
+  startTime: '2022-01-29 03:52:05'
+  submissionTime: '2022-01-29 03:51:50'
+  waitingTimeSeconds: 15
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 135
+  coreHoursReq: 4096.0
+  coreHoursUsed: 307.2
+  coresUsed: 8192
+  endTime: '2022-01-29 03:54:24'
+  id: 579907
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 135
+  sleepSimulationSeconds: 15
+  startTime: '2022-01-29 03:52:09'
+  submissionTime: '2022-01-29 03:52:05'
+  waitingTimeSeconds: 4
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 158
+  coreHoursReq: 85.3333
+  coreHoursUsed: 22.6132
+  coresUsed: 512
+  endTime: '2022-01-29 03:55:06'
+  id: 579908
+  metaTimeSeconds: 5.618298
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 159
+  sleepSimulationSeconds: 20
+  startTime: '2022-01-29 03:52:27'
+  submissionTime: '2022-01-29 03:52:25'
+  waitingTimeSeconds: 2
+  walltimeSeconds: 600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 134
+  coreHoursReq: 10.6666
+  coreHoursUsed: 2.4
+  coresUsed: 64
+  endTime: '2022-01-29 04:19:27'
+  id: 579909
+  metaTimeSeconds: 0.864194
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 135
+  sleepSimulationSeconds: 1371
+  startTime: '2022-01-29 04:17:12'
+  submissionTime: '2022-01-29 04:15:16'
+  waitingTimeSeconds: 116
+  walltimeSeconds: 600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 114
+  coreHoursReq: 10.6666
+  coreHoursUsed: 2.0444
+  coresUsed: 64
+  endTime: '2022-01-29 04:25:22'
+  id: 579911
+  metaTimeSeconds: 0.043783
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 115
+  sleepSimulationSeconds: 483
+  startTime: '2022-01-29 04:23:27'
+  submissionTime: '2022-01-29 04:23:19'
+  waitingTimeSeconds: 8
+  walltimeSeconds: 600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 5141
+  coreHoursReq: 8192.0
+  coreHoursUsed: 11700.9063
+  coresUsed: 8192
+  endTime: '2022-01-29 06:14:54'
+  id: 579912
+  metaTimeSeconds: 25.471011
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 5142
+  sleepSimulationSeconds: 1548
+  startTime: '2022-01-29 04:49:12'
+  submissionTime: '2022-01-29 04:49:07'
+  waitingTimeSeconds: 5
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 2761
+  coreHoursReq: 98030.9333
+  coreHoursUsed: 12811.377
+  coresUsed: 16384
+  endTime: '2022-01-29 18:38:25'
+  id: 579914
+  metaTimeSeconds: 3524.615551
+  model: RCW
+  nodesUsed: 256
+  readBytes: 48004036640
+  readTimeSeconds: 2580.546091
+  runtimeSeconds: 2761
+  sleepSimulationSeconds: 2049
+  startTime: '2022-01-29 17:52:23'
+  submissionTime: '2022-01-29 05:23:16'
+  waitingTimeSeconds: 44947
+  walltimeSeconds: 21540
+  writeTimeSeconds: 3098.229634
+  writtenBytes: 27243188444
+- approxComputeTimeSeconds: 3597
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8187.4485
+  coresUsed: 8192
+  endTime: '2022-01-29 06:38:34'
+  id: 579915
+  metaTimeSeconds: 821.262686
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3298559932
+  readTimeSeconds: 397.044445
+  runtimeSeconds: 3598
+  sleepSimulationSeconds: 898
+  startTime: '2022-01-29 05:38:36'
+  submissionTime: '2022-01-29 05:38:14'
+  waitingTimeSeconds: 22
+  walltimeSeconds: 3600
+  writeTimeSeconds: 61.644039
+  writtenBytes: 394549325
+- approxComputeTimeSeconds: 3552
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32786.2026
+  coresUsed: 32768
+  endTime: '2022-01-30 14:09:33'
+  id: 579916
+  metaTimeSeconds: 2270.194893
+  model: RCW
+  nodesUsed: 512
+  readBytes: 6599012224
+  readTimeSeconds: 554.1149210000001
+  runtimeSeconds: 3552
+  sleepSimulationSeconds: 19
+  startTime: '2022-01-30 13:10:20'
+  submissionTime: '2022-01-29 05:38:33'
+  waitingTimeSeconds: 113507
+  walltimeSeconds: 3600
+  writeTimeSeconds: 124.079219
+  writtenBytes: 789764750
+- approxComputeTimeSeconds: 2459
+  coreHoursReq: 10922.6666
+  coreHoursUsed: 11195.7327
+  coresUsed: 16384
+  endTime: '2022-01-29 07:31:05'
+  id: 579917
+  metaTimeSeconds: 694.270657
+  model: RCW
+  nodesUsed: 256
+  readBytes: 3268147132
+  readTimeSeconds: 209.568333
+  runtimeSeconds: 2460
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-29 06:50:05'
+  submissionTime: '2022-01-29 05:38:37'
+  waitingTimeSeconds: 4288
+  walltimeSeconds: 2400
+  writeTimeSeconds: 28.238868
+  writtenBytes: 176107563
+- approxComputeTimeSeconds: 1224
+  coreHoursReq: 512.0
+  coreHoursUsed: 174.2221
+  coresUsed: 512
+  endTime: '2022-01-29 06:34:06'
+  id: 579919
+  metaTimeSeconds: 0.383851
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.164973
+  runtimeSeconds: 1225
+  sleepSimulationSeconds: 2081
+  startTime: '2022-01-29 06:13:41'
+  submissionTime: '2022-01-29 06:13:18'
+  waitingTimeSeconds: 23
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.757867
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 7162
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16420.4085
+  coresUsed: 8192
+  endTime: '2022-01-29 20:39:31'
+  id: 579920
+  metaTimeSeconds: 2439.326844
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9861547856
+  readTimeSeconds: 805.80764
+  runtimeSeconds: 7162
+  sleepSimulationSeconds: 447
+  startTime: '2022-01-29 18:40:09'
+  submissionTime: '2022-01-29 06:20:45'
+  waitingTimeSeconds: 44364
+  walltimeSeconds: 7200
+  writeTimeSeconds: 144.80341
+  writtenBytes: 892675935
+- approxComputeTimeSeconds: 2442
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5559.182
+  coresUsed: 8192
+  endTime: '2022-01-29 07:03:09'
+  id: 579922
+  metaTimeSeconds: 1027.865507
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3281000392
+  readTimeSeconds: 248.786384
+  runtimeSeconds: 2443
+  sleepSimulationSeconds: 19
+  startTime: '2022-01-29 06:22:26'
+  submissionTime: '2022-01-29 06:21:04'
+  waitingTimeSeconds: 82
+  walltimeSeconds: 2400
+  writeTimeSeconds: 39.166306
+  writtenBytes: 248902215
+- approxComputeTimeSeconds: 14526
+  coreHoursReq: 98304.0
+  coreHoursUsed: 72471.8927
+  coresUsed: 16384
+  endTime: '2022-01-29 22:29:51'
+  id: 579924
+  metaTimeSeconds: 474.382831
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 14526
+  sleepSimulationSeconds: 402
+  startTime: '2022-01-29 18:27:45'
+  submissionTime: '2022-01-29 06:27:46'
+  waitingTimeSeconds: 43199
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 441
+  coreHoursReq: 512.0
+  coreHoursUsed: 62.72
+  coresUsed: 512
+  endTime: '2022-01-29 06:48:24'
+  id: 579928
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 441
+  sleepSimulationSeconds: 783
+  startTime: '2022-01-29 06:41:03'
+  submissionTime: '2022-01-29 06:40:49'
+  waitingTimeSeconds: 14
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 9858
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23033.1727
+  coresUsed: 8192
+  endTime: '2022-01-30 00:40:17'
+  id: 579935
+  metaTimeSeconds: 176239.560293
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 850152.264099
+  runtimeSeconds: 10069
+  sleepSimulationSeconds: 1036
+  startTime: '2022-01-29 21:52:28'
+  submissionTime: '2022-01-29 06:58:05'
+  waitingTimeSeconds: 53663
+  walltimeSeconds: 10740
+  writeTimeSeconds: 700538.110858
+  writtenBytes: 21290110295
+- approxComputeTimeSeconds: 9834
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22967.182
+  coresUsed: 8192
+  endTime: '2022-01-30 03:29:41'
+  id: 579936
+  metaTimeSeconds: 163778.34088899998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 834102.976268
+  runtimeSeconds: 10038
+  sleepSimulationSeconds: 20
+  startTime: '2022-01-30 00:42:23'
+  submissionTime: '2022-01-29 06:58:25'
+  waitingTimeSeconds: 63838
+  walltimeSeconds: 10740
+  writeTimeSeconds: 667861.585573
+  writtenBytes: 21290107743
+- approxComputeTimeSeconds: 9936
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23044.5506
+  coresUsed: 8192
+  endTime: '2022-01-30 06:19:49'
+  id: 579937
+  metaTimeSeconds: 166901.38926899998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 797756.587128
+  runtimeSeconds: 10127
+  sleepSimulationSeconds: 40
+  startTime: '2022-01-30 03:31:02'
+  submissionTime: '2022-01-29 06:59:05'
+  waitingTimeSeconds: 73917
+  walltimeSeconds: 10740
+  writeTimeSeconds: 592349.795058
+  writtenBytes: 21290109333
+- approxComputeTimeSeconds: 9834
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22960.3548
+  coresUsed: 8192
+  endTime: '2022-01-30 09:15:17'
+  id: 579938
+  metaTimeSeconds: 168735.961078
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 829128.375524
+  runtimeSeconds: 10027
+  sleepSimulationSeconds: 22
+  startTime: '2022-01-30 06:28:10'
+  submissionTime: '2022-01-29 06:59:27'
+  waitingTimeSeconds: 84523
+  walltimeSeconds: 10740
+  writeTimeSeconds: 585025.821152
+  writtenBytes: 21290110297
+- approxComputeTimeSeconds: 9847
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22974.0085
+  coresUsed: 8192
+  endTime: '2022-01-30 12:03:44'
+  id: 579939
+  metaTimeSeconds: 157099.046601
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 812958.1917280001
+  runtimeSeconds: 10041
+  sleepSimulationSeconds: 19
+  startTime: '2022-01-30 09:16:22'
+  submissionTime: '2022-01-29 06:59:46'
+  waitingTimeSeconds: 94596
+  walltimeSeconds: 10740
+  writeTimeSeconds: 621111.688948
+  writtenBytes: 21290108059
+- approxComputeTimeSeconds: 9853
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22974.0085
+  coresUsed: 8192
+  endTime: '2022-01-30 01:25:14'
+  id: 579940
+  metaTimeSeconds: 150898.34546
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 809743.265632
+  runtimeSeconds: 10043
+  sleepSimulationSeconds: 41
+  startTime: '2022-01-29 22:37:51'
+  submissionTime: '2022-01-29 07:00:27'
+  waitingTimeSeconds: 56244
+  walltimeSeconds: 10740
+  writeTimeSeconds: 598374.218607
+  writtenBytes: 21290107405
+- approxComputeTimeSeconds: 9911
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22983.1106
+  coresUsed: 8192
+  endTime: '2022-01-30 04:19:18'
+  id: 579941
+  metaTimeSeconds: 161979.80260599998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 810405.5872129999
+  runtimeSeconds: 10100
+  sleepSimulationSeconds: 7
+  startTime: '2022-01-30 01:30:58'
+  submissionTime: '2022-01-29 07:00:34'
+  waitingTimeSeconds: 66624
+  walltimeSeconds: 10740
+  writeTimeSeconds: 569013.793521
+  writtenBytes: 21290108696
+- approxComputeTimeSeconds: 9909
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22992.2127
+  coresUsed: 8192
+  endTime: '2022-01-30 07:16:34'
+  id: 579942
+  metaTimeSeconds: 169962.89429099998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 810151.927456
+  runtimeSeconds: 10104
+  sleepSimulationSeconds: 13
+  startTime: '2022-01-30 04:28:10'
+  submissionTime: '2022-01-29 07:00:47'
+  waitingTimeSeconds: 77243
+  walltimeSeconds: 10740
+  writeTimeSeconds: 609564.769827
+  writtenBytes: 21290109658
+- approxComputeTimeSeconds: 9856
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23053.6527
+  coresUsed: 8192
+  endTime: '2022-01-30 10:06:09'
+  id: 579943
+  metaTimeSeconds: 174318.15633300002
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 860773.313615
+  runtimeSeconds: 10068
+  sleepSimulationSeconds: 19
+  startTime: '2022-01-30 07:18:20'
+  submissionTime: '2022-01-29 07:01:06'
+  waitingTimeSeconds: 87434
+  walltimeSeconds: 10740
+  writeTimeSeconds: 703010.405777
+  writtenBytes: 21290109980
+- approxComputeTimeSeconds: 9844
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22992.2127
+  coresUsed: 8192
+  endTime: '2022-01-30 14:57:25'
+  id: 579944
+  metaTimeSeconds: 156672.17676499998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 847516.6851570001
+  runtimeSeconds: 10049
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-30 12:09:55'
+  submissionTime: '2022-01-29 07:01:10'
+  waitingTimeSeconds: 104925
+  walltimeSeconds: 10740
+  writeTimeSeconds: 676050.913927
+  writtenBytes: 21290107731
+- approxComputeTimeSeconds: 7126
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16361.2442
+  coresUsed: 8192
+  endTime: '2022-01-29 21:49:26'
+  id: 579946
+  metaTimeSeconds: 2902.190861
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9891219276
+  readTimeSeconds: 805.573365
+  runtimeSeconds: 7127
+  sleepSimulationSeconds: 170
+  startTime: '2022-01-29 19:50:39'
+  submissionTime: '2022-01-29 07:04:00'
+  waitingTimeSeconds: 45999
+  walltimeSeconds: 7200
+  writeTimeSeconds: 177.44909
+  writtenBytes: 1112664763
+- approxComputeTimeSeconds: 2346
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5561.457
+  coresUsed: 8192
+  endTime: '2022-01-29 07:44:48'
+  id: 579947
+  metaTimeSeconds: 952.210842
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3278284732
+  readTimeSeconds: 237.172524
+  runtimeSeconds: 2346
+  sleepSimulationSeconds: 7
+  startTime: '2022-01-29 07:05:41'
+  submissionTime: '2022-01-29 07:04:07'
+  waitingTimeSeconds: 94
+  walltimeSeconds: 2400
+  writeTimeSeconds: 70.04276
+  writtenBytes: 248906609
+- approxComputeTimeSeconds: 402
+  coreHoursReq: 512.0
+  coreHoursUsed: 57.3155
+  coresUsed: 512
+  endTime: '2022-01-29 07:15:58'
+  id: 579950
+  metaTimeSeconds: 0.073952
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.325007
+  runtimeSeconds: 403
+  sleepSimulationSeconds: 223
+  startTime: '2022-01-29 07:09:15'
+  submissionTime: '2022-01-29 07:07:50'
+  waitingTimeSeconds: 85
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.752391
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 924
+  coreHoursReq: 42.6666
+  coreHoursUsed: 32.8533
+  coresUsed: 128
+  endTime: '2022-01-29 07:25:44'
+  id: 579951
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 924
+  sleepSimulationSeconds: 143
+  startTime: '2022-01-29 07:10:20'
+  submissionTime: '2022-01-29 07:10:13'
+  waitingTimeSeconds: 7
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 728
+  coreHoursReq: 42.6666
+  coreHoursUsed: 25.8844
+  coresUsed: 128
+  endTime: '2022-01-29 07:37:58'
+  id: 579954
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 728
+  sleepSimulationSeconds: 934
+  startTime: '2022-01-29 07:25:50'
+  submissionTime: '2022-01-29 07:25:47'
+  waitingTimeSeconds: 3
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 218
+  coreHoursReq: 512.0
+  coreHoursUsed: 31.1466
+  coresUsed: 512
+  endTime: '2022-01-29 07:33:32'
+  id: 579955
+  metaTimeSeconds: 0.074012
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.274882
+  runtimeSeconds: 219
+  sleepSimulationSeconds: 238
+  startTime: '2022-01-29 07:29:53'
+  submissionTime: '2022-01-29 07:29:45'
+  waitingTimeSeconds: 8
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.776708
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 242
+  coreHoursReq: 512.0
+  coreHoursUsed: 42.3821
+  coresUsed: 512
+  endTime: '2022-01-29 07:43:04'
+  id: 579959
+  metaTimeSeconds: 0.073179
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.243338
+  runtimeSeconds: 242
+  sleepSimulationSeconds: 516
+  startTime: '2022-01-29 07:39:02'
+  submissionTime: '2022-01-29 07:38:21'
+  waitingTimeSeconds: 41
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.510602
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 3537
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32822.6111
+  coresUsed: 32768
+  endTime: '2022-02-01 03:11:08'
+  id: 579961
+  metaTimeSeconds: 9841.902462
+  model: RCW
+  nodesUsed: 512
+  readBytes: 22938781256
+  readTimeSeconds: 20007.872803
+  runtimeSeconds: 3538
+  sleepSimulationSeconds: 7
+  startTime: '2022-02-01 02:12:09'
+  submissionTime: '2022-01-29 07:38:28'
+  waitingTimeSeconds: 239621
+  walltimeSeconds: 3600
+  writeTimeSeconds: 790.201427
+  writtenBytes: 1666304238
+- approxComputeTimeSeconds: 2344
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5459.057
+  coresUsed: 8192
+  endTime: '2022-01-29 14:09:20'
+  id: 579964
+  metaTimeSeconds: 948.490671
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3278284732
+  readTimeSeconds: 232.23698
+  runtimeSeconds: 2344
+  sleepSimulationSeconds: 532
+  startTime: '2022-01-29 13:30:15'
+  submissionTime: '2022-01-29 07:47:20'
+  waitingTimeSeconds: 20575
+  walltimeSeconds: 2400
+  writeTimeSeconds: 39.941698
+  writtenBytes: 249054587
+- approxComputeTimeSeconds: 205
+  coreHoursReq: 512.0
+  coreHoursUsed: 41.1021
+  coresUsed: 512
+  endTime: '2022-01-29 07:52:03'
+  id: 579966
+  metaTimeSeconds: 0.074434
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.405637
+  runtimeSeconds: 205
+  sleepSimulationSeconds: 18
+  startTime: '2022-01-29 07:48:38'
+  submissionTime: '2022-01-29 07:47:38'
+  waitingTimeSeconds: 60
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.601497
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 3543
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8187.4485
+  coresUsed: 8192
+  endTime: '2022-01-29 21:40:20'
+  id: 579967
+  metaTimeSeconds: 933.572162
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3278284732
+  readTimeSeconds: 240.5997
+  runtimeSeconds: 3543
+  sleepSimulationSeconds: 1
+  startTime: '2022-01-29 20:41:17'
+  submissionTime: '2022-01-29 07:47:39'
+  waitingTimeSeconds: 46418
+  walltimeSeconds: 3600
+  writeTimeSeconds: 39.813368
+  writtenBytes: 248857155
+- approxComputeTimeSeconds: 84
+  coreHoursReq: 10.6666
+  coreHoursUsed: 4.9422
+  coresUsed: 128
+  endTime: '2022-01-29 07:54:52'
+  id: 579969
+  metaTimeSeconds: 0.021085
+  model: C
+  nodesUsed: 2
+  readBytes: 102
+  readTimeSeconds: 0.000307
+  runtimeSeconds: 84
+  sleepSimulationSeconds: 285
+  startTime: '2022-01-29 07:53:27'
+  submissionTime: '2022-01-29 07:52:24'
+  waitingTimeSeconds: 63
+  walltimeSeconds: 300
+  writeTimeSeconds: 0.000405
+  writtenBytes: 102
+- approxComputeTimeSeconds: 165
+  coreHoursReq: 42.6666
+  coreHoursUsed: 8.4266
+  coresUsed: 128
+  endTime: '2022-01-29 07:59:04'
+  id: 579970
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 165
+  sleepSimulationSeconds: 171
+  startTime: '2022-01-29 07:56:18'
+  submissionTime: '2022-01-29 07:55:15'
+  waitingTimeSeconds: 63
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1424
+  coreHoursReq: 512.0
+  coreHoursUsed: 210.0621
+  coresUsed: 512
+  endTime: '2022-01-29 08:21:29'
+  id: 579971
+  metaTimeSeconds: 0.072207
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.251591
+  runtimeSeconds: 1424
+  sleepSimulationSeconds: 109
+  startTime: '2022-01-29 07:57:44'
+  submissionTime: '2022-01-29 07:57:04'
+  waitingTimeSeconds: 40
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.365409
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 207
+  coreHoursReq: 512.0
+  coreHoursUsed: 36.9777
+  coresUsed: 512
+  endTime: '2022-01-29 08:36:10'
+  id: 579977
+  metaTimeSeconds: 0.075167
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 2.398338
+  runtimeSeconds: 207
+  sleepSimulationSeconds: 2075
+  startTime: '2022-01-29 08:32:43'
+  submissionTime: '2022-01-29 08:31:39'
+  waitingTimeSeconds: 64
+  walltimeSeconds: 3600
+  writeTimeSeconds: 8.424074
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 80
+  coreHoursReq: 512.0
+  coreHoursUsed: 18.7732
+  coresUsed: 512
+  endTime: '2022-01-29 08:40:59'
+  id: 579979
+  metaTimeSeconds: 0.128914
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 11.089618
+  runtimeSeconds: 80
+  sleepSimulationSeconds: 428
+  startTime: '2022-01-29 08:39:38'
+  submissionTime: '2022-01-29 08:38:47'
+  waitingTimeSeconds: 51
+  walltimeSeconds: 3600
+  writeTimeSeconds: 13.950834
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 81
+  coreHoursReq: 512.0
+  coreHoursUsed: 20.9066
+  coresUsed: 512
+  endTime: '2022-01-29 09:07:15'
+  id: 579984
+  metaTimeSeconds: 0.128759
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 10.774355
+  runtimeSeconds: 81
+  sleepSimulationSeconds: 1505
+  startTime: '2022-01-29 09:05:54'
+  submissionTime: '2022-01-29 09:03:52'
+  waitingTimeSeconds: 122
+  walltimeSeconds: 3600
+  writeTimeSeconds: 13.934019
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 79
+  coreHoursReq: 512.0
+  coreHoursUsed: 19.4844
+  coresUsed: 512
+  endTime: '2022-01-29 09:14:32'
+  id: 579986
+  metaTimeSeconds: 0.12845
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 10.814036
+  runtimeSeconds: 79
+  sleepSimulationSeconds: 483
+  startTime: '2022-01-29 09:13:12'
+  submissionTime: '2022-01-29 09:11:55'
+  waitingTimeSeconds: 77
+  walltimeSeconds: 3600
+  writeTimeSeconds: 14.107318
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 106
+  coreHoursReq: 512.0
+  coreHoursUsed: 23.751
+  coresUsed: 512
+  endTime: '2022-01-29 09:21:45'
+  id: 579988
+  metaTimeSeconds: 0.128648
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 10.541642999999999
+  runtimeSeconds: 106
+  sleepSimulationSeconds: 425
+  startTime: '2022-01-29 09:19:59'
+  submissionTime: '2022-01-29 09:19:00'
+  waitingTimeSeconds: 59
+  walltimeSeconds: 3600
+  writeTimeSeconds: 14.106424999999998
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 121
+  coreHoursReq: 512.0
+  coreHoursUsed: 25.4577
+  coresUsed: 512
+  endTime: '2022-01-29 09:27:56'
+  id: 579990
+  metaTimeSeconds: 0.128967
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 11.210134
+  runtimeSeconds: 121
+  sleepSimulationSeconds: 207
+  startTime: '2022-01-29 09:25:55'
+  submissionTime: '2022-01-29 09:22:27'
+  waitingTimeSeconds: 208
+  walltimeSeconds: 3600
+  writeTimeSeconds: 14.124068000000001
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 82
+  coreHoursReq: 512.0
+  coreHoursUsed: 20.48
+  coresUsed: 512
+  endTime: '2022-01-29 09:35:27'
+  id: 579991
+  metaTimeSeconds: 0.129434
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 10.905304000000001
+  runtimeSeconds: 82
+  sleepSimulationSeconds: 391
+  startTime: '2022-01-29 09:34:05'
+  submissionTime: '2022-01-29 09:28:58'
+  waitingTimeSeconds: 307
+  walltimeSeconds: 3600
+  writeTimeSeconds: 13.936461000000001
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 77
+  coreHoursReq: 128.0
+  coreHoursUsed: 19.3421
+  coresUsed: 512
+  endTime: '2022-01-29 09:48:04'
+  id: 579995
+  metaTimeSeconds: 0.129114
+  model: RCW
+  nodesUsed: 8
+  readBytes: 119484416
+  readTimeSeconds: 10.656357
+  runtimeSeconds: 77
+  sleepSimulationSeconds: 932
+  startTime: '2022-01-29 09:46:46'
+  submissionTime: '2022-01-29 09:44:30'
+  waitingTimeSeconds: 136
+  walltimeSeconds: 900
+  writeTimeSeconds: 13.958684000000002
+  writtenBytes: 704510507
+- approxComputeTimeSeconds: 7153
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16397.6527
+  coresUsed: 8192
+  endTime: '2022-01-30 00:02:51'
+  id: 579996
+  metaTimeSeconds: 1284.631268
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6627573620
+  readTimeSeconds: 805.366528
+  runtimeSeconds: 7153
+  sleepSimulationSeconds: 10034
+  startTime: '2022-01-29 22:03:38'
+  submissionTime: '2022-01-29 12:31:44'
+  waitingTimeSeconds: 34314
+  walltimeSeconds: 7200
+  writeTimeSeconds: 194.550595
+  writtenBytes: 1228719875
+- approxComputeTimeSeconds: 7133
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16374.897
+  coresUsed: 8192
+  endTime: '2022-01-29 23:57:12'
+  id: 579997
+  metaTimeSeconds: 3642.383147
+  model: RCW
+  nodesUsed: 128
+  readBytes: 13164732148
+  readTimeSeconds: 1133.261422
+  runtimeSeconds: 7134
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-29 21:58:18'
+  submissionTime: '2022-01-29 12:31:49'
+  waitingTimeSeconds: 33989
+  walltimeSeconds: 7200
+  writeTimeSeconds: 218.0186
+  writtenBytes: 1362829500
+- approxComputeTimeSeconds: 3539
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32913.634
+  coresUsed: 32768
+  endTime: '2022-02-01 03:11:09'
+  id: 579999
+  metaTimeSeconds: 5344.906951
+  model: RCW
+  nodesUsed: 512
+  readBytes: 9856939836
+  readTimeSeconds: 13523.95182
+  runtimeSeconds: 3539
+  sleepSimulationSeconds: 6026
+  startTime: '2022-02-01 02:12:09'
+  submissionTime: '2022-01-29 14:12:15'
+  waitingTimeSeconds: 215994
+  walltimeSeconds: 3600
+  writeTimeSeconds: 708.170922
+  writtenBytes: 895063772
+- approxComputeTimeSeconds: 58
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1019.4485
+  coresUsed: 32768
+  endTime: '2022-01-29 18:06:22'
+  id: 580002
+  metaTimeSeconds: 37883.828789
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 60
+  sleepSimulationSeconds: 6499
+  startTime: '2022-01-29 18:05:22'
+  submissionTime: '2022-01-29 16:00:34'
+  waitingTimeSeconds: 7488
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 58
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1092.2655
+  coresUsed: 32768
+  endTime: '2022-01-29 18:12:35'
+  id: 580003
+  metaTimeSeconds: 53441.513253
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 59
+  sleepSimulationSeconds: 40
+  startTime: '2022-01-29 18:11:35'
+  submissionTime: '2022-01-29 16:01:14'
+  waitingTimeSeconds: 7821
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 57
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1092.2655
+  coresUsed: 32768
+  endTime: '2022-01-29 18:18:10'
+  id: 580004
+  metaTimeSeconds: 42778.750584
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 58
+  sleepSimulationSeconds: 28
+  startTime: '2022-01-29 18:17:12'
+  submissionTime: '2022-01-29 16:01:42'
+  waitingTimeSeconds: 8130
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 59
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1119.5711
+  coresUsed: 32768
+  endTime: '2022-01-29 18:23:42'
+  id: 580005
+  metaTimeSeconds: 81780.966161
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 61
+  sleepSimulationSeconds: 14
+  startTime: '2022-01-29 18:22:40'
+  submissionTime: '2022-01-29 16:01:56'
+  waitingTimeSeconds: 8444
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1077
+  coreHoursReq: 503.4666
+  coreHoursUsed: 162.4177
+  coresUsed: 512
+  endTime: '2022-01-29 18:23:02'
+  id: 580009
+  metaTimeSeconds: 0.075363
+  model: CW
+  nodesUsed: 8
+  readBytes: 4658176
+  readTimeSeconds: 6.859725
+  runtimeSeconds: 1077
+  sleepSimulationSeconds: 7159
+  startTime: '2022-01-29 18:05:04'
+  submissionTime: '2022-01-29 18:01:15'
+  waitingTimeSeconds: 229
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.394094
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 97
+  coreHoursReq: 16384.0
+  coreHoursUsed: 2612.337
+  coresUsed: 32768
+  endTime: '2022-01-29 21:42:59'
+  id: 580013
+  metaTimeSeconds: 69027.45878
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 99
+  sleepSimulationSeconds: 6962
+  startTime: '2022-01-29 21:41:20'
+  submissionTime: '2022-01-29 19:57:17'
+  waitingTimeSeconds: 6243
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 97
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1447.2511
+  coresUsed: 32768
+  endTime: '2022-01-29 21:48:41'
+  id: 580014
+  metaTimeSeconds: 72678.614151
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 100
+  sleepSimulationSeconds: 17
+  startTime: '2022-01-29 21:47:01'
+  submissionTime: '2022-01-29 19:57:34'
+  waitingTimeSeconds: 6567
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 98
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1419.9455
+  coresUsed: 32768
+  endTime: '2022-01-29 21:54:09'
+  id: 580015
+  metaTimeSeconds: 68922.413385
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 100
+  sleepSimulationSeconds: 16
+  startTime: '2022-01-29 21:52:28'
+  submissionTime: '2022-01-29 19:57:50'
+  waitingTimeSeconds: 6878
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 78
+  coreHoursReq: 16384.0
+  coreHoursUsed: 1219.697
+  coresUsed: 32768
+  endTime: '2022-01-29 21:59:16'
+  id: 580016
+  metaTimeSeconds: 56915.391268
+  model: C
+  nodesUsed: 512
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 79
+  sleepSimulationSeconds: 20
+  startTime: '2022-01-29 21:57:56'
+  submissionTime: '2022-01-29 19:58:10'
+  waitingTimeSeconds: 7186
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 7353
+  coreHoursReq: 24302.9333
+  coreHoursUsed: 16857.3148
+  coresUsed: 8192
+  endTime: '2022-01-29 23:44:34'
+  id: 580017
+  metaTimeSeconds: 3128.669494
+  model: RCW
+  nodesUsed: 128
+  readBytes: 48004036640
+  readTimeSeconds: 2873.06559
+  runtimeSeconds: 7355
+  sleepSimulationSeconds: 2589
+  startTime: '2022-01-29 21:41:58'
+  submissionTime: '2022-01-29 20:41:19'
+  waitingTimeSeconds: 3639
+  walltimeSeconds: 10680
+  writeTimeSeconds: 8063.096714
+  writtenBytes: 50720190244
+- approxComputeTimeSeconds: 7159
+  coreHoursReq: 16384.0
+  coreHoursUsed: 19417.3148
+  coresUsed: 8192
+  endTime: '2022-01-30 01:00:11'
+  id: 580021
+  metaTimeSeconds: 4255.4431349999995
+  model: RCW
+  nodesUsed: 128
+  readBytes: 16427271872
+  readTimeSeconds: 1349.6540439999999
+  runtimeSeconds: 7160
+  sleepSimulationSeconds: 4352
+  startTime: '2022-01-29 23:00:50'
+  submissionTime: '2022-01-29 21:53:51'
+  waitingTimeSeconds: 4019
+  walltimeSeconds: 7200
+  writeTimeSeconds: 269.238453
+  writtenBytes: 1681961719
+- approxComputeTimeSeconds: 2334
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5440.8527
+  coresUsed: 8192
+  endTime: '2022-01-30 00:25:13'
+  id: 580023
+  metaTimeSeconds: 1499.674554
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6558379904
+  readTimeSeconds: 464.34427700000003
+  runtimeSeconds: 2334
+  sleepSimulationSeconds: 20
+  startTime: '2022-01-29 23:46:19'
+  submissionTime: '2022-01-29 21:54:11'
+  waitingTimeSeconds: 6728
+  walltimeSeconds: 2400
+  writeTimeSeconds: 78.933031
+  writtenBytes: 497761379
+- approxComputeTimeSeconds: 22316
+  coreHoursReq: 98304.0
+  coreHoursUsed: 101567.1455
+  coresUsed: 16384
+  endTime: '2022-01-30 04:41:08'
+  id: 580025
+  metaTimeSeconds: 282.922713
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 22317
+  sleepSimulationSeconds: 2086
+  startTime: '2022-01-29 22:29:11'
+  submissionTime: '2022-01-29 22:28:57'
+  waitingTimeSeconds: 14
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 23551
+  coreHoursReq: 358400.0
+  coreHoursUsed: 293776.0
+  coresUsed: 44800
+  endTime: '2022-01-30 18:00:18'
+  id: 580033
+  metaTimeSeconds: 0.468218
+  model: C
+  nodesUsed: 700
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 23551
+  sleepSimulationSeconds: 3818
+  startTime: '2022-01-30 11:27:47'
+  submissionTime: '2022-01-29 23:32:35'
+  waitingTimeSeconds: 42912
+  walltimeSeconds: 28800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 21216
+  coreHoursReq: 294912.0
+  coreHoursUsed: 199402.3796
+  coresUsed: 32768
+  endTime: '2022-01-30 05:43:19'
+  id: 580034
+  metaTimeSeconds: 32309.520179
+  model: RCW
+  nodesUsed: 512
+  readBytes: 17315039250
+  readTimeSeconds: 1423833.136953
+  runtimeSeconds: 21907
+  sleepSimulationSeconds: 172
+  startTime: '2022-01-29 23:38:12'
+  submissionTime: '2022-01-29 23:35:27'
+  waitingTimeSeconds: 165
+  walltimeSeconds: 32400
+  writeTimeSeconds: 21178908.237558
+  writtenBytes: 130018528696
+- approxComputeTimeSeconds: 7145
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16409.0306
+  coresUsed: 8192
+  endTime: '2022-01-30 01:59:29'
+  id: 580035
+  metaTimeSeconds: 2139.841954
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9873270564
+  readTimeSeconds: 1063.812795
+  runtimeSeconds: 7146
+  sleepSimulationSeconds: 1439
+  startTime: '2022-01-30 00:00:23'
+  submissionTime: '2022-01-29 23:59:26'
+  waitingTimeSeconds: 57
+  walltimeSeconds: 7200
+  writeTimeSeconds: 231.862647
+  writtenBytes: 1474842675
+- approxComputeTimeSeconds: 739
+  coreHoursReq: 503.4666
+  coreHoursUsed: 114.3466
+  coresUsed: 512
+  endTime: '2022-01-30 00:27:19'
+  id: 580040
+  metaTimeSeconds: 0.074009
+  model: CW
+  nodesUsed: 8
+  readBytes: 4662272
+  readTimeSeconds: 2.010555
+  runtimeSeconds: 739
+  sleepSimulationSeconds: 874
+  startTime: '2022-01-30 00:15:00'
+  submissionTime: '2022-01-30 00:14:00'
+  waitingTimeSeconds: 60
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.348018
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 363
+  coreHoursReq: 503.4666
+  coreHoursUsed: 61.0132
+  coresUsed: 512
+  endTime: '2022-01-30 00:39:34'
+  id: 580042
+  metaTimeSeconds: 0.055007
+  model: CW
+  nodesUsed: 8
+  readBytes: 4662272
+  readTimeSeconds: 2.558536
+  runtimeSeconds: 363
+  sleepSimulationSeconds: 1108
+  startTime: '2022-01-30 00:33:30'
+  submissionTime: '2022-01-30 00:32:28'
+  waitingTimeSeconds: 62
+  walltimeSeconds: 3540
+  writeTimeSeconds: 5.698588
+  writtenBytes: 281801753
+- approxComputeTimeSeconds: 1091
+  coreHoursReq: 503.4666
+  coreHoursUsed: 163.84
+  coresUsed: 512
+  endTime: '2022-01-30 01:00:12'
+  id: 580044
+  metaTimeSeconds: 0.076062
+  model: CW
+  nodesUsed: 8
+  readBytes: 4710400
+  readTimeSeconds: 2.316922
+  runtimeSeconds: 1091
+  sleepSimulationSeconds: 513
+  startTime: '2022-01-30 00:42:00'
+  submissionTime: '2022-01-30 00:41:01'
+  waitingTimeSeconds: 59
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.487752
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 3527
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8148.7642
+  coresUsed: 8192
+  endTime: '2022-01-30 03:15:21'
+  id: 580047
+  metaTimeSeconds: 2320.498778
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9843623744
+  readTimeSeconds: 734.1394
+  runtimeSeconds: 3528
+  sleepSimulationSeconds: 546
+  startTime: '2022-01-30 02:16:32'
+  submissionTime: '2022-01-30 00:50:07'
+  waitingTimeSeconds: 5185
+  walltimeSeconds: 3600
+  writeTimeSeconds: 130.31006399999998
+  writtenBytes: 817722196
+- approxComputeTimeSeconds: 242
+  coreHoursReq: 503.4666
+  coreHoursUsed: 45.0844
+  coresUsed: 512
+  endTime: '2022-01-30 01:06:42'
+  id: 580051
+  metaTimeSeconds: 0.075783
+  model: CW
+  nodesUsed: 8
+  readBytes: 4712448
+  readTimeSeconds: 2.30332
+  runtimeSeconds: 242
+  sleepSimulationSeconds: 669
+  startTime: '2022-01-30 01:02:40'
+  submissionTime: '2022-01-30 01:01:16'
+  waitingTimeSeconds: 84
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.458682
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 1117
+  coreHoursReq: 503.4666
+  coreHoursUsed: 166.8266
+  coresUsed: 512
+  endTime: '2022-01-30 01:29:05'
+  id: 580053
+  metaTimeSeconds: 0.075279
+  model: CW
+  nodesUsed: 8
+  readBytes: 4712448
+  readTimeSeconds: 2.219458
+  runtimeSeconds: 1117
+  sleepSimulationSeconds: 513
+  startTime: '2022-01-30 01:10:28'
+  submissionTime: '2022-01-30 01:09:49'
+  waitingTimeSeconds: 39
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.480404
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 8883
+  coreHoursReq: 24576.0
+  coreHoursUsed: 20218.3106
+  coresUsed: 8192
+  endTime: '2022-01-30 04:26:40'
+  id: 580063
+  metaTimeSeconds: 9304.691072
+  model: RCW
+  nodesUsed: 128
+  readBytes: 29078238560
+  readTimeSeconds: 3053.93706
+  runtimeSeconds: 8885
+  sleepSimulationSeconds: 1612
+  startTime: '2022-01-30 01:58:35'
+  submissionTime: '2022-01-30 01:36:41'
+  waitingTimeSeconds: 1314
+  walltimeSeconds: 10800
+  writeTimeSeconds: 452.31524
+  writtenBytes: 13851826082
+- approxComputeTimeSeconds: 2038
+  coreHoursReq: 294365.8666
+  coreHoursUsed: 18559.4281
+  coresUsed: 32768
+  endTime: '2022-01-30 06:18:27'
+  id: 580073
+  metaTimeSeconds: 4.325126
+  model: RCW
+  nodesUsed: 512
+  readBytes: 301596672
+  readTimeSeconds: 31.573803
+  runtimeSeconds: 2039
+  sleepSimulationSeconds: 3405
+  startTime: '2022-01-30 05:44:28'
+  submissionTime: '2022-01-30 02:33:26'
+  waitingTimeSeconds: 11462
+  walltimeSeconds: 32340
+  writeTimeSeconds: 499.723353
+  writtenBytes: 24934545663
+- approxComputeTimeSeconds: 191
+  coreHoursReq: 16.0
+  coreHoursUsed: 3.3955
+  coresUsed: 64
+  endTime: '2022-01-30 03:52:48'
+  id: 580080
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 191
+  sleepSimulationSeconds: 4568
+  startTime: '2022-01-30 03:49:37'
+  submissionTime: '2022-01-30 03:49:34'
+  waitingTimeSeconds: 3
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 7119
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16336.2127
+  coresUsed: 8192
+  endTime: '2022-01-30 08:11:20'
+  id: 580082
+  metaTimeSeconds: 2012.103842
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9895642928
+  readTimeSeconds: 1018.0629309999999
+  runtimeSeconds: 7120
+  sleepSimulationSeconds: 807
+  startTime: '2022-01-30 06:12:40'
+  submissionTime: '2022-01-30 04:03:01'
+  waitingTimeSeconds: 7779
+  walltimeSeconds: 7200
+  writeTimeSeconds: 219.608803
+  writtenBytes: 1402440549
+- approxComputeTimeSeconds: 2381
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5420.3727
+  coresUsed: 8192
+  endTime: '2022-01-30 07:21:02'
+  id: 580084
+  metaTimeSeconds: 691.815246
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3278284732
+  readTimeSeconds: 236.859293
+  runtimeSeconds: 2382
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-30 06:41:20'
+  submissionTime: '2022-01-30 04:03:06'
+  waitingTimeSeconds: 9494
+  walltimeSeconds: 2400
+  writeTimeSeconds: 40.25159
+  writtenBytes: 248926598
+- approxComputeTimeSeconds: 28837
+  coreHoursReq: 229376.0
+  coreHoursUsed: 230092.8
+  coresUsed: 28672
+  endTime: '2022-01-30 14:28:26'
+  id: 580088
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 448
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 28837
+  sleepSimulationSeconds: 1747
+  startTime: '2022-01-30 06:27:48'
+  submissionTime: '2022-01-30 04:32:13'
+  waitingTimeSeconds: 6935
+  walltimeSeconds: 28800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 21227
+  coreHoursReq: 98304.0
+  coreHoursUsed: 96902.257
+  coresUsed: 16384
+  endTime: '2022-01-30 10:37:02'
+  id: 580090
+  metaTimeSeconds: 280.311083
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 21227
+  sleepSimulationSeconds: 460
+  startTime: '2022-01-30 04:43:14'
+  submissionTime: '2022-01-30 04:39:53'
+  waitingTimeSeconds: 201
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 3557
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8235.2348
+  coresUsed: 8192
+  endTime: '2022-01-30 08:29:36'
+  id: 580104
+  metaTimeSeconds: 1910.233249
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6599012224
+  readTimeSeconds: 546.896299
+  runtimeSeconds: 3558
+  sleepSimulationSeconds: 4926
+  startTime: '2022-01-30 07:30:18'
+  submissionTime: '2022-01-30 06:01:59'
+  waitingTimeSeconds: 5299
+  walltimeSeconds: 3600
+  writeTimeSeconds: 123.870225
+  writtenBytes: 789184503
+- approxComputeTimeSeconds: 7131
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16370.3463
+  coresUsed: 8192
+  endTime: '2022-01-30 09:21:59'
+  id: 580105
+  metaTimeSeconds: 1629.865423
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6587907964
+  readTimeSeconds: 552.242761
+  runtimeSeconds: 7131
+  sleepSimulationSeconds: 2
+  startTime: '2022-01-30 07:23:07'
+  submissionTime: '2022-01-30 06:02:01'
+  waitingTimeSeconds: 4866
+  walltimeSeconds: 7200
+  writeTimeSeconds: 112.97949399999999
+  writtenBytes: 716434396
+- approxComputeTimeSeconds: 915
+  coreHoursReq: 42.6666
+  coreHoursUsed: 32.5333
+  coresUsed: 128
+  endTime: '2022-01-30 07:26:10'
+  id: 580114
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 915
+  sleepSimulationSeconds: 4128
+  startTime: '2022-01-30 07:10:55'
+  submissionTime: '2022-01-30 07:10:49'
+  waitingTimeSeconds: 6
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 711
+  coreHoursReq: 42.6666
+  coreHoursUsed: 25.28
+  coresUsed: 128
+  endTime: '2022-01-30 07:38:09'
+  id: 580117
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 711
+  sleepSimulationSeconds: 923
+  startTime: '2022-01-30 07:26:18'
+  submissionTime: '2022-01-30 07:26:12'
+  waitingTimeSeconds: 6
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1099
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 2632.817
+  coresUsed: 8192
+  endTime: '2022-01-30 07:48:19'
+  id: 580118
+  metaTimeSeconds: 1.311473
+  model: RCW
+  nodesUsed: 128
+  readBytes: 75399168
+  readTimeSeconds: 10.941524
+  runtimeSeconds: 1099
+  sleepSimulationSeconds: 61
+  startTime: '2022-01-30 07:30:00'
+  submissionTime: '2022-01-30 07:27:13'
+  waitingTimeSeconds: 167
+  walltimeSeconds: 10740
+  writeTimeSeconds: 178.657787
+  writtenBytes: 18923385230
+- approxComputeTimeSeconds: 9859
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23008.142
+  coresUsed: 8192
+  endTime: '2022-01-30 17:47:05'
+  id: 580123
+  metaTimeSeconds: 151968.710877
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 832052.564566
+  runtimeSeconds: 10057
+  sleepSimulationSeconds: 885
+  startTime: '2022-01-30 14:59:28'
+  submissionTime: '2022-01-30 07:41:58'
+  waitingTimeSeconds: 26250
+  walltimeSeconds: 10740
+  writeTimeSeconds: 635960.431231
+  writtenBytes: 21290107732
+- approxComputeTimeSeconds: 9871
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 26048.2842
+  coresUsed: 8192
+  endTime: '2022-01-30 21:24:18'
+  id: 580124
+  metaTimeSeconds: 158493.003508
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 805891.6757959999
+  runtimeSeconds: 10061
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-30 18:36:36'
+  submissionTime: '2022-01-30 07:42:03'
+  waitingTimeSeconds: 39273
+  walltimeSeconds: 10740
+  writeTimeSeconds: 592771.31299
+  writtenBytes: 21290108670
+- approxComputeTimeSeconds: 9849
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22969.457
+  coresUsed: 8192
+  endTime: '2022-01-31 00:13:41'
+  id: 580125
+  metaTimeSeconds: 170741.632701
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 818894.079464
+  runtimeSeconds: 10041
+  sleepSimulationSeconds: 14
+  startTime: '2022-01-30 21:26:20'
+  submissionTime: '2022-01-30 07:42:17'
+  waitingTimeSeconds: 49443
+  walltimeSeconds: 10740
+  writeTimeSeconds: 582354.865019
+  writtenBytes: 21290110504
+- approxComputeTimeSeconds: 9829
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22933.0485
+  coresUsed: 8192
+  endTime: '2022-01-31 14:55:44'
+  id: 580127
+  metaTimeSeconds: 171773.913349
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 827657.699118
+  runtimeSeconds: 10023
+  sleepSimulationSeconds: 23
+  startTime: '2022-01-31 12:08:40'
+  submissionTime: '2022-01-30 07:42:40'
+  waitingTimeSeconds: 102360
+  walltimeSeconds: 10740
+  writeTimeSeconds: 590125.091656
+  writtenBytes: 21290108588
+- approxComputeTimeSeconds: 9849
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22987.662
+  coresUsed: 8192
+  endTime: '2022-01-31 17:46:35'
+  id: 580128
+  metaTimeSeconds: 161458.872198
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 814710.446975
+  runtimeSeconds: 10043
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-31 14:59:11'
+  submissionTime: '2022-01-30 07:42:44'
+  waitingTimeSeconds: 112587
+  walltimeSeconds: 10740
+  writeTimeSeconds: 615443.691047
+  writtenBytes: 21290107953
+- approxComputeTimeSeconds: 9844
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22989.937
+  coresUsed: 8192
+  endTime: '2022-01-31 23:26:27'
+  id: 580129
+  metaTimeSeconds: 152273.618093
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 833033.965485
+  runtimeSeconds: 10045
+  sleepSimulationSeconds: 12
+  startTime: '2022-01-31 20:39:01'
+  submissionTime: '2022-01-30 07:42:56'
+  waitingTimeSeconds: 132965
+  walltimeSeconds: 10740
+  writeTimeSeconds: 661829.911368
+  writtenBytes: 21290106110
+- approxComputeTimeSeconds: 9837
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22980.8348
+  coresUsed: 8192
+  endTime: '2022-02-01 02:16:13'
+  id: 580130
+  metaTimeSeconds: 143129.519261
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 857231.775349
+  runtimeSeconds: 10042
+  sleepSimulationSeconds: 7
+  startTime: '2022-01-31 23:28:50'
+  submissionTime: '2022-01-30 07:43:03'
+  waitingTimeSeconds: 143147
+  walltimeSeconds: 10740
+  writeTimeSeconds: 680123.443064
+  writtenBytes: 21290103910
+- approxComputeTimeSeconds: 9846
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22962.6306
+  coresUsed: 8192
+  endTime: '2022-01-30 20:36:27'
+  id: 580131
+  metaTimeSeconds: 156250.484236
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 823292.947865
+  runtimeSeconds: 10041
+  sleepSimulationSeconds: 21
+  startTime: '2022-01-30 17:49:06'
+  submissionTime: '2022-01-30 07:43:24'
+  waitingTimeSeconds: 36342
+  walltimeSeconds: 10740
+  writeTimeSeconds: 610879.13335
+  writtenBytes: 21290108046
+- approxComputeTimeSeconds: 9824
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22994.4885
+  coresUsed: 8192
+  endTime: '2022-01-30 23:25:41'
+  id: 580132
+  metaTimeSeconds: 175630.559125
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 891838.0992040001
+  runtimeSeconds: 10051
+  sleepSimulationSeconds: 16
+  startTime: '2022-01-30 20:38:09'
+  submissionTime: '2022-01-30 07:43:40'
+  waitingTimeSeconds: 46469
+  walltimeSeconds: 10740
+  writeTimeSeconds: 793479.3954309999
+  writtenBytes: 21290109644
+- approxComputeTimeSeconds: 9854
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22992.2127
+  coresUsed: 8192
+  endTime: '2022-01-31 02:14:26'
+  id: 580133
+  metaTimeSeconds: 162362.274621
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 806911.328923
+  runtimeSeconds: 10043
+  sleepSimulationSeconds: 39
+  startTime: '2022-01-30 23:27:03'
+  submissionTime: '2022-01-30 07:44:19'
+  waitingTimeSeconds: 56564
+  walltimeSeconds: 10740
+  writeTimeSeconds: 582279.8585239999
+  writtenBytes: 21290108684
+- approxComputeTimeSeconds: 9273
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23049.102
+  coresUsed: 8192
+  endTime: '2022-01-31 14:56:25'
+  id: 580134
+  metaTimeSeconds: 154852.801335
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 828569.6945600001
+  runtimeSeconds: 10065
+  sleepSimulationSeconds: 3
+  startTime: '2022-01-31 12:08:40'
+  submissionTime: '2022-01-30 07:44:22'
+  waitingTimeSeconds: 102258
+  walltimeSeconds: 10740
+  writeTimeSeconds: 5507351.922494
+  writtenBytes: 211689182246
+- approxComputeTimeSeconds: 9823
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22930.7727
+  coresUsed: 8192
+  endTime: '2022-01-31 20:36:23'
+  id: 580135
+  metaTimeSeconds: 162160.19371300002
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 824994.762063
+  runtimeSeconds: 10018
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-31 17:49:24'
+  submissionTime: '2022-01-30 07:44:27'
+  waitingTimeSeconds: 122697
+  walltimeSeconds: 10740
+  writeTimeSeconds: 612727.680801
+  writtenBytes: 21290109338
+- approxComputeTimeSeconds: 9981
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23290.3106
+  coresUsed: 8192
+  endTime: '2022-02-01 01:03:40'
+  id: 580136
+  metaTimeSeconds: 170140.239599
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 806621.256734
+  runtimeSeconds: 10175
+  sleepSimulationSeconds: 14
+  startTime: '2022-01-31 22:14:04'
+  submissionTime: '2022-01-30 07:44:41'
+  waitingTimeSeconds: 138563
+  walltimeSeconds: 10740
+  writeTimeSeconds: 612029.288167
+  writtenBytes: 21290109029
+- approxComputeTimeSeconds: 9938
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23533.7948
+  coresUsed: 8192
+  endTime: '2022-02-02 15:13:25'
+  id: 580137
+  metaTimeSeconds: 173073.441173
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 820721.593016
+  runtimeSeconds: 10297
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-02 12:21:48'
+  submissionTime: '2022-01-30 07:44:42'
+  waitingTimeSeconds: 275826
+  walltimeSeconds: 10740
+  writeTimeSeconds: 1949590.537543
+  writtenBytes: 21290110615
+- approxComputeTimeSeconds: 9862
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23053.6527
+  coresUsed: 8192
+  endTime: '2022-02-02 20:41:12'
+  id: 580138
+  metaTimeSeconds: 157503.369574
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 828217.242462
+  runtimeSeconds: 10067
+  sleepSimulationSeconds: 5
+  startTime: '2022-02-02 17:53:24'
+  submissionTime: '2022-01-30 07:44:47'
+  waitingTimeSeconds: 295717
+  walltimeSeconds: 10740
+  writeTimeSeconds: 696397.36645
+  writtenBytes: 21290109656
+- approxComputeTimeSeconds: 81
+  coreHoursReq: 10.6666
+  coreHoursUsed: 5.76
+  coresUsed: 128
+  endTime: '2022-01-30 07:54:49'
+  id: 580141
+  metaTimeSeconds: 0.021575999999999998
+  model: C
+  nodesUsed: 2
+  readBytes: 102
+  readTimeSeconds: 0.000376
+  runtimeSeconds: 81
+  sleepSimulationSeconds: 440
+  startTime: '2022-01-30 07:53:28'
+  submissionTime: '2022-01-30 07:52:07'
+  waitingTimeSeconds: 81
+  walltimeSeconds: 300
+  writeTimeSeconds: 0.00042
+  writtenBytes: 102
+- approxComputeTimeSeconds: 159
+  coreHoursReq: 42.6666
+  coreHoursUsed: 8.6044
+  coresUsed: 128
+  endTime: '2022-01-30 07:59:09'
+  id: 580143
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 159
+  sleepSimulationSeconds: 184
+  startTime: '2022-01-30 07:56:29'
+  submissionTime: '2022-01-30 07:55:11'
+  waitingTimeSeconds: 78
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 7130
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16395.377
+  coresUsed: 8192
+  endTime: '2022-01-30 10:30:31'
+  id: 580147
+  metaTimeSeconds: 3604.872789
+  model: RCW
+  nodesUsed: 128
+  readBytes: 16412155572
+  readTimeSeconds: 1323.614965
+  runtimeSeconds: 7131
+  sleepSimulationSeconds: 1233
+  startTime: '2022-01-30 08:31:40'
+  submissionTime: '2022-01-30 08:15:44'
+  waitingTimeSeconds: 956
+  walltimeSeconds: 7200
+  writeTimeSeconds: 253.356314
+  writtenBytes: 1609402323
+- approxComputeTimeSeconds: 7140
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16370.3463
+  coresUsed: 8192
+  endTime: '2022-01-30 11:33:50'
+  id: 580152
+  metaTimeSeconds: 4215.836321
+  model: RCW
+  nodesUsed: 128
+  readBytes: 19671467624
+  readTimeSeconds: 1603.045463
+  runtimeSeconds: 7141
+  sleepSimulationSeconds: 4015
+  startTime: '2022-01-30 09:34:49'
+  submissionTime: '2022-01-30 09:22:39'
+  waitingTimeSeconds: 730
+  walltimeSeconds: 7200
+  writeTimeSeconds: 279.95971199999997
+  writtenBytes: 1781290438
+- approxComputeTimeSeconds: 3560
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8237.5106
+  coresUsed: 8192
+  endTime: '2022-01-30 10:23:01'
+  id: 580154
+  metaTimeSeconds: 2414.285586
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9848612676
+  readTimeSeconds: 729.47835
+  runtimeSeconds: 3561
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-30 09:23:40'
+  submissionTime: '2022-01-30 09:22:44'
+  waitingTimeSeconds: 56
+  walltimeSeconds: 3600
+  writeTimeSeconds: 129.026925
+  writtenBytes: 819648980
+- approxComputeTimeSeconds: 3532
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8155.5906
+  coresUsed: 8192
+  endTime: '2022-01-30 14:09:34'
+  id: 580163
+  metaTimeSeconds: 803.934276
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3290273732
+  readTimeSeconds: 252.722888
+  runtimeSeconds: 3532
+  sleepSimulationSeconds: 7022
+  startTime: '2022-01-30 13:10:42'
+  submissionTime: '2022-01-30 11:19:46'
+  waitingTimeSeconds: 6656
+  walltimeSeconds: 3600
+  writeTimeSeconds: 50.980772
+  writtenBytes: 322231993
+- approxComputeTimeSeconds: 7146
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16393.102
+  coresUsed: 8192
+  endTime: '2022-01-30 20:16:15'
+  id: 580164
+  metaTimeSeconds: 3173.763264
+  model: RCW
+  nodesUsed: 128
+  readBytes: 13197160188
+  readTimeSeconds: 1212.660079
+  runtimeSeconds: 7146
+  sleepSimulationSeconds: 2
+  startTime: '2022-01-30 18:17:08'
+  submissionTime: '2022-01-30 11:19:48'
+  waitingTimeSeconds: 25040
+  walltimeSeconds: 7200
+  writeTimeSeconds: 247.695458
+  writtenBytes: 1579913127
+- approxComputeTimeSeconds: 3559
+  coreHoursReq: 32768.0
+  coreHoursUsed: 32922.737
+  coresUsed: 32768
+  endTime: '2022-02-01 03:11:53'
+  id: 580168
+  metaTimeSeconds: 2808.770631
+  model: RCW
+  nodesUsed: 512
+  readBytes: 6588833664
+  readTimeSeconds: 19035.222248
+  runtimeSeconds: 3560
+  sleepSimulationSeconds: 3517
+  startTime: '2022-02-01 02:12:32'
+  submissionTime: '2022-01-30 12:18:25'
+  waitingTimeSeconds: 136447
+  walltimeSeconds: 3600
+  writeTimeSeconds: 534.274751
+  writtenBytes: 716167027
+- approxComputeTimeSeconds: 7126
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16352.142
+  coresUsed: 8192
+  endTime: '2022-01-30 20:21:39'
+  id: 580169
+  metaTimeSeconds: 2955.815145
+  model: RCW
+  nodesUsed: 128
+  readBytes: 13157273340
+  readTimeSeconds: 1222.918468
+  runtimeSeconds: 7126
+  sleepSimulationSeconds: 2
+  startTime: '2022-01-30 18:22:53'
+  submissionTime: '2022-01-30 12:18:27'
+  waitingTimeSeconds: 21866
+  walltimeSeconds: 7200
+  writeTimeSeconds: 237.854681
+  writtenBytes: 1506607996
+- approxComputeTimeSeconds: 21173
+  coreHoursReq: 294912.0
+  coreHoursUsed: 199584.4255
+  coresUsed: 32768
+  endTime: '2022-01-31 00:06:31'
+  id: 580171
+  metaTimeSeconds: 31045.392611
+  model: RCW
+  nodesUsed: 512
+  readBytes: 17315039250
+  readTimeSeconds: 1446767.205873
+  runtimeSeconds: 21870
+  sleepSimulationSeconds: 1428
+  startTime: '2022-01-30 18:02:01'
+  submissionTime: '2022-01-30 12:42:15'
+  waitingTimeSeconds: 19186
+  walltimeSeconds: 32400
+  writeTimeSeconds: 21354318.41093
+  writtenBytes: 130018528696
+- approxComputeTimeSeconds: 3594
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16361.2442
+  coresUsed: 16384
+  endTime: '2022-01-31 03:53:16'
+  id: 580177
+  metaTimeSeconds: 3725.3212919999996
+  model: RCW
+  nodesUsed: 256
+  readBytes: 9840936756
+  readTimeSeconds: 693.1691579999999
+  runtimeSeconds: 3595
+  sleepSimulationSeconds: 4235
+  startTime: '2022-01-31 02:53:21'
+  submissionTime: '2022-01-30 13:52:50'
+  waitingTimeSeconds: 46831
+  walltimeSeconds: 3600
+  writeTimeSeconds: 132.701016
+  writtenBytes: 818034251
+- approxComputeTimeSeconds: 3621
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16761.7413
+  coresUsed: 16384
+  endTime: '2022-02-01 02:53:54'
+  id: 580178
+  metaTimeSeconds: 1776.89167
+  model: RCW
+  nodesUsed: 256
+  readBytes: 6570368904
+  readTimeSeconds: 10789.837039
+  runtimeSeconds: 3622
+  sleepSimulationSeconds: 1507
+  startTime: '2022-02-01 01:53:32'
+  submissionTime: '2022-01-30 14:17:57'
+  waitingTimeSeconds: 128135
+  walltimeSeconds: 3600
+  writeTimeSeconds: 369.969551
+  writtenBytes: 571916909
+- approxComputeTimeSeconds: 7132
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16347.5906
+  coresUsed: 8192
+  endTime: '2022-01-30 22:51:07'
+  id: 580180
+  metaTimeSeconds: 2590.8661270000002
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9897613112
+  readTimeSeconds: 925.4177609999999
+  runtimeSeconds: 7132
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-30 20:52:14'
+  submissionTime: '2022-01-30 14:18:02'
+  waitingTimeSeconds: 23652
+  walltimeSeconds: 7200
+  writeTimeSeconds: 221.848532
+  writtenBytes: 1403947783
+- approxComputeTimeSeconds: 7130
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16361.2442
+  coresUsed: 8192
+  endTime: '2022-01-30 22:53:50'
+  id: 580181
+  metaTimeSeconds: 3675.41619
+  model: RCW
+  nodesUsed: 128
+  readBytes: 16401585872
+  readTimeSeconds: 1199.725889
+  runtimeSeconds: 7131
+  sleepSimulationSeconds: 2
+  startTime: '2022-01-30 20:54:59'
+  submissionTime: '2022-01-30 14:18:04'
+  waitingTimeSeconds: 23815
+  walltimeSeconds: 7200
+  writeTimeSeconds: 209.328142
+  writtenBytes: 1313944547
+- approxComputeTimeSeconds: 3780
+  coreHoursReq: 27648.0
+  coreHoursUsed: 9820.1594
+  coresUsed: 9216
+  endTime: '2022-01-30 19:05:04'
+  id: 580194
+  metaTimeSeconds: 1357.3575819999999
+  model: RCW
+  nodesUsed: 144
+  readBytes: 119415598155
+  readTimeSeconds: 568.442054
+  runtimeSeconds: 3781
+  sleepSimulationSeconds: 4602
+  startTime: '2022-01-30 18:02:03'
+  submissionTime: '2022-01-30 15:34:46'
+  waitingTimeSeconds: 8837
+  walltimeSeconds: 10800
+  writeTimeSeconds: 1979.302492
+  writtenBytes: 315736276085
+- approxComputeTimeSeconds: 100
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.7555
+  coresUsed: 64
+  endTime: '2022-01-30 15:40:08'
+  id: 580196
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 100
+  sleepSimulationSeconds: 180
+  startTime: '2022-01-30 15:38:27'
+  submissionTime: '2022-01-30 15:37:46'
+  waitingTimeSeconds: 41
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 102
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.8088
+  coresUsed: 64
+  endTime: '2022-01-30 15:43:55'
+  id: 580197
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 102
+  sleepSimulationSeconds: 215
+  startTime: '2022-01-30 15:42:12'
+  submissionTime: '2022-01-30 15:41:21'
+  waitingTimeSeconds: 51
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 103
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.7911
+  coresUsed: 64
+  endTime: '2022-01-30 15:46:59'
+  id: 580198
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 103
+  sleepSimulationSeconds: 194
+  startTime: '2022-01-30 15:45:15'
+  submissionTime: '2022-01-30 15:44:35'
+  waitingTimeSeconds: 40
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 82
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.3644
+  coresUsed: 64
+  endTime: '2022-01-30 16:10:49'
+  id: 580199
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 82
+  sleepSimulationSeconds: 1455
+  startTime: '2022-01-30 16:09:27'
+  submissionTime: '2022-01-30 16:08:50'
+  waitingTimeSeconds: 37
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1374
+  coreHoursReq: 503.4666
+  coreHoursUsed: 202.951
+  coresUsed: 512
+  endTime: '2022-01-30 18:18:47'
+  id: 580206
+  metaTimeSeconds: 0.314318
+  model: RCW
+  nodesUsed: 8
+  readBytes: 114932736
+  readTimeSeconds: 8.836115
+  runtimeSeconds: 1374
+  sleepSimulationSeconds: 6322
+  startTime: '2022-01-30 17:55:53'
+  submissionTime: '2022-01-30 17:54:12'
+  waitingTimeSeconds: 101
+  walltimeSeconds: 3540
+  writeTimeSeconds: 43.337989
+  writtenBytes: 2113697370
+- approxComputeTimeSeconds: 3567
+  coreHoursReq: 503.4666
+  coreHoursUsed: 515.1288
+  coresUsed: 512
+  endTime: '2022-01-30 20:09:35'
+  id: 580209
+  metaTimeSeconds: 0.073039
+  model: CW
+  nodesUsed: 8
+  readBytes: 4712448
+  readTimeSeconds: 1.954473
+  runtimeSeconds: 3567
+  sleepSimulationSeconds: 4516
+  startTime: '2022-01-30 19:10:08'
+  submissionTime: '2022-01-30 19:09:28'
+  waitingTimeSeconds: 40
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.483323
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 10811
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 24723.9106
+  coresUsed: 8192
+  endTime: '2022-01-30 23:18:10'
+  id: 580212
+  metaTimeSeconds: 1.281658
+  model: RCW
+  nodesUsed: 128
+  readBytes: 75399168
+  readTimeSeconds: 48.574458
+  runtimeSeconds: 10811
+  sleepSimulationSeconds: 3433
+  startTime: '2022-01-30 20:17:58'
+  submissionTime: '2022-01-30 20:06:41'
+  waitingTimeSeconds: 677
+  walltimeSeconds: 10740
+  writeTimeSeconds: 178.648586
+  writtenBytes: 18923385230
+- approxComputeTimeSeconds: 32428
+  coreHoursReq: 220774.4
+  coreHoursUsed: 221784.7455
+  coresUsed: 24576
+  endTime: '2022-01-31 12:57:28'
+  id: 580213
+  metaTimeSeconds: 2407.238664
+  model: RCW
+  nodesUsed: 384
+  readBytes: 39149720136
+  readTimeSeconds: 2211.63511
+  runtimeSeconds: 32428
+  sleepSimulationSeconds: 76
+  startTime: '2022-01-31 03:57:00'
+  submissionTime: '2022-01-30 20:07:57'
+  waitingTimeSeconds: 28143
+  walltimeSeconds: 32340
+  writeTimeSeconds: 292.753148
+  writtenBytes: 747404536
+- approxComputeTimeSeconds: 3579
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16556.9413
+  coresUsed: 16384
+  endTime: '2022-02-01 03:05:39'
+  id: 580214
+  metaTimeSeconds: 3288.094319
+  model: RCW
+  nodesUsed: 256
+  readBytes: 9839318856
+  readTimeSeconds: 719.4557130000001
+  runtimeSeconds: 3579
+  sleepSimulationSeconds: 1037
+  startTime: '2022-02-01 02:05:59'
+  submissionTime: '2022-01-30 20:25:14'
+  waitingTimeSeconds: 106845
+  walltimeSeconds: 3600
+  writeTimeSeconds: 530.431233
+  writtenBytes: 747765653
+- approxComputeTimeSeconds: 2360
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5513.6706
+  coresUsed: 8192
+  endTime: '2022-01-30 21:43:44'
+  id: 580215
+  metaTimeSeconds: 2231.563894
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9817233216
+  readTimeSeconds: 693.10124
+  runtimeSeconds: 2361
+  sleepSimulationSeconds: 12
+  startTime: '2022-01-30 21:04:23'
+  submissionTime: '2022-01-30 20:25:26'
+  waitingTimeSeconds: 2337
+  walltimeSeconds: 2400
+  writeTimeSeconds: 96.497778
+  writtenBytes: 601080993
+- approxComputeTimeSeconds: 3595
+  coreHoursReq: 503.4666
+  coreHoursUsed: 518.9688
+  coresUsed: 512
+  endTime: '2022-01-30 21:56:34'
+  id: 580219
+  metaTimeSeconds: 0.073748
+  model: CW
+  nodesUsed: 8
+  readBytes: 4712448
+  readTimeSeconds: 9.180737
+  runtimeSeconds: 3595
+  sleepSimulationSeconds: 1836
+  startTime: '2022-01-30 20:56:39'
+  submissionTime: '2022-01-30 20:56:02'
+  waitingTimeSeconds: 37
+  walltimeSeconds: 3540
+  writeTimeSeconds: 8.497407
+  writtenBytes: 422702623
+- approxComputeTimeSeconds: 21746
+  coreHoursReq: 98304.0
+  coreHoursUsed: 98973.0127
+  coresUsed: 16384
+  endTime: '2022-01-31 06:10:48'
+  id: 580220
+  metaTimeSeconds: 380.995497
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 21747
+  sleepSimulationSeconds: 277
+  startTime: '2022-01-31 00:08:21'
+  submissionTime: '2022-01-30 21:00:39'
+  waitingTimeSeconds: 11262
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 3528
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8146.4885
+  coresUsed: 8192
+  endTime: '2022-01-30 23:51:36'
+  id: 580224
+  metaTimeSeconds: 1917.964596
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6554406780
+  readTimeSeconds: 537.087346
+  runtimeSeconds: 3529
+  sleepSimulationSeconds: 2901
+  startTime: '2022-01-30 22:52:47'
+  submissionTime: '2022-01-30 21:49:00'
+  waitingTimeSeconds: 3827
+  walltimeSeconds: 3600
+  writeTimeSeconds: 82.097944
+  writtenBytes: 498338682
+- approxComputeTimeSeconds: 2343
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5449.9548
+  coresUsed: 8192
+  endTime: '2022-01-30 23:34:38'
+  id: 580225
+  metaTimeSeconds: 846.655555
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3278284732
+  readTimeSeconds: 240.19604
+  runtimeSeconds: 2343
+  sleepSimulationSeconds: 14
+  startTime: '2022-01-30 22:55:34'
+  submissionTime: '2022-01-30 21:49:14'
+  waitingTimeSeconds: 3980
+  walltimeSeconds: 2400
+  writeTimeSeconds: 40.159082
+  writtenBytes: 248929267
+- approxComputeTimeSeconds: 3543
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8182.897
+  coresUsed: 8192
+  endTime: '2022-01-31 00:13:40'
+  id: 580226
+  metaTimeSeconds: 792.92359
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3300452292
+  readTimeSeconds: 277.355192
+  runtimeSeconds: 3543
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-30 23:14:37'
+  submissionTime: '2022-01-30 21:49:18'
+  waitingTimeSeconds: 5119
+  walltimeSeconds: 3600
+  writeTimeSeconds: 62.18254
+  writtenBytes: 394552176
+- approxComputeTimeSeconds: 3556
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8226.1327
+  coresUsed: 8192
+  endTime: '2022-01-31 00:19:29'
+  id: 580232
+  metaTimeSeconds: 912.090697
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3290273732
+  readTimeSeconds: 278.401829
+  runtimeSeconds: 3557
+  sleepSimulationSeconds: 4005
+  startTime: '2022-01-30 23:20:12'
+  submissionTime: '2022-01-30 22:56:03'
+  waitingTimeSeconds: 1449
+  walltimeSeconds: 3600
+  writeTimeSeconds: 51.125743
+  writtenBytes: 322187533
+- approxComputeTimeSeconds: 2347
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5459.057
+  coresUsed: 8192
+  endTime: '2022-01-31 00:15:28'
+  id: 580233
+  metaTimeSeconds: 3768.628035
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6561095564
+  readTimeSeconds: 469.21821
+  runtimeSeconds: 2347
+  sleepSimulationSeconds: 14
+  startTime: '2022-01-30 23:36:20'
+  submissionTime: '2022-01-30 22:56:17'
+  waitingTimeSeconds: 2403
+  walltimeSeconds: 2400
+  writeTimeSeconds: 80.080066
+  writtenBytes: 497808615
+- approxComputeTimeSeconds: 2334
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5427.2
+  coresUsed: 8192
+  endTime: '2022-01-31 00:32:12'
+  id: 580234
+  metaTimeSeconds: 712.368065
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3280095172
+  readTimeSeconds: 235.055327
+  runtimeSeconds: 2334
+  sleepSimulationSeconds: 3
+  startTime: '2022-01-30 23:53:18'
+  submissionTime: '2022-01-30 22:56:20'
+  waitingTimeSeconds: 3418
+  walltimeSeconds: 2400
+  writeTimeSeconds: 39.563838
+  writtenBytes: 248851090
+- approxComputeTimeSeconds: 369
+  coreHoursReq: 512.0
+  coreHoursUsed: 60.3021
+  coresUsed: 512
+  endTime: '2022-01-30 23:54:19'
+  id: 580239
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 369
+  sleepSimulationSeconds: 3069
+  startTime: '2022-01-30 23:48:09'
+  submissionTime: '2022-01-30 23:47:29'
+  waitingTimeSeconds: 40
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 22226
+  coreHoursReq: 294912.0
+  coreHoursUsed: 202943.1455
+  coresUsed: 32768
+  endTime: '2022-01-31 10:57:00'
+  id: 580240
+  metaTimeSeconds: 211414.478107
+  model: RCW
+  nodesUsed: 512
+  readBytes: 198637338400
+  readTimeSeconds: 49075.044951
+  runtimeSeconds: 22242
+  sleepSimulationSeconds: 615
+  startTime: '2022-01-31 04:46:18'
+  submissionTime: '2022-01-30 23:57:44'
+  waitingTimeSeconds: 17314
+  walltimeSeconds: 32400
+  writeTimeSeconds: 248771.248437
+  writtenBytes: 3009378527938
+- approxComputeTimeSeconds: 7177
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16333.937
+  coresUsed: 8192
+  endTime: '2022-01-31 04:13:49'
+  id: 580250
+  metaTimeSeconds: 1488.708366
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6597160820
+  readTimeSeconds: 695.749451
+  runtimeSeconds: 7178
+  sleepSimulationSeconds: 1329
+  startTime: '2022-01-31 02:14:11'
+  submissionTime: '2022-01-31 00:19:53'
+  waitingTimeSeconds: 6858
+  walltimeSeconds: 7200
+  writeTimeSeconds: 159.831123
+  writtenBytes: 1009496211
+- approxComputeTimeSeconds: 3525
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8141.937
+  coresUsed: 8192
+  endTime: '2022-01-31 01:50:46'
+  id: 580251
+  metaTimeSeconds: 878.089844
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3279189952
+  readTimeSeconds: 231.051057
+  runtimeSeconds: 3525
+  sleepSimulationSeconds: 5
+  startTime: '2022-01-31 00:52:00'
+  submissionTime: '2022-01-31 00:19:58'
+  waitingTimeSeconds: 1922
+  walltimeSeconds: 3600
+  writeTimeSeconds: 40.096326
+  writtenBytes: 248883179
+- approxComputeTimeSeconds: 2356
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5497.742
+  coresUsed: 8192
+  endTime: '2022-01-31 02:32:26'
+  id: 580257
+  metaTimeSeconds: 707.160931
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3281000392
+  readTimeSeconds: 226.09582
+  runtimeSeconds: 2356
+  sleepSimulationSeconds: 3517
+  startTime: '2022-01-31 01:53:09'
+  submissionTime: '2022-01-31 01:18:35'
+  waitingTimeSeconds: 2074
+  walltimeSeconds: 2400
+  writeTimeSeconds: 39.94429
+  writtenBytes: 249184128
+- approxComputeTimeSeconds: 7158
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16415.857
+  coresUsed: 8192
+  endTime: '2022-02-01 01:54:10'
+  id: 580259
+  metaTimeSeconds: 2308.586234
+  model: RCW
+  nodesUsed: 128
+  readBytes: 9874339628
+  readTimeSeconds: 895.3513330000001
+  runtimeSeconds: 7158
+  sleepSimulationSeconds: 4
+  startTime: '2022-01-31 23:54:52'
+  submissionTime: '2022-01-31 01:18:39'
+  waitingTimeSeconds: 81373
+  walltimeSeconds: 7200
+  writeTimeSeconds: 389.671918
+  writtenBytes: 1256782021
+- approxComputeTimeSeconds: 2746
+  coreHoursReq: 512.0
+  coreHoursUsed: 400.9244
+  coresUsed: 512
+  endTime: '2022-01-31 02:38:16'
+  id: 580265
+  metaTimeSeconds: 42.051232
+  model: RCW
+  nodesUsed: 8
+  readBytes: 144311106934
+  readTimeSeconds: 236.469381
+  runtimeSeconds: 2748
+  sleepSimulationSeconds: 1971
+  startTime: '2022-01-31 01:52:28'
+  submissionTime: '2022-01-31 01:51:30'
+  waitingTimeSeconds: 58
+  walltimeSeconds: 3600
+  writeTimeSeconds: 720.732897
+  writtenBytes: 143266863916
+- approxComputeTimeSeconds: 3636
+  coreHoursReq: 8192.0
+  coreHoursUsed: 11386.88
+  coresUsed: 8192
+  endTime: '2022-02-01 02:00:54'
+  id: 580274
+  metaTimeSeconds: 626.513391
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3280095172
+  readTimeSeconds: 3109.015108
+  runtimeSeconds: 3636
+  sleepSimulationSeconds: 1038
+  startTime: '2022-02-01 01:00:17'
+  submissionTime: '2022-01-31 02:08:48'
+  waitingTimeSeconds: 82289
+  walltimeSeconds: 3600
+  writeTimeSeconds: 203.556027
+  writtenBytes: 248878826
+- approxComputeTimeSeconds: 21921
+  coreHoursReq: 294912.0
+  coreHoursUsed: 206392.8885
+  coresUsed: 32768
+  endTime: '2022-01-31 21:20:18'
+  id: 580279
+  metaTimeSeconds: 31746.720371
+  model: RCW
+  nodesUsed: 512
+  readBytes: 17315039250
+  readTimeSeconds: 1433710.0131579998
+  runtimeSeconds: 22617
+  sleepSimulationSeconds: 2347
+  startTime: '2022-01-31 15:03:21'
+  submissionTime: '2022-01-31 02:47:55'
+  waitingTimeSeconds: 44126
+  walltimeSeconds: 32400
+  writeTimeSeconds: 21333226.46151
+  writtenBytes: 130018528696
+- approxComputeTimeSeconds: 3674
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8485.5463
+  coresUsed: 8192
+  endTime: '2022-02-01 02:58:08'
+  id: 580282
+  metaTimeSeconds: 1343.8756469999998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6542886792
+  readTimeSeconds: 12615.418539
+  runtimeSeconds: 3676
+  sleepSimulationSeconds: 657
+  startTime: '2022-02-01 01:56:52'
+  submissionTime: '2022-01-31 02:58:52'
+  waitingTimeSeconds: 82680
+  walltimeSeconds: 3600
+  writeTimeSeconds: 330.75052800000003
+  writtenBytes: 421552177
+- approxComputeTimeSeconds: 23309
+  coreHoursReq: 358400.0
+  coreHoursUsed: 290864.0
+  coresUsed: 44800
+  endTime: '2022-01-31 21:31:31'
+  id: 580291
+  metaTimeSeconds: 0.803759
+  model: C
+  nodesUsed: 700
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 23309
+  sleepSimulationSeconds: 1235
+  startTime: '2022-01-31 15:03:02'
+  submissionTime: '2022-01-31 03:19:27'
+  waitingTimeSeconds: 42215
+  walltimeSeconds: 28800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 117
+  coreHoursReq: 4096.0
+  coreHoursUsed: 268.5148
+  coresUsed: 8192
+  endTime: '2022-01-31 04:17:19'
+  id: 580300
+  metaTimeSeconds: 0.467707
+  model: RC
+  nodesUsed: 128
+  readBytes: 209445632
+  readTimeSeconds: 11.001607
+  runtimeSeconds: 118
+  sleepSimulationSeconds: 1792
+  startTime: '2022-01-31 04:15:21'
+  submissionTime: '2022-01-31 03:49:19'
+  waitingTimeSeconds: 1562
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 717
+  coreHoursReq: 98304.0
+  coreHoursUsed: 9607.394
+  coresUsed: 16384
+  endTime: '2022-01-31 15:37:12'
+  id: 580302
+  metaTimeSeconds: 201.659974
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 717
+  sleepSimulationSeconds: 1967
+  startTime: '2022-01-31 15:25:15'
+  submissionTime: '2022-01-31 04:22:06'
+  waitingTimeSeconds: 39789
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 3554
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16443.1642
+  coresUsed: 16384
+  endTime: '2022-02-01 03:06:39'
+  id: 580305
+  metaTimeSeconds: 1787.565912
+  model: RCW
+  nodesUsed: 256
+  readBytes: 6552666004
+  readTimeSeconds: 1533.360314
+  runtimeSeconds: 3554
+  sleepSimulationSeconds: 2882
+  startTime: '2022-02-01 02:07:25'
+  submissionTime: '2022-01-31 05:10:08'
+  waitingTimeSeconds: 75437
+  walltimeSeconds: 3600
+  writeTimeSeconds: 187.412353
+  writtenBytes: 425195171
+- approxComputeTimeSeconds: 8760
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23062.7548
+  coresUsed: 8192
+  endTime: '2022-02-02 15:14:38'
+  id: 580308
+  metaTimeSeconds: 111988.68059500001
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 803240.478823
+  runtimeSeconds: 10070
+  sleepSimulationSeconds: 175
+  startTime: '2022-02-02 12:26:48'
+  submissionTime: '2022-01-31 05:13:03'
+  waitingTimeSeconds: 198825
+  walltimeSeconds: 10740
+  writeTimeSeconds: 9819369.023602
+  writtenBytes: 211689172324
+- approxComputeTimeSeconds: 9881
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23035.4485
+  coresUsed: 8192
+  endTime: '2022-02-02 21:09:30'
+  id: 580309
+  metaTimeSeconds: 111509.94378700001
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 821776.411394
+  runtimeSeconds: 10068
+  sleepSimulationSeconds: 16
+  startTime: '2022-02-02 18:21:41'
+  submissionTime: '2022-01-31 05:13:19'
+  waitingTimeSeconds: 220102
+  walltimeSeconds: 10740
+  writeTimeSeconds: 605199.137282
+  writtenBytes: 21290097185
+- approxComputeTimeSeconds: 9873
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 23024.0706
+  coresUsed: 8192
+  endTime: '2022-02-03 11:10:25'
+  id: 580314
+  metaTimeSeconds: 170658.44728400002
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 827926.284891
+  runtimeSeconds: 10067
+  sleepSimulationSeconds: 77
+  startTime: '2022-02-03 08:22:37'
+  submissionTime: '2022-01-31 05:15:08'
+  waitingTimeSeconds: 270449
+  walltimeSeconds: 10740
+  writeTimeSeconds: 592797.426549
+  writtenBytes: 21290109653
+- approxComputeTimeSeconds: 9842
+  coreHoursReq: 24439.4666
+  coreHoursUsed: 22987.662
+  coresUsed: 8192
+  endTime: '2022-02-04 00:19:08'
+  id: 580315
+  metaTimeSeconds: 170756.19413
+  model: RCW
+  nodesUsed: 128
+  readBytes: 80241373056
+  readTimeSeconds: 849067.819542
+  runtimeSeconds: 10045
+  sleepSimulationSeconds: 19
+  startTime: '2022-02-03 21:31:43'
+  submissionTime: '2022-01-31 05:15:27'
+  waitingTimeSeconds: 317776
+  walltimeSeconds: 10740
+  writeTimeSeconds: 635237.553185
+  writtenBytes: 21290109648
+- approxComputeTimeSeconds: 11202
+  coreHoursReq: 98304.0
+  coreHoursUsed: 51341.0842
+  coresUsed: 16384
+  endTime: '2022-01-31 18:46:43'
+  id: 580341
+  metaTimeSeconds: 405.79303100000004
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 11202
+  sleepSimulationSeconds: 3187
+  startTime: '2022-01-31 15:40:00'
+  submissionTime: '2022-01-31 06:09:13'
+  waitingTimeSeconds: 34247
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 922
+  coreHoursReq: 42.6666
+  coreHoursUsed: 32.7822
+  coresUsed: 128
+  endTime: '2022-01-31 07:25:31'
+  id: 580351
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 922
+  sleepSimulationSeconds: 3635
+  startTime: '2022-01-31 07:10:09'
+  submissionTime: '2022-01-31 07:09:48'
+  waitingTimeSeconds: 21
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 751
+  coreHoursReq: 42.6666
+  coreHoursUsed: 26.7022
+  coresUsed: 128
+  endTime: '2022-01-31 07:38:24'
+  id: 580355
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 751
+  sleepSimulationSeconds: 946
+  startTime: '2022-01-31 07:25:53'
+  submissionTime: '2022-01-31 07:25:34'
+  waitingTimeSeconds: 19
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 98
+  coreHoursReq: 10.6666
+  coreHoursUsed: 5.6177
+  coresUsed: 128
+  endTime: '2022-01-31 07:55:31'
+  id: 580358
+  metaTimeSeconds: 0.032064
+  model: C
+  nodesUsed: 2
+  readBytes: 102
+  readTimeSeconds: 0.00039
+  runtimeSeconds: 98
+  sleepSimulationSeconds: 1640
+  startTime: '2022-01-31 07:53:53'
+  submissionTime: '2022-01-31 07:52:54'
+  waitingTimeSeconds: 59
+  walltimeSeconds: 300
+  writeTimeSeconds: 0.00055
+  writtenBytes: 102
+- approxComputeTimeSeconds: 201
+  coreHoursReq: 42.6666
+  coreHoursUsed: 9.5288
+  coresUsed: 128
+  endTime: '2022-01-31 08:00:20'
+  id: 580359
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 201
+  sleepSimulationSeconds: 182
+  startTime: '2022-01-31 07:56:58'
+  submissionTime: '2022-01-31 07:55:56'
+  waitingTimeSeconds: 62
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 25100
+  coreHoursReq: 294912.0
+  coreHoursUsed: 229157.5455
+  coresUsed: 32768
+  endTime: '2022-02-03 14:38:58'
+  id: 580380
+  metaTimeSeconds: 200935.784756
+  model: RCW
+  nodesUsed: 512
+  readBytes: 200454740128
+  readTimeSeconds: 85651.85443800001
+  runtimeSeconds: 25116
+  sleepSimulationSeconds: 21200
+  startTime: '2022-02-03 07:40:21'
+  submissionTime: '2022-01-31 13:49:16'
+  waitingTimeSeconds: 237065
+  walltimeSeconds: 32400
+  writeTimeSeconds: 238338.86437700002
+  writtenBytes: 3073328199617
+- approxComputeTimeSeconds: 5853
+  coreHoursReq: 98304.0
+  coreHoursUsed: 34051.4127
+  coresUsed: 16384
+  endTime: '2022-02-01 10:40:17'
+  id: 580389
+  metaTimeSeconds: 203.486536
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 5854
+  sleepSimulationSeconds: 6422
+  startTime: '2022-02-01 09:02:43'
+  submissionTime: '2022-01-31 15:36:18'
+  waitingTimeSeconds: 62785
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 2719
+  coreHoursReq: 512.0
+  coreHoursUsed: 394.24
+  coresUsed: 512
+  endTime: '2022-01-31 19:09:03'
+  id: 580411
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 2719
+  sleepSimulationSeconds: 7716
+  startTime: '2022-01-31 18:23:44'
+  submissionTime: '2022-01-31 17:44:54'
+  waitingTimeSeconds: 2330
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 101
+  coreHoursReq: 32.0
+  coreHoursUsed: 2.8977
+  coresUsed: 64
+  endTime: '2022-01-31 18:03:11'
+  id: 580413
+  metaTimeSeconds: 0.000325
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.849287
+  runtimeSeconds: 101
+  sleepSimulationSeconds: 187
+  startTime: '2022-01-31 18:01:29'
+  submissionTime: '2022-01-31 17:48:01'
+  waitingTimeSeconds: 808
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 6762
+  coreHoursReq: 307200.0
+  coreHoursUsed: 96924.4416
+  coresUsed: 51200
+  endTime: '2022-02-03 01:02:08'
+  id: 580414
+  metaTimeSeconds: 131.393253
+  model: RC
+  nodesUsed: 800
+  readBytes: 31254873
+  readTimeSeconds: 127.08647
+  runtimeSeconds: 6762
+  sleepSimulationSeconds: 23
+  startTime: '2022-02-02 23:09:26'
+  submissionTime: '2022-01-31 17:48:24'
+  waitingTimeSeconds: 192062
+  walltimeSeconds: 21600
+  writeTimeSeconds: 34.373167
+  writtenBytes: 2819151
+- approxComputeTimeSeconds: 73
+  coreHoursReq: 32.0
+  coreHoursUsed: 2.4355
+  coresUsed: 64
+  endTime: '2022-01-31 19:12:51'
+  id: 580420
+  metaTimeSeconds: 0.000314
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.31095
+  runtimeSeconds: 73
+  sleepSimulationSeconds: 2090
+  startTime: '2022-01-31 19:11:37'
+  submissionTime: '2022-01-31 18:23:14'
+  waitingTimeSeconds: 2903
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 11216
+  coreHoursReq: 98304.0
+  coreHoursUsed: 57435.0213
+  coresUsed: 16384
+  endTime: '2022-02-02 08:52:18'
+  id: 580424
+  metaTimeSeconds: 375.686949
+  model: C
+  nodesUsed: 256
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 11216
+  sleepSimulationSeconds: 1393
+  startTime: '2022-02-02 05:45:21'
+  submissionTime: '2022-01-31 18:46:27'
+  waitingTimeSeconds: 125934
+  walltimeSeconds: 21600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 21746
+  coreHoursReq: 104448.0
+  coreHoursUsed: 105158.826
+  coresUsed: 17408
+  endTime: '2022-02-04 07:33:38'
+  id: 580427
+  metaTimeSeconds: 1583.589733
+  model: RCW
+  nodesUsed: 272
+  readBytes: 61897417693
+  readTimeSeconds: 508.497982
+  runtimeSeconds: 21747
+  sleepSimulationSeconds: 611
+  startTime: '2022-02-04 01:31:11'
+  submissionTime: '2022-01-31 18:56:38'
+  waitingTimeSeconds: 282873
+  walltimeSeconds: 21600
+  writeTimeSeconds: 2172.143915
+  writtenBytes: 371577003843
+- approxComputeTimeSeconds: 451
+  coreHoursReq: 4096.0
+  coreHoursUsed: 1171.9106
+  coresUsed: 8192
+  endTime: '2022-01-31 22:11:40'
+  id: 580441
+  metaTimeSeconds: 9.65792
+  model: C
+  nodesUsed: 128
+  readBytes: 4378000
+  readTimeSeconds: 92.229386
+  runtimeSeconds: 451
+  sleepSimulationSeconds: 2288
+  startTime: '2022-01-31 22:04:09'
+  submissionTime: '2022-01-31 19:34:46'
+  waitingTimeSeconds: 8963
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 61
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.3644
+  coresUsed: 64
+  endTime: '2022-01-31 20:14:05'
+  id: 580442
+  metaTimeSeconds: 0.000311
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.310666
+  runtimeSeconds: 61
+  sleepSimulationSeconds: 723
+  startTime: '2022-01-31 20:13:03'
+  submissionTime: '2022-01-31 19:46:49'
+  waitingTimeSeconds: 1574
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 85
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.4533
+  coresUsed: 64
+  endTime: '2022-01-31 20:42:14'
+  id: 580452
+  metaTimeSeconds: 0.000317
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.298057
+  runtimeSeconds: 85
+  sleepSimulationSeconds: 3185
+  startTime: '2022-01-31 20:40:48'
+  submissionTime: '2022-01-31 20:39:54'
+  waitingTimeSeconds: 54
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 21553
+  coreHoursReq: 294912.0
+  coreHoursUsed: 203061.474
+  coresUsed: 32768
+  endTime: '2022-02-03 13:51:17'
+  id: 580475
+  metaTimeSeconds: 31741.562282
+  model: RCW
+  nodesUsed: 512
+  readBytes: 17315039250
+  readTimeSeconds: 1561880.477838
+  runtimeSeconds: 22255
+  sleepSimulationSeconds: 6070
+  startTime: '2022-02-03 07:40:21'
+  submissionTime: '2022-01-31 22:21:04'
+  waitingTimeSeconds: 206357
+  walltimeSeconds: 32400
+  writeTimeSeconds: 21425384.051064998
+  writtenBytes: 130018528696
+- approxComputeTimeSeconds: 648
+  coreHoursReq: 256.0
+  coreHoursUsed: 100.8355
+  coresUsed: 512
+  endTime: '2022-01-31 22:33:12'
+  id: 580476
+  metaTimeSeconds: 2.915545
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618533120
+  readTimeSeconds: 56.226848
+  runtimeSeconds: 649
+  sleepSimulationSeconds: 3
+  startTime: '2022-01-31 22:22:22'
+  submissionTime: '2022-01-31 22:21:07'
+  waitingTimeSeconds: 75
+  walltimeSeconds: 1800
+  writeTimeSeconds: 143.962304
+  writtenBytes: 246374248
+- approxComputeTimeSeconds: 23806
+  coreHoursReq: 358400.0
+  coreHoursUsed: 296264.8864
+  coresUsed: 44800
+  endTime: '2022-02-03 08:39:39'
+  id: 580480
+  metaTimeSeconds: 0.490695
+  model: C
+  nodesUsed: 700
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 23807
+  sleepSimulationSeconds: 1621
+  startTime: '2022-02-03 02:02:52'
+  submissionTime: '2022-01-31 22:48:08'
+  waitingTimeSeconds: 184484
+  walltimeSeconds: 28800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 2598
+  coreHoursReq: 512.0
+  coreHoursUsed: 378.88
+  coresUsed: 512
+  endTime: '2022-02-01 00:09:46'
+  id: 580481
+  metaTimeSeconds: 4.904088
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 2598
+  sleepSimulationSeconds: 711
+  startTime: '2022-01-31 23:26:27'
+  submissionTime: '2022-01-31 22:59:59'
+  waitingTimeSeconds: 1588
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 620
+  coreHoursReq: 128.0
+  coreHoursUsed: 96.711
+  coresUsed: 512
+  endTime: '2022-02-01 00:35:48'
+  id: 580496
+  metaTimeSeconds: 1.959447
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618534216
+  readTimeSeconds: 72.232262
+  runtimeSeconds: 620
+  sleepSimulationSeconds: 5072
+  startTime: '2022-02-01 00:25:27'
+  submissionTime: '2022-02-01 00:24:31'
+  waitingTimeSeconds: 56
+  walltimeSeconds: 900
+  writeTimeSeconds: 138.207574
+  writtenBytes: 246302880
+- approxComputeTimeSeconds: 2339
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5465.8842
+  coresUsed: 8192
+  endTime: '2022-02-01 02:51:53'
+  id: 580502
+  metaTimeSeconds: 689.25689
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3263809476
+  readTimeSeconds: 3226.791208
+  runtimeSeconds: 2339
+  sleepSimulationSeconds: 5827
+  startTime: '2022-02-01 02:12:53'
+  submissionTime: '2022-02-01 02:01:38'
+  waitingTimeSeconds: 675
+  walltimeSeconds: 2400
+  writeTimeSeconds: 157.774801
+  writtenBytes: 174088429
+- approxComputeTimeSeconds: 2338
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5497.742
+  coresUsed: 8192
+  endTime: '2022-02-01 02:51:53'
+  id: 580503
+  metaTimeSeconds: 1428.27233
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6532708232
+  readTimeSeconds: 11644.659209000001
+  runtimeSeconds: 2339
+  sleepSimulationSeconds: 3
+  startTime: '2022-02-01 02:12:53'
+  submissionTime: '2022-02-01 02:01:41'
+  waitingTimeSeconds: 672
+  walltimeSeconds: 2400
+  writeTimeSeconds: 230.909928
+  writtenBytes: 349546369
+- approxComputeTimeSeconds: 3619
+  coreHoursReq: 8192.0
+  coreHoursUsed: 8394.5242
+  coresUsed: 8192
+  endTime: '2022-02-04 00:10:36'
+  id: 580504
+  metaTimeSeconds: 1753.134237
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6547316604
+  readTimeSeconds: 439.925711
+  runtimeSeconds: 3619
+  sleepSimulationSeconds: 15
+  startTime: '2022-02-03 23:10:16'
+  submissionTime: '2022-02-01 02:01:56'
+  waitingTimeSeconds: 248900
+  walltimeSeconds: 3600
+  writeTimeSeconds: 68.337313
+  writtenBytes: 425617454
+- approxComputeTimeSeconds: 7305
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16625.2085
+  coresUsed: 8192
+  endTime: '2022-02-04 04:29:51'
+  id: 580505
+  metaTimeSeconds: 2102.400517
+  model: RCW
+  nodesUsed: 128
+  readBytes: 6560190344
+  readTimeSeconds: 465.51060299999995
+  runtimeSeconds: 7306
+  sleepSimulationSeconds: 3
+  startTime: '2022-02-04 02:28:05'
+  submissionTime: '2022-02-01 02:01:59'
+  waitingTimeSeconds: 260766
+  walltimeSeconds: 7200
+  writeTimeSeconds: 81.139491
+  writtenBytes: 499748228
+- approxComputeTimeSeconds: 787
+  coreHoursReq: 512.0
+  coreHoursUsed: 118.6132
+  coresUsed: 512
+  endTime: '2022-02-01 02:55:02'
+  id: 580507
+  metaTimeSeconds: 0.00035
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 787
+  sleepSimulationSeconds: 2357
+  startTime: '2022-02-01 02:41:55'
+  submissionTime: '2022-02-01 02:41:16'
+  waitingTimeSeconds: 39
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 744
+  coreHoursReq: 512.0
+  coreHoursUsed: 113.2088
+  coresUsed: 512
+  endTime: '2022-02-01 03:11:53'
+  id: 580510
+  metaTimeSeconds: 0.000349
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 744
+  sleepSimulationSeconds: 849
+  startTime: '2022-02-01 02:59:28'
+  submissionTime: '2022-02-01 02:55:25'
+  waitingTimeSeconds: 243
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 3672
+  coreHoursReq: 16384.0
+  coreHoursUsed: 17030.257
+  coresUsed: 16384
+  endTime: '2022-02-04 00:15:56'
+  id: 580511
+  metaTimeSeconds: 2061.746713
+  model: RCW
+  nodesUsed: 256
+  readBytes: 6558203780
+  readTimeSeconds: 547.2262229999999
+  runtimeSeconds: 3672
+  sleepSimulationSeconds: 308
+  startTime: '2022-02-03 23:14:43'
+  submissionTime: '2022-02-01 03:00:33'
+  waitingTimeSeconds: 245650
+  walltimeSeconds: 3600
+  writeTimeSeconds: 80.134681
+  writtenBytes: 498226706
+- approxComputeTimeSeconds: 2404
+  coreHoursReq: 5461.3333
+  coreHoursUsed: 5472.7106
+  coresUsed: 8192
+  endTime: '2022-02-01 03:52:04'
+  id: 580514
+  metaTimeSeconds: 584.997838
+  model: RCW
+  nodesUsed: 128
+  readBytes: 3268898756
+  readTimeSeconds: 2514.080288
+  runtimeSeconds: 2405
+  sleepSimulationSeconds: 7
+  startTime: '2022-02-01 03:11:59'
+  submissionTime: '2022-02-01 03:00:40'
+  waitingTimeSeconds: 679
+  walltimeSeconds: 2400
+  writeTimeSeconds: 195.087672
+  writtenBytes: 175963479
+- approxComputeTimeSeconds: 3509
+  coreHoursReq: 16384.0
+  coreHoursUsed: 16220.16
+  coresUsed: 16384
+  endTime: '2022-02-04 00:43:48'
+  id: 580522
+  metaTimeSeconds: 4781.352339
+  model: RCW
+  nodesUsed: 256
+  readBytes: 13136019200
+  readTimeSeconds: 953.435026
+  runtimeSeconds: 3510
+  sleepSimulationSeconds: 1027
+  startTime: '2022-02-03 23:45:17'
+  submissionTime: '2022-02-01 03:17:47'
+  waitingTimeSeconds: 246450
+  walltimeSeconds: 3600
+  writeTimeSeconds: 183.002811
+  writtenBytes: 1141795843
+- approxComputeTimeSeconds: 697
+  coreHoursReq: 512.0
+  coreHoursUsed: 99.271
+  coresUsed: 512
+  endTime: '2022-02-01 04:07:02'
+  id: 580533
+  metaTimeSeconds: 0.000301
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 698
+  sleepSimulationSeconds: 2241
+  startTime: '2022-02-01 03:55:24'
+  submissionTime: '2022-02-01 03:55:08'
+  waitingTimeSeconds: 16
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 942
+  coreHoursReq: 42.6666
+  coreHoursUsed: 33.4933
+  coresUsed: 128
+  endTime: '2022-02-01 07:26:25'
+  id: 580554
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 942
+  sleepSimulationSeconds: 11714
+  startTime: '2022-02-01 07:10:43'
+  submissionTime: '2022-02-01 07:10:22'
+  waitingTimeSeconds: 21
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 781
+  coreHoursReq: 42.6666
+  coreHoursUsed: 27.7688
+  coresUsed: 128
+  endTime: '2022-02-01 07:39:35'
+  id: 580557
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 781
+  sleepSimulationSeconds: 967
+  startTime: '2022-02-01 07:26:34'
+  submissionTime: '2022-02-01 07:26:29'
+  waitingTimeSeconds: 5
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 108
+  coreHoursReq: 10.6666
+  coreHoursUsed: 5.7955
+  coresUsed: 128
+  endTime: '2022-02-01 07:56:45'
+  id: 580559
+  metaTimeSeconds: 0.021115
+  model: C
+  nodesUsed: 2
+  readBytes: 102
+  readTimeSeconds: 0.000392
+  runtimeSeconds: 108
+  sleepSimulationSeconds: 1669
+  startTime: '2022-02-01 07:54:56'
+  submissionTime: '2022-02-01 07:54:18'
+  waitingTimeSeconds: 38
+  walltimeSeconds: 300
+  writeTimeSeconds: 0.000371
+  writtenBytes: 102
+- approxComputeTimeSeconds: 196
+  coreHoursReq: 42.6666
+  coreHoursUsed: 9.2088
+  coresUsed: 128
+  endTime: '2022-02-01 08:01:24'
+  id: 580560
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 196
+  sleepSimulationSeconds: 169
+  startTime: '2022-02-01 07:58:08'
+  submissionTime: '2022-02-01 07:57:07'
+  waitingTimeSeconds: 61
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 40437
+  coreHoursReq: 294365.8666
+  coreHoursUsed: 304032.4255
+  coresUsed: 32768
+  endTime: '2022-02-04 12:45:02'
+  id: 580585
+  metaTimeSeconds: 9.274071
+  model: RCW
+  nodesUsed: 512
+  readBytes: 301793280
+  readTimeSeconds: 33.025393
+  runtimeSeconds: 40438
+  sleepSimulationSeconds: 7235
+  startTime: '2022-02-04 01:31:04'
+  submissionTime: '2022-02-01 10:44:21'
+  waitingTimeSeconds: 226003
+  walltimeSeconds: 32340
+  writeTimeSeconds: 16147.022991
+  writtenBytes: 874847960328
+- approxComputeTimeSeconds: 60
+  coreHoursReq: 256.0
+  coreHoursUsed: 15.7866
+  coresUsed: 512
+  endTime: '2022-02-01 13:01:53'
+  id: 580599
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 60
+  sleepSimulationSeconds: 8156
+  startTime: '2022-02-01 13:00:52'
+  submissionTime: '2022-02-01 13:00:17'
+  waitingTimeSeconds: 35
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 38
+  coreHoursReq: 32.0
+  coreHoursUsed: 1.8133
+  coresUsed: 64
+  endTime: '2022-02-01 13:24:14'
+  id: 580606
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 38
+  sleepSimulationSeconds: 1208
+  startTime: '2022-02-01 13:23:36'
+  submissionTime: '2022-02-01 13:20:25'
+  waitingTimeSeconds: 191
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 590
+  coreHoursReq: 256.0
+  coreHoursUsed: 92.871
+  coresUsed: 512
+  endTime: '2022-02-01 13:34:48'
+  id: 580608
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 590
+  sleepSimulationSeconds: 213
+  startTime: '2022-02-01 13:24:57'
+  submissionTime: '2022-02-01 13:23:58'
+  waitingTimeSeconds: 59
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 58
+  coreHoursReq: 64.0
+  coreHoursUsed: 4.3022
+  coresUsed: 128
+  endTime: '2022-02-01 13:26:58'
+  id: 580609
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 58
+  sleepSimulationSeconds: 47
+  startTime: '2022-02-01 13:26:00'
+  submissionTime: '2022-02-01 13:24:45'
+  waitingTimeSeconds: 75
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1105
+  coreHoursReq: 256.0
+  coreHoursUsed: 165.831
+  coresUsed: 512
+  endTime: '2022-02-01 14:03:54'
+  id: 580615
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1105
+  sleepSimulationSeconds: 1036
+  startTime: '2022-02-01 13:45:28'
+  submissionTime: '2022-02-01 13:42:01'
+  waitingTimeSeconds: 207
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 6951
+  coreHoursReq: 131072.0
+  coreHoursUsed: 127540.337
+  coresUsed: 65536
+  endTime: '2022-02-03 01:05:44'
+  id: 580616
+  metaTimeSeconds: 31.522725
+  model: RCW
+  nodesUsed: 1024
+  readBytes: 423482261
+  readTimeSeconds: 488.575316
+  runtimeSeconds: 6951
+  sleepSimulationSeconds: 478
+  startTime: '2022-02-02 23:09:52'
+  submissionTime: '2022-02-01 13:49:59'
+  waitingTimeSeconds: 119993
+  walltimeSeconds: 7200
+  writeTimeSeconds: 16.688256
+  writtenBytes: 428888453
+- approxComputeTimeSeconds: 1484
+  coreHoursReq: 256.0
+  coreHoursUsed: 219.591
+  coresUsed: 512
+  endTime: '2022-02-01 15:14:26'
+  id: 580627
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1484
+  sleepSimulationSeconds: 3524
+  startTime: '2022-02-01 14:49:41'
+  submissionTime: '2022-02-01 14:48:43'
+  waitingTimeSeconds: 58
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1453
+  coreHoursReq: 256.0
+  coreHoursUsed: 214.8977
+  coresUsed: 512
+  endTime: '2022-02-01 15:56:14'
+  id: 580634
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1453
+  sleepSimulationSeconds: 2540
+  startTime: '2022-02-01 15:32:00'
+  submissionTime: '2022-02-01 15:31:03'
+  waitingTimeSeconds: 57
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1602
+  coreHoursReq: 256.0
+  coreHoursUsed: 235.52
+  coresUsed: 512
+  endTime: '2022-02-01 16:35:13'
+  id: 580646
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1602
+  sleepSimulationSeconds: 2208
+  startTime: '2022-02-01 16:08:30'
+  submissionTime: '2022-02-01 16:07:51'
+  waitingTimeSeconds: 39
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 80
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.4355
+  coresUsed: 64
+  endTime: '2022-02-01 16:26:11'
+  id: 580649
+  metaTimeSeconds: 0.000331
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.959188
+  runtimeSeconds: 80
+  sleepSimulationSeconds: 589
+  startTime: '2022-02-01 16:24:50'
+  submissionTime: '2022-02-01 16:17:40'
+  waitingTimeSeconds: 430
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 630
+  coreHoursReq: 128.0
+  coreHoursUsed: 97.28
+  coresUsed: 512
+  endTime: '2022-02-01 16:45:19'
+  id: 580653
+  metaTimeSeconds: 2.123057
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618534216
+  readTimeSeconds: 66.497633
+  runtimeSeconds: 630
+  sleepSimulationSeconds: 598
+  startTime: '2022-02-01 16:34:48'
+  submissionTime: '2022-02-01 16:27:38'
+  waitingTimeSeconds: 430
+  walltimeSeconds: 900
+  writeTimeSeconds: 140.09817
+  writtenBytes: 246302824
+- approxComputeTimeSeconds: 6914
+  coreHoursReq: 262144.0
+  coreHoursUsed: 253660.7186
+  coresUsed: 131072
+  endTime: '2022-02-03 01:04:40'
+  id: 580655
+  metaTimeSeconds: 0.232236
+  model: CW
+  nodesUsed: 2048
+  readBytes: 1588724
+  readTimeSeconds: 1.29733
+  runtimeSeconds: 6914
+  sleepSimulationSeconds: 228
+  startTime: '2022-02-02 23:09:26'
+  submissionTime: '2022-02-01 16:31:26'
+  waitingTimeSeconds: 110280
+  walltimeSeconds: 7200
+  writeTimeSeconds: 85.967609
+  writtenBytes: 827767747
+- approxComputeTimeSeconds: 1550
+  coreHoursReq: 192.0
+  coreHoursUsed: 172.2666
+  coresUsed: 384
+  endTime: '2022-02-01 17:20:16'
+  id: 580664
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 6
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1550
+  sleepSimulationSeconds: 1304
+  startTime: '2022-02-01 16:54:26'
+  submissionTime: '2022-02-01 16:53:10'
+  waitingTimeSeconds: 76
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 186
+  coreHoursReq: 16.0
+  coreHoursUsed: 4.6577
+  coresUsed: 64
+  endTime: '2022-02-01 17:01:39'
+  id: 580665
+  metaTimeSeconds: 0.000331
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.161035
+  runtimeSeconds: 186
+  sleepSimulationSeconds: 208
+  startTime: '2022-02-01 16:58:33'
+  submissionTime: '2022-02-01 16:56:38'
+  waitingTimeSeconds: 115
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 85
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.4355
+  coresUsed: 64
+  endTime: '2022-02-01 17:20:16'
+  id: 580670
+  metaTimeSeconds: 0.000322
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.143168
+  runtimeSeconds: 85
+  sleepSimulationSeconds: 1271
+  startTime: '2022-02-01 17:18:50'
+  submissionTime: '2022-02-01 17:17:49'
+  waitingTimeSeconds: 61
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 162
+  coreHoursReq: 16.0
+  coreHoursUsed: 4.0177
+  coresUsed: 64
+  endTime: '2022-02-01 18:16:01'
+  id: 580684
+  metaTimeSeconds: 0.00032
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.582357
+  runtimeSeconds: 162
+  sleepSimulationSeconds: 3267
+  startTime: '2022-02-01 18:13:18'
+  submissionTime: '2022-02-01 18:12:16'
+  waitingTimeSeconds: 62
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 40106
+  coreHoursReq: 294365.8666
+  coreHoursUsed: 300819.3396
+  coresUsed: 32768
+  endTime: '2022-02-04 12:45:17'
+  id: 580685
+  metaTimeSeconds: 5.544085
+  model: RCW
+  nodesUsed: 512
+  readBytes: 301596672
+  readTimeSeconds: 21.966947
+  runtimeSeconds: 40107
+  sleepSimulationSeconds: 69
+  startTime: '2022-02-04 01:36:50'
+  submissionTime: '2022-02-01 18:13:25'
+  waitingTimeSeconds: 199405
+  walltimeSeconds: 32340
+  writeTimeSeconds: 903.093812
+  writtenBytes: 133488249087
+- approxComputeTimeSeconds: 1522
+  coreHoursReq: 128.0
+  coreHoursUsed: 112.4977
+  coresUsed: 256
+  endTime: '2022-02-01 18:46:11'
+  id: 580687
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1522
+  sleepSimulationSeconds: 386
+  startTime: '2022-02-01 18:20:48'
+  submissionTime: '2022-02-01 18:19:51'
+  waitingTimeSeconds: 57
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 647
+  coreHoursReq: 128.0
+  coreHoursUsed: 99.6977
+  coresUsed: 512
+  endTime: '2022-02-01 18:47:23'
+  id: 580692
+  metaTimeSeconds: 1.942966
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618534216
+  readTimeSeconds: 56.210738
+  runtimeSeconds: 647
+  sleepSimulationSeconds: 946
+  startTime: '2022-02-01 18:36:35'
+  submissionTime: '2022-02-01 18:35:37'
+  waitingTimeSeconds: 58
+  walltimeSeconds: 900
+  writeTimeSeconds: 139.857258
+  writtenBytes: 246302858
+- approxComputeTimeSeconds: 1490
+  coreHoursReq: 4096.0
+  coreHoursUsed: 3536.2127
+  coresUsed: 8192
+  endTime: '2022-02-02 16:22:26'
+  id: 580706
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1490
+  sleepSimulationSeconds: 3701
+  startTime: '2022-02-02 15:57:35'
+  submissionTime: '2022-02-01 19:37:18'
+  waitingTimeSeconds: 73217
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 85
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.2222
+  coresUsed: 64
+  endTime: '2022-02-01 19:40:25'
+  id: 580707
+  metaTimeSeconds: 0.000315
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.893142
+  runtimeSeconds: 85
+  sleepSimulationSeconds: 42
+  startTime: '2022-02-01 19:39:00'
+  submissionTime: '2022-02-01 19:38:00'
+  waitingTimeSeconds: 60
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1475
+  coreHoursReq: 4096.0
+  coreHoursUsed: 3499.8042
+  coresUsed: 8192
+  endTime: '2022-02-02 16:51:27'
+  id: 580709
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1475
+  sleepSimulationSeconds: 63
+  startTime: '2022-02-02 16:26:52'
+  submissionTime: '2022-02-01 19:39:03'
+  waitingTimeSeconds: 74869
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1488
+  coreHoursReq: 4096.0
+  coreHoursUsed: 3527.1106
+  coresUsed: 8192
+  endTime: '2022-02-02 17:18:43'
+  id: 580710
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1488
+  sleepSimulationSeconds: 18
+  startTime: '2022-02-02 16:53:54'
+  submissionTime: '2022-02-01 19:39:21'
+  waitingTimeSeconds: 76473
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1583
+  coreHoursReq: 32768.0
+  coreHoursUsed: 28817.634
+  coresUsed: 65536
+  endTime: '2022-02-03 07:37:58'
+  id: 580715
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1024
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1583
+  sleepSimulationSeconds: 108
+  startTime: '2022-02-03 07:11:35'
+  submissionTime: '2022-02-01 19:41:09'
+  waitingTimeSeconds: 127826
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 73
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.4
+  coresUsed: 64
+  endTime: '2022-02-01 19:48:15'
+  id: 580719
+  metaTimeSeconds: 0.000331
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.978679
+  runtimeSeconds: 73
+  sleepSimulationSeconds: 287
+  startTime: '2022-02-01 19:47:01'
+  submissionTime: '2022-02-01 19:45:56'
+  waitingTimeSeconds: 65
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 57
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.1333
+  coresUsed: 64
+  endTime: '2022-02-01 20:09:32'
+  id: 580724
+  metaTimeSeconds: 0.000324
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.252424
+  runtimeSeconds: 57
+  sleepSimulationSeconds: 1170
+  startTime: '2022-02-01 20:08:34'
+  submissionTime: '2022-02-01 20:05:26'
+  waitingTimeSeconds: 188
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 82
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.1511
+  coresUsed: 64
+  endTime: '2022-02-01 20:29:04'
+  id: 580731
+  metaTimeSeconds: 0.000332
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.454298
+  runtimeSeconds: 82
+  sleepSimulationSeconds: 1265
+  startTime: '2022-02-01 20:27:41'
+  submissionTime: '2022-02-01 20:26:31'
+  waitingTimeSeconds: 70
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 164
+  coreHoursReq: 16.0
+  coreHoursUsed: 3.9288
+  coresUsed: 64
+  endTime: '2022-02-01 20:36:02'
+  id: 580734
+  metaTimeSeconds: 0.000333
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.810048
+  runtimeSeconds: 164
+  sleepSimulationSeconds: 332
+  startTime: '2022-02-01 20:33:17'
+  submissionTime: '2022-02-01 20:32:03'
+  waitingTimeSeconds: 74
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 38
+  coreHoursReq: 512.0
+  coreHoursUsed: 13.7955
+  coresUsed: 512
+  endTime: '2022-02-01 20:53:24'
+  id: 580735
+  metaTimeSeconds: 5.9e-05
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 38
+  sleepSimulationSeconds: 15
+  startTime: '2022-02-01 20:52:46'
+  submissionTime: '2022-02-01 20:32:18'
+  waitingTimeSeconds: 1228
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 98
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.7555
+  coresUsed: 64
+  endTime: '2022-02-01 21:06:10'
+  id: 580741
+  metaTimeSeconds: 0.000343
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.249503
+  runtimeSeconds: 98
+  sleepSimulationSeconds: 1868
+  startTime: '2022-02-01 21:04:32'
+  submissionTime: '2022-02-01 21:03:26'
+  waitingTimeSeconds: 66
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 104
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.88
+  coresUsed: 64
+  endTime: '2022-02-01 21:16:59'
+  id: 580745
+  metaTimeSeconds: 0.000329
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.050612
+  runtimeSeconds: 104
+  sleepSimulationSeconds: 633
+  startTime: '2022-02-01 21:15:14'
+  submissionTime: '2022-02-01 21:13:59'
+  waitingTimeSeconds: 75
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 104
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.8622
+  coresUsed: 64
+  endTime: '2022-02-01 21:46:24'
+  id: 580753
+  metaTimeSeconds: 0.000307
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 1.48593
+  runtimeSeconds: 104
+  sleepSimulationSeconds: 1778
+  startTime: '2022-02-01 21:44:39'
+  submissionTime: '2022-02-01 21:43:37'
+  waitingTimeSeconds: 62
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 60
+  coreHoursReq: 16.0
+  coreHoursUsed: 2.0266
+  coresUsed: 64
+  endTime: '2022-02-01 21:51:36'
+  id: 580758
+  metaTimeSeconds: 0.000333
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.776749
+  runtimeSeconds: 60
+  sleepSimulationSeconds: 358
+  startTime: '2022-02-01 21:50:36'
+  submissionTime: '2022-02-01 21:49:35'
+  waitingTimeSeconds: 61
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 162
+  coreHoursReq: 16.0
+  coreHoursUsed: 3.9644
+  coresUsed: 64
+  endTime: '2022-02-01 22:01:55'
+  id: 580761
+  metaTimeSeconds: 0.00034
+  model: C
+  nodesUsed: 1
+  readBytes: 3264
+  readTimeSeconds: 0.696639
+  runtimeSeconds: 162
+  sleepSimulationSeconds: 512
+  startTime: '2022-02-01 21:59:12'
+  submissionTime: '2022-02-01 21:58:07'
+  waitingTimeSeconds: 65
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 140
+  coreHoursReq: 48.0
+  coreHoursUsed: 10.7733
+  coresUsed: 192
+  endTime: '2022-02-01 22:19:10'
+  id: 580766
+  metaTimeSeconds: 1.767917
+  model: C
+  nodesUsed: 3
+  readBytes: 2267431
+  readTimeSeconds: 2.832395
+  runtimeSeconds: 140
+  sleepSimulationSeconds: 1042
+  startTime: '2022-02-01 22:16:50'
+  submissionTime: '2022-02-01 22:15:29'
+  waitingTimeSeconds: 81
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.177284
+  writtenBytes: 24809
+- approxComputeTimeSeconds: 78
+  coreHoursReq: 512.0
+  coreHoursUsed: 20.0532
+  coresUsed: 512
+  endTime: '2022-02-01 23:14:33'
+  id: 580768
+  metaTimeSeconds: 0.00017
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 78
+  sleepSimulationSeconds: 690
+  startTime: '2022-02-01 23:13:15'
+  submissionTime: '2022-02-01 22:26:59'
+  waitingTimeSeconds: 2776
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 38
+  coreHoursReq: 512.0
+  coreHoursUsed: 13.2266
+  coresUsed: 512
+  endTime: '2022-02-01 23:40:28'
+  id: 580780
+  metaTimeSeconds: 0.000198
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 38
+  sleepSimulationSeconds: 4292
+  startTime: '2022-02-01 23:39:50'
+  submissionTime: '2022-02-01 23:38:31'
+  waitingTimeSeconds: 79
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 61
+  coreHoursReq: 512.0
+  coreHoursUsed: 17.2088
+  coresUsed: 512
+  endTime: '2022-02-02 00:56:37'
+  id: 580786
+  metaTimeSeconds: 0.000161
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 61
+  sleepSimulationSeconds: 4547
+  startTime: '2022-02-02 00:55:36'
+  submissionTime: '2022-02-02 00:54:18'
+  waitingTimeSeconds: 78
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 164
+  coreHoursReq: 256.0
+  coreHoursUsed: 34.1332
+  coresUsed: 512
+  endTime: '2022-02-04 13:09:01'
+  id: 580787
+  metaTimeSeconds: 754.726461
+  model: RCW
+  nodesUsed: 8
+  readBytes: 41615360000
+  readTimeSeconds: 9374.661518
+  runtimeSeconds: 186
+  sleepSimulationSeconds: 1851
+  startTime: '2022-02-04 13:05:54'
+  submissionTime: '2022-02-02 01:25:09'
+  waitingTimeSeconds: 214845
+  walltimeSeconds: 1800
+  writeTimeSeconds: 1165.194066
+  writtenBytes: 348826104662
+- approxComputeTimeSeconds: 159
+  coreHoursReq: 32.0
+  coreHoursUsed: 2.8444
+  coresUsed: 64
+  endTime: '2022-02-02 03:47:33'
+  id: 580790
+  metaTimeSeconds: 0.015856
+  model: CW
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 160
+  sleepSimulationSeconds: 8343
+  startTime: '2022-02-02 03:44:53'
+  submissionTime: '2022-02-02 03:44:12'
+  waitingTimeSeconds: 41
+  walltimeSeconds: 1800
+  writeTimeSeconds: 2.651735
+  writtenBytes: 45826595
+- approxComputeTimeSeconds: 927
+  coreHoursReq: 42.6666
+  coreHoursUsed: 32.96
+  coresUsed: 128
+  endTime: '2022-02-02 07:27:39'
+  id: 580792
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 927
+  sleepSimulationSeconds: 12436
+  startTime: '2022-02-02 07:12:12'
+  submissionTime: '2022-02-02 07:11:28'
+  waitingTimeSeconds: 44
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 685
+  coreHoursReq: 42.6666
+  coreHoursUsed: 26.1333
+  coresUsed: 128
+  endTime: '2022-02-02 07:40:42'
+  id: 580793
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 685
+  sleepSimulationSeconds: 974
+  startTime: '2022-02-02 07:29:17'
+  submissionTime: '2022-02-02 07:27:42'
+  waitingTimeSeconds: 95
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 59
+  coreHoursReq: 10.6666
+  coreHoursUsed: 3.9466
+  coresUsed: 128
+  endTime: '2022-02-02 07:58:05'
+  id: 580795
+  metaTimeSeconds: 0.043264
+  model: C
+  nodesUsed: 2
+  readBytes: 102
+  readTimeSeconds: 0.000427
+  runtimeSeconds: 59
+  sleepSimulationSeconds: 1684
+  startTime: '2022-02-02 07:57:05'
+  submissionTime: '2022-02-02 07:55:46'
+  waitingTimeSeconds: 79
+  walltimeSeconds: 300
+  writeTimeSeconds: 0.000453
+  writtenBytes: 102
+- approxComputeTimeSeconds: 179
+  coreHoursReq: 42.6666
+  coreHoursUsed: 8.4977
+  coresUsed: 128
+  endTime: '2022-02-02 08:03:09'
+  id: 580796
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 179
+  sleepSimulationSeconds: 160
+  startTime: '2022-02-02 08:00:09'
+  submissionTime: '2022-02-02 07:58:26'
+  waitingTimeSeconds: 103
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 10856
+  coreHoursReq: 24576.0
+  coreHoursUsed: 27857.3506
+  coresUsed: 8192
+  endTime: '2022-02-03 00:06:39'
+  id: 580815
+  metaTimeSeconds: 38.149646
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 10856
+  sleepSimulationSeconds: 3636
+  startTime: '2022-02-02 21:05:42'
+  submissionTime: '2022-02-02 15:42:11'
+  waitingTimeSeconds: 19411
+  walltimeSeconds: 10800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 646
+  coreHoursReq: 24576.0
+  coreHoursUsed: 4571.5906
+  coresUsed: 8192
+  endTime: '2022-02-02 21:44:51'
+  id: 580820
+  metaTimeSeconds: 59.354845
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 646
+  sleepSimulationSeconds: 1931
+  startTime: '2022-02-02 21:34:04'
+  submissionTime: '2022-02-02 16:14:22'
+  waitingTimeSeconds: 19182
+  walltimeSeconds: 10800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 146
+  coreHoursReq: 48.0
+  coreHoursUsed: 10.6666
+  coresUsed: 192
+  endTime: '2022-02-02 16:32:01'
+  id: 580824
+  metaTimeSeconds: 1.406525
+  model: C
+  nodesUsed: 3
+  readBytes: 2267431
+  readTimeSeconds: 1.964363
+  runtimeSeconds: 146
+  sleepSimulationSeconds: 857
+  startTime: '2022-02-02 16:29:34'
+  submissionTime: '2022-02-02 16:28:39'
+  waitingTimeSeconds: 55
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.209886
+  writtenBytes: 25491
+- approxComputeTimeSeconds: 651
+  coreHoursReq: 512.0
+  coreHoursUsed: 102.1155
+  coresUsed: 512
+  endTime: '2022-02-02 17:25:58'
+  id: 580830
+  metaTimeSeconds: 24.813701
+  model: RCW
+  nodesUsed: 8
+  readBytes: 160624578
+  readTimeSeconds: 1111.41942
+  runtimeSeconds: 654
+  sleepSimulationSeconds: 532
+  startTime: '2022-02-02 17:15:04'
+  submissionTime: '2022-02-02 16:37:31'
+  waitingTimeSeconds: 2253
+  walltimeSeconds: 3600
+  writeTimeSeconds: 2.948095
+  writtenBytes: 645065281
+- approxComputeTimeSeconds: 57
+  coreHoursReq: 256.0
+  coreHoursUsed: 17.0666
+  coresUsed: 512
+  endTime: '2022-02-02 17:41:41'
+  id: 580834
+  metaTimeSeconds: 3.876003
+  model: CW
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 57
+  sleepSimulationSeconds: 1317
+  startTime: '2022-02-02 17:40:43'
+  submissionTime: '2022-02-02 16:59:28'
+  waitingTimeSeconds: 2475
+  walltimeSeconds: 1800
+  writeTimeSeconds: 5.847689
+  writtenBytes: 1573230491
+- approxComputeTimeSeconds: 3625
+  coreHoursReq: 64.0
+  coreHoursUsed: 65.5111
+  coresUsed: 64
+  endTime: '2022-02-02 18:48:11'
+  id: 580845
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 3625
+  sleepSimulationSeconds: 2794
+  startTime: '2022-02-02 17:47:46'
+  submissionTime: '2022-02-02 17:46:02'
+  waitingTimeSeconds: 104
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 95
+  coreHoursReq: 256.0
+  coreHoursUsed: 22.6132
+  coresUsed: 512
+  endTime: '2022-02-02 18:31:23'
+  id: 580846
+  metaTimeSeconds: 0.00032700000000000003
+  model: CW
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 95
+  sleepSimulationSeconds: 294
+  startTime: '2022-02-02 18:29:48'
+  submissionTime: '2022-02-02 17:50:56'
+  waitingTimeSeconds: 2332
+  walltimeSeconds: 1800
+  writeTimeSeconds: 1.026691
+  writtenBytes: 278636336
+- approxComputeTimeSeconds: 10914
+  coreHoursReq: 24576.0
+  coreHoursUsed: 24839.9642
+  coresUsed: 8192
+  endTime: '2022-02-03 05:16:25'
+  id: 580847
+  metaTimeSeconds: 8693.820059
+  model: RCW
+  nodesUsed: 128
+  readBytes: 28375360224
+  readTimeSeconds: 3005.78677
+  runtimeSeconds: 10916
+  sleepSimulationSeconds: 89
+  startTime: '2022-02-03 02:14:29'
+  submissionTime: '2022-02-02 17:52:25'
+  waitingTimeSeconds: 30124
+  walltimeSeconds: 10800
+  writeTimeSeconds: 497.562518
+  writtenBytes: 12911190201
+- approxComputeTimeSeconds: 1534
+  coreHoursReq: 192.0
+  coreHoursUsed: 170.6666
+  coresUsed: 384
+  endTime: '2022-02-02 18:32:12'
+  id: 580849
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 6
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1534
+  sleepSimulationSeconds: 480
+  startTime: '2022-02-02 18:06:37'
+  submissionTime: '2022-02-02 18:00:25'
+  waitingTimeSeconds: 372
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 89
+  coreHoursReq: 256.0
+  coreHoursUsed: 19.911
+  coresUsed: 512
+  endTime: '2022-02-02 19:15:55'
+  id: 580855
+  metaTimeSeconds: 4.595507
+  model: CW
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 89
+  sleepSimulationSeconds: 2509
+  startTime: '2022-02-02 19:14:26'
+  submissionTime: '2022-02-02 18:42:14'
+  waitingTimeSeconds: 1932
+  walltimeSeconds: 1800
+  writeTimeSeconds: 11.874189999999999
+  writtenBytes: 3146460982
+- approxComputeTimeSeconds: 1507
+  coreHoursReq: 192.0
+  coreHoursUsed: 168.3199
+  coresUsed: 384
+  endTime: '2022-02-02 19:14:43'
+  id: 580856
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 6
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1507
+  sleepSimulationSeconds: 197
+  startTime: '2022-02-02 18:49:36'
+  submissionTime: '2022-02-02 18:45:31'
+  waitingTimeSeconds: 245
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 7848
+  coreHoursReq: 24576.0
+  coreHoursUsed: 17860.8348
+  coresUsed: 8192
+  endTime: '2022-02-03 05:45:47'
+  id: 580862
+  metaTimeSeconds: 40.050401
+  model: RCW
+  nodesUsed: 128
+  readBytes: 28056781144
+  readTimeSeconds: 891.554533
+  runtimeSeconds: 7849
+  sleepSimulationSeconds: 1579
+  startTime: '2022-02-03 03:34:58'
+  submissionTime: '2022-02-02 19:11:50'
+  waitingTimeSeconds: 30188
+  walltimeSeconds: 10800
+  writeTimeSeconds: 150.651892
+  writtenBytes: 3958210521
+- approxComputeTimeSeconds: 1568
+  coreHoursReq: 4096.0
+  coreHoursUsed: 3568.0706
+  coresUsed: 8192
+  endTime: '2022-02-03 05:03:56'
+  id: 580863
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1568
+  sleepSimulationSeconds: 177
+  startTime: '2022-02-03 04:37:48'
+  submissionTime: '2022-02-02 19:14:47'
+  waitingTimeSeconds: 33781
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 533
+  coreHoursReq: 64.0
+  coreHoursUsed: 10.9688
+  coresUsed: 64
+  endTime: '2022-02-02 19:26:08'
+  id: 580865
+  metaTimeSeconds: 7.015108
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 533
+  sleepSimulationSeconds: 43
+  startTime: '2022-02-02 19:17:15'
+  submissionTime: '2022-02-02 19:15:30'
+  waitingTimeSeconds: 105
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 537
+  coreHoursReq: 512.0
+  coreHoursUsed: 83.6266
+  coresUsed: 512
+  endTime: '2022-02-02 19:48:20'
+  id: 580869
+  metaTimeSeconds: 37.828108
+  model: RCW
+  nodesUsed: 8
+  readBytes: 596062652
+  readTimeSeconds: 46.52064
+  runtimeSeconds: 537
+  sleepSimulationSeconds: 379
+  startTime: '2022-02-02 19:39:23'
+  submissionTime: '2022-02-02 19:21:49'
+  waitingTimeSeconds: 1054
+  walltimeSeconds: 3600
+  writeTimeSeconds: 36.490356
+  writtenBytes: 548036685
+- approxComputeTimeSeconds: 10568
+  coreHoursReq: 36960.0
+  coreHoursUsed: 37403.5191
+  coresUsed: 12672
+  endTime: '2022-02-03 23:41:35'
+  id: 580870
+  metaTimeSeconds: 777.981204
+  model: RCW
+  nodesUsed: 198
+  readBytes: 5810916430
+  readTimeSeconds: 342.274039
+  runtimeSeconds: 10568
+  sleepSimulationSeconds: 135
+  startTime: '2022-02-03 20:45:26'
+  submissionTime: '2022-02-02 19:24:04'
+  waitingTimeSeconds: 91282
+  walltimeSeconds: 10500
+  writeTimeSeconds: 1568.497444
+  writtenBytes: 291082921793
+- approxComputeTimeSeconds: 1502
+  coreHoursReq: 192.0
+  coreHoursUsed: 167.04
+  coresUsed: 384
+  endTime: '2022-02-02 19:55:16'
+  id: 580871
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 6
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1502
+  sleepSimulationSeconds: 84
+  startTime: '2022-02-02 19:30:13'
+  submissionTime: '2022-02-02 19:25:28'
+  waitingTimeSeconds: 285
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 402
+  coreHoursReq: 64.0
+  coreHoursUsed: 8.2133
+  coresUsed: 64
+  endTime: '2022-02-02 19:37:42'
+  id: 580872
+  metaTimeSeconds: 13.528417
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 403
+  sleepSimulationSeconds: 252
+  startTime: '2022-02-02 19:30:59'
+  submissionTime: '2022-02-02 19:29:40'
+  waitingTimeSeconds: 79
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 290
+  coreHoursReq: 64.0
+  coreHoursUsed: 6.1511
+  coresUsed: 64
+  endTime: '2022-02-02 20:04:47'
+  id: 580875
+  metaTimeSeconds: 18.817219
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 291
+  sleepSimulationSeconds: 1730
+  startTime: '2022-02-02 19:59:56'
+  submissionTime: '2022-02-02 19:58:30'
+  waitingTimeSeconds: 86
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 3674
+  coreHoursReq: 512.0
+  coreHoursUsed: 531.3421
+  coresUsed: 512
+  endTime: '2022-02-02 22:26:55'
+  id: 580883
+  metaTimeSeconds: 8.168567
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618256456
+  readTimeSeconds: 69.6471
+  runtimeSeconds: 3674
+  sleepSimulationSeconds: 2432
+  startTime: '2022-02-02 21:25:40'
+  submissionTime: '2022-02-02 20:39:02'
+  waitingTimeSeconds: 2798
+  walltimeSeconds: 3600
+  writeTimeSeconds: 129.65768400000002
+  writtenBytes: 256531224
+- approxComputeTimeSeconds: 2897
+  coreHoursReq: 128.0
+  coreHoursUsed: 105.3155
+  coresUsed: 128
+  endTime: '2022-02-02 22:46:38'
+  id: 580893
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 2897
+  sleepSimulationSeconds: 2858
+  startTime: '2022-02-02 21:58:20'
+  submissionTime: '2022-02-02 21:26:40'
+  waitingTimeSeconds: 1900
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 871
+  coreHoursReq: 512.0
+  coreHoursUsed: 132.6932
+  coresUsed: 512
+  endTime: '2022-02-02 22:43:53'
+  id: 580894
+  metaTimeSeconds: 33.762278
+  model: RC
+  nodesUsed: 8
+  readBytes: 135563924
+  readTimeSeconds: 39.02277
+  runtimeSeconds: 871
+  sleepSimulationSeconds: 532
+  startTime: '2022-02-02 22:29:22'
+  submissionTime: '2022-02-02 21:35:32'
+  waitingTimeSeconds: 3230
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.482633
+  writtenBytes: 1295009
+- approxComputeTimeSeconds: 223
+  coreHoursReq: 256.0
+  coreHoursUsed: 46.2221
+  coresUsed: 512
+  endTime: '2022-02-02 22:53:51'
+  id: 580897
+  metaTimeSeconds: 1582.7703569999999
+  model: RCW
+  nodesUsed: 8
+  readBytes: 41615360000
+  readTimeSeconds: 16717.092561
+  runtimeSeconds: 261
+  sleepSimulationSeconds: 1495
+  startTime: '2022-02-02 22:49:30'
+  submissionTime: '2022-02-02 22:00:27'
+  waitingTimeSeconds: 2943
+  walltimeSeconds: 1800
+  writeTimeSeconds: 1218.89361
+  writtenBytes: 348826105156
+- approxComputeTimeSeconds: 142
+  coreHoursReq: 512.0
+  coreHoursUsed: 31.7155
+  coresUsed: 512
+  endTime: '2022-02-03 00:10:17'
+  id: 580907
+  metaTimeSeconds: 38.181787
+  model: RC
+  nodesUsed: 8
+  readBytes: 260112532
+  readTimeSeconds: 46.303935
+  runtimeSeconds: 143
+  sleepSimulationSeconds: 4987
+  startTime: '2022-02-03 00:07:54'
+  submissionTime: '2022-02-02 23:23:34'
+  waitingTimeSeconds: 2660
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.804503
+  writtenBytes: 392863
+- approxComputeTimeSeconds: 11844
+  coreHoursReq: 65536.0
+  coreHoursUsed: 54194.6298
+  coresUsed: 16384
+  endTime: '2022-02-03 23:11:15'
+  id: 580945
+  metaTimeSeconds: 36.538512
+  model: RCW
+  nodesUsed: 256
+  readBytes: 14263652888
+  readTimeSeconds: 1301.454678
+  runtimeSeconds: 11844
+  sleepSimulationSeconds: 2238
+  startTime: '2022-02-03 19:53:51'
+  submissionTime: '2022-02-03 01:42:46'
+  waitingTimeSeconds: 65465
+  walltimeSeconds: 14400
+  writeTimeSeconds: 502.398339
+  writtenBytes: 6123107255
+- approxComputeTimeSeconds: 768
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1861.4042
+  coresUsed: 8192
+  endTime: '2022-02-03 22:31:35'
+  id: 580955
+  metaTimeSeconds: 15.786750999999999
+  model: RCW
+  nodesUsed: 128
+  readBytes: 56598230969
+  readTimeSeconds: 103.745738
+  runtimeSeconds: 768
+  sleepSimulationSeconds: 2793
+  startTime: '2022-02-03 22:18:47'
+  submissionTime: '2022-02-03 02:29:19'
+  waitingTimeSeconds: 71368
+  walltimeSeconds: 7020
+  writeTimeSeconds: 220.055466
+  writtenBytes: 52245196728
+- approxComputeTimeSeconds: 1040
+  coreHoursReq: 15974.4
+  coreHoursUsed: 2491.7327
+  coresUsed: 8192
+  endTime: '2022-02-03 22:36:29'
+  id: 580956
+  metaTimeSeconds: 38.343687
+  model: RCW
+  nodesUsed: 128
+  readBytes: 121407305005
+  readTimeSeconds: 162.340392
+  runtimeSeconds: 1040
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-03 22:19:09'
+  submissionTime: '2022-02-03 02:29:20'
+  waitingTimeSeconds: 71389
+  walltimeSeconds: 7020
+  writeTimeSeconds: 405.262096
+  writtenBytes: 109071917420
+- approxComputeTimeSeconds: 738
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1822.72
+  coresUsed: 8192
+  endTime: '2022-02-03 22:47:09'
+  id: 580957
+  metaTimeSeconds: 22.832122
+  model: RCW
+  nodesUsed: 128
+  readBytes: 79000148161
+  readTimeSeconds: 117.85874000000001
+  runtimeSeconds: 738
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-03 22:34:50'
+  submissionTime: '2022-02-03 02:29:21'
+  waitingTimeSeconds: 72329
+  walltimeSeconds: 7020
+  writeTimeSeconds: 276.04713300000003
+  writtenBytes: 70457635848
+- approxComputeTimeSeconds: 567
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1404.017
+  coresUsed: 8192
+  endTime: '2022-02-03 22:48:40'
+  id: 580958
+  metaTimeSeconds: 21.007336
+  model: RCW
+  nodesUsed: 128
+  readBytes: 47988588989
+  readTimeSeconds: 90.323515
+  runtimeSeconds: 568
+  sleepSimulationSeconds: 2
+  startTime: '2022-02-03 22:39:12'
+  submissionTime: '2022-02-03 02:29:23'
+  waitingTimeSeconds: 72589
+  walltimeSeconds: 7020
+  writeTimeSeconds: 173.313492
+  writtenBytes: 39805313588
+- approxComputeTimeSeconds: 498
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1281.137
+  coresUsed: 8192
+  endTime: '2022-02-03 22:59:16'
+  id: 580959
+  metaTimeSeconds: 20.833506
+  model: RCW
+  nodesUsed: 128
+  readBytes: 41166819665
+  readTimeSeconds: 99.150058
+  runtimeSeconds: 498
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-03 22:50:58'
+  submissionTime: '2022-02-03 02:29:24'
+  waitingTimeSeconds: 73294
+  walltimeSeconds: 7020
+  writeTimeSeconds: 155.77381
+  writtenBytes: 35936576752
+- approxComputeTimeSeconds: 709
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1743.0748
+  coresUsed: 8192
+  endTime: '2022-02-03 23:03:47'
+  id: 580960
+  metaTimeSeconds: 16.739279
+  model: RCW
+  nodesUsed: 128
+  readBytes: 70806955437
+  readTimeSeconds: 114.715173
+  runtimeSeconds: 709
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-03 22:51:57'
+  submissionTime: '2022-02-03 02:29:25'
+  waitingTimeSeconds: 73352
+  walltimeSeconds: 7020
+  writeTimeSeconds: 232.80874599999999
+  writtenBytes: 56166757892
+- approxComputeTimeSeconds: 532
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1349.4042
+  coresUsed: 8192
+  endTime: '2022-02-03 23:06:00'
+  id: 580961
+  metaTimeSeconds: 18.339095999999998
+  model: RCW
+  nodesUsed: 128
+  readBytes: 40926167649
+  readTimeSeconds: 97.604095
+  runtimeSeconds: 532
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-03 22:57:08'
+  submissionTime: '2022-02-03 02:29:26'
+  waitingTimeSeconds: 73662
+  walltimeSeconds: 7020
+  writeTimeSeconds: 184.029017
+  writtenBytes: 31677245556
+- approxComputeTimeSeconds: 377
+  coreHoursReq: 15974.4
+  coreHoursUsed: 1010.3463
+  coresUsed: 8192
+  endTime: '2022-02-03 23:03:47'
+  id: 580962
+  metaTimeSeconds: 18.466561
+  model: RCW
+  nodesUsed: 128
+  readBytes: 38642728137
+  readTimeSeconds: 102.568598
+  runtimeSeconds: 377
+  sleepSimulationSeconds: 12
+  startTime: '2022-02-03 22:57:29'
+  submissionTime: '2022-02-03 02:29:38'
+  waitingTimeSeconds: 73671
+  walltimeSeconds: 7020
+  writeTimeSeconds: 157.52532300000001
+  writtenBytes: 31631039972
+- approxComputeTimeSeconds: 516
+  coreHoursReq: 15974.4
+  coreHoursUsed: 4359.9642
+  coresUsed: 8192
+  endTime: '2022-02-03 23:28:44'
+  id: 580963
+  metaTimeSeconds: 20.59554
+  model: RCW
+  nodesUsed: 128
+  readBytes: 44165972285
+  readTimeSeconds: 90.069298
+  runtimeSeconds: 516
+  sleepSimulationSeconds: 1
+  startTime: '2022-02-03 23:20:07'
+  submissionTime: '2022-02-03 02:29:39'
+  waitingTimeSeconds: 75028
+  walltimeSeconds: 7020
+  writeTimeSeconds: 174.39843000000002
+  writtenBytes: 38709288508
+- approxComputeTimeSeconds: 945
+  coreHoursReq: 512.0
+  coreHoursUsed: 134.5421
+  coresUsed: 512
+  endTime: '2022-02-03 04:33:22'
+  id: 580985
+  metaTimeSeconds: 34.57146
+  model: RC
+  nodesUsed: 8
+  readBytes: 136557056
+  readTimeSeconds: 38.380231
+  runtimeSeconds: 946
+  sleepSimulationSeconds: 6437
+  startTime: '2022-02-03 04:17:36'
+  submissionTime: '2022-02-03 04:16:56'
+  waitingTimeSeconds: 40
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.432404
+  writtenBytes: 1333135
+- approxComputeTimeSeconds: 10859
+  coreHoursReq: 24576.0
+  coreHoursUsed: 24853.617
+  coresUsed: 8192
+  endTime: '2022-02-03 21:28:48'
+  id: 581017
+  metaTimeSeconds: 6877.202672
+  model: RCW
+  nodesUsed: 128
+  readBytes: 7458694144
+  readTimeSeconds: 1936.238311
+  runtimeSeconds: 10860
+  sleepSimulationSeconds: 7003
+  startTime: '2022-02-03 18:27:48'
+  submissionTime: '2022-02-03 06:13:39'
+  waitingTimeSeconds: 44049
+  walltimeSeconds: 10800
+  writeTimeSeconds: 416.613232
+  writtenBytes: 10409639004
+- approxComputeTimeSeconds: 262
+  coreHoursReq: 128.0
+  coreHoursUsed: 18.7022
+  coresUsed: 256
+  endTime: '2022-02-03 06:58:47'
+  id: 581029
+  metaTimeSeconds: 0.008353
+  model: C
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 263
+  sleepSimulationSeconds: 2417
+  startTime: '2022-02-03 06:54:24'
+  submissionTime: '2022-02-03 06:53:56'
+  waitingTimeSeconds: 28
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.021984
+  writtenBytes: 154
+- approxComputeTimeSeconds: 10855
+  coreHoursReq: 24576.0
+  coreHoursUsed: 27891.4842
+  coresUsed: 8192
+  endTime: '2022-02-03 21:55:59'
+  id: 581036
+  metaTimeSeconds: 86.641413
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 10855
+  sleepSimulationSeconds: 958
+  startTime: '2022-02-03 18:55:03'
+  submissionTime: '2022-02-03 07:09:54'
+  waitingTimeSeconds: 42309
+  walltimeSeconds: 10800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1047
+  coreHoursReq: 42.6666
+  coreHoursUsed: 37.2266
+  coresUsed: 128
+  endTime: '2022-02-03 07:31:01'
+  id: 581038
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1047
+  sleepSimulationSeconds: 178
+  startTime: '2022-02-03 07:13:34'
+  submissionTime: '2022-02-03 07:12:52'
+  waitingTimeSeconds: 42
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 679
+  coreHoursReq: 42.6666
+  coreHoursUsed: 26.0266
+  coresUsed: 128
+  endTime: '2022-02-03 07:43:51'
+  id: 581045
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 679
+  sleepSimulationSeconds: 1096
+  startTime: '2022-02-03 07:32:31'
+  submissionTime: '2022-02-03 07:31:08'
+  waitingTimeSeconds: 83
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 461
+  coreHoursReq: 128.0
+  coreHoursUsed: 36.8355
+  coresUsed: 256
+  endTime: '2022-02-03 08:00:28'
+  id: 581054
+  metaTimeSeconds: 90.723509
+  model: CW
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 462
+  sleepSimulationSeconds: 1219
+  startTime: '2022-02-03 07:52:45'
+  submissionTime: '2022-02-03 07:51:27'
+  waitingTimeSeconds: 78
+  walltimeSeconds: 1800
+  writeTimeSeconds: 172.653479
+  writtenBytes: 42949673789
+- approxComputeTimeSeconds: 60
+  coreHoursReq: 10.6666
+  coreHoursUsed: 4.3733
+  coresUsed: 128
+  endTime: '2022-02-03 08:02:22'
+  id: 581057
+  metaTimeSeconds: 0.024623
+  model: C
+  nodesUsed: 2
+  readBytes: 102
+  readTimeSeconds: 0.000276
+  runtimeSeconds: 60
+  sleepSimulationSeconds: 511
+  startTime: '2022-02-03 08:01:22'
+  submissionTime: '2022-02-03 07:59:58'
+  waitingTimeSeconds: 84
+  walltimeSeconds: 300
+  writeTimeSeconds: 0.000703
+  writtenBytes: 102
+- approxComputeTimeSeconds: 184
+  coreHoursReq: 42.6666
+  coreHoursUsed: 8.4622
+  coresUsed: 128
+  endTime: '2022-02-03 08:07:11'
+  id: 581058
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 2
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 184
+  sleepSimulationSeconds: 171
+  startTime: '2022-02-03 08:04:07'
+  submissionTime: '2022-02-03 08:02:49'
+  waitingTimeSeconds: 78
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1470
+  coreHoursReq: 256.0
+  coreHoursUsed: 217.1732
+  coresUsed: 512
+  endTime: '2022-02-03 08:46:23'
+  id: 581064
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1470
+  sleepSimulationSeconds: 1000
+  startTime: '2022-02-03 08:21:53'
+  submissionTime: '2022-02-03 08:19:29'
+  waitingTimeSeconds: 144
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 282
+  coreHoursReq: 128.0
+  coreHoursUsed: 24.5333
+  coresUsed: 256
+  endTime: '2022-02-03 09:12:16'
+  id: 581080
+  metaTimeSeconds: 5.805541
+  model: CW
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 282
+  sleepSimulationSeconds: 2801
+  startTime: '2022-02-03 09:07:33'
+  submissionTime: '2022-02-03 09:06:10'
+  waitingTimeSeconds: 83
+  walltimeSeconds: 1800
+  writeTimeSeconds: 65.798714
+  writtenBytes: 21474837333
+- approxComputeTimeSeconds: 1509
+  coreHoursReq: 256.0
+  coreHoursUsed: 221.8666
+  coresUsed: 512
+  endTime: '2022-02-03 10:02:38'
+  id: 581089
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1509
+  sleepSimulationSeconds: 1791
+  startTime: '2022-02-03 09:37:28'
+  submissionTime: '2022-02-03 09:36:01'
+  waitingTimeSeconds: 87
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 6356
+  coreHoursReq: 24576.0
+  coreHoursUsed: 17574.1148
+  coresUsed: 8192
+  endTime: '2022-02-04 03:40:02'
+  id: 581135
+  metaTimeSeconds: 54.123825
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 6356
+  sleepSimulationSeconds: 25784
+  startTime: '2022-02-04 01:54:06'
+  submissionTime: '2022-02-03 16:45:45'
+  waitingTimeSeconds: 32901
+  walltimeSeconds: 10800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 2343
+  coreHoursReq: 512.0
+  coreHoursUsed: 339.4844
+  coresUsed: 512
+  endTime: '2022-02-03 19:21:10'
+  id: 581178
+  metaTimeSeconds: 30.409993
+  model: RC
+  nodesUsed: 8
+  readBytes: 136486400
+  readTimeSeconds: 31.629612
+  runtimeSeconds: 2343
+  sleepSimulationSeconds: 3939
+  startTime: '2022-02-03 18:42:07'
+  submissionTime: '2022-02-03 18:32:49'
+  waitingTimeSeconds: 558
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.143264
+  writtenBytes: 518446
+- approxComputeTimeSeconds: 1255
+  coreHoursReq: 26112.0
+  coreHoursUsed: 3189.048
+  coresUsed: 8704
+  endTime: '2022-02-04 13:19:28'
+  id: 581184
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 136
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1255
+  sleepSimulationSeconds: 1153
+  startTime: '2022-02-04 12:58:33'
+  submissionTime: '2022-02-03 18:52:02'
+  waitingTimeSeconds: 65191
+  walltimeSeconds: 10800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 318
+  coreHoursReq: 48.0
+  coreHoursUsed: 20.5866
+  coresUsed: 192
+  endTime: '2022-02-03 19:29:49'
+  id: 581195
+  metaTimeSeconds: 1.891133
+  model: C
+  nodesUsed: 3
+  readBytes: 2267431
+  readTimeSeconds: 1.624072
+  runtimeSeconds: 318
+  sleepSimulationSeconds: 1858
+  startTime: '2022-02-03 19:24:31'
+  submissionTime: '2022-02-03 19:23:00'
+  waitingTimeSeconds: 91
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.500556
+  writtenBytes: 72522
+- approxComputeTimeSeconds: 228
+  coreHoursReq: 512.0
+  coreHoursUsed: 40.6755
+  coresUsed: 512
+  endTime: '2022-02-03 19:59:53'
+  id: 581207
+  metaTimeSeconds: 0.000302
+  model: C
+  nodesUsed: 8
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 228
+  sleepSimulationSeconds: 913
+  startTime: '2022-02-03 19:56:05'
+  submissionTime: '2022-02-03 19:38:13'
+  waitingTimeSeconds: 1072
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 139
+  coreHoursReq: 48.0
+  coreHoursUsed: 11.04
+  coresUsed: 192
+  endTime: '2022-02-03 19:42:07'
+  id: 581208
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 3
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 139
+  sleepSimulationSeconds: 9
+  startTime: '2022-02-03 19:39:47'
+  submissionTime: '2022-02-03 19:38:22'
+  waitingTimeSeconds: 85
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 291
+  coreHoursReq: 128.0
+  coreHoursUsed: 25.1022
+  coresUsed: 256
+  endTime: '2022-02-03 19:48:07'
+  id: 581209
+  metaTimeSeconds: 0.087867
+  model: CW
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 291
+  sleepSimulationSeconds: 211
+  startTime: '2022-02-03 19:43:16'
+  submissionTime: '2022-02-03 19:41:53'
+  waitingTimeSeconds: 83
+  walltimeSeconds: 1800
+  writeTimeSeconds: 9.829279
+  writtenBytes: 3221225660
+- approxComputeTimeSeconds: 276
+  coreHoursReq: 48.0
+  coreHoursUsed: 17.5466
+  coresUsed: 192
+  endTime: '2022-02-03 19:50:34'
+  id: 581210
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 3
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 276
+  sleepSimulationSeconds: 35
+  startTime: '2022-02-03 19:45:57'
+  submissionTime: '2022-02-03 19:42:28'
+  waitingTimeSeconds: 209
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 758
+  coreHoursReq: 32.0
+  coreHoursUsed: 14.7733
+  coresUsed: 64
+  endTime: '2022-02-03 20:04:49'
+  id: 581212
+  metaTimeSeconds: 0.117256
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 758
+  sleepSimulationSeconds: 388
+  startTime: '2022-02-03 19:52:11'
+  submissionTime: '2022-02-03 19:48:56'
+  waitingTimeSeconds: 195
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.012902
+  writtenBytes: 1177
+- approxComputeTimeSeconds: 335
+  coreHoursReq: 48.0
+  coreHoursUsed: 20.4799
+  coresUsed: 192
+  endTime: '2022-02-03 20:01:19'
+  id: 581215
+  metaTimeSeconds: 2.000156
+  model: C
+  nodesUsed: 3
+  readBytes: 2267431
+  readTimeSeconds: 2.085358
+  runtimeSeconds: 335
+  sleepSimulationSeconds: 353
+  startTime: '2022-02-03 19:55:44'
+  submissionTime: '2022-02-03 19:54:49'
+  waitingTimeSeconds: 55
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.425615
+  writtenBytes: 72522
+- approxComputeTimeSeconds: 985
+  coreHoursReq: 48.0
+  coreHoursUsed: 55.68
+  coresUsed: 192
+  endTime: '2022-02-03 20:20:51'
+  id: 581220
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 3
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 985
+  sleepSimulationSeconds: 481
+  startTime: '2022-02-03 20:04:25'
+  submissionTime: '2022-02-03 20:02:50'
+  waitingTimeSeconds: 95
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 2944
+  coreHoursReq: 512.0
+  coreHoursUsed: 427.6621
+  coresUsed: 512
+  endTime: '2022-02-03 21:20:09'
+  id: 581228
+  metaTimeSeconds: 0.177777
+  model: RC
+  nodesUsed: 8
+  readBytes: 1422469635
+  readTimeSeconds: 13.402766
+  runtimeSeconds: 2944
+  sleepSimulationSeconds: 868
+  startTime: '2022-02-03 20:31:04'
+  submissionTime: '2022-02-03 20:17:18'
+  waitingTimeSeconds: 826
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.233526
+  writtenBytes: 560840
+- approxComputeTimeSeconds: 1821
+  coreHoursReq: 96.0
+  coreHoursUsed: 100.32
+  coresUsed: 192
+  endTime: '2022-02-03 21:07:14'
+  id: 581235
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 3
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 1821
+  sleepSimulationSeconds: 1078
+  startTime: '2022-02-03 20:36:53'
+  submissionTime: '2022-02-03 20:35:16'
+  waitingTimeSeconds: 97
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 2469
+  coreHoursReq: 256.0
+  coreHoursUsed: 182.6133
+  coresUsed: 256
+  endTime: '2022-02-04 13:53:14'
+  id: 581239
+  metaTimeSeconds: 91.790707
+  model: CW
+  nodesUsed: 4
+  readBytes: 10048
+  readTimeSeconds: 4.183709
+  runtimeSeconds: 2476
+  sleepSimulationSeconds: 283
+  startTime: '2022-02-04 13:11:58'
+  submissionTime: '2022-02-03 20:39:59'
+  waitingTimeSeconds: 59519
+  walltimeSeconds: 3600
+  writeTimeSeconds: 1592.4863280000002
+  writtenBytes: 18546212112
+- approxComputeTimeSeconds: 206
+  coreHoursReq: 10.6666
+  coreHoursUsed: 4.7111
+  coresUsed: 64
+  endTime: '2022-02-03 21:11:41'
+  id: 581246
+  metaTimeSeconds: 0.075144
+  model: C
+  nodesUsed: 1
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 206
+  sleepSimulationSeconds: 862
+  startTime: '2022-02-03 21:08:15'
+  submissionTime: '2022-02-03 20:54:21'
+  waitingTimeSeconds: 834
+  walltimeSeconds: 600
+  writeTimeSeconds: 0.022227
+  writtenBytes: 577
+- approxComputeTimeSeconds: 188
+  coreHoursReq: 128.0
+  coreHoursUsed: 17.5644
+  coresUsed: 256
+  endTime: '2022-02-03 21:25:43'
+  id: 581247
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 188
+  sleepSimulationSeconds: 65
+  startTime: '2022-02-03 21:22:35'
+  submissionTime: '2022-02-03 20:55:26'
+  waitingTimeSeconds: 1629
+  walltimeSeconds: 1800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 1228
+  coreHoursReq: 512.0
+  coreHoursUsed: 182.8977
+  coresUsed: 512
+  endTime: '2022-02-03 21:52:52'
+  id: 581251
+  metaTimeSeconds: 10.039115999999998
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618451088
+  readTimeSeconds: 67.323841
+  runtimeSeconds: 1229
+  sleepSimulationSeconds: 856
+  startTime: '2022-02-03 21:32:23'
+  submissionTime: '2022-02-03 21:09:42'
+  waitingTimeSeconds: 1361
+  walltimeSeconds: 3600
+  writeTimeSeconds: 138.65791000000002
+  writtenBytes: 257247309
+- approxComputeTimeSeconds: 1266
+  coreHoursReq: 64.0
+  coreHoursUsed: 70.5066
+  coresUsed: 192
+  endTime: '2022-02-03 21:45:25'
+  id: 581258
+  metaTimeSeconds: 4.162228
+  model: C
+  nodesUsed: 3
+  readBytes: 6820597
+  readTimeSeconds: 6.127528
+  runtimeSeconds: 1266
+  sleepSimulationSeconds: 798
+  startTime: '2022-02-03 21:24:19'
+  submissionTime: '2022-02-03 21:23:00'
+  waitingTimeSeconds: 79
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.41997399999999996
+  writtenBytes: 41405
+- approxComputeTimeSeconds: 3254
+  coreHoursReq: 512.0
+  coreHoursUsed: 474.1688
+  coresUsed: 512
+  endTime: '2022-02-03 22:51:24'
+  id: 581261
+  metaTimeSeconds: 0.417873
+  model: RC
+  nodesUsed: 8
+  readBytes: 1422476914
+  readTimeSeconds: 13.541129
+  runtimeSeconds: 3254
+  sleepSimulationSeconds: 734
+  startTime: '2022-02-03 21:57:10'
+  submissionTime: '2022-02-03 21:35:14'
+  waitingTimeSeconds: 1316
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.522197
+  writtenBytes: 560838
+- approxComputeTimeSeconds: 470
+  coreHoursReq: 128.0
+  coreHoursUsed: 37.6177
+  coresUsed: 256
+  endTime: '2022-02-03 22:16:05'
+  id: 581262
+  metaTimeSeconds: 3.6377569999999997
+  model: CW
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 471
+  sleepSimulationSeconds: 317
+  startTime: '2022-02-03 22:08:14'
+  submissionTime: '2022-02-03 21:40:31'
+  waitingTimeSeconds: 1663
+  walltimeSeconds: 1800
+  writeTimeSeconds: 218.187226
+  writtenBytes: 71940703100
+- approxComputeTimeSeconds: 2479
+  coreHoursReq: 256.0
+  coreHoursUsed: 180.6933
+  coresUsed: 256
+  endTime: '2022-02-03 22:49:55'
+  id: 581264
+  metaTimeSeconds: 40.84782
+  model: CW
+  nodesUsed: 4
+  readBytes: 10048
+  readTimeSeconds: 4.056188
+  runtimeSeconds: 2486
+  sleepSimulationSeconds: 274
+  startTime: '2022-02-03 22:08:28'
+  submissionTime: '2022-02-03 21:45:05'
+  waitingTimeSeconds: 1403
+  walltimeSeconds: 3600
+  writeTimeSeconds: 1635.696838
+  writtenBytes: 18547234944
+- approxComputeTimeSeconds: 220
+  coreHoursReq: 512.0
+  coreHoursUsed: 40.5332
+  coresUsed: 512
+  endTime: '2022-02-03 23:31:30'
+  id: 581279
+  metaTimeSeconds: 53.001475
+  model: RCW
+  nodesUsed: 8
+  readBytes: 1375935200
+  readTimeSeconds: 80.168229
+  runtimeSeconds: 221
+  sleepSimulationSeconds: 2884
+  startTime: '2022-02-03 23:27:48'
+  submissionTime: '2022-02-03 22:33:09'
+  waitingTimeSeconds: 3279
+  walltimeSeconds: 3600
+  writeTimeSeconds: 41.815606
+  writtenBytes: 183332911
+- approxComputeTimeSeconds: 362
+  coreHoursReq: 512.0
+  coreHoursUsed: 60.871
+  coresUsed: 512
+  endTime: '2022-02-04 00:13:12'
+  id: 581297
+  metaTimeSeconds: 10.847197
+  model: RCW
+  nodesUsed: 8
+  readBytes: 618519288
+  readTimeSeconds: 54.351879
+  runtimeSeconds: 362
+  sleepSimulationSeconds: 4665
+  startTime: '2022-02-04 00:07:09'
+  submissionTime: '2022-02-03 23:50:54'
+  waitingTimeSeconds: 975
+  walltimeSeconds: 3600
+  writeTimeSeconds: 140.54094800000001
+  writtenBytes: 254354473
+- approxComputeTimeSeconds: 336
+  coreHoursReq: 24576.0
+  coreHoursUsed: 901.12
+  coresUsed: 8192
+  endTime: '2022-02-04 15:03:35'
+  id: 581315
+  metaTimeSeconds: 306.436845
+  model: RCW
+  nodesUsed: 128
+  readBytes: 14148840960
+  readTimeSeconds: 591.19818
+  runtimeSeconds: 337
+  sleepSimulationSeconds: 2107
+  startTime: '2022-02-04 14:57:58'
+  submissionTime: '2022-02-04 00:47:21'
+  waitingTimeSeconds: 51037
+  walltimeSeconds: 10800
+  writeTimeSeconds: 663.1072360000001
+  writtenBytes: 2933327296
+- approxComputeTimeSeconds: 926
+  coreHoursReq: 512.0
+  coreHoursUsed: 142.5066
+  coresUsed: 512
+  endTime: '2022-02-04 02:30:43'
+  id: 581330
+  metaTimeSeconds: 36.533185
+  model: RCW
+  nodesUsed: 8
+  readBytes: 211485936
+  readTimeSeconds: 39.511868
+  runtimeSeconds: 926
+  sleepSimulationSeconds: 3654
+  startTime: '2022-02-04 02:15:17'
+  submissionTime: '2022-02-04 02:06:08'
+  waitingTimeSeconds: 549
+  walltimeSeconds: 3600
+  writeTimeSeconds: 4.876628
+  writtenBytes: 189217340
+- approxComputeTimeSeconds: 474
+  coreHoursReq: 85.3333
+  coreHoursUsed: 38.1155
+  coresUsed: 256
+  endTime: '2022-02-04 03:22:16'
+  id: 581346
+  metaTimeSeconds: 0.090751
+  model: C
+  nodesUsed: 4
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 474
+  sleepSimulationSeconds: 4007
+  startTime: '2022-02-04 03:14:21'
+  submissionTime: '2022-02-04 03:12:55'
+  waitingTimeSeconds: 86
+  walltimeSeconds: 1200
+  writeTimeSeconds: 0.018465
+  writtenBytes: 724
+- approxComputeTimeSeconds: 3717
+  coreHoursReq: 512.0
+  coreHoursUsed: 528.7821
+  coresUsed: 512
+  endTime: '2022-02-04 04:42:22'
+  id: 581355
+  metaTimeSeconds: 0.236095
+  model: RC
+  nodesUsed: 8
+  readBytes: 968083219
+  readTimeSeconds: 6.368315
+  runtimeSeconds: 3718
+  sleepSimulationSeconds: 1443
+  startTime: '2022-02-04 03:40:24'
+  submissionTime: '2022-02-04 03:36:58'
+  waitingTimeSeconds: 206
+  walltimeSeconds: 3600
+  writeTimeSeconds: 13.242201
+  writtenBytes: 535047
+- approxComputeTimeSeconds: 300
+  coreHoursReq: 24576.0
+  coreHoursUsed: 4676.2663
+  coresUsed: 8192
+  endTime: '2022-02-04 15:25:13'
+  id: 581357
+  metaTimeSeconds: 0.006021
+  model: C
+  nodesUsed: 128
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 300
+  sleepSimulationSeconds: 119
+  startTime: '2022-02-04 15:20:13'
+  submissionTime: '2022-02-04 03:38:57'
+  waitingTimeSeconds: 42076
+  walltimeSeconds: 10800
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 44
+  coreHoursReq: 4096.0
+  coreHoursUsed: 259.4127
+  coresUsed: 8192
+  endTime: '2022-02-04 15:20:13'
+  id: 581381
+  metaTimeSeconds: 9.881372
+  model: RCW
+  nodesUsed: 128
+  readBytes: 209445632
+  readTimeSeconds: 12.679177
+  runtimeSeconds: 44
+  sleepSimulationSeconds: 29705
+  startTime: '2022-02-04 15:19:28'
+  submissionTime: '2022-02-04 13:28:40'
+  waitingTimeSeconds: 6648
+  walltimeSeconds: 1800
+  writeTimeSeconds: 53.551423
+  writtenBytes: 232787101
+- approxComputeTimeSeconds: 376
+  coreHoursReq: 48.0
+  coreHoursUsed: 25.2799
+  coresUsed: 192
+  endTime: '2022-02-04 15:11:12'
+  id: 581390
+  metaTimeSeconds: 0.0
+  model: C
+  nodesUsed: 3
+  readBytes: 0
+  readTimeSeconds: 0.0
+  runtimeSeconds: 376
+  sleepSimulationSeconds: 5679
+  startTime: '2022-02-04 15:04:56'
+  submissionTime: '2022-02-04 15:03:19'
+  waitingTimeSeconds: 97
+  walltimeSeconds: 900
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+- approxComputeTimeSeconds: 45
+  coreHoursReq: 8192.0
+  coreHoursUsed: 236.657
+  coresUsed: 8192
+  endTime: '2022-02-04 15:21:41'
+  id: 581396
+  metaTimeSeconds: 0.105527
+  model: RC
+  nodesUsed: 128
+  readBytes: 299892763
+  readTimeSeconds: 9.390456
+  runtimeSeconds: 45
+  sleepSimulationSeconds: 821
+  startTime: '2022-02-04 15:20:56'
+  submissionTime: '2022-02-04 15:17:00'
+  waitingTimeSeconds: 236
+  walltimeSeconds: 3600
+  writeTimeSeconds: 0.0
+  writtenBytes: 0
+preload:
+  duration: 572093
+  first_ts: 1643416220
+  job_count: 349
+  last_ts: 1643988313
+  max_interval_s: 25784
+  max_nodes_used: 2048
+  max_read_tbytes: 148.428529082742
+  max_runtime_s: 32428
+  max_written_tbytes: 420.013449602251
+  mean_cores_used: 8688
+  mean_interval_s: 1555
+  mean_jobs_per_hour: 2.2
+  mean_nodes_used: 135
+  mean_read_tbytes: 0.17463913065015893
+  mean_runtime_s: 4235
+  mean_written_tbytes: 0.836552099469762
+  median_cores_used: 8192
+  median_interval_s: 621
+  median_nodes_used: 128
+  median_read_tbytes: 6.33618e-05
+  median_runtime_s: 1509
+  median_written_tbytes: 3.4110446e-05
+  min_interval_s: 1
+  min_runtime_s: 38
+  var_interval_s: 7570170
+  var_nodes_used: 41198
+  var_read_tbytes: 11.332847154209372
+  var_runtime_s: 32468073
+  var_written_tbytes: 78.67971778343161
