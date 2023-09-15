@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include "./include/TestConstants.h"
 #include "./include/TestWithFork.h"
 
 #include "../include/AllocationStrategy.h"
@@ -53,7 +54,7 @@ void BasicAllocTest::lustreUseRR_test() {
     // min and max free space in bytes
     struct storalloc::ba_min_max test_min_max;
 
-    auto allocator = LustreAllocator(*(this->cfg));
+    auto allocator = LustreAllocator(this->cfg);
 
     // Right above the 17% threshold
     test_min_max.min = 833 * GB;
@@ -89,8 +90,7 @@ TEST_F(BasicAllocTest, lustreOstPenalty_test) {
  */
 void BasicAllocTest::lustreOstPenalty_test() {
 
-    auto allocator = LustreAllocator(*(this->cfg));
-
+    auto allocator = LustreAllocator(this->cfg);
     const uint64_t GB = 1000 * 1000 * 1000;
 
     uint64_t free_space_b = 250 * GB; // 250 GB free
@@ -154,7 +154,7 @@ TEST_F(BasicAllocTest, lustreOssPenalty_test) {
  */
 void BasicAllocTest::lustreOssPenalty_test() {
 
-    auto allocator = LustreAllocator(*(this->cfg));
+    auto allocator = LustreAllocator(this->cfg);
 
     const uint64_t GB = 1000 * 1000 * 1000;
 
@@ -246,7 +246,7 @@ TEST_F(BasicAllocTest, lustreComputeOstWeight_test) {
  */
 void BasicAllocTest::lustreComputeOstWeight_test() {
 
-    auto allocator = LustreAllocator(*(this->cfg));
+    auto allocator = LustreAllocator(this->cfg);
 
     const uint64_t GB = 1000 * 1000 * 1000;
 
@@ -301,16 +301,16 @@ TEST_F(BasicAllocTest, lustreComputeStriping_test) {
  */
 void BasicAllocTest::lustreComputeStriping_test() {
 
-    auto allocator = LustreAllocator(*(this->cfg));
+    auto allocator = LustreAllocator(this->cfg);
     auto striping = allocator.lustreComputeStriping(3000000000, 85);
     ASSERT_EQ(striping.stripe_size_b, 300000000);
     ASSERT_EQ(striping.stripes_count, 1);
     ASSERT_EQ(striping.stripes_per_ost, 1);
     ASSERT_THROW(allocator.lustreComputeStriping(3000000000, 0), std::runtime_error);
 
-    auto cfg_2 = Config();
-    cfg_2.lustre = LustreConfig();  // default lustre config
-    cfg_2.lustre.stripe_count = 50; // load-balancing on 50 OSTs
+    auto cfg_2 = std::make_shared<Config>();
+    cfg_2->lustre = LustreConfig();  // default lustre config
+    cfg_2->lustre.stripe_count = 50; // load-balancing on 50 OSTs
     auto allocator2 = LustreAllocator(cfg_2);
 
     striping = {};
@@ -319,10 +319,10 @@ void BasicAllocTest::lustreComputeStriping_test() {
     ASSERT_EQ(striping.stripes_count, 50);
     ASSERT_EQ(striping.stripes_per_ost, 1);
 
-    auto cfg_3 = Config();
-    cfg_3.lustre = LustreConfig();        // default lustre config
-    cfg_3.lustre.stripe_count = 50;       // load-balancing on 50 OSTs
-    cfg_3.lustre.max_chunks_per_ost = 45; // allowing for more chunks on each OST
+    auto cfg_3 = std::make_shared<Config>();
+    cfg_3->lustre = LustreConfig();        // default lustre config
+    cfg_3->lustre.stripe_count = 50;       // load-balancing on 50 OSTs
+    cfg_3->lustre.max_chunks_per_ost = 45; // allowing for more chunks on each OST
     auto allocator3 = LustreAllocator(cfg_3);
 
     striping = {};
@@ -470,7 +470,7 @@ TEST_F(FunctionalAllocTest, lustreComputeMinMaxUtilization_test) {
  */
 void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -488,13 +488,20 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
 
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    LustreAllocator allocator(*(config));
+    LustreAllocator allocator(config);
+    wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                     const std::shared_ptr<wrench::DataFile> &file,
+                                                                     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        return allocator(file, resources, mapping, previous_allocations);
+    };
 
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            allocator,
+            allocatorCallback,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             // {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, "30000000000"}},
@@ -575,7 +582,7 @@ TEST_F(FunctionalAllocTest, lustreOstIsUsed_test) {
  */
 void FunctionalAllocTest::lustreOstIsUsed_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -597,13 +604,20 @@ void FunctionalAllocTest::lustreOstIsUsed_test() {
     /* Simple storage services */
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
-    LustreAllocator allocator(*(config));
+    LustreAllocator allocator(config);
+    wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                     const std::shared_ptr<wrench::DataFile> &file,
+                                                                     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        return allocator(file, resources, mapping, previous_allocations);
+    };
 
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            allocator,
+            allocatorCallback,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
@@ -647,6 +661,8 @@ public:
 
         int index = 0;
         for (const auto &service : ordered) {
+            // std::cout << this->ordered_alloc[index].first << " -- " << service->getHostname() << std::endl;
+            // std::cout << " [ " << this->ordered_alloc[index].second << " -- " << service->getName() << " ] " << std::endl;
             if ((service->getHostname() != this->ordered_alloc[index].first) or (service->getName() != this->ordered_alloc[index].second)) {
                 throw std::runtime_error("Mismatch between computed list of ordered services and expected result");
             }
@@ -658,8 +674,7 @@ public:
         try {
             this->alloc->lustreRROrderServices(hostname_to_service_count, disk_level_services);
         } catch (std::runtime_error &e) {
-            // OK, exception raised as expected;
-            return 0;
+            return 0; // OK, exception raised as expected;
         }
         throw std::runtime_error("Error with lustreRROrderServices when given empty vector/map (no exception raised)");
     }
@@ -672,12 +687,12 @@ TEST_F(FunctionalAllocTest, lustreRROrderServices_test) {
 }
 
 /**
- *  @brief Testing lustreRROrderServices() with a config file presenting 1 OSS A with 3 OST and 1 OSS B with 5 OST
- *         Expected result is a vector of OSTs from OSSs "ABABBABB"
+ *  @brief Testing lustreRROrderServices() with a config file presenting 1 OSS Type A with 3 OSTs and 1 OSS Type B with 5 OSTs
+ *         Expected result is a vector of OSTs from OSSs "ABABBABB" (more OSTs in type B OSS, that need to be distributed)
  */
 void FunctionalAllocTest::lustreRROrderServices_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_het_oss.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_het_oss.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -695,25 +710,33 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
 
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    LustreAllocator allocator(*(config));
+    LustreAllocator allocator(config);
+    wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                     const std::shared_ptr<wrench::DataFile> &file,
+                                                                     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        return allocator(file, resources, mapping, previous_allocations);
+    };
+
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            allocator,
+            allocatorCallback,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5003"},
-        {"lustre_OSS_B0", "simple_storage_3_5012"},
-        {"lustre_OSS_A0", "simple_storage_1_5006"},
-        {"lustre_OSS_B0", "simple_storage_4_5015"},
-        {"lustre_OSS_B0", "simple_storage_5_5018"},
-        {"lustre_OSS_A0", "simple_storage_2_5009"},
-        {"lustre_OSS_B0", "simple_storage_6_5021"},
-        {"lustre_OSS_B0", "simple_storage_7_5024"},
+        {"lustre_OSS_A0", "simple_storage_0_5004"},
+        {"lustre_OSS_B0", "simple_storage_3_5013"},
+        {"lustre_OSS_A0", "simple_storage_1_5007"},
+        {"lustre_OSS_B0", "simple_storage_4_5016"},
+        {"lustre_OSS_B0", "simple_storage_5_5019"},
+        {"lustre_OSS_A0", "simple_storage_2_5010"},
+        {"lustre_OSS_B0", "simple_storage_6_5022"},
+        {"lustre_OSS_B0", "simple_storage_7_5025"},
     };
 
     auto wms = simulation->add(
@@ -727,12 +750,12 @@ TEST_F(FunctionalAllocTest, lustreRROrderServices2_test) {
 }
 
 /**
- *  @brief Testing lustreRROrderServices() with a config file presenting 2 OSS (type A) with 3 OST and 2 OSS (type B) with 3 OST
- *         Expected result is a vector of OSTs from OSSs "ABABABABABAB"
+ *  @brief Testing lustreRROrderServices() with a config file presenting 2 OSS types (A and B) with 3 OSTs each
+ *         Expected result is a vector of OSTs from OSSs in the form "ABABAB"
  */
 void FunctionalAllocTest::lustreRROrderServices2_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_3OST1OSS.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_2OSS_3OST.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -751,23 +774,31 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
     /* Batch compute Service*/
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    LustreAllocator allocator(*(config));
+    LustreAllocator allocator(config);
+    wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                     const std::shared_ptr<wrench::DataFile> &file,
+                                                                     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        return allocator(file, resources, mapping, previous_allocations);
+    };
+
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            allocator,
+            allocatorCallback,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5003"},
-        {"lustre_OSS_B0", "simple_storage_3_5012"},
-        {"lustre_OSS_A0", "simple_storage_1_5006"},
-        {"lustre_OSS_B0", "simple_storage_4_5015"},
-        {"lustre_OSS_A0", "simple_storage_2_5009"},
-        {"lustre_OSS_B0", "simple_storage_5_5018"},
+        {"lustre_OSS_A0", "simple_storage_0_5004"},
+        {"lustre_OSS_B0", "simple_storage_3_5013"},
+        {"lustre_OSS_A0", "simple_storage_1_5007"},
+        {"lustre_OSS_B0", "simple_storage_4_5016"},
+        {"lustre_OSS_A0", "simple_storage_2_5010"},
+        {"lustre_OSS_B0", "simple_storage_5_5019"},
     };
 
     auto wms = simulation->add(
@@ -781,12 +812,12 @@ TEST_F(FunctionalAllocTest, lustreRROrderServices3_test) {
 }
 
 /**
- *  @brief Testing lustreRROrderServices() with a config file presenting 2 OSS (type A) with 3 OST and 2 OSS (type B) with 3 OST
- *         Expected result is a vector of OSTs from OSSs "ABABABABABAB"
+ *  @brief Testing lustreRROrderServices() with a config file presenting 1 OSS type "A", 1 OSS type "B", and 1 OSS type "C", each with 3 OSTs
+ *         Expected result is a vector of OSTs from OSSs "ABCABCABC"
  */
 void FunctionalAllocTest::lustreRROrderServices3_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_3OST3OSS.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_3OSS_3OST.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -805,26 +836,33 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
     /* Batch compute Service*/
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    LustreAllocator allocator(*(config));
+    LustreAllocator allocator(config);
+    wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                     const std::shared_ptr<wrench::DataFile> &file,
+                                                                     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        return allocator(file, resources, mapping, previous_allocations);
+    };
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            allocator,
+            allocatorCallback,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5003"},
-        {"lustre_OSS_B0", "simple_storage_3_5012"},
-        {"lustre_OSS_C0", "simple_storage_6_5021"},
-        {"lustre_OSS_A0", "simple_storage_1_5006"},
-        {"lustre_OSS_B0", "simple_storage_4_5015"},
-        {"lustre_OSS_C0", "simple_storage_7_5024"},
-        {"lustre_OSS_A0", "simple_storage_2_5009"},
-        {"lustre_OSS_B0", "simple_storage_5_5018"},
-        {"lustre_OSS_C0", "simple_storage_8_5027"},
+        {"lustre_OSS_A0", "simple_storage_0_5004"},
+        {"lustre_OSS_B0", "simple_storage_3_5013"},
+        {"lustre_OSS_C0", "simple_storage_6_5022"},
+        {"lustre_OSS_A0", "simple_storage_1_5007"},
+        {"lustre_OSS_B0", "simple_storage_4_5016"},
+        {"lustre_OSS_C0", "simple_storage_7_5025"},
+        {"lustre_OSS_A0", "simple_storage_2_5010"},
+        {"lustre_OSS_B0", "simple_storage_5_5019"},
+        {"lustre_OSS_C0", "simple_storage_8_5028"},
     };
 
     auto wms = simulation->add(
@@ -843,7 +881,7 @@ TEST_F(FunctionalAllocTest, lustreCreateFileParts_test) {
  */
 void FunctionalAllocTest::lustreCreateFileParts_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config.yml"));
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -862,7 +900,7 @@ void FunctionalAllocTest::lustreCreateFileParts_test() {
     /* Batch compute Service*/
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
-    auto allocator = std::make_shared<LustreAllocator>(*(config));
+    auto allocator = std::make_shared<LustreAllocator>(config);
 
     std::vector<std::shared_ptr<wrench::StorageService>> alloc_map;
     for (const auto &svc : sstorageservices) {
@@ -894,9 +932,9 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test) {
  */
 void FunctionalAllocTest::lustreFullSim_test() {
     // # Start a simulation with all components as they would be in a real case
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/lustre_config_hdd.yml"));
-    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader("../data/IOJobsTest_6_LustreSim.yml"));
-    auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_LustreSim.yml");
+    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_hdd.yml"));
+    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader(test::DATA_PATH + "IOJobsTest_6_LustreSim.yml"));
+    auto jobs = storalloc::loadYamlJobs(test::DATA_PATH + "IOJobsTest_6_LustreSim.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 1;
@@ -911,12 +949,19 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);
     auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
     ASSERT_EQ(sstorageservices.size(), 16);
-    LustreAllocator allocator(*(config));
+    LustreAllocator allocator(config);
+    wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                     const std::shared_ptr<wrench::DataFile> &file,
+                                                                     const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                     const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        return allocator(file, resources, mapping, previous_allocations);
+    };
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
             "compound_storage",
             sstorageservices,
-            allocator,
+            allocatorCallback,
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
@@ -981,7 +1026,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             ASSERT_EQ(file->getSize(), 2000000000);
             ASSERT_EQ(file_locations.size(), 1);
             ASSERT_EQ(file_locations[0]->getPath(), "/");
-            ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5051");
+            ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5052");
         }
 
         if (auto w_action = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
@@ -991,11 +1036,11 @@ void FunctionalAllocTest::lustreFullSim_test() {
             ASSERT_EQ(file->getID(), "output_data_file_1");
             ASSERT_EQ(file->getSize(), 2500000000);
             ASSERT_EQ(file_location->getPath(), "/");
-            ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5051");
+            ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5052");
         }
 
         if (auto c_action = std::dynamic_pointer_cast<wrench::ComputeAction>(action)) {
-            ASSERT_EQ(c_action->getFlops(), 7020000000000000); // 1000 GFlops, this is the current default, but it will change and break the test soon
+            ASSERT_EQ(c_action->getFlops(), 5940000000000000);
         }
 
         if (auto d_action = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {
@@ -1056,14 +1101,14 @@ void FunctionalAllocTest::lustreFullSim_test() {
         {4, wrench::IOAction::DeleteEnd},
         {5, wrench::IOAction::CopyToStart},
         {5, wrench::IOAction::CopyToEnd},
+        {6, wrench::IOAction::CopyToStart},
+        {6, wrench::IOAction::CopyToEnd},
         {5, wrench::IOAction::WriteStart},
         {5, wrench::IOAction::WriteEnd},
         {5, wrench::IOAction::DeleteStart},
         {5, wrench::IOAction::DeleteEnd},
         {5, wrench::IOAction::DeleteStart},
         {5, wrench::IOAction::DeleteEnd},
-        {6, wrench::IOAction::CopyToStart},
-        {6, wrench::IOAction::CopyToEnd},
         {6, wrench::IOAction::WriteStart},
         {6, wrench::IOAction::WriteEnd},
         {6, wrench::IOAction::DeleteStart},
@@ -1073,27 +1118,27 @@ void FunctionalAllocTest::lustreFullSim_test() {
     };
 
     std::vector<int> disk_usage_sizes = {
+        16, // Init
+
+        16, // Job 1
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
         16,
 
-        16,
-        16,
-        16,
-        16,
-        16,
-        16,
-        16,
-        16,
-
+        15, /// Job 2
+        15,
+        8,
+        8,
         15,
         15,
         8,
         8,
-        15,
-        15,
-        8,
-        8,
 
-        16,
+        16, // Job 3
         16,
         7,
         7,
@@ -1102,7 +1147,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
         7,
         7,
 
-        16,
+        16, // Job 4
         16,
         7,
         7,
@@ -1111,18 +1156,20 @@ void FunctionalAllocTest::lustreFullSim_test() {
         7,
         7,
 
+        10, // Copy To - Start / End - Job 5
         10,
-        10,
-        7,
+
+        16, // Copy To - Start / End - Job6
+        16,
+
+        7, // Job 5
         7,
         10,
         10,
         7,
         7,
 
-        16,
-        16,
-        7,
+        7, // Job 6
         7,
         16,
         16,
@@ -1152,19 +1199,19 @@ void FunctionalAllocTest::lustreFullSim_test() {
         previous_ts = ts;
 
         /*
-        std::cout << " INDEX " << index << std::endl;
-        std::cout << "## " << alloc.file_name << std::endl;
+        std::cout << "INDEX " << index << std::endl;
+        std::cout << " - " << alloc.file_name << std::endl;
         if ((entry.second.act == wrench::IOAction::CopyFromStart) or (entry.second.act == wrench::IOAction::CopyFromEnd)) {
-            std::cout << "# CopyFrom" << std::endl;
+            std::cout << " - CopyFrom" << std::endl;
         }
         if ((entry.second.act == wrench::IOAction::CopyToStart) or (entry.second.act == wrench::IOAction::CopyToEnd)) {
-            std::cout << "# CopyTo" << std::endl;
+            std::cout << " - CopyTo" << std::endl;
         }
         if ((entry.second.act == wrench::IOAction::WriteStart) or (entry.second.act == wrench::IOAction::WriteEnd)) {
-            std::cout << "# Write" << std::endl;
+            std::cout << " - Write" << std::endl;
         }
         if ((entry.second.act == wrench::IOAction::DeleteStart) or (entry.second.act == wrench::IOAction::DeleteEnd)) {
-            std::cout << "# Delete" << std::endl;
+            std::cout << " - Delete" << std::endl;
         }
         */
 

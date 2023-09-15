@@ -58,7 +58,7 @@ namespace storalloc {
 
     enum AllocatorType {
         Lustre,    // 'lustre' in config
-        GenericRR, // 'rr in config
+        GenericRR, // 'rr' in config
     };
 
     struct Config {

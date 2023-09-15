@@ -1,186 +1,194 @@
 /**
- ** This is the main function for a WRENCH simulator. The simulator takes
- ** a input an XML platform description file. It generates a workflow with
- ** a simple diamond structure, instantiates a few services on the platform, and
- ** starts an execution controller to execute the workflow using these services
- ** using a simple greedy algorithm.
- **/
+ ** This is the main file for the simulator.
+ ** It handles configuration and dataset loading, services instantiation
+ ** and starting the simulation.
+ */
 
 #include "Simulator.h"
 
 #include <iostream>
 
 #include "yaml-cpp/yaml.h"
-#include <simgrid/plugins/energy.h>
+#include <simgrid/kernel/routing/NetPoint.hpp>
 
 #include "AllocationStrategy.h"
 #include "Controller.h"
 #include "Platform.h"
 #include "Utils.h"
 
-std::set<std::shared_ptr<wrench::StorageService>> storalloc::instantiateStorageServices(std::shared_ptr<wrench::Simulation> simulation,
-                                                                                        std::shared_ptr<storalloc::Config> config) {
+WRENCH_LOG_CATEGORY(storalloc_main, "Log category for StorAlloc main simulation process");
 
-    // Simple storage services that will be accessed through CompoundStorageService
-    std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
+namespace storalloc {
 
-    for (const auto &node : config->nodes) { // node types
+    std::set<std::shared_ptr<wrench::StorageService>> instantiateStorageServices(std::shared_ptr<wrench::Simulation> simulation,
+                                                                                 std::shared_ptr<Config> config) {
 
-        // mount points list is the same for all nodes of a given type
-        std::set<std::string> mount_points;
-        for (const auto &disk : node.tpl.disks) {
-            for (auto j = 0; j < disk.qtt; j++) {
-                mount_points.insert(disk.tpl.mount_prefix + std::to_string(j));
+        // Simple storage services that will be accessed through CompoundStorageService
+        std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
+
+        for (const auto &node : config->nodes) { // node types
+
+            // mount points list is the same for all nodes of a given type
+            std::set<std::string> mount_points;
+            for (const auto &disk : node.tpl.disks) {
+                for (auto j = 0; j < disk.qtt; j++) {
+                    mount_points.insert(disk.tpl.mount_prefix + std::to_string(j));
+                }
+            }
+
+            for (auto i = 0; i < node.qtt; i++) { // qtt of each type
+                auto disk_count = 0;
+                for (const auto &mnt_pt : mount_points) {
+                    // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
+                    sstorageservices.insert(
+                        simulation->add(
+                            wrench::SimpleStorageService::createSimpleStorageService(
+                                node.tpl.id + std::to_string(i),
+                                {mnt_pt}, {}, {})));
+                }
             }
         }
 
-        for (auto i = 0; i < node.qtt; i++) { // qtt of each type
-            auto disk_count = 0;
-            for (const auto &mnt_pt : mount_points) {
-                // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
-                sstorageservices.insert(
-                    simulation->add(
-                        wrench::SimpleStorageService::createSimpleStorageService(
-                            node.tpl.id + std::to_string(i),
-                            {mnt_pt}, {}, {})));
-            }
+        WRENCH_INFO("Using %ld storage services", sstorageservices.size());
+
+        return sstorageservices;
+    }
+
+    std::shared_ptr<wrench::BatchComputeService> instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
+                                                                            std::shared_ptr<Config> config) {
+        std::vector<std::string> compute_nodes;
+        auto nb_compute_nodes = config->d_nodes * config->d_routers * config->d_chassis * config->d_groups;
+        WRENCH_INFO("Using %d compute nodes", nb_compute_nodes);
+        for (unsigned int i = 0; i < nb_compute_nodes; i++) {
+            compute_nodes.push_back("compute" + std::to_string(i));
         }
+        auto batch_service = simulation->add(new wrench::BatchComputeService(
+            "batch0", compute_nodes, "",
+            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf"}}, {}));
+        //{{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "easy_bf"}}, {}));
+
+        return batch_service;
     }
 
-    std::cout << "# Using " << sstorageservices.size() << " storage services" << std::endl;
+    /**
+     * @brief The Simulator's main function
+     *
+     * @param argc: argument count
+     * @param argv: argument array
+     * @return 0 on success, non-zero otherwise
+     */
+    int run_simulation(int argc, char **argv) {
 
-    return sstorageservices;
-}
+        if (argc < 3) {
+            std::cout << "################################################################" << std::endl;
+            std::cout << "# USAGE: " << argv[0] << " <config file> <job file>" << std::endl;
+            std::cout << "#          [Both files are expected to be YAML]" << std::endl;
+            std::cout << "# This program starts a WRENCH simulation of a batch scheduler, " << std::endl;
+            std::cout << "# with emphasis on storage resources model and collecting       " << std::endl;
+            std::cout << "# storage-related metrics.                                      " << std::endl;
+            std::cout << "################################################################" << std::endl;
+            return 1;
+        }
 
-std::shared_ptr<wrench::BatchComputeService> storalloc::instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
-                                                                                   std::shared_ptr<storalloc::Config> config) {
-    std::vector<std::string> compute_nodes;
-    auto nb_compute_nodes = config->d_nodes * config->d_routers * config->d_chassis * config->d_groups;
-    std::cout << "# Using " << nb_compute_nodes << " compute nodes" << std::endl;
-    for (unsigned int i = 0; i < nb_compute_nodes; i++) {
-        compute_nodes.push_back("compute" + std::to_string(i));
-    }
-    auto batch_service = simulation->add(new wrench::BatchComputeService(
-        "batch0", compute_nodes, "",
-        {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf"}}, {}));
+        // wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
+        WRENCH_INFO("Starting StorAlloc simulator");
 
-    return batch_service;
-}
+        std::string tag = "i";
+        if (argc == 4) {
+            tag = argv[3];
+        }
 
-/**
- * @brief The Simulator's main function
- *
- * @param argc: argument count
- * @param argv: argument array
- * @return 0 on success, non-zero otherwise
- */
-int storalloc::run_simulation(int argc, char **argv) {
+        // Load Compute and Storage configuration
+        std::string configFilename = argv[1];
+        std::shared_ptr<Config> config;
+        try {
+            config = std::make_shared<Config>(loadConfig(configFilename));
+        } catch (const YAML::TypedBadConversion<storalloc::Config> &e) {
+            WRENCH_WARN("ERROR : Unable to load config due to bad type conversion : %s", e.what());
+            return 1;
+        } catch (const YAML::InvalidNode &e) {
+            WRENCH_WARN("ERROR : Unable to load config due to invalid config format : %s", e.what());
+            return 1;
+        }
+        auto start = configFilename.find_last_of("/") + 1;
+        configFilename = configFilename.substr(start, configFilename.find_last_of(".") - start);
 
-    if (argc < 3) {
-        std::cout << "###############################################################" << std::endl;
-        std::cout << "# USAGE: " << argv[0] << " <config file> <job file>" << std::endl;
-        std::cout << "#          [Both files are expected to be YAML]" << std::endl;
-        std::cout << "# This program starts a WRENCH simulation of a batch scheduler" << std::endl;
-        std::cout << "###############################################################" << std::endl;
-        return 1;
-    }
+        std::string jobFilename = argv[2];
+        auto header = std::make_shared<JobsStats>(loadYamlHeader(jobFilename));
+        auto jobs = storalloc::loadYamlJobs(jobFilename);
+        start = jobFilename.find_last_of("/") + 1;
+        jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
 
-    std::string tag = "i";
-    if (argc == 4) {
-        tag = argv[3];
-    }
+        /* Create a WRENCH simulation object */
+        auto simulation = wrench::Simulation::createSimulation();
+        simulation->init(&argc, argv);
 
-    // Load Compute and Storage configuration
-    std::string configFilename = argv[1];
-    std::shared_ptr<storalloc::Config> config;
-    try {
-        config = std::make_shared<storalloc::Config>(storalloc::loadConfig(configFilename));
-    } catch (const YAML::TypedBadConversion<storalloc::Config> &e) {
-        cout << "ERROR : Unable to load config due to bad type conversion : " << e.what() << std::endl;
-        return 1;
-    } catch (const YAML::InvalidNode &e) {
-        cout << "ERROR : Unable to load config due to invalid config format : " << e.what() << std::endl;
-        return 1;
-    }
+        /* Instantiating the simulated platform with user-provided config */
+        auto platform_factory = PlatformFactory(config);
+        simulation->instantiatePlatform(platform_factory);
+        simulation->getOutput().enableDiskTimestamps(true);
 
-    auto start = configFilename.find_last_of("/") + 1;
-    configFilename = configFilename.substr(start, configFilename.find_last_of(".") - start);
-    std::cout << "Config filename (no ext) : " << configFilename << std::endl;
+        /* Simple storage services and compound storage service */
+        auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
 
-    /* Loading jobs */
-    std::string jobFilename = argv[2];
-    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader(jobFilename));
+        /**
+         * What is this useless sorcery you say? Well it was either that or template + type traits + shared_ptr --'
+         * The issue: if you pass to the CompoundStorageService constructor a functor that has the same signature as a
+         * StorageSelectionStrategyCallback, but isn't one, it will be implicitely converted to a StorageSelectionStrategyCallback.
+         * Because we want to work with references, what seems to happen is that the CSS ends up not with a reference to the actual
+         * functor, but to the (temporary?) StorageSelectionStrategyCallback created from converting our functor.
+         * This has no consequences... except if the allocator (eg. LustreAllocator here), has member variables which were initialized
+         * before the conversion/copy (maybe we could go around the issue by specifying a user defined conversion function but...)
+         */
+        LustreAllocator allocator(config);
+        wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
+                                                                         const std::shared_ptr<wrench::DataFile> &file,
+                                                                         const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                         const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                         const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+            return allocator(file, resources, mapping, previous_allocations);
+        };
 
-    auto jobs = storalloc::loadYamlJobs(jobFilename);
-    start = jobFilename.find_last_of("/") + 1;
-    jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
-    std::cout << "Jobs filename (no ext) : " << jobFilename << std::endl;
+        /* Compound storage service*/
+        auto compound_storage_service = simulation->add(
+            new wrench::CompoundStorageService(
+                "compound_storage",
+                sstorageservices,
+                allocatorCallback,
+                {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
+                 {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}}, // because the Lustre allocator takes charge of striping
+                {}));
 
-    /* Create a WRENCH simulation object */
-    auto simulation = wrench::Simulation::createSimulation();
+        /* Permanent storage */
+        auto permanent_storage = simulation->add(
+            wrench::SimpleStorageService::createSimpleStorageService(
+                "permanent_storage", {"/dev/disk0"}, {}, {}));
 
-    // sg_host_energy_plugin_init();
+        /* Batch compute service */
+        auto batch_service = storalloc::instantiateComputeServices(simulation, config);
 
-    /* Initialize the simulation */
-    simulation->init(&argc, argv);
+        /* Execution controller */
+        auto ctrl = simulation->add(
+            new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
 
-    /* Instantiating the simulated platform with user-provided config*/
-    auto platform_factory = storalloc::PlatformFactory(config);
-    simulation->instantiatePlatform(platform_factory);
-    simulation->getOutput().enableDiskTimestamps(true);
+        WRENCH_INFO("Starting simulation...");
+        simulation->launch();
 
-    /* Simple storage services */
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+        auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
+        for (auto const &item : trace) {
+            WRENCH_DEBUG("Task %s completed at time %f", item->getContent()->getTask()->getID().c_str(), item->getDate());
+        }
 
-    auto config_ref = *(config);
-    auto allocator = LustreAllocator(config_ref);
+        auto action_results = ctrl->actionsAllCompleted();
+        if (not action_results) {
+            WRENCH_WARN("Some actions have failed");
+        }
 
-    /* Compound storage service*/
-    auto compound_storage_service = simulation->add(
-        new wrench::CompoundStorageService(
-            "compound_storage",
-            sstorageservices,
-            allocator,
-            {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
-             {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}}, // because the Lustre allocator takes charge of striping
-            {}));
+        // Extract traces into files tagged with dataset and config version.
+        ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
+        ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
 
-    /* Permanent storage */
-    auto permanent_storage = simulation->add(
-        wrench::SimpleStorageService::createSimpleStorageService(
-            "permanent_storage", {"/dev/disk0"}, {}, {}));
-
-    /* Batch compute service */
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-
-    /* Execution controller */
-    auto ctrl = simulation->add(
-        new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
-
-    /* Launch the simulation */
-    std::cout << "Launching simulation..." << std::endl;
-    simulation->launch();
-
-    // Playing around with energy plugin, not useful so far
-    // auto storage_host = sg4::Host::by_name("compound_storage");
-    // auto consummed = sg_host_get_consumed_energy(storage_host);
-    // std::cout << "Energy consumed : " << consummed << std::endl;
-    // simulation->getOutput().dumpDiskOperationsJSON("./wrench_disk_ops.json", true);
-    // simulation->getOutput().dumpHostEnergyConsumptionJSON("./wrench_energy_consumption", true);
-
-    auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
-    for (auto const &item : trace) {
-        std::cout << "Task " << item->getContent()->getTask()->getID() << " completed at time " << item->getDate() << std::endl;
+        return 0;
     }
 
-    auto action_results = ctrl->actionsAllCompleted();
-    if (not action_results) {
-        std::cout << "Some actions have failed" << std::endl;
-    }
-
-    // Extract traces into files tagged with dataset and config version.
-    ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
-    ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
-
-    return 0;
-}
+} // namespace storalloc

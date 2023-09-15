@@ -1,17 +1,19 @@
 #include <gtest/gtest.h>
 
+#include "./include/TestConstants.h"
 #include "./include/TestWithFork.h"
 
+#include "../include/Platform.h"
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
-#include "../include/Platform.h"
 
-class BasicFunctionalTest : public ::testing::Test
-{
+using namespace storalloc;
+
+class BasicFunctionalTest : public ::testing::Test {
 
 public:
     void create_platform_test();
-    void do_Functional_test();
+    void simulation_run_rr();
     void instantiate_storage_services_test();
     void instantiate_compute_services_test();
 
@@ -25,43 +27,39 @@ protected:
 /**  Functionnal Test 1                                              **/
 /**********************************************************************/
 
-TEST_F(BasicFunctionalTest, BasicFunctionalTest1)
-{
-    // DO_TEST_WITH_FORK(do_Functional_test);
+TEST_F(BasicFunctionalTest, BasicSimulationRun) {
+    DO_TEST_WITH_FORK(simulation_run_rr);
 }
 
 /**
  *  @brief Basic functional test (just running a simple configuration and job file scenario),
  *         not checking anything except the execution without exceptions.
  */
-void BasicFunctionalTest::do_Functional_test()
-{
+void BasicFunctionalTest::simulation_run_rr() {
 
     int argc = 3;
     char **argv = (char **)calloc(argc, sizeof(char *));
     argv[0] = strdup("unit_test");
-    argv[1] = strdup("../configs/test_config.yml");
-    argv[2] = strdup("../data/IOJobsTest_1.yml");
+    argv[1] = strdup((test::CONFIG_PATH + "rr_config.yml").c_str());
+    argv[2] = strdup((test::DATA_PATH + "test_1_job.yml").c_str());
 
-    ASSERT_NO_THROW(auto ret = storalloc::run_simulation(argc, argv););
+    ASSERT_NO_THROW(auto ret = run_simulation(argc, argv););
 
     for (int i = 0; i < argc; i++)
         free(argv[i]);
     free(argv);
 }
 
-TEST_F(BasicFunctionalTest, create_platform_test)
-{
+TEST_F(BasicFunctionalTest, create_platform_test) {
     DO_TEST_WITH_FORK(create_platform_test);
 }
 
 /**
  *  @brief Testing programmatic platform creation
  */
-void BasicFunctionalTest::create_platform_test()
-{
+void BasicFunctionalTest::create_platform_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/test_config.yml"));
+    auto config = std::make_shared<Config>(loadConfig(test::CONFIG_PATH + "rr_config.yml"));
 
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 1;
@@ -69,7 +67,7 @@ void BasicFunctionalTest::create_platform_test()
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     // Check compute nodes topo
@@ -114,22 +112,14 @@ void BasicFunctionalTest::create_platform_test()
     ASSERT_EQ(capacity2->get_disks()[0]->get_sharing_policy(sg4::Disk::Operation::READ), sg4::Disk::SharingPolicy::NONLINEAR);
     ASSERT_EQ(capacity2->get_disks()[0]->get_sharing_policy(sg4::Disk::Operation::WRITE), sg4::Disk::SharingPolicy::NONLINEAR);
 
-    for (const auto disk : capacity2->get_disks())
-    {
-        if ((disk->get_name() == "hdd_capa0") || (disk->get_name() == "hdd_capa1"))
-        {
+    for (const auto disk : capacity2->get_disks()) {
+        if ((disk->get_name() == "hdd_capa0") || (disk->get_name() == "hdd_capa1")) {
             ASSERT_EQ(disk->get_read_bandwidth(), 100000000);
             ASSERT_EQ(disk->get_write_bandwidth(), 50000000);
-            // ASSERT_EQ(disk->get_concurrency_limit(), 500);
-        }
-        else if (disk->get_name() == "ssd_perf0")
-        {
+        } else if (disk->get_name() == "ssd_perf0") {
             ASSERT_EQ(disk->get_read_bandwidth(), 1000000000);
             ASSERT_EQ(disk->get_write_bandwidth(), 500000000);
-            // ASSERT_EQ(disk->get_concurrency_limit(), -1);
-        }
-        else
-        {
+        } else {
             GTEST_FAIL();
         }
     }
@@ -166,18 +156,16 @@ void BasicFunctionalTest::create_platform_test()
     // auto s1 = wrench::SimpleStorageService::createSimpleStorageService("capacity1", {"/dev/hdd1"});
 }
 
-TEST_F(BasicFunctionalTest, instantiate_storage_services_test)
-{
+TEST_F(BasicFunctionalTest, instantiate_storage_services_test) {
     DO_TEST_WITH_FORK(instantiate_storage_services_test);
 }
 
 /**
  *  @brief Testing programmatic platform creation
  */
-void BasicFunctionalTest::instantiate_storage_services_test()
-{
+void BasicFunctionalTest::instantiate_storage_services_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/test_config.yml"));
+    auto config = std::make_shared<Config>(loadConfig(test::CONFIG_PATH + "rr_config.yml"));
 
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 1;
@@ -192,37 +180,29 @@ void BasicFunctionalTest::instantiate_storage_services_test()
 
     ASSERT_EQ(ss_storages.size(), 12); // Four storage nodes * 3 disks = 12 storage services
 
-    for (const auto &service : ss_storages)
-    {
+    for (const auto &service : ss_storages) {
         auto simple = std::dynamic_pointer_cast<wrench::SimpleStorageService>(service);
         auto mount_point = simple->getMountPoints();
         ASSERT_EQ(mount_point.size(), 1);
-        if ((mount_point.find("/dev/hdd0") != mount_point.end()) || (mount_point.find("/dev/hdd1") != mount_point.end()))
-        {
+        if ((mount_point.find("/dev/hdd0") != mount_point.end()) || (mount_point.find("/dev/hdd1") != mount_point.end())) {
             ASSERT_EQ(simple->traceTotalFreeSpace(), 200000000000);
             ASSERT_EQ(simple->traceTotalFiles(), 0);
-        }
-        else if (mount_point.find("/dev/ssd0") != mount_point.end())
-        {
+        } else if (mount_point.find("/dev/ssd0") != mount_point.end()) {
             ASSERT_EQ(simple->traceTotalFreeSpace(), 96000000000);
             ASSERT_EQ(simple->traceTotalFiles(), 0);
-        }
-        else
-        {
+        } else {
             GTEST_FAIL();
         }
     }
 }
 
-class TestController : public wrench::ExecutionController
-{
+class TestController : public wrench::ExecutionController {
 public:
     TestController(const std::shared_ptr<wrench::ComputeService> &compute_service,
                    const std::string &hostname) : wrench::ExecutionController(hostname, "controller"), compute_s(compute_service) {}
 
-    int main() override
-    {
-        
+    int main() override {
+
         if (this->compute_s->getNumHosts() != 384) {
             throw std::runtime_error("Invalid number of compute hosts");
         }
@@ -233,29 +213,26 @@ public:
 
         for (const auto &mem : this->compute_s->getMemoryCapacity()) {
             if (mem.second != 192000000000) {
-                throw std::runtime_error("Invalid RAM capcity "+ std::to_string(mem.second));
+                throw std::runtime_error("Invalid RAM capcity " + std::to_string(mem.second));
             }
         }
-    
+
         return 0;
     }
 
     std::shared_ptr<wrench::ComputeService> compute_s;
-
 };
 
-TEST_F(BasicFunctionalTest, instantiate_compute_services_test)
-{
+TEST_F(BasicFunctionalTest, instantiate_compute_services_test) {
     DO_TEST_WITH_FORK(instantiate_compute_services_test);
 }
 
 /**
  *  @brief Testing programmatic platform creation
  */
-void BasicFunctionalTest::instantiate_compute_services_test()
-{
+void BasicFunctionalTest::instantiate_compute_services_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig("../configs/test_config.yml"));
+    auto config = std::make_shared<Config>(loadConfig(test::CONFIG_PATH + "rr_config.yml"));
 
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 1;
@@ -263,7 +240,7 @@ void BasicFunctionalTest::instantiate_compute_services_test()
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     auto batch_service = storalloc::instantiateComputeServices(simulation, config);

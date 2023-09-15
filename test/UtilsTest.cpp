@@ -2,12 +2,15 @@
 
 #include <gtest/gtest.h>
 
+#include "./include/TestConstants.h"
 #include "./include/TestWithFork.h"
 
 #include "../include/AllocationStrategy.h"
 #include "../include/ConfigDefinition.h"
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
+
+using namespace storalloc;
 
 class BasicUtilsTest : public ::testing::Test {
 
@@ -28,7 +31,7 @@ TEST_F(BasicUtilsTest, loadYamlJobs_test) {
 
 void BasicUtilsTest::loadYamlJobs_test() {
 
-    auto jobs = storalloc::loadYamlJobs("../data/IOJobsTest_6_small_IO.yml");
+    auto jobs = loadYamlJobs(test::DATA_PATH + "IOJobsTest_6_small_IO.yml");
 
     ASSERT_EQ(jobs.size(), 6);
 
@@ -37,7 +40,6 @@ void BasicUtilsTest::loadYamlJobs_test() {
     ASSERT_EQ(job_2.id, "2");
     ASSERT_EQ(job_2.coresUsed, 32);
     ASSERT_EQ(job_2.endTime, "2023-01-01 00:11:00");
-    // ASSERT_EQ(job_2.nprocs, 32);
     ASSERT_EQ(job_2.nodesUsed, 2);
     ASSERT_EQ(job_2.readBytes, 6000000000);
     ASSERT_EQ(job_2.runtimeSeconds, 3300);
@@ -46,10 +48,10 @@ void BasicUtilsTest::loadYamlJobs_test() {
     ASSERT_EQ(job_2.submissionTime, "2023-01-01 00:10:00");
     ASSERT_EQ(job_2.writtenBytes, 3000000000);
 
-    ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_coresUsed.yml"), std::runtime_error);
-    ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_mpiProcs.yml"), std::runtime_error);
-    ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_nodesUsed.yml"), std::runtime_error);
-    ASSERT_THROW(storalloc::loadYamlJobs("../data/IOJobsTest__invalid_runTime.yml"), std::runtime_error);
+    ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_coresUsed.yml"), std::runtime_error);
+    ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_computeTime.yml"), std::runtime_error);
+    ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_nodesUsed.yml"), std::runtime_error);
+    ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_runTime.yml"), std::runtime_error);
 }
 
 /**********************************************************************/
@@ -65,12 +67,12 @@ TEST_F(BasicUtilsTest, loadConfig_test) {
  */
 void BasicUtilsTest::loadConfig_test() {
 
-    auto config = storalloc::loadConfig("../configs/test_config.yml");
+    auto config = loadConfig(test::CONFIG_PATH + "rr_config.yml");
 
     ASSERT_EQ(config.bkbone_bw, "25000MBps");
     ASSERT_EQ(config.config_version, "0.0.1");
-    ASSERT_EQ(config.config_name, "StorAlloc_Test");
-    ASSERT_EQ(config.max_stripe_size, 960000000);
+    ASSERT_EQ(config.config_name, "StorAlloc_Test_RR");
+    ASSERT_EQ(config.max_stripe_size, 100000000);
     ASSERT_EQ(config.d_groups, 2);
     ASSERT_EQ(config.d_group_links, 3);
     ASSERT_EQ(config.d_chassis, 4);

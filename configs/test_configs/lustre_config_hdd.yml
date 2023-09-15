@@ -8,12 +8,18 @@
 general:
   backbone_bw: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
-  config_name: StorAlloc_Lustre_TEST
+  config_name: StorAlloc_Test_Lustre_HDD
   max_stripe_size: 640000000    # Max size for allocation stripes (in bytes) (when striping is done at CSS level)
   permanent_storage_read_bw: 10000MBps
   permanent_storage_write_bw: 10000MBps
   permanent_storage_capacity: 10000TB
   preload_percent: 0
+  amdahl: 0.5
+  walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
+  non_linear_coef_read: 0.9
+  non_linear_coef_write: 0.6
+  read_variability: 1.0
+  write_variability: 0.8
 storage:
   disk_templates:
     - &hdd_OST

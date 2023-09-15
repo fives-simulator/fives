@@ -1,14 +1,13 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
-#include <set>
 #include <memory>
+#include <set>
 #include <wrench-dev.h>
 
 #include "ConfigDefinition.h"
 
-namespace storalloc
-{
+namespace storalloc {
 
     /**
      * @brief Helper function to instatiate all required StorageServices from the main config
@@ -19,17 +18,15 @@ namespace storalloc
     std::set<std::shared_ptr<wrench::StorageService>> instantiateStorageServices(std::shared_ptr<wrench::Simulation> simulation,
                                                                                  std::shared_ptr<storalloc::Config> config);
 
-  
-    /** 
+    /**
      * @brief Helper function to instatiate all required ComputeServices from the main config
      * @param simulation An initialized Wrench simulation object
      * @param config The configuration loaded from YAML
-     * @return Resulting wrench BatchComputeService 
+     * @return Resulting wrench BatchComputeService
      */
-    std::shared_ptr<wrench::BatchComputeService>  instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation, 
-                                                      std::shared_ptr<storalloc::Config> config);
+    std::shared_ptr<wrench::BatchComputeService> instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
+                                                                            std::shared_ptr<storalloc::Config> config);
 
-  
     /**
      * @brief The Simulator's main function
      *
@@ -39,6 +36,6 @@ namespace storalloc
      */
     int run_simulation(int argc, char **argv);
 
-} // storalloc
+} // namespace storalloc
 
 #endif // SIMULATOR_H
