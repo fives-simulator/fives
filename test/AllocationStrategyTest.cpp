@@ -729,14 +729,14 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5004"},
-        {"lustre_OSS_B0", "simple_storage_3_5013"},
-        {"lustre_OSS_A0", "simple_storage_1_5007"},
-        {"lustre_OSS_B0", "simple_storage_4_5016"},
-        {"lustre_OSS_B0", "simple_storage_5_5019"},
-        {"lustre_OSS_A0", "simple_storage_2_5010"},
-        {"lustre_OSS_B0", "simple_storage_6_5022"},
-        {"lustre_OSS_B0", "simple_storage_7_5025"},
+        {"lustre_OSS_A0", "simple_storage_0_5003"},
+        {"lustre_OSS_B0", "simple_storage_3_5012"},
+        {"lustre_OSS_A0", "simple_storage_1_5006"},
+        {"lustre_OSS_B0", "simple_storage_4_5015"},
+        {"lustre_OSS_B0", "simple_storage_5_5018"},
+        {"lustre_OSS_A0", "simple_storage_2_5009"},
+        {"lustre_OSS_B0", "simple_storage_6_5021"},
+        {"lustre_OSS_B0", "simple_storage_7_5024"},
     };
 
     auto wms = simulation->add(
@@ -793,12 +793,12 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5004"},
-        {"lustre_OSS_B0", "simple_storage_3_5013"},
-        {"lustre_OSS_A0", "simple_storage_1_5007"},
-        {"lustre_OSS_B0", "simple_storage_4_5016"},
-        {"lustre_OSS_A0", "simple_storage_2_5010"},
-        {"lustre_OSS_B0", "simple_storage_5_5019"},
+        {"lustre_OSS_A0", "simple_storage_0_5003"},
+        {"lustre_OSS_B0", "simple_storage_3_5012"},
+        {"lustre_OSS_A0", "simple_storage_1_5006"},
+        {"lustre_OSS_B0", "simple_storage_4_5015"},
+        {"lustre_OSS_A0", "simple_storage_2_5009"},
+        {"lustre_OSS_B0", "simple_storage_5_5018"},
     };
 
     auto wms = simulation->add(
@@ -854,15 +854,15 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5004"},
-        {"lustre_OSS_B0", "simple_storage_3_5013"},
-        {"lustre_OSS_C0", "simple_storage_6_5022"},
-        {"lustre_OSS_A0", "simple_storage_1_5007"},
-        {"lustre_OSS_B0", "simple_storage_4_5016"},
-        {"lustre_OSS_C0", "simple_storage_7_5025"},
-        {"lustre_OSS_A0", "simple_storage_2_5010"},
-        {"lustre_OSS_B0", "simple_storage_5_5019"},
-        {"lustre_OSS_C0", "simple_storage_8_5028"},
+        {"lustre_OSS_A0", "simple_storage_0_5003"},
+        {"lustre_OSS_B0", "simple_storage_3_5012"},
+        {"lustre_OSS_C0", "simple_storage_6_5021"},
+        {"lustre_OSS_A0", "simple_storage_1_5006"},
+        {"lustre_OSS_B0", "simple_storage_4_5015"},
+        {"lustre_OSS_C0", "simple_storage_7_5024"},
+        {"lustre_OSS_A0", "simple_storage_2_5009"},
+        {"lustre_OSS_B0", "simple_storage_5_5018"},
+        {"lustre_OSS_C0", "simple_storage_8_5027"},
     };
 
     auto wms = simulation->add(
@@ -1026,7 +1026,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             ASSERT_EQ(file->getSize(), 2000000000);
             ASSERT_EQ(file_locations.size(), 1);
             ASSERT_EQ(file_locations[0]->getPath(), "/");
-            ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5052");
+            ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5051");
         }
 
         if (auto w_action = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
@@ -1036,7 +1036,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             ASSERT_EQ(file->getID(), "output_data_file_1");
             ASSERT_EQ(file->getSize(), 2500000000);
             ASSERT_EQ(file_location->getPath(), "/");
-            ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5052");
+            ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5051");
         }
 
         if (auto c_action = std::dynamic_pointer_cast<wrench::ComputeAction>(action)) {
