@@ -87,9 +87,12 @@ namespace storalloc {
         // Simulate 'fake' load before the actual dataset is used
         auto preload_jobs = this->createPreloadJobs();
 
-        // concat preload jobs with dataset
+        // Concat preload jobs with dataset
         std::vector<storalloc::YamlJob> jobsWithPreload(preload_jobs);
         jobsWithPreload.insert(jobsWithPreload.end(), this->jobs.begin(), this->jobs.end());
+
+        std::cout << "Stripe_count is : " << this->config->lustre.stripe_count << std::endl;
+        std::cout << "Config version : " << this->config->config_version << std::endl;
 
         // Simulate jobs
         auto total_events = 0;
@@ -109,11 +112,12 @@ namespace storalloc {
             auto nextSubmission = false;
             while (!nextSubmission) {
 
-                auto event = this->waitForNextEvent(3600);
-                if (!event) {
+                auto event = this->waitForNextEvent(); // remove timeout ?
+                /*
+                if (!event) {                          // remove
                     continue;
                 }
-
+                */
                 processed_events += 1;
 
                 if (auto timer_event = std::dynamic_pointer_cast<wrench::TimerEvent>(event)) {
@@ -406,10 +410,11 @@ namespace storalloc {
         // % of available compute resources used by the job and its execution time (minor a factor of the time spend in IO ?)
         auto cores_per_node = this->current_yaml_job.coresUsed / this->current_yaml_job.nodesUsed;
 
+        // Create one compute action per node // OR setup the sched to simulate compute as sleep and use the job's compute time for the sleep.
         auto computeAction = this->current_job->addComputeAction(
             "compute_" + this->current_yaml_job.id,
-            this->flopRate * this->current_yaml_job.approxComputeTimeSeconds * 1.2,
-            192 * GBYTE,
+            this->flopRate * this->current_yaml_job.approxComputeTimeSeconds,
+            192 * GBYTE, // Not used
             cores_per_node, cores_per_node,
             wrench::ParallelModel::AMDAHL(this->config->amdahl));
 
@@ -648,7 +653,6 @@ namespace storalloc {
             out_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq; // action sequence
 
             for (const auto &action : sorted_actions) {
-
                 if (action->getState() != wrench::Action::COMPLETED) {
                     WRENCH_WARN("Action %s is in state %s", action->getName().c_str(), action->getStateAsString().c_str());
                     throw std::runtime_error("Action is not in COMPLETED state");

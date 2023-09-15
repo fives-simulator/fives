@@ -1,14 +1,20 @@
 ---
 
 general:
-  backbone_bw: 25000MBps    # 200Gbps backbone...
+  backbone_bw: 25000MBps              # 200Gbps backbone...
   config_version: 0.0.1
-  config_name: StorAlloc_Test
-  max_stripe_size: 960000000    # Max size for allocation stripes (in bytes)
+  config_name: StorAlloc_Test_RR
+  max_stripe_size: 100000000          # Max size for allocation stripes (in bytes) -> 100MB
   permanent_storage_read_bw: 10000MBps
   permanent_storage_write_bw: 10000MBps
   permanent_storage_capacity: 10000TB
-  preload_percent: 0
+  preload_percent: 0                  # Used with test dataset with only 1 job, generating preload jobs would be hazardous                 
+  amdahl: 0.5
+  walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
+  non_linear_coef_read: 0.9
+  non_linear_coef_write: 0.6
+  read_variability: 1.0
+  write_variability: 0.8
 storage:
   disk_templates:
     - &hdd_capa
@@ -23,7 +29,7 @@ storage:
       read_bw: 1000   # MBps
       write_bw: 500   # MBps
       mount_prefix: /dev/ssd
-  node_templates:
+  node_templates:                     # Basic heterogeneous storage
     - &node_capa
       id: capacity
       disks:
@@ -37,15 +43,15 @@ storage:
 dragonfly:
   groups: 2         # Entire Dragonfly zone
   group_links: 3
-  chassis: 4        # per group
+  chassis: 4        # Per group
   chassis_links: 5
-  routers: 6        # per chassis
+  routers: 6        # Per chassis
   router_links: 7
-  nodes: 8          # per router
+  nodes: 8          # Per router
   core_count: 64    # Compute node core count - unused
   ram: 192GB        # Compute node ram - unused
   node_local_storage:
-    enabled: false     # Not implemented yet anyway
+    enabled: false     # Not implemented yet
     nb_disks: 1
     capacity: 128 # GB
     read_bw: 1000 # MBps

@@ -8,12 +8,18 @@
 general:
   backbone_bw: 25000MBps    # 200Gbps backbone...
   config_version: 0.0.1
-  config_name: StorAlloc_Lustre_TEST
+  config_name: StorAlloc_Test_Lustre_base
   max_stripe_size: 640000000    # Max size for allocation stripes (in bytes) (when striping is done at CSS level)
   permanent_storage_read_bw: 10000MBps
   permanent_storage_write_bw: 10000MBps
   permanent_storage_capacity: 10000TB
   preload_percent: 0
+  amdahl: 0.5
+  walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
+  non_linear_coef_read: 0.9
+  non_linear_coef_write: 0.6
+  read_variability: 1.0
+  write_variability: 0.8
 storage:
   disk_templates:
     - &raid_OSS
@@ -49,8 +55,9 @@ dragonfly:
     write_bw: 500 # MBps
 allocator: lustre
 lustre:
-  lq_threshold_rr: 43
-  lq_prio_free: 232
-  max_nb_ost: 2000
+  lq_threshold_rr: 43     # lustre default
+  lq_prio_free: 232       # lustre default
   stripe_size: 40000000
+  stripe_count: 1         # Default number of OSTs used for each IO operation
+  max_chunks_per_ost: 80  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 ...
