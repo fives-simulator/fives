@@ -2,6 +2,7 @@
 #include "AllocationStrategy.h"
 
 #include "yaml-cpp/yaml.h"
+#include <iomanip>
 #include <simgrid/kernel/routing/NetPoint.hpp>
 #include <wrench-dev.h>
 
@@ -105,10 +106,37 @@ namespace storalloc {
             throw std::invalid_argument("Invalid job file as input data");
         }
 
+        const char *timedate_fm = "";
         std::vector<YamlJob> job_list;
+        std::tm previous_ts{};
+        previous_ts.tm_hour = 0;
+        previous_ts.tm_min = 0;
+        previous_ts.tm_sec = 0;
+        previous_ts.tm_year = 0;
+        previous_ts.tm_mon = 0;
+        previous_ts.tm_mday = 0;
+
         for (const auto &job : dataset["jobs"]) {
             try {
-                job_list.push_back(job.as<storalloc::YamlJob>());
+                auto parsed_job = job.as<storalloc::YamlJob>();
+                std::istringstream ss(parsed_job.submissionTime);
+                std::tm t = {};
+                ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S"); // eg. '2022-10-01 03:42:52'
+                                                              /*if ((t.tm_year >= previous_ts.tm_year) and
+                                                                  (t.tm_mon >= previous_ts.tm_mon) and
+                                                                  (t.tm_mday >= previous_ts.tm_mday) and
+                                                                  (t.tm_hour >= previous_ts.tm_hour) and
+                                                                  (t.tm_min >= previous_ts.tm_min) and
+                                                                  (t.tm_sec >= previous_ts.tm_sec)) {*/
+                job_list.push_back(parsed_job);
+                previous_ts = t;
+                /*} else {
+                    WRENCH_WARN("Current job's submission time : %s", std::asctime(&t));
+                    WRENCH_WARN("Previous job's submission time : %s", std::asctime(&previous_ts));
+                    WRENCH_WARN("Job %s submission time is inferior to the previous parsed job (job ordering is incorrect in dataset)", parsed_job.id.c_str());
+                    throw runtime_error("Job " + parsed_job.id + " submission time is inferior to the previous parsed job");
+                }*/
+
             } catch (std::exception &e) {
                 std::string id = job["id"].as<std::string>();
                 WRENCH_WARN("Job %s in file %s has invalid caracteristics", id.c_str(), yaml_file_path.c_str());

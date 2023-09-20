@@ -3,23 +3,19 @@
         {
             "name": "Linux",
             "includePath": [
-                "${default}",
-                "${workspaceFolder}/include",
-                "/opt/simgrid/include",
-                "/usr/local/lib",
-                "/opt/simgrid/lib"
+                "${workspaceFolder}/**",
+                "/opt/simgrid/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
-            "cStandard": "c17",
+            "cStandard": "c99",
             "cppStandard": "c++14",
-            "intelliSenseMode": "linux-clang-x64",
-            "configurationProvider": "ms-vscode.cmake-tools",
+            "intelliSenseMode": "${default}",
             "browse": {
-                "path": [
-                    "/opt/simgrid/include"
-                ]
-            }
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4
