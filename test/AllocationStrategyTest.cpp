@@ -411,7 +411,7 @@ public:
         auto job = job_manager->createCompoundJob("Job1");
 
         auto simple = std::dynamic_pointer_cast<wrench::SimpleStorageService>(*(this->storage_services.begin()));
-        uint64_t free_space_in_service = simple->traceTotalFreeSpace();
+        uint64_t free_space_in_service = simple->getTotalFreeSpaceZeroTime();
 
         job->addFileWriteAction(
             "write1", wrench::FileLocation::LOCATION(*(this->storage_services.begin()), this->file_50GB));

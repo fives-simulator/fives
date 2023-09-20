@@ -185,11 +185,11 @@ void BasicFunctionalTest::instantiate_storage_services_test() {
         auto mount_point = simple->getMountPoints();
         ASSERT_EQ(mount_point.size(), 1);
         if ((mount_point.find("/dev/hdd0") != mount_point.end()) || (mount_point.find("/dev/hdd1") != mount_point.end())) {
-            ASSERT_EQ(simple->traceTotalFreeSpace(), 200000000000);
-            ASSERT_EQ(simple->traceTotalFiles(), 0);
+            ASSERT_EQ(simple->getTotalFreeSpaceZeroTime(), 200000000000);
+            ASSERT_EQ(simple->getTotalFilesZeroTime(), 0);
         } else if (mount_point.find("/dev/ssd0") != mount_point.end()) {
-            ASSERT_EQ(simple->traceTotalFreeSpace(), 96000000000);
-            ASSERT_EQ(simple->traceTotalFiles(), 0);
+            ASSERT_EQ(simple->getTotalFreeSpaceZeroTime(), 96000000000);
+            ASSERT_EQ(simple->getTotalFilesZeroTime(), 0);
         } else {
             GTEST_FAIL();
         }

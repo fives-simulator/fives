@@ -89,7 +89,7 @@ namespace storalloc {
         for (const auto &resource : resources) {
             for (const auto &service : resource.second) {
                 auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
-                uint64_t current_free_space = ss_service->traceTotalFreeSpace();
+                uint64_t current_free_space = ss_service->getTotalFreeSpaceZeroTime();
                 current_free_space >>= 8; // used in Lustre code to prevent overflows, we're blindly doing the same
                 ba_min_max.min = min(current_free_space, ba_min_max.min);
                 ba_min_max.max = max(current_free_space, ba_min_max.max);
@@ -288,9 +288,9 @@ namespace storalloc {
                 ++temp_start_ost_index;
                 auto current_ost = rr_ordered_services[array_idx];
 
-                if (current_ost->traceTotalFreeSpace() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
+                if (current_ost->getTotalFreeSpaceZeroTime() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                     // Only keep running storage services associated with non-full disks
-                    WRENCH_DEBUG("LustreAlloc: skipping OST (total Free space == %f and current state == %d)", current_ost->traceTotalFreeSpace(), current_ost->getState());
+                    WRENCH_DEBUG("LustreAlloc: skipping OST (total Free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
                     continue;
                 }
 
@@ -410,10 +410,10 @@ namespace storalloc {
 
                 // std::cout << " - " << service->getName() << " has :" << std::endl;
                 auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
-                uint64_t current_free_space = ss_service->traceTotalFreeSpace();
+                uint64_t current_free_space = ss_service->getTotalFreeSpaceZeroTime();
                 // std::cout << "    - " << current_free_space << " free bytes" << std::endl;
                 srv_free_space += (current_free_space >> 16); // Bitshift for overflow
-                uint64_t current_files = ss_service->traceTotalFiles();
+                uint64_t current_files = ss_service->getTotalFilesZeroTime();
                 // std::cout << "    - " << current_files << " known files" << std::endl;
                 srv_free_inodes += ((this->config->lustre.max_inodes - current_files) >> 8); // Bitshift for overflow, once again
 

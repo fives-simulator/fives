@@ -11,12 +11,11 @@ namespace storalloc {
     }
 
     static auto hdd_variability_factory(double read_variability, double write_variability) {
-
         auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
             std::random_device rd{};
             std::mt19937 gen{rd()};
-            std::normal_distribution read_distrib{read_variability, 0.1};
-            std::normal_distribution write_distrib{write_variability, 0.1};
+            std::normal_distribution<double> read_distrib{read_variability, 0.1};
+            std::normal_distribution<double> write_distrib{write_variability, 0.1};
 
             if (op == sg4::Io::OpType::READ) {
                 return read_distrib(gen);
@@ -198,8 +197,10 @@ namespace storalloc {
                         new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
                                                      sg4::Disk::SharingPolicy::NONLINEAR,
                                                      non_linear_disk_bw_factory(config->non_linear_coef_write));
-                        new_disk->set_factor_cb(
-                            hdd_variability_factory(config->read_variability, config->write_variability));
+                        if ((config->read_variability != 1) or (config->write_variability != 1)) {
+                            new_disk->set_factor_cb(
+                                hdd_variability_factory(config->read_variability, config->write_variability));
+                        }
                     }
                 }
             }

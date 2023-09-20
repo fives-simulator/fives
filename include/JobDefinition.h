@@ -1,19 +1,7 @@
 /**
- *  This is an entry for a job in our YAML data file.
- *  This header defines a simple structure to map to this kind of job schema
+ *  Definitions of a job and the header of a job dataset
  *
- *- MPIprocs: 2048
-    coresUsed: 8192
-    endTime: '2020-10-30 18:16:05'
-    id: 476279
-    nodesUsed: 128
-    readBytes: 549755813888
-    runTime: 166
-    startTime: '2020-10-30 17:49:59'
-    submissionTime: '2020-10-30 16:26:10'
-    waitingTime: 0 days 01:23:49
-    writtenBytes: 0
-*/
+ */
 
 #ifndef JOBDEFINITION_H
 #define JOBDEFINITION_H
@@ -23,12 +11,15 @@
 
 namespace storalloc {
 
+    /**
+     * @brief High-level job types (in terms of IO vs compute behaviour). Loosely based on job characteristics.
+     */
     enum JobType {
         ReadComputeWrite,  // Copy data from permanent storage, read, compute, write results, copy results to permanent storage
         ComputeWrite,      // Compute, write results, copy results to permanent storage
         ReadCompute,       // Copy from permanent storage, read, compute
         ReadWrite,         // For a few jobs having large IO but marginal compute time (or incorrectly computed )
-        NReadComputeWrite, // Copy/Read/Compute/Write/Copy cycle n times
+        NReadComputeWrite, // Copy/Read/Compute/Write/Copy cycle n times - Not implemented in simulation yet
         Compute,           // Compute only (or marginal IO)
     };
     const std::array<std::string, 6> JobTypeTranslations = {"RCW", "CW", "RC", "RW", "nRCW", "C"};
@@ -36,31 +27,30 @@ namespace storalloc {
     /**
      * @brief Structure for data from the header of the job file,
      *        which contain statistics over the entire dataset of jobs.
-     *        These stats are useful for creating a few 'preload' jobs before
-     *        replaying the actual dataset, in order to simulate existing load
-     *        on the platform.
+     *        These stats are useful for creating a few 'preload' jobs using probability distributions
+     *        before replaying the actual dataset, in order to simulate existing load on the platform.
      */
     struct JobsStats {
-        uint64_t first_ts;
-        uint64_t last_ts;
-        uint64_t duration;
-        uint64_t mean_runtime_s;
-        uint64_t median_runtime_s;
-        uint64_t var_runtime_s;
-        uint64_t max_runtime_s;
-        uint64_t min_runtime_s;
-        uint64_t mean_interval_s;
-        uint64_t median_interval_s;
-        uint64_t max_interval_s;
-        uint64_t min_interval_s;
-        uint64_t var_interval_s;
-        int job_count;
-        int mean_cores_used;
-        int mean_nodes_used;
-        int var_nodes_used;
-        int median_cores_used;
-        int median_nodes_used;
-        int max_nodes_used;
+        uint64_t first_ts;          // 'Start' TS of the first job to start in the dataset
+        uint64_t last_ts;           // 'End' TS of the last job to complete in the dataset
+        uint64_t duration;          // last_ts - first_ts
+        uint64_t mean_runtime_s;    // Mean runtime in seconds for all jobs     - note : some outlier triming might have been performed
+        uint64_t median_runtime_s;  // Median runtime in seconds for all jobs
+        uint64_t var_runtime_s;     // Job runtime variance
+        uint64_t max_runtime_s;     // Longest runtime in s
+        uint64_t min_runtime_s;     // Shortest runtime in s
+        uint64_t mean_interval_s;   // Mean interval between two jobs, in s     - note : some outlier triming might have been performed
+        uint64_t median_interval_s; // Median interval between two jobs, in s
+        uint64_t max_interval_s;    // Longest interval between two jobs, in s
+        uint64_t min_interval_s;    // Shortest interval between two jobs, in s
+        uint64_t var_interval_s;    // Interval variance
+        unsigned int job_count;     // Number of jobs in dataset
+        unsigned int mean_cores_used;
+        unsigned int mean_nodes_used;
+        unsigned int var_nodes_used;
+        unsigned int median_cores_used;
+        unsigned int median_nodes_used;
+        unsigned int max_nodes_used;
         double mean_read_tbytes;
         double mean_written_tbytes;
         double var_read_tbytes;
@@ -69,36 +59,35 @@ namespace storalloc {
         double median_written_tbytes;
         double max_read_tbytes;
         double max_written_tbytes;
-        double mean_jobs_per_hour;
+        double mean_jobs_per_hour; // Over the entire duration of the dataset (in number of hours), mean number of jobs concurrently running
     };
 
     bool operator==(const JobsStats &lhs, const JobsStats &rhs);
 
     /**
-     * @brief Structure for data from each job in the dataset.
+     * @brief Structure representing a single job
      *
      */
     struct YamlJob {
-        std::string id;
-        // int nprocs;
-        int coresUsed;
-        double coreHoursReq;
-        double coreHoursUsed;
-        int nodesUsed;
-        long readBytes;
-        long writtenBytes;
-        int runtimeSeconds;
-        int walltimeSeconds;
-        int waitingTimeSeconds;
-        int sleepSimulationSeconds;
-        std::string submissionTime;
-        std::string startTime;
-        std::string endTime;
-        double readTimeSeconds;
-        double writeTimeSeconds;
-        double metaTimeSeconds;
-        double approxComputeTimeSeconds;
-        JobType model;
+        std::string id;         // ID of the job is usually the same as in the original dataset
+        unsigned int coresUsed; // Total number of cores used (usually n° of nodes * cores per node)
+        double coreHoursReq;    // Core hours requested at job creation
+        double coreHoursUsed;   // Core hours actually used by job
+        unsigned int nodesUsed; // Number of nodes used by job
+        uint64_t readBytes;
+        uint64_t writtenBytes;
+        unsigned int runtimeSeconds;
+        unsigned int walltimeSeconds;
+        unsigned int waitingTimeSeconds;     // Waiting time between job submission and job start
+        unsigned int sleepSimulationSeconds; // Time to wait in simulation before submitting this job after the previous job in the dataset was submitted
+        std::string submissionTime;          // Submission timestamp as ISO string ()
+        std::string startTime;               // Start timestamp as ISO string
+        std::string endTime;                 // End timestamp as ISO string
+        double readTimeSeconds;              // Cumulative read time from all core doing any kind of IO reads during the job's execution
+        double writeTimeSeconds;             // Cumulative write time from all core doing any kind of IO writes during the job's execution
+        double metaTimeSeconds;              // Cumulative meta time from all core doing any kind of IO meta ops during the job's execution
+        double approxComputeTimeSeconds;     // Approximated compute time of job.
+        JobType model;                       // Compute vs IO model of job (high-level)
     };
 
     bool operator==(const YamlJob &lhs, const YamlJob &rhs);
