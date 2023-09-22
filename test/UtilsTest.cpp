@@ -18,6 +18,7 @@ public:
     void loadConfig_test();
 
     void loadYamlJobs_test();
+    void loadYamlJobsUnordered_test();
 
 protected:
     ~BasicUtilsTest() {}
@@ -52,6 +53,15 @@ void BasicUtilsTest::loadYamlJobs_test() {
     ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_computeTime.yml"), std::runtime_error);
     ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_nodesUsed.yml"), std::runtime_error);
     ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_runTime.yml"), std::runtime_error);
+}
+
+TEST_F(BasicUtilsTest, loadYamlJobsUnordered_test) {
+    DO_TEST_WITH_FORK(loadYamlJobsUnordered_test);
+}
+
+void BasicUtilsTest::loadYamlJobsUnordered_test() {
+
+    ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "test_2_jobs_bad_order.yml"), std::runtime_error);
 }
 
 /**********************************************************************/

@@ -4,9 +4,16 @@
 
 namespace storalloc {
 
+    /**
+     * @brief Factory for the disk_dynamic_sharing callback used on the Simgrid Disk objects
+     *        of the simulated storage system.
+     */
     static auto non_linear_disk_bw_factory(float non_linear_coef) {
-        return [non_linear_coef](double capacities, int n_activities) {
-            return capacities * (1 / n_activities) * non_linear_coef;
+        /* capacity = Current Simgrid capacity of this disk
+         * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
+         */
+        return [non_linear_coef](double capacity, int n_activities) {
+            return capacity * (1 / n_activities) * non_linear_coef;
         };
     }
 
