@@ -55,26 +55,29 @@ namespace storalloc {
 
         virtual void submitJob();
 
-        virtual std::shared_ptr<wrench::DataFile> copyFromPermanent();
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(unsigned int nb_hosts = 1);
 
-        virtual void readFromTemporary(std::shared_ptr<wrench::DataFile> input_data);
+        virtual void readFromTemporary(std::vector<std::shared_ptr<wrench::DataFile>> inputs);
 
         virtual void compute();
 
-        virtual std::shared_ptr<wrench::DataFile> writeToTemporary();
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(unsigned int nb_hosts = 1);
 
-        virtual void copyToPermanent(std::shared_ptr<wrench::DataFile> output_data);
+        virtual void copyToPermanent(std::vector<std::shared_ptr<wrench::DataFile>> outputs);
 
-        virtual void cleanupInput(std::shared_ptr<wrench::DataFile> input_data);
+        virtual void cleanupInput(std::vector<std::shared_ptr<wrench::DataFile>> inputs);
 
-        virtual void cleanupOutput(std::shared_ptr<wrench::DataFile> output_data);
+        virtual void cleanupOutput(std::vector<std::shared_ptr<wrench::DataFile>> outputs);
 
         // Temporary placeholder for the yaml data of the job being configured
         YamlJob current_yaml_job;
         // Temporary placeholder for job being configured
         std::shared_ptr<wrench::CompoundJob> current_job;
 
-        std::vector<std::shared_ptr<wrench::Action>> actions = {};
+        /* Tree map of dependencies : each inner vector holds 1..n actions which all share the same dependencies.
+         * Action(s) from one of the inner vectors depends on action(s) from the previous inner vector.
+         */
+        std::vector<std::vector<std::shared_ptr<wrench::Action>>> actions = {};
 
         std::map<std::string, std::pair<YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
 
