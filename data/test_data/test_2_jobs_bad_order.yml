@@ -19,11 +19,30 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   model: RCW
+- id: 2
+  coresUsed: 64
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:08:00'
+  nodesUsed: 2
+  readBytes: 2000000000  # 2GB
+  walltimeSeconds: 7000
+  runtimeSeconds: 6000 # seconds
+  approxComputeTimeSeconds: 2700
+  sleepSimulationSeconds: 0
+  waitingTimeSeconds: 10
+  startTime: '2023-01-01 00:08:10'
+  submissionTime: '2023-01-01 00:02:30'
+  writtenBytes: 2500000000 # 2.5GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
 preload:
-  duration: 6000
+  duration: 12000
   first_ts: 1672528090
   job_count: 1
-  last_ts: 1672534090
+  last_ts: 1672540090
   max_interval_s: 0
   max_nodes_used: 2
   max_read_tbytes: 0.002
