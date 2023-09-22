@@ -331,13 +331,13 @@ namespace storalloc {
             auto input_data = this->copyFromPermanent();
             this->readFromTemporary(input_data);
             this->compute();
-            auto output_data = this->writeToTemporary();
+            auto output_data = this->writeToTemporary(std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
             this->copyToPermanent(output_data);
             this->cleanupInput(input_data);
             this->cleanupOutput(output_data);
         } else if (this->current_yaml_job.model == storalloc::JobType::ComputeWrite) {
             this->compute();
-            auto output_data = this->writeToTemporary();
+            auto output_data = this->writeToTemporary(std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
             this->copyToPermanent(output_data);
             this->cleanupOutput(output_data);
         } else if (this->current_yaml_job.model == storalloc::JobType::ReadCompute) {
@@ -365,40 +365,69 @@ namespace storalloc {
         this->compound_jobs[yJob.id] = std::make_pair(yJob, job);
     }
 
-    std::shared_ptr<wrench::DataFile> Controller::copyFromPermanent() {
+    std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(unsigned int nb_hosts) {
 
-        WRENCH_DEBUG("Creating copy action for a file with size %ld", this->current_yaml_job.readBytes);
+        WRENCH_DEBUG("Creating copy action for a total read size of %ld bytes", this->current_yaml_job.readBytes);
 
-        auto read_file = wrench::Simulation::addFile("input_data_file_" + this->current_yaml_job.id, this->current_yaml_job.readBytes);
+        if (nb_hosts < 1) {
+            throw std::runtime_error("At least one host is needed to perform a copy");
+        }
 
-        wrench::StorageService::createFileAtLocation(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
-        auto fileCopyAction = current_job->addFileCopyAction(
-            "stagingCopy_" + this->current_yaml_job.id,
-            wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file),
-            wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+        // Subdivide the amount of copied bytes between as many files as there are hosts participating to the copy
+        auto bytes_per_file = this->current_yaml_job.readBytes / nb_hosts;
+
+        std::vector<std::shared_ptr<wrench::DataFile>> read_files{};
+        for (uint32_t i = 0; i < nb_hosts; i++) {
+            read_files.push_back(wrench::Simulation::addFile("input_data_file_" + this->current_yaml_job.id + "_" + std::to_string(i), bytes_per_file));
+        }
+
+        // Create one copy action per file (each one will run on one host)
+        std::vector<std::shared_ptr<wrench::Action>> copy_actions;
+        unsigned int action_cnt = 0;
+        for (const auto &read_file : read_files) {
+            wrench::StorageService::createFileAtLocation(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
+            auto fileCopyAction = current_job->addFileCopyAction(
+                "stagingCopy_" + this->current_yaml_job.id + "_" + std::to_string(action_cnt),
+                wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file),
+                wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+            action_cnt++;
+        }
 
         // Actions dependencies
         if (!this->actions.empty()) {
-            this->current_job->addActionDependency(this->actions.back(), fileCopyAction);
+            for (const auto &stage_action : this->actions.back()) {
+                for (const auto &copy_action : copy_actions) {
+                    this->current_job->addActionDependency(stage_action, copy_action);
+                }
+            }
         }
-        this->actions.push_back(fileCopyAction);
+        this->actions.push_back(copy_actions);
 
-        return read_file;
+        return read_files;
     }
 
-    void Controller::readFromTemporary(std::shared_ptr<wrench::DataFile> input_data) {
+    void Controller::readFromTemporary(std::vector<std::shared_ptr<wrench::DataFile>> inputs) {
 
-        WRENCH_DEBUG("Creating read action for a file with size %ld", this->current_yaml_job.readBytes);
+        WRENCH_DEBUG("Creating read action(s) for one or many file(s) with cumulative size %ld bytes", this->current_yaml_job.readBytes);
 
-        auto fileReadAction = this->current_job->addFileReadAction(
-            "fRead_" + this->current_yaml_job.id,
-            wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
+        std::vector<std::shared_ptr<wrench::Action>> readActions{};
+        unsigned int action_cnt = 0;
+        for (const auto &input_data : inputs) {
 
-        // Actions dependencies
-        if (!this->actions.empty()) {
-            this->current_job->addActionDependency(this->actions.back(), fileReadAction);
+            auto fileReadAction = this->current_job->addFileReadAction(
+                "fRead_" + this->current_yaml_job.id + "_" + std::to_string(action_cnt),
+                wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
+            action_cnt++;
+
+            // Actions dependencies
+            if (!this->actions.empty()) {
+                for (const auto &stage_action : this->actions.back()) {
+                    this->current_job->addActionDependency(stage_action, fileReadAction);
+                }
+            }
+            readActions.push_back(fileReadAction);
         }
-        this->actions.push_back(fileReadAction);
+        this->actions.push_back(readActions);
     }
 
     void Controller::compute() {
@@ -420,75 +449,122 @@ namespace storalloc {
 
         // Actions dependencies
         if (!this->actions.empty()) {
-            this->current_job->addActionDependency(this->actions.back(), computeAction);
+            for (const auto &stage_action : this->actions.back()) {
+                this->current_job->addActionDependency(stage_action, computeAction);
+            }
         }
-        this->actions.push_back(computeAction);
+        this->actions.push_back({computeAction});
     }
 
-    std::shared_ptr<wrench::DataFile> Controller::writeToTemporary() {
+    std::vector<std::shared_ptr<wrench::DataFile>> Controller::writeToTemporary(unsigned int nb_hosts) {
 
-        WRENCH_DEBUG("Creating write action for a file with size %ld", this->current_yaml_job.writtenBytes);
+        WRENCH_DEBUG("Creating write action with size %ld bytes", this->current_yaml_job.writtenBytes);
 
-        auto write_file = wrench::Simulation::addFile("output_data_file_" + this->current_yaml_job.id, this->current_yaml_job.writtenBytes);
-        auto fileWriteAction = this->current_job->addFileWriteAction(
-            "fWrite_" + this->current_yaml_job.id,
-            wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+        if (nb_hosts < 1) {
+            throw std::runtime_error("At least one host is needed to perform a write");
+        }
 
-        // Actions dependencies
+        // Subdivide the amount of written bytes between as many files as there are hosts participating to the write op.
+        auto bytes_per_file = this->current_yaml_job.writtenBytes / nb_hosts;
+
+        std::vector<std::shared_ptr<wrench::DataFile>> write_files{};
+        for (uint32_t i = 0; i < nb_hosts; i++) {
+            write_files.push_back(wrench::Simulation::addFile("output_data_file_" + this->current_yaml_job.id + "_" + std::to_string(i), bytes_per_file));
+        }
+
+        // Create one write action per file (each one will run on one host)
+        std::vector<std::shared_ptr<wrench::Action>> write_actions;
+        unsigned int action_cnt = 0;
+        for (auto &write_file : write_files) {
+            write_actions.push_back(this->current_job->addFileWriteAction(
+                "fWrite_" + this->current_yaml_job.id + "_" + std::to_string(action_cnt),
+                wrench::FileLocation::LOCATION(this->compound_storage_service, write_file)));
+            action_cnt++;
+        }
+
+        // Add dependencies for newly created actions
         if (!this->actions.empty()) {
-            this->current_job->addActionDependency(this->actions.back(), fileWriteAction);
+            for (const auto &write_action : write_actions) {
+                for (const auto &stage_action : this->actions.back()) {
+                    this->current_job->addActionDependency(stage_action, write_action);
+                }
+            }
         }
-        this->actions.push_back(fileWriteAction);
+        this->actions.push_back(write_actions);
 
-        return write_file;
+        return write_files;
     }
 
-    void Controller::copyToPermanent(std::shared_ptr<wrench::DataFile> output_data) {
+    void Controller::copyToPermanent(std::vector<std::shared_ptr<wrench::DataFile>> outputs) {
 
-        WRENCH_DEBUG("Creating copy action for a file with size %ld", this->current_yaml_job.writtenBytes);
+        WRENCH_DEBUG("Creating copy action(s) for one or many file(s) with cumulative size %ld bytes", this->current_yaml_job.writtenBytes);
 
-        auto archiveAction = this->current_job->addFileCopyAction(
-            "archiveCopy_" + this->current_yaml_job.id,
-            wrench::FileLocation::LOCATION(this->compound_storage_service, output_data),
-            wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data));
+        /* Note here if a write operations was previously sliced between n compute hosts, we virtually created n pseudo files,
+         * and we're now goind to run the copy from n compute hosts once again. In future works, we might want to differentiate
+         * the number of hosts used in the write operation and the number of hosts used in the following copy.
+         */
+        std::vector<std::shared_ptr<wrench::Action>> copyActions{};
+        unsigned int action_cnt = 0;
+        for (const auto &output_data : outputs) {
 
-        // Actions dependencies
-        this->current_job->addActionDependency(this->actions.back(), archiveAction);
-        this->actions.push_back(archiveAction);
+            auto archiveAction = this->current_job->addFileCopyAction(
+                "archiveCopy_" + this->current_yaml_job.id + "_" + std::to_string(action_cnt),
+                wrench::FileLocation::LOCATION(this->compound_storage_service, output_data),
+                wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data));
+            action_cnt++;
+
+            // Actions dependencies
+            for (const auto &stage_action : this->actions.back()) {
+                this->current_job->addActionDependency(stage_action, archiveAction);
+            }
+            copyActions.push_back(archiveAction);
+        }
+
+        this->actions.push_back(copyActions);
     }
 
-    void Controller::cleanupInput(std::shared_ptr<wrench::DataFile> input_data) {
+    void Controller::cleanupInput(std::vector<std::shared_ptr<wrench::DataFile>> inputs) {
 
-        WRENCH_DEBUG("Creating cleanup actions for an input file with size %ld", this->current_yaml_job.readBytes);
+        for (const auto &input_data : inputs) {
 
-        auto readSleep = this->current_job->addSleepAction("sleepBeforeReadCleanup" + this->current_yaml_job.id, 1.0);
-        this->current_job->addActionDependency(this->actions.back(), readSleep);
-        this->actions.push_back(readSleep);
+            WRENCH_DEBUG("Creating cleanup actions for an input file with size %ld", this->current_yaml_job.readBytes);
 
-        auto deleteReadAction = this->current_job->addFileDeleteAction("delRF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
-        this->current_job->addActionDependency(this->actions.back(), deleteReadAction);
-        this->actions.push_back(deleteReadAction);
+            auto readSleep = this->current_job->addSleepAction("sleepBeforeReadCleanup" + this->current_yaml_job.id, 1.0);
+            for (const auto &stage_action : this->actions.back()) {
+                this->current_job->addActionDependency(stage_action, readSleep);
+            }
+            this->actions.push_back({readSleep});
 
-        auto deleteExternalReadAction = this->current_job->addFileDeleteAction("delERF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", input_data));
-        this->current_job->addActionDependency(this->actions.back(), deleteExternalReadAction);
-        this->actions.push_back(deleteExternalReadAction);
+            auto deleteReadAction = this->current_job->addFileDeleteAction("delRF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
+            this->current_job->addActionDependency(this->actions.back()[0], deleteReadAction);
+            this->actions.push_back({deleteReadAction});
+
+            auto deleteExternalReadAction = this->current_job->addFileDeleteAction("delERF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", input_data));
+            this->current_job->addActionDependency(this->actions.back()[0], deleteExternalReadAction);
+            this->actions.push_back({deleteExternalReadAction});
+        }
     }
 
-    void Controller::cleanupOutput(std::shared_ptr<wrench::DataFile> output_data) {
+    void Controller::cleanupOutput(std::vector<std::shared_ptr<wrench::DataFile>> outputs) {
 
-        WRENCH_DEBUG("Creating cleanup actions for an input file with size %ld", this->current_yaml_job.readBytes);
+        for (const auto &output_data : outputs) {
 
-        auto writeSleep = this->current_job->addSleepAction("sleepBeforeWriteCleanup" + this->current_yaml_job.id, 1.0);
-        this->current_job->addActionDependency(this->actions.back(), writeSleep);
-        this->actions.push_back(writeSleep);
+            WRENCH_DEBUG("Creating cleanup actions for an input file with size %ld", this->current_yaml_job.readBytes);
 
-        auto deleteWriteAction = this->current_job->addFileDeleteAction("delWF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
-        this->current_job->addActionDependency(this->actions.back(), deleteWriteAction);
-        this->actions.push_back(deleteWriteAction);
+            auto writeSleep = this->current_job->addSleepAction("sleepBeforeWriteCleanup" + this->current_yaml_job.id, 1.0);
+            for (const auto &stage_action : this->actions.back()) {
+                this->current_job->addActionDependency(stage_action, writeSleep);
+            }
+            this->actions.push_back({writeSleep});
 
-        auto deleteExternalWriteAction = this->current_job->addFileDeleteAction("delEWF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data));
-        this->current_job->addActionDependency(this->actions.back(), deleteExternalWriteAction);
-        this->actions.push_back(deleteExternalWriteAction);
+            auto deleteWriteAction = this->current_job->addFileDeleteAction("delWF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
+            this->current_job->addActionDependency(this->actions.back()[0], deleteWriteAction);
+            this->actions.push_back({deleteWriteAction});
+
+            auto deleteExternalWriteAction = this->current_job->addFileDeleteAction("delEWF_" + this->current_yaml_job.id, wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/write/", output_data));
+            this->current_job->addActionDependency(this->actions.back()[0], deleteExternalWriteAction);
+            this->actions.push_back({deleteExternalWriteAction});
+        }
     }
 
     /**
