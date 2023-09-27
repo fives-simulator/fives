@@ -18,6 +18,19 @@
 
 namespace storalloc {
 
+    struct DiskIOCounters {
+        double total_capacity;
+        double total_capacity_used;
+        int total_allocation_count;
+    };
+
+    struct StorageServiceIOCounters {
+        std::string service_name;
+        double total_capacity_used;
+        int total_allocation_count;
+        std::map<std::string, DiskIOCounters> disks;
+    };
+
     /**
      *  @brief A Workflow Management System (WMS) implementation
      */
@@ -34,7 +47,7 @@ namespace storalloc {
             const std::vector<YamlJob> &jobs,
             const std::shared_ptr<storalloc::Config> &storalloc_config);
 
-        std::shared_ptr<wrench::CompoundJob> getCompletedJobById(std::string id);
+        std::vector<std::shared_ptr<wrench::CompoundJob>> getCompletedJobsById(std::string id);
 
         virtual void processCompletedJobs(const std::string &jobsFilename, const std::string &config_version, const std::string &tag);
 
@@ -55,19 +68,43 @@ namespace storalloc {
 
         virtual void submitJob();
 
-        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(unsigned int nb_hosts = 1);
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                                                                                 const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                                                                                 vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                                                                 unsigned int nb_hosts = 1);
 
-        virtual void readFromTemporary(std::vector<std::shared_ptr<wrench::DataFile>> inputs);
+        virtual void readFromTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                                       const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                                       vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                       std::vector<std::shared_ptr<wrench::DataFile>> inputs);
 
-        virtual void compute();
+        virtual void compute(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                             const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                             vector<std::shared_ptr<wrench::CompoundJob>> &jobs);
 
-        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(unsigned int nb_hosts = 1);
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                                                                                const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                                                                                vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                                                                unsigned int nb_hosts = 1);
 
-        virtual void copyToPermanent(std::vector<std::shared_ptr<wrench::DataFile>> outputs);
+        virtual void copyToPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                                     const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                                     vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                     std::vector<std::shared_ptr<wrench::DataFile>> outputs);
 
-        virtual void cleanupInput(std::vector<std::shared_ptr<wrench::DataFile>> inputs);
+        virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                                  const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                                  vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs);
 
-        virtual void cleanupOutput(std::vector<std::shared_ptr<wrench::DataFile>> outputs);
+        virtual void cleanupOutput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
+                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
+                                   vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs);
+
+        void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
+                            const std::set<std::shared_ptr<wrench::Action>> &actions,
+                            double &job_start_time);
 
         // Temporary placeholder for the yaml data of the job being configured
         YamlJob current_yaml_job;
@@ -79,7 +116,7 @@ namespace storalloc {
          */
         std::vector<std::vector<std::shared_ptr<wrench::Action>>> actions = {};
 
-        std::map<std::string, std::pair<YamlJob, std::shared_ptr<wrench::CompoundJob>>> compound_jobs = {};
+        std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
 
@@ -96,6 +133,8 @@ namespace storalloc {
         double flopRate;
 
         std::shared_ptr<storalloc::Config> config;
+
+        std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
     };
 
 } // namespace storalloc
