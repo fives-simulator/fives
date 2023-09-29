@@ -76,8 +76,15 @@ namespace storalloc {
         auto preload_jobs = this->createPreloadJobs();
 
         // Concat preload jobs with dataset
-        std::vector<storalloc::YamlJob> jobsWithPreload(preload_jobs);
-        jobsWithPreload.insert(jobsWithPreload.end(), this->jobs.begin(), this->jobs.end());
+        // std::vector<storalloc::YamlJob> jobsWithPreload(preload_jobs);
+        for (const auto &job : preload_jobs) {
+            this->jobsWithPreload[job.id] = job;
+        }
+        for (const auto &job : this->jobs) {
+            this->jobsWithPreload[job.id] = job;
+        }
+        // this->jobsWithPreload.insert(jobsWithPreload.end(), this->jobs.begin(), this->jobs.end());
+        preload_jobs.clear();
 
         std::cout << "Stripe_count is : " << this->config->lustre.stripe_count << std::endl;
         std::cout << "Config version : " << this->config->config_version << std::endl;
@@ -86,26 +93,19 @@ namespace storalloc {
         auto total_events = 0;
         auto processed_events = 0;
 
-        for (const auto &yaml_entry : jobsWithPreload) {
+        for (const auto &yaml_entry : this->jobsWithPreload) {
 
             // Cleanup our temporary variables
-            this->current_yaml_job = yaml_entry; // this is the job we're going to submit next
-            this->actions.clear();
+            // this->current_yaml_job = yaml_entry; // this is the job we're going to submit next
 
             WRENCH_DEBUG("# Setting timer for = %d s", this->current_yaml_job.sleepSimulationSeconds);
             double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + this->current_yaml_job.sleepSimulationSeconds + 1; // some simulation sleep values are 0, we don't want that
-            this->setTimer(timer_off_date, "SleepBeforeNextJob_" + this->current_yaml_job.id);
+            this->setTimer(timer_off_date, yaml_entry.first);
             total_events += 1;
 
             auto nextSubmission = false;
             while (!nextSubmission) {
-
-                auto event = this->waitForNextEvent(); // remove timeout ?
-                /*
-                if (!event) {                          // remove
-                    continue;
-                }
-                */
+                auto event = this->waitForNextEvent();
                 processed_events += 1;
 
                 if (auto timer_event = std::dynamic_pointer_cast<wrench::TimerEvent>(event)) {
@@ -309,8 +309,15 @@ namespace storalloc {
         return preload_jobs;
     }
 
-    void Controller::submitJob() {
-        auto yJob = this->current_yaml_job;
+    void Controller::submitJob(std::string jobID) {
+
+        // auto yJob = this->current_yaml_job;
+        WRENCH_INFO("current_yaml_job.id : %s", this->current_yaml_job.id.c_str());
+        WRENCH_INFO("jobID : %s", jobID.c_str());
+
+        auto yJob = this->jobsWithPreload[jobID];
+        WRENCH_INFO("yJob : %s", yJob.id.c_str());
+
         auto parentJob = this->job_manager->createCompoundJob(yJob.id);
         this->current_job = parentJob;
         // Save job for future analysis (note : we'll need to find sub jobs one by one by ID)
@@ -320,38 +327,38 @@ namespace storalloc {
         parentJob->addCustomAction(
             "parentJob" + yJob.id,
             0, 0, // RAM & num cores
-            [this, yJob](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
+            [this, jobID](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
                 WRENCH_INFO("Custom action executing on host %s", action_executor->getHostname().c_str());
                 auto internalJobManager = action_executor->createJobManager();
                 WRENCH_INFO("00");
 
-                if (this->current_yaml_job.model == storalloc::JobType::ReadComputeWrite) {
+                if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadComputeWrite) {
                     WRENCH_INFO("01");
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id]);
-                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
-                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
-                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
-                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
-                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
-                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
-                } else if (this->current_yaml_job.model == storalloc::JobType::ComputeWrite) {
-                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
-                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
-                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
-                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
-                } else if (this->current_yaml_job.model == storalloc::JobType::ReadCompute) {
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id]);
-                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
-                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
-                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
-                } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
-                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
+                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID]);
+                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID].second, input_data);
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[jobID].second);
+                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[jobID].second, std::ceil<unsigned int>(this->compound_jobs[jobID].first.nodesUsed * 0.2));
+                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID].second, output_data);
+                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID].second, input_data);
+                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID].second, output_data);
+                } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::ComputeWrite) {
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[jobID].second);
+                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[jobID].second, std::ceil<unsigned int>(this->compound_jobs[jobID].first.nodesUsed * 0.2));
+                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID].second, output_data);
+                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID].second, output_data);
+                } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadCompute) {
+                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID]);
+                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID].second, input_data);
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[jobID].second);
+                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID].second, input_data);
+                } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::Compute) {
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[jobID].second);
                 } else {
-                    throw std::runtime_error("Unknown job model for job " + yJob.id);
+                    throw std::runtime_error("Unknown job model for job " + jobID);
                 }
             },
-            [yJob](std::shared_ptr<wrench::ActionExecutor> action_executor) {
-                WRENCH_INFO("customAction_%s terminating", yJob.id.c_str());
+            [jobID](std::shared_ptr<wrench::ActionExecutor> action_executor) {
+                WRENCH_INFO("customAction_%s terminating", jobID.c_str());
             });
 
         // Submit job
@@ -369,7 +376,7 @@ namespace storalloc {
                                                                                  std::shared_ptr<wrench::JobManager> internalJobManager,
                                                                                  std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                                                                  unsigned int nb_hosts) {
-        WRENCH_INFO("1");
+
         WRENCH_INFO("[%s] Creating copy sub-job (in) for a total read size of %ld bytes", jobPair.first.id.c_str(), this->current_yaml_job.readBytes);
 
         if (nb_hosts < 1) {
@@ -623,7 +630,7 @@ namespace storalloc {
 
     void Controller::processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) {
         // std::cout << "Timer Event : " << timerEvent->toString() << std::endl;
-        this->submitJob();
+        this->submitJob(timerEvent->message);
     }
 
     /**
