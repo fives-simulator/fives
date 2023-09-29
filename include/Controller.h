@@ -66,7 +66,7 @@ namespace storalloc {
 
         virtual std::vector<storalloc::YamlJob> createPreloadJobs() const;
 
-        virtual void submitJob();
+        virtual void submitJob(std::string jobID);
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
                                                                                  std::shared_ptr<wrench::JobManager> internalJobManager,
@@ -111,11 +111,6 @@ namespace storalloc {
         // Temporary placeholder for job being configured
         std::shared_ptr<wrench::CompoundJob> current_job;
 
-        /* Tree map of dependencies : each inner vector holds 1..n actions which all share the same dependencies.
-         * Action(s) from one of the inner vectors depends on action(s) from the previous inner vector.
-         */
-        std::vector<std::vector<std::shared_ptr<wrench::Action>>> actions = {};
-
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
@@ -127,6 +122,8 @@ namespace storalloc {
         std::shared_ptr<storalloc::JobsStats> preload_header;
 
         const std::vector<storalloc::YamlJob> &jobs;
+
+        std::map<std::string, storalloc::YamlJob> jobsWithPreload{}; // jobId, YamlJob
 
         std::shared_ptr<wrench::JobManager> job_manager;
 
