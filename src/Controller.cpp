@@ -327,7 +327,7 @@ namespace storalloc {
 
                 if (this->current_yaml_job.model == storalloc::JobType::ReadComputeWrite) {
                     WRENCH_INFO("01");
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, yJob.id);
+                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id]);
                     WRENCH_INFO("01-2");
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
@@ -343,7 +343,7 @@ namespace storalloc {
                     this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::ReadCompute) {
                     WRENCH_INFO("03");
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, yJob.id);
+                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id]);
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
                     this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
@@ -372,11 +372,10 @@ namespace storalloc {
 
     std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
                                                                                  std::shared_ptr<wrench::JobManager> internalJobManager,
-                                                                                 vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
-                                                                                 std::string jobID,
+                                                                                 std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                                                                  unsigned int nb_hosts) {
         WRENCH_INFO("1");
-        WRENCH_INFO("[%s] Creating copy sub-job (in) for a total read size of %ld bytes", this->current_yaml_job.id.c_str(), this->current_yaml_job.readBytes);
+        WRENCH_INFO("[%s] Creating copy sub-job (in) for a total read size of %ld bytes", jobPair.first.id.c_str(), this->current_yaml_job.readBytes);
 
         if (nb_hosts < 1) {
             throw std::runtime_error("At least one host is needed to perform a copy");
@@ -386,12 +385,12 @@ namespace storalloc {
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
         WRENCH_INFO("1-2");
-        auto copyJob = internalJobManager->createCompoundJob(jobID + "_copyFromPermanent");
+        auto copyJob = internalJobManager->createCompoundJob(jobPair.first.id + "_copyFromPermanent");
         WRENCH_INFO("1-3");
-        jobs.push_back(copyJob);
+        jobPair.second.push_back(copyJob);
 
         // Subdivide the amount of copied bytes between as many files as there are hosts participating to the copy
-        auto bytes_per_file = this->current_yaml_job.readBytes / nb_hosts;
+        auto bytes_per_file = jobPair.first.readBytes / nb_hosts;
 
         std::vector<std::shared_ptr<wrench::DataFile>> read_files{};
         for (uint32_t i = 0; i < nb_hosts; i++) {
@@ -405,7 +404,7 @@ namespace storalloc {
         unsigned int action_cnt = 0;
         for (const auto &read_file : read_files) {
             wrench::StorageService::createFileAtLocation(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
-            auto action_id = "stagingCopy_" + jobID + "_" + std::to_string(action_cnt);
+            auto action_id = "stagingCopy_" + jobPair.first.id + "_" + std::to_string(action_cnt);
             auto fileCopyAction = copyJob->addFileCopyAction(
                 action_id,
                 wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file),
