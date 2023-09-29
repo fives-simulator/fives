@@ -1,0 +1,145 @@
+jobs:
+- coresUsed: 32
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:09:00'
+  id: 1
+  nodesUsed: 2
+  readBytes: 20000000000  # 20GB
+  walltimeSeconds: 3600
+  runtimeSeconds: 3000 # seconds
+  approxComputeTimeSeconds: 2750
+  sleepSimulationSeconds: 0
+  waitingTimeSeconds: 10
+  startTime: '2023-01-01 00:08:10'
+  submissionTime: '2023-01-01 00:08:00'
+  writtenBytes: 25000000000 # 25 GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+- coresUsed: 32
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:11:00'
+  id: 2
+  nodesUsed: 2
+  readBytes: 6000000000  # 6GB
+  walltimeSeconds: 3600
+  runtimeSeconds: 3300
+  approxComputeTimeSeconds: 2750
+  sleepSimulationSeconds: 7500 # seconds
+  waitingTimeSeconds: 5
+  startTime: '2023-01-01 00:10:05'
+  submissionTime: '2023-01-01 00:10:00'
+  writtenBytes: 3000000000 # 3 GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+- coresUsed: 32
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:15:45'
+  id: 3
+  nodesUsed: 2
+  readBytes: 4000000000  # 4GB
+  walltimeSeconds: 3600
+  runtimeSeconds: 2700
+  approxComputeTimeSeconds: 2500
+  sleepSimulationSeconds: 14100 # seconds
+  waitingTimeSeconds: 60
+  startTime: '2023-01-01 00:15:00'
+  submissionTime: '2023-01-01 00:14:00'
+  writtenBytes: 2500000000 # 2.5 GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+- coresUsed: 32
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-02 00:09:00'
+  id: 4
+  nodesUsed: 2
+  readBytes: 15000000000  # 15GB
+  walltimeSeconds: 3600
+  runtimeSeconds: 3000 # seconds
+  approxComputeTimeSeconds: 2500
+  sleepSimulationSeconds: 61800
+  waitingTimeSeconds: 10
+  startTime: '2023-01-02 00:08:10'
+  submissionTime: '2023-01-02 00:08:00'
+  writtenBytes: 2500000000 # 2.5 GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+- coresUsed: 32
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-02 00:11:00'
+  id: 5
+  nodesUsed: 2
+  readBytes: 4000000000  # 4GB
+  walltimeSeconds: 3600
+  runtimeSeconds: 3300
+  approxComputeTimeSeconds: 2500
+  sleepSimulationSeconds: 7500 # seconds
+  waitingTimeSeconds: 5
+  startTime: '2023-01-02 00:10:05'
+  submissionTime: '2023-01-02 00:10:00'
+  writtenBytes: 2500000000 # 2.5 GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+- coresUsed: 32
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-02 00:15:45'
+  id: 6
+  nodesUsed: 2
+  readBytes: 40000000000  # 40GB
+  walltimeSeconds: 3600
+  runtimeSeconds: 2700
+  approxComputeTimeSeconds: 2500
+  sleepSimulationSeconds: 1000 # seconds
+  waitingTimeSeconds: 60
+  startTime: '2023-01-02 00:15:00'
+  submissionTime: '2023-01-02 00:14:00'
+  writtenBytes: 2500000000 # 2.5 GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+preload:        # Note : fake values unrelated to the jobs in this dataset
+  duration: 603971
+  first_ts: 1646440956
+  job_count: 408
+  last_ts: 1647044927
+  max_interval_s: 25141
+  max_nodes_used: 4390
+  max_read_tbytes: 148.428529082742
+  max_runtime_s: 32430
+  max_written_tbytes: 420.013449602251
+  mean_cores_used: 14812
+  mean_interval_s: 1411
+  mean_jobs_per_hour: 2.43
+  mean_nodes_used: 231
+  mean_read_tbytes: 0.17463913065015893
+  mean_runtime_s: 3864
+  mean_written_tbytes: 0.836552099469762
+  median_cores_used: 8192
+  median_interval_s: 458
+  median_nodes_used: 128
+  median_read_tbytes: 6.33618e-05
+  median_runtime_s: 2050
+  median_written_tbytes: 3.4110446e-05
+  min_interval_s: 1
+  min_runtime_s: 38
+  var_interval_s: 7565100
+  var_nodes_used: 292152
+  var_read_tbytes: 11.332847154209372
+  var_runtime_s: 32509612
+  var_written_tbytes: 78.67971778343161
