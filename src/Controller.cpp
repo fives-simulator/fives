@@ -313,42 +313,50 @@ namespace storalloc {
         auto yJob = this->current_yaml_job;
         auto job = this->job_manager->createCompoundJob(yJob.id);
         this->current_job = job;
-        std::vector<std::shared_ptr<wrench::CompoundJob>> jobs{};
-        jobs.push_back(job); // First job of every job list is the 'parent' compound job, then we push_back subjob(s) (at least one)
+        // Save job for future analysis (note : we'll need to find sub jobs one by one by ID)
+        this->compound_jobs[yJob.id] = std::make_pair(yJob, std::vector<std::shared_ptr<wrench::CompoundJob>>());
+        this->compound_jobs[yJob.id].second.push_back(job);
 
         this->current_job->addCustomAction(
-            "customAction_" + yJob.id,
+            "parentJob" + yJob.id,
             0, 0, // RAM & num cores
-            [this, &yJob, &jobs](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
+            [this, yJob](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
                 WRENCH_INFO("Custom action executing on host %s", action_executor->getHostname().c_str());
                 auto internalJobManager = action_executor->createJobManager();
+                WRENCH_INFO("00");
 
                 if (this->current_yaml_job.model == storalloc::JobType::ReadComputeWrite) {
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, jobs);
-                    this->readFromTemporary(action_executor, internalJobManager, jobs, input_data);
-                    this->compute(action_executor, internalJobManager, jobs);
-                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, jobs, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
-                    this->copyToPermanent(action_executor, internalJobManager, jobs, output_data);
-                    this->cleanupInput(action_executor, internalJobManager, jobs, input_data);
-                    this->cleanupOutput(action_executor, internalJobManager, jobs, output_data);
+                    WRENCH_INFO("01");
+                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, yJob.id);
+                    WRENCH_INFO("01-2");
+                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
+                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
+                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
+                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
+                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::ComputeWrite) {
-                    this->compute(action_executor, internalJobManager, jobs);
-                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, jobs, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
-                    this->copyToPermanent(action_executor, internalJobManager, jobs, output_data);
-                    this->cleanupOutput(action_executor, internalJobManager, jobs, output_data);
+                    WRENCH_INFO("02");
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
+                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
+                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
+                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::ReadCompute) {
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, jobs);
-                    this->readFromTemporary(action_executor, internalJobManager, jobs, input_data);
-                    this->compute(action_executor, internalJobManager, jobs);
-                    this->cleanupInput(action_executor, internalJobManager, jobs, input_data);
+                    WRENCH_INFO("03");
+                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, yJob.id);
+                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
+                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
-                    this->compute(action_executor, internalJobManager, jobs);
+                    WRENCH_INFO("04");
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
                 } else {
+                    WRENCH_INFO("05");
                     throw std::runtime_error("Unknown job model for job " + yJob.id);
                 }
             },
-            [](std::shared_ptr<wrench::ActionExecutor> action_executor) {
-                WRENCH_INFO("Custom action terminating");
+            [yJob](std::shared_ptr<wrench::ActionExecutor> action_executor) {
+                WRENCH_INFO("customAction_%s terminating", yJob.id.c_str());
             });
 
         // Submit job
@@ -360,17 +368,15 @@ namespace storalloc {
                      job->getName().c_str(),
                      yJob.nodesUsed, yJob.coresUsed / yJob.nodesUsed, yJob.walltimeSeconds);
         job_manager->submitJob(job, this->compute_service, service_specific_args);
-
-        // Save job for future analysis (note : we'll need to find sub jobs one by one by ID)
-        this->compound_jobs[yJob.id] = std::make_pair(yJob, jobs);
     }
 
-    std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                                                                                 const std::shared_ptr<wrench::JobManager> &internalJobManager,
+    std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
+                                                                                 std::shared_ptr<wrench::JobManager> internalJobManager,
                                                                                  vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                                                                 std::string jobID,
                                                                                  unsigned int nb_hosts) {
-
-        WRENCH_DEBUG("[%s] Creating copy sub-job (in) for a total read size of %ld bytes", this->current_yaml_job.id.c_str(), this->current_yaml_job.readBytes);
+        WRENCH_INFO("1");
+        WRENCH_INFO("[%s] Creating copy sub-job (in) for a total read size of %ld bytes", this->current_yaml_job.id.c_str(), this->current_yaml_job.readBytes);
 
         if (nb_hosts < 1) {
             throw std::runtime_error("At least one host is needed to perform a copy");
@@ -379,7 +385,9 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto copyJob = internalJobManager->createCompoundJob(this->current_yaml_job.id + "_copyFromPermanent");
+        WRENCH_INFO("1-2");
+        auto copyJob = internalJobManager->createCompoundJob(jobID + "_copyFromPermanent");
+        WRENCH_INFO("1-3");
         jobs.push_back(copyJob);
 
         // Subdivide the amount of copied bytes between as many files as there are hosts participating to the copy
@@ -392,21 +400,30 @@ namespace storalloc {
 
         // Create one copy action per file (each one will run on one host)
         std::vector<std::shared_ptr<wrench::Action>> copy_actions;
+        std::map<std::string, std::string> service_specific_args = {};
+        auto computeResourcesIt = computeResources.begin();
         unsigned int action_cnt = 0;
         for (const auto &read_file : read_files) {
             wrench::StorageService::createFileAtLocation(wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file));
+            auto action_id = "stagingCopy_" + jobID + "_" + std::to_string(action_cnt);
             auto fileCopyAction = copyJob->addFileCopyAction(
-                "stagingCopy_" + this->current_yaml_job.id + "_" + std::to_string(action_cnt),
+                action_id,
                 wrench::FileLocation::LOCATION(this->storage_service, "/dev/disk0/read/", read_file),
                 wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
             action_cnt++;
+            service_specific_args[action_id] = (computeResourcesIt++)->first;
         }
 
-        std::map<std::string, std::string> service_specific_args = {{"hostname", computeResources.begin()->first}};
+        WRENCH_INFO("1-4");
+        internalJobManager->assertServiceIsUp();
+        WRENCH_INFO("Internal job manager hostname : %s", internalJobManager->getHostname().c_str());
+        WRENCH_INFO("UP ? %d", internalJobManager->isUp());
         internalJobManager->submitJob(copyJob, bare_metal, service_specific_args);
+        WRENCH_INFO("1-5");
         if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
             throw std::runtime_error("Sub-job 'copy from permanent' " + copyJob->getName() + " failed");
 
+        WRENCH_INFO("1-6");
         return read_files;
     }
 
@@ -415,6 +432,7 @@ namespace storalloc {
                                        vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs) {
 
+        WRENCH_DEBUG("2");
         WRENCH_DEBUG("[%s] Creating read sub-job for one or many file(s) with cumulative size %ld bytes", this->current_yaml_job.id.c_str(), this->current_yaml_job.readBytes);
 
         auto actionExecutorService = action_executor->getActionExecutionService();
@@ -426,7 +444,7 @@ namespace storalloc {
         unsigned int action_cnt = 0;
         for (const auto &input_data : inputs) {
 
-            wrench::StorageService::readFileAtLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, input_data), 30);
+            // wrench::StorageService::readFileAtLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, input_data), 30);
 
             auto fileReadAction = readJob->addFileReadAction(
                 "fRead_" + this->current_yaml_job.id + "_" + std::to_string(action_cnt),
@@ -443,6 +461,7 @@ namespace storalloc {
                              const std::shared_ptr<wrench::JobManager> &internalJobManager,
                              vector<std::shared_ptr<wrench::CompoundJob>> &jobs) {
 
+        WRENCH_DEBUG("3");
         WRENCH_DEBUG("[%s] Creating compute sub-job, dispatched on %s nodes", this->current_yaml_job.id.c_str(), std::to_string(this->current_yaml_job.nodesUsed).c_str());
 
         auto actionExecutorService = action_executor->getActionExecutionService();
@@ -474,7 +493,7 @@ namespace storalloc {
                                                                                 const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                                                                 vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
                                                                                 unsigned int nb_hosts) {
-
+        WRENCH_DEBUG("4");
         WRENCH_DEBUG("[%s] Creating write sub-job with size %ld bytes", this->current_yaml_job.id.c_str(), this->current_yaml_job.writtenBytes);
 
         auto actionExecutorService = action_executor->getActionExecutionService();
@@ -516,6 +535,7 @@ namespace storalloc {
                                      vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs) {
 
+        WRENCH_DEBUG("5");
         WRENCH_DEBUG("[%s] Creating copy sub-job (out) for one or many file(s) with cumulative size %ld bytes", this->current_yaml_job.id.c_str(), this->current_yaml_job.writtenBytes);
 
         auto actionExecutorService = action_executor->getActionExecutionService();
@@ -547,6 +567,7 @@ namespace storalloc {
                                   std::vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
                                   std::vector<std::shared_ptr<wrench::DataFile>> inputs) {
 
+        WRENCH_DEBUG("6");
         WRENCH_DEBUG("[%s] Creating cleanup actions for input file(s) with cumulative size %ld", this->current_yaml_job.id.c_str(), this->current_yaml_job.readBytes);
 
         auto actionExecutorService = action_executor->getActionExecutionService();
@@ -572,6 +593,7 @@ namespace storalloc {
                                    std::vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
                                    std::vector<std::shared_ptr<wrench::DataFile>> outputs) {
 
+        WRENCH_DEBUG("7");
         WRENCH_DEBUG("[%s] Creating cleanup actions for output file(s) with cumulative size %ld", this->current_yaml_job.id.c_str(), this->current_yaml_job.writtenBytes);
 
         auto actionExecutorService = action_executor->getActionExecutionService();
