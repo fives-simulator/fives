@@ -75,41 +75,36 @@ namespace storalloc {
 
         virtual void readFromTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                        const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                       vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                       std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs);
 
         virtual void compute(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                              const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                             vector<std::shared_ptr<wrench::CompoundJob>> &jobs);
+                             std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair);
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                                                                 const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                                                                vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                                                                std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                                                                 unsigned int nb_hosts = 1);
 
         virtual void copyToPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                      const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                     vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                     std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs);
 
         virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                  vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                  std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                   std::vector<std::shared_ptr<wrench::DataFile>> inputs);
 
         virtual void cleanupOutput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                    const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                   vector<std::shared_ptr<wrench::CompoundJob>> &jobs,
+                                   std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                    std::vector<std::shared_ptr<wrench::DataFile>> outputs);
 
         void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
                             double &job_start_time);
-
-        // Temporary placeholder for the yaml data of the job being configured
-        YamlJob current_yaml_job;
-        // Temporary placeholder for job being configured
-        std::shared_ptr<wrench::CompoundJob> current_job;
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
