@@ -16,7 +16,7 @@ endif ()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 find_package(SimGrid REQUIRED)
@@ -67,6 +67,7 @@ else()
     )
 endif()
 
+set_target_properties(storalloc_wrench PROPERTIES COMPILE_FLAGS "-g -O1")
 install(TARGETS storalloc_wrench DESTINATION bin)
 
 
