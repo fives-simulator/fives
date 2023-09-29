@@ -1,5 +1,4 @@
 build
-IOJobs*
 results/*.png
 results/*.csv
 results/*.yml
