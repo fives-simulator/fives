@@ -311,13 +311,13 @@ namespace storalloc {
 
     void Controller::submitJob() {
         auto yJob = this->current_yaml_job;
-        auto job = this->job_manager->createCompoundJob(yJob.id);
-        this->current_job = job;
+        auto parentJob = this->job_manager->createCompoundJob(yJob.id);
+        this->current_job = parentJob;
         // Save job for future analysis (note : we'll need to find sub jobs one by one by ID)
         this->compound_jobs[yJob.id] = std::make_pair(yJob, std::vector<std::shared_ptr<wrench::CompoundJob>>());
-        this->compound_jobs[yJob.id].second.push_back(job);
+        this->compound_jobs[yJob.id].second.push_back(parentJob);
 
-        this->current_job->addCustomAction(
+        parentJob->addCustomAction(
             "parentJob" + yJob.id,
             0, 0, // RAM & num cores
             [this, yJob](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
@@ -328,7 +328,6 @@ namespace storalloc {
                 if (this->current_yaml_job.model == storalloc::JobType::ReadComputeWrite) {
                     WRENCH_INFO("01");
                     auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id]);
-                    WRENCH_INFO("01-2");
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
                     auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
@@ -336,22 +335,18 @@ namespace storalloc {
                     this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                     this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::ComputeWrite) {
-                    WRENCH_INFO("02");
                     this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
                     auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, std::ceil<unsigned int>(yJob.nodesUsed * 0.2));
                     this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
                     this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, output_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::ReadCompute) {
-                    WRENCH_INFO("03");
                     auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[yJob.id]);
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
                     this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[yJob.id].second, input_data);
                 } else if (this->current_yaml_job.model == storalloc::JobType::Compute) {
-                    WRENCH_INFO("04");
                     this->compute(action_executor, internalJobManager, this->compound_jobs[yJob.id].second);
                 } else {
-                    WRENCH_INFO("05");
                     throw std::runtime_error("Unknown job model for job " + yJob.id);
                 }
             },
@@ -365,9 +360,9 @@ namespace storalloc {
              {"-c", std::to_string(yJob.coresUsed / yJob.nodesUsed)},                                            // cores per node
              {"-t", std::to_string(static_cast<int>(yJob.walltimeSeconds * this->config->walltime_extension))}}; // seconds
         WRENCH_DEBUG("Submitting job %s (%d nodes, %d cores per node, %d minutes) for executing actions",
-                     job->getName().c_str(),
+                     parentJob->getName().c_str(),
                      yJob.nodesUsed, yJob.coresUsed / yJob.nodesUsed, yJob.walltimeSeconds);
-        job_manager->submitJob(job, this->compute_service, service_specific_args);
+        job_manager->submitJob(parentJob, this->compute_service, service_specific_args);
     }
 
     std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
@@ -728,7 +723,7 @@ namespace storalloc {
 
             out_jobs << YAML::BeginMap; // action map
             out_jobs << YAML::Key << "act_name" << YAML::Value << action->getName();
-            out_jobs << YAML::Key << "sub_job" << YAML::Value << current_job->getName();
+            out_jobs << YAML::Key << "sub_job" << YAML::Value << action->getJob()->getName();
             auto act_type = wrench::Action::getActionTypeAsString(action);
             act_type.pop_back(); // removing a useless '-' at the end
             out_jobs << YAML::Key << "act_type" << YAML::Value << act_type;
@@ -764,7 +759,7 @@ namespace storalloc {
                     out_actions << YAML::BeginMap;
                     out_actions << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
                     out_actions << YAML::Key << "action_type" << YAML::Value << act_type;
-                    out_actions << YAML::Key << "action_job" << YAML::Value << current_job->getName();
+                    out_actions << YAML::Key << "action_job" << YAML::Value << action->getJob()->getName();
                     out_actions << YAML::Key << "action_name" << YAML::Value << action->getName();
                     out_actions << YAML::Key << "filename" << YAML::Value << trace_loc->getFile()->getID();
                     out_actions << YAML::Key << "storage_service" << YAML::Value << keys.first;
@@ -817,7 +812,7 @@ namespace storalloc {
                         out_actions << YAML::Key << "action_type" << YAML::Value << act_type;
                         out_actions << YAML::Key << "action_name" << YAML::Value << action->getName();
                         out_actions << YAML::Key << "filename" << YAML::Value << trace_loc->getFile()->getID();
-                        out_actions << YAML::Key << "action_job" << YAML::Value << current_job->getName();
+                        out_actions << YAML::Key << "action_job" << YAML::Value << action->getJob()->getName();
                         out_actions << YAML::Key << "storage_service" << YAML::Value << keys.first;
                         out_actions << YAML::Key << "disk" << YAML::Value << keys.second;
                         out_actions << YAML::Key << "volume_change_bytes" << YAML::Value << css->getFile()->getSize(); // dest file, because it's the one being written
@@ -851,7 +846,7 @@ namespace storalloc {
                         out_actions << YAML::Key << "action_type" << YAML::Value << act_type;
                         out_actions << YAML::Key << "action_name" << YAML::Value << action->getName();
                         out_actions << YAML::Key << "filename" << YAML::Value << trace_loc->getFile()->getID();
-                        out_actions << YAML::Key << "action_job" << YAML::Value << current_job->getName();
+                        out_actions << YAML::Key << "action_job" << YAML::Value << action->getJob()->getName();
                         out_actions << YAML::Key << "storage_service" << YAML::Value << keys.first;
                         out_actions << YAML::Key << "disk" << YAML::Value << keys.second;
                         out_actions << YAML::Key << "volume_change_bytes" << YAML::Value << usedFile->getSize();
