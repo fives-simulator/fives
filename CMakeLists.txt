@@ -67,7 +67,7 @@ else()
     )
 endif()
 
-set_target_properties(storalloc_wrench PROPERTIES COMPILE_FLAGS "-g -O1")
+set_target_properties(storalloc_wrench PROPERTIES COMPILE_FLAGS "-gp")
 install(TARGETS storalloc_wrench DESTINATION bin)
 
 

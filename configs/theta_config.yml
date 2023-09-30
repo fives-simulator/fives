@@ -14,7 +14,7 @@ general:
   permanent_storage_read_bw: 90GBps   # ALCF Tape archive cache speed is 90Gbps / and also the link between HDR and FDR is 100GBps. Here we reduce the link speed
   permanent_storage_write_bw: 90GBps  # Same
   permanent_storage_capacity: 3050TB  # Tape capacity is 305 PB
-  preload_percent: 0.3
+  preload_percent: 0.0
   amdahl: 0.5                         # From 0 to 1, degree of // in compute tasks
   walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
   non_linear_coef_read: 0.9
