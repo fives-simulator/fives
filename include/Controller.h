@@ -71,12 +71,13 @@ namespace storalloc {
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
                                                                                  std::shared_ptr<wrench::JobManager> internalJobManager,
                                                                                  std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                                                                 unsigned int nb_hosts = 1);
+                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 0);
 
         virtual void readFromTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                        const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                        std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                       std::vector<std::shared_ptr<wrench::DataFile>> inputs);
+                                       std::vector<std::shared_ptr<wrench::DataFile>> inputs,
+                                       unsigned int nb_hosts = 1);
 
         virtual void compute(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                              const std::shared_ptr<wrench::JobManager> &internalJobManager,

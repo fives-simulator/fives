@@ -77,6 +77,11 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             rhs.write_variability = ynode["general"]["write_variability"].as<float>();
         }
 
+        rhs.nb_files_per_read = ynode["general"]["nb_files_per_read"].as<unsigned int>();
+        rhs.nb_files_per_write = ynode["general"]["nb_files_per_write"].as<unsigned int>();
+        rhs.io_read_node_ratio = ynode["general"]["io_read_node_ratio"].as<float>();
+        rhs.io_write_node_ratio = ynode["general"]["io_write_node_ratio"].as<float>();
+
         // Dragonfly compute zone
         rhs.d_groups = ynode["dragonfly"]["groups"].as<int>();
         rhs.d_group_links = ynode["dragonfly"]["group_links"].as<int>();
