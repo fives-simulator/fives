@@ -31,6 +31,32 @@ namespace storalloc {
         std::map<std::string, DiskIOCounters> disks;
     };
 
+    class PartialWriteCustomAction : public wrench::CustomAction {
+    public:
+        std::shared_ptr<wrench::DataFile> writtenFile;
+        uint64_t writtenSize;
+
+        uint64_t getWrittenSize() const {
+            return this->writtenSize;
+        }
+
+        std::shared_ptr<wrench::DataFile> getFile() const {
+            return this->writtenFile;
+        };
+
+        /**
+         * @brief Constructor that takes it one extra parameter
+         */
+        PartialWriteCustomAction(const std::string &name,
+                                 double ram,
+                                 unsigned long num_cores,
+                                 std::function<void(std::shared_ptr<wrench::ActionExecutor> action_executor)> lambda_execute,
+                                 std::function<void(std::shared_ptr<wrench::ActionExecutor> action_executor)> lambda_terminate,
+                                 std::shared_ptr<wrench::DataFile> writtenFile,
+                                 uint64_t writtenSize) : CustomAction(name, ram, num_cores, std::move(lambda_execute), std::move(lambda_terminate)),
+                                                         writtenFile(writtenFile), writtenSize(writtenSize) {}
+    };
+
     /**
      *  @brief A Workflow Management System (WMS) implementation
      */
@@ -71,7 +97,7 @@ namespace storalloc {
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
                                                                                  std::shared_ptr<wrench::JobManager> internalJobManager,
                                                                                  std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 0);
+                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
 
         virtual void readFromTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                        const std::shared_ptr<wrench::JobManager> &internalJobManager,
@@ -86,12 +112,13 @@ namespace storalloc {
         virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                                                                 const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                                                                 std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                                                                unsigned int nb_hosts = 1);
+                                                                                unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
 
         virtual void copyToPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                      const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                      std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                     std::vector<std::shared_ptr<wrench::DataFile>> outputs);
+                                     std::vector<std::shared_ptr<wrench::DataFile>> outputs,
+                                     unsigned int nb_hosts = 1);
 
         virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
@@ -106,6 +133,8 @@ namespace storalloc {
         void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
                             double &job_start_time);
+
+        void pruneIONodes(std::map<std::string, unsigned long> &resources, unsigned int max_nb_hosts) const;
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
