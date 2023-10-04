@@ -17,6 +17,7 @@ namespace storalloc {
         };
     }
 
+    // REMOVE
     static auto hdd_variability_factory(double read_variability, double write_variability) {
         auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
             std::random_device rd{};
