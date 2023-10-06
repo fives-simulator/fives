@@ -225,7 +225,7 @@ namespace storalloc {
         uint64_t chunk_idx = 0;
         auto service = selectedOSTs.begin();
         while (allocated < file_size_b) {
-            auto part = wrench::Simulation::addFile(file->getID() + "_part_" + std::to_string(chunk_idx), stripeSize);
+            auto part = wrench::Simulation::addFile(file->getID() + "_stripe_" + std::to_string(chunk_idx), stripeSize);
             // std::cout << "     - Creating file part " << file->getID() << "_" << std::to_string(chunk_idx) << " on " << service->get()->getName() << std::endl;
             designated_locations.push_back(
                 wrench::FileLocation::LOCATION(

@@ -103,7 +103,7 @@ namespace storalloc {
                                        const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                        std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs,
-                                       unsigned int nb_hosts = 1);
+                                       unsigned int max_nb_hosts = 1);
 
         virtual void compute(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                              const std::shared_ptr<wrench::JobManager> &internalJobManager,
@@ -118,7 +118,7 @@ namespace storalloc {
                                      const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                      std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs,
-                                     unsigned int nb_hosts = 1);
+                                     unsigned int max_nb_hosts = 1);
 
         virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
@@ -135,6 +135,8 @@ namespace storalloc {
                             double &job_start_time);
 
         void pruneIONodes(std::map<std::string, unsigned long> &resources, unsigned int max_nb_hosts) const;
+
+        std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
