@@ -505,8 +505,8 @@ namespace storalloc {
         for (const auto &input : inputs) {
             auto file_stripes = this->compound_storage_service->lookupFileLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, input));
             unsigned int nb_stripes = file_stripes.size();
-            WRENCH_DEBUG("readFromTemporary: For file %s (size %f) :: %u stripes", input->getID().c_str(), input->getSize(), nb_stripes);
             bytes_per_host_per_input[input] = std::floor(input->getSize() / (max_nb_hosts * nb_stripes));
+            WRENCH_DEBUG("readFromTemporary: For file %s (size %f) : %u stripes, reading %lu b to each stripe from each IO node", input->getID().c_str(), input->getSize(), nb_stripes, bytes_per_host_per_input[input]);
             // remainder_per_input[input] = (static_cast<uint64_t>(input->getSize()) % (max_nb_hosts * nb_stripes));
         }
 
@@ -606,22 +606,29 @@ namespace storalloc {
         std::map<std::shared_ptr<wrench::DataFile>, uint64_t> bytes_per_host_per_output{};
         // std::map<std::shared_ptr<wrench::DataFile>, uint64_t> remainder_per_output{};
         for (auto write_file : write_files) {
-            // pre-allocate file
+            // We manually invoke this in order to know how the files will be striped before starting partial writes.
             auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
             unsigned int nb_stripes = file_stripes.size();
             bytes_per_host_per_output[write_file] = std::floor(write_file->getSize() / (max_nb_hosts * nb_stripes));
-            WRENCH_DEBUG("writeToTemporary: For file %s (size %f) :: %u stripes", write_file->getID().c_str(), write_file->getSize(), nb_stripes);
+            WRENCH_DEBUG("writeToTemporary: For file %s (size %f) : %u stripes, writing %lu b to each stripe from each IO node",
+                         write_file->getID().c_str(), write_file->getSize(), nb_stripes, bytes_per_host_per_output[write_file]);
             // remainder_per_output[write_file] = (static_cast<uint64_t>(write_file->getSize()) % max_nb_hosts);
         }
+
+        // DEBUG : AT THIS POINT, THE CORRECT STORAGE SPACE IS RESERVED ONTO THE SELECTED NODES
 
         // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
         this->pruneIONodes(computeResources, max_nb_hosts);
 
-        // Create one write action per file (each one will run on one host)
+        // Create one write action per file (each one will run on one host, unless there are more actions than 'max_nb_hosts',
+        // in which case multiple actions can be scheduled on the same host)
         auto computeResourcesIt = computeResources.begin();
         std::map<std::string, std::string> service_specific_args = {};
         for (auto &write_file : write_files) {
             for (unsigned int i = 0; i < max_nb_hosts; i++) {
+
+                WRENCH_INFO("[%s]  writeToTemporary: Creating custom write action for file %s and host %u", jobPair.first.id.c_str(), write_file->getID().c_str(), i);
+
                 auto action_id = "fWrite_" + write_file->getID() + "_h" + std::to_string(i);
                 auto writtenSize = bytes_per_host_per_output[write_file];
                 /*if (i == 0) {
@@ -640,10 +647,10 @@ namespace storalloc {
                         this->compound_storage_service->writeFile(S4U_Daemon::getRunningActorRecvMailbox(),
                                                                   wrench::FileLocation::LOCATION(this->compound_storage_service, write_file),
                                                                   writtenSize,
-                                                                  false);
+                                                                  true);
                     },
-                    [action_id, writtenSize](std::shared_ptr<wrench::ActionExecutor> executor) {
-                        WRENCH_DEBUG("writeToTemporary: %s terminating - wrote %lu", action_id.c_str(), writtenSize);
+                    [action_id, writtenSize, jobPair](std::shared_ptr<wrench::ActionExecutor> executor) {
+                        WRENCH_DEBUG("[%s]  writeToTemporary: %s terminating - wrote %lu", jobPair.first.id.c_str(), action_id.c_str(), writtenSize);
                     },
                     write_file, writtenSize);
                 writeJob->addCustomAction(customWriteAction);
@@ -652,6 +659,12 @@ namespace storalloc {
                 service_specific_args[action_id] = computeResourcesIt->first;
                 if (++computeResourcesIt == computeResources.end())
                     computeResourcesIt = computeResources.begin();
+            }
+        }
+
+        for (const auto &svc : this->compound_storage_service->getAllServices()) {
+            for (const auto &ost : svc.second) {
+                WRENCH_INFO("[%s]: For location %s, free space = %f", jobPair.first.id.c_str(), svc.first.c_str(), ost->getTotalFreeSpace());
             }
         }
 
