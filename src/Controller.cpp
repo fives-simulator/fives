@@ -168,8 +168,8 @@ namespace storalloc {
     std::vector<storalloc::YamlJob> Controller::createPreloadJobs() const {
 
         // How many preload jobs to create (20% of the total number of jobs):
-        auto preloadJobsCount = std::ceil(this->preload_header->job_count * this->config->preload_percent);
-        WRENCH_INFO("Preparing %f preload jobs", preloadJobsCount);
+        unsigned int preloadJobsCount = std::ceil(this->preload_header->job_count * this->config->preload_percent);
+        WRENCH_INFO("Preparing %u preload jobs", preloadJobsCount);
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -267,7 +267,7 @@ namespace storalloc {
         auto cores_per_node = this->compute_service->getPerHostNumCores().begin()->second;
         // std::cout << "Using " << cores_per_node << " cores for each reserved node" << std::endl;
         std::vector<storalloc::YamlJob> preload_jobs;
-        auto i = 0;
+        unsigned int i = 0;
         while (i < preloadJobsCount) {
             storalloc::YamlJob job = {};
 
@@ -298,7 +298,7 @@ namespace storalloc {
             i++;
         }
 
-        std::cout << "Preload jobs created" << std::endl;
+        WRENCH_INFO("%u preload jobs created", preloadJobsCount);
 
         return preload_jobs;
     }
@@ -598,6 +598,14 @@ namespace storalloc {
             max_nb_hosts = computeResources.size();
         }
 
+        for (const auto &svc : this->compound_storage_service->getAllServices()) {
+            for (const auto &ost : svc.second) {
+                uint64_t free_space = ost->getTotalFreeSpace();
+                if (free_space != 164000000000000)
+                    WRENCH_INFO("[%s]: For location %s, free space = %lu", jobPair.first.id.c_str(), svc.first.c_str(), free_space);
+            }
+        }
+
         // Subdivide the amount of written bytes between as many files as requested (one allocation per file)
         auto prefix = "output_data_file_" + writeJob->getName();
         auto write_files = this->createFileParts(jobPair.first.writtenBytes, nb_files, prefix);
@@ -664,7 +672,9 @@ namespace storalloc {
 
         for (const auto &svc : this->compound_storage_service->getAllServices()) {
             for (const auto &ost : svc.second) {
-                WRENCH_INFO("[%s]: For location %s, free space = %f", jobPair.first.id.c_str(), svc.first.c_str(), ost->getTotalFreeSpace());
+                uint64_t free_space = ost->getTotalFreeSpace();
+                if (free_space != 164000000000000)
+                    WRENCH_INFO("[%s]: For location %s, free space = %lu", jobPair.first.id.c_str(), svc.first.c_str(), free_space);
             }
         }
 
@@ -817,7 +827,6 @@ namespace storalloc {
      */
     void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
         auto job = event->job;
-        std::cout << "# Notified that compound job " << job->getName() << " has completed" << std::endl;
         WRENCH_INFO("# Notified that compound job %s has completed:", job->getName().c_str());
 
         // Extract relevant informations from job and write them to file / send them to DB ?
