@@ -6,6 +6,7 @@
 
 #include "Simulator.h"
 
+#include <chrono>
 #include <iostream>
 
 #include "yaml-cpp/yaml.h"
@@ -78,6 +79,11 @@ namespace storalloc {
      * @return 0 on success, non-zero otherwise
      */
     int run_simulation(int argc, char **argv) {
+
+        const std::chrono::time_point<std::chrono::steady_clock> chrono_start = std::chrono::steady_clock::now();
+
+        // Default log settings for a few components
+        xbt_log_control_set("storalloc_jobs.thres:warning");
 
         if (argc < 3) {
             std::cout << "################################################################" << std::endl;
@@ -172,7 +178,9 @@ namespace storalloc {
             new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
 
         WRENCH_INFO("Starting simulation...");
+        const std::chrono::time_point<std::chrono::steady_clock> sim_start = std::chrono::steady_clock::now();
         simulation->launch();
+        const std::chrono::time_point<std::chrono::steady_clock> sim_end = std::chrono::steady_clock::now();
 
         auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
         for (auto const &item : trace) {
@@ -187,6 +195,12 @@ namespace storalloc {
         // Extract traces into files tagged with dataset and config version.
         ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
         ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
+
+        const std::chrono::time_point<std::chrono::steady_clock> chrono_end = std::chrono::steady_clock::now();
+
+        std::cout << "Program duration : " << (chrono_end - chrono_start) / 1ms << "ms" << std::endl;
+        std::cout << "Sim duration : " << (sim_end - sim_start) / 1ms << "ms" << std::endl;
+        std::cout << "Trace processing duration : " << (chrono_end - sim_end) / 1ms << "ms" << std::endl;
 
         return 0;
     }

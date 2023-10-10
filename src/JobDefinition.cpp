@@ -90,7 +90,7 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     rhs.readBytes = node["readBytes"].as<uint64_t>();
     rhs.writtenBytes = node["writtenBytes"].as<uint64_t>();
     if ((rhs.readBytes == 0) or rhs.writtenBytes == 0)
-        WRENCH_WARN("read or written bytes == 0 for job %s", rhs.id.c_str());
+        WRENCH_INFO("read or written bytes == 0 for job %s", rhs.id.c_str());
     rhs.readTimeSeconds = node["readTimeSeconds"].as<double>();
     rhs.writeTimeSeconds = node["writeTimeSeconds"].as<double>();
     rhs.metaTimeSeconds = node["metaTimeSeconds"].as<double>();
