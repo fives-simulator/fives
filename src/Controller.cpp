@@ -31,6 +31,11 @@ WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for storalloc controller
 
 namespace storalloc {
 
+    struct StripeParams {
+        uint64_t partial_io_size;
+        uint64_t nb_stripes;
+    };
+
     /**
      * @brief Constructor
      *
@@ -500,13 +505,13 @@ namespace storalloc {
         // Compute what should be read by each host from each file (including remainder if values are not round)
         // In this case, each host reads a part of each file (and read_size must be also divided by the number of stripes, as the CSS will
         // start a read for read_size for each stripe)
-        std::map<std::shared_ptr<wrench::DataFile>, uint64_t> bytes_per_host_per_input{};
+        std::map<std::shared_ptr<wrench::DataFile>, StripeParams> bytes_per_host_per_input{};
         // std::map<std::shared_ptr<wrench::DataFile>, uint64_t> remainder_per_input{};
         for (const auto &input : inputs) {
             auto file_stripes = this->compound_storage_service->lookupFileLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, input));
             unsigned int nb_stripes = file_stripes.size();
-            bytes_per_host_per_input[input] = std::floor(input->getSize() / (max_nb_hosts * nb_stripes));
-            WRENCH_DEBUG("readFromTemporary: For file %s (size %f) : %u stripes, reading %lu b to each stripe from each IO node", input->getID().c_str(), input->getSize(), nb_stripes, bytes_per_host_per_input[input]);
+            bytes_per_host_per_input[input] = {.partial_io_size = static_cast<uint64_t>(std::floor(input->getSize() / (max_nb_hosts * nb_stripes))), .nb_stripes = nb_stripes};
+            WRENCH_DEBUG("readFromTemporary: For file %s (size %f) : %u stripes, reading %lu b to each stripe from each IO node", input->getID().c_str(), input->getSize(), nb_stripes, bytes_per_host_per_input[input].partial_io_size);
             // remainder_per_input[input] = (static_cast<uint64_t>(input->getSize()) % (max_nb_hosts * nb_stripes));
         }
 
@@ -518,8 +523,9 @@ namespace storalloc {
         for (const auto &input_data : inputs) {
             for (unsigned int i = 0; i < max_nb_hosts; i++) {
                 auto action_id = "fRead_f" + input_data->getID() + "_h" + std::to_string(i);
+                this->actions_io_factor[action_id] = bytes_per_host_per_input[input_data].nb_stripes;
 
-                uint64_t readSize = bytes_per_host_per_input[input_data];
+                uint64_t readSize = bytes_per_host_per_input[input_data].partial_io_size;
                 /*if (i == 0) {
                     readSize += remainder_per_input[input_data];
                 }*/
@@ -598,28 +604,21 @@ namespace storalloc {
             max_nb_hosts = computeResources.size();
         }
 
-        for (const auto &svc : this->compound_storage_service->getAllServices()) {
-            for (const auto &ost : svc.second) {
-                uint64_t free_space = ost->getTotalFreeSpace();
-                if (free_space != 164000000000000)
-                    WRENCH_INFO("[%s]: For location %s, free space = %lu", jobPair.first.id.c_str(), svc.first.c_str(), free_space);
-            }
-        }
-
         // Subdivide the amount of written bytes between as many files as requested (one allocation per file)
         auto prefix = "output_data_file_" + writeJob->getName();
         auto write_files = this->createFileParts(jobPair.first.writtenBytes, nb_files, prefix);
 
         // Compute what should be written by each host to each file (including remainder if values are not round)
-        std::map<std::shared_ptr<wrench::DataFile>, uint64_t> bytes_per_host_per_output{};
+        std::map<std::shared_ptr<wrench::DataFile>, StripeParams> bytes_per_host_per_output{};
         // std::map<std::shared_ptr<wrench::DataFile>, uint64_t> remainder_per_output{};
         for (auto write_file : write_files) {
             // We manually invoke this in order to know how the files will be striped before starting partial writes.
             auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
             unsigned int nb_stripes = file_stripes.size();
-            bytes_per_host_per_output[write_file] = std::floor(write_file->getSize() / (max_nb_hosts * nb_stripes));
+            // bytes_per_host_per_output[write_file] = std::floor(write_file->getSize() / (max_nb_hosts * nb_stripes));
+            bytes_per_host_per_output[write_file] = {.partial_io_size = static_cast<uint64_t>(std::floor(write_file->getSize() / (max_nb_hosts * nb_stripes))), .nb_stripes = nb_stripes};
             WRENCH_DEBUG("writeToTemporary: For file %s (size %f) : %u stripes, writing %lu b to each stripe from each IO node",
-                         write_file->getID().c_str(), write_file->getSize(), nb_stripes, bytes_per_host_per_output[write_file]);
+                         write_file->getID().c_str(), write_file->getSize(), nb_stripes, bytes_per_host_per_output[write_file].partial_io_size);
             // remainder_per_output[write_file] = (static_cast<uint64_t>(write_file->getSize()) % max_nb_hosts);
         }
 
@@ -638,7 +637,8 @@ namespace storalloc {
                 WRENCH_INFO("[%s]  writeToTemporary: Creating custom write action for file %s and host %u", jobPair.first.id.c_str(), write_file->getID().c_str(), i);
 
                 auto action_id = "fWrite_" + write_file->getID() + "_h" + std::to_string(i);
-                auto writtenSize = bytes_per_host_per_output[write_file];
+                this->actions_io_factor[action_id] = bytes_per_host_per_output[write_file].nb_stripes;
+                auto writtenSize = bytes_per_host_per_output[write_file].partial_io_size;
                 /*if (i == 0) {
                     writtenSize += remainder_per_output[write_file];
                 }*/
@@ -667,14 +667,6 @@ namespace storalloc {
                 service_specific_args[action_id] = computeResourcesIt->first;
                 if (++computeResourcesIt == computeResources.end())
                     computeResourcesIt = computeResources.begin();
-            }
-        }
-
-        for (const auto &svc : this->compound_storage_service->getAllServices()) {
-            for (const auto &ost : svc.second) {
-                uint64_t free_space = ost->getTotalFreeSpace();
-                if (free_space != 164000000000000)
-                    WRENCH_INFO("[%s]: For location %s, free space = %lu", jobPair.first.id.c_str(), svc.first.c_str(), free_space);
             }
         }
 
@@ -947,7 +939,7 @@ namespace storalloc {
 
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
-                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileRead->getNumBytesToRead();
+                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileRead->getNumBytesToRead() * actions_io_factor[action->getName()];
 
             } else if (auto fileWrite = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(action)) {
                 // auto usedLocation = fileWrite->getFileLocation();
@@ -958,7 +950,7 @@ namespace storalloc {
                 out_jobs << YAML::Key << "parts_count" << YAML::Value << write_trace.parts_count;
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
-                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileWrite->getWrittenSize();
+                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileWrite->getWrittenSize() * actions_io_factor[action->getName()];
 
                 for (const auto &trace_loc : write_trace.internal_locations) {
                     auto keys = updateIoUsageWrite(this->volume_per_storage_service_disk, trace_loc);
