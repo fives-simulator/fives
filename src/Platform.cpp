@@ -202,12 +202,14 @@ namespace storalloc {
                         }*/
 
                         // Input for contention and variability on HDDs
-                        new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
-                                                     sg4::Disk::SharingPolicy::NONLINEAR,
-                                                     non_linear_disk_bw_factory(config->non_linear_coef_read));
-                        new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
-                                                     sg4::Disk::SharingPolicy::NONLINEAR,
-                                                     non_linear_disk_bw_factory(config->non_linear_coef_write));
+                        if ((config->non_linear_coef_read != 1) or (config->non_linear_coef_write != 1)) {
+                            new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
+                                                         sg4::Disk::SharingPolicy::NONLINEAR,
+                                                         non_linear_disk_bw_factory(config->non_linear_coef_read));
+                            new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
+                                                         sg4::Disk::SharingPolicy::NONLINEAR,
+                                                         non_linear_disk_bw_factory(config->non_linear_coef_write));
+                        }
                         if ((config->read_variability != 1) or (config->write_variability != 1)) {
                             new_disk->set_factor_cb(
                                 hdd_variability_factory(config->read_variability, config->write_variability));
