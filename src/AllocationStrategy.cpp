@@ -89,8 +89,8 @@ namespace storalloc {
         for (const auto &resource : resources) {
             for (const auto &service : resource.second) {
                 auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
-                uint64_t current_free_space = ss_service->getTotalFreeSpaceZeroTime();
-                current_free_space >>= 8; // used in Lustre code to prevent overflows, we're blindly doing the same
+                uint64_t current_free_space = ss_service->getTotalFreeSpaceZeroTime(); // TODO : should this be ZeroTime or not ?
+                current_free_space >>= 8;                                              // used in Lustre code to prevent overflows, we're blindly doing the same
                 ba_min_max.min = min(current_free_space, ba_min_max.min);
                 ba_min_max.max = max(current_free_space, ba_min_max.max);
             }
@@ -110,7 +110,7 @@ namespace storalloc {
 
         // Note : if your OSTs originally have != capacities, this will most likely not work as intended (but Lustre
         // has other mechanisms to look into for such use cases)
-        WRENCH_DEBUG("[LustreAllocator::lustreUseRR] Min : %lu / Max : %lu", ba_min_max.min, ba_min_max.max);
+        WRENCH_DEBUG("[lustreUseRR] Min : %lu / Max : %lu", ba_min_max.min, ba_min_max.max);
         return (ba_min_max.max * (256 - this->config->lustre.lq_threshold_rr)) >> 8 < ba_min_max.min;
     }
 
@@ -134,13 +134,13 @@ namespace storalloc {
     std::vector<std::shared_ptr<wrench::StorageService>> LustreAllocator::lustreRROrderServices(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources) const {
 
         if (resources.empty()) {
-            throw std::runtime_error("[LustreAllocator::lustreRROrderService] Cannot return ordering from empty map of services");
+            throw std::runtime_error("[lustreRROrderService] Cannot return ordering from empty map of services");
         }
 
         std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services; // OSTs
         for (const auto &host : resources) {                                      // Flatten OST list
             disk_level_services.insert(disk_level_services.end(), host.second.begin(), host.second.end());
-            WRENCH_DEBUG("[LustreAllocator::lustreRROrderServices] Node %s has %lu service(s) (OST(s))",
+            WRENCH_DEBUG("[lustreRROrderServices] Node %s has %lu service(s) (OST(s))",
                          host.first.c_str(), host.second.size());
         }
 
@@ -182,7 +182,7 @@ namespace storalloc {
         }
 
         if (placed_services != rr_ordered_services.size()) {
-            WRENCH_WARN("[LustreAllocator::lustreRROrderServices] Couldn't place all services in the round-robin pre-processed list (missing %lu services)", rr_ordered_services.size() - placed_services);
+            WRENCH_WARN("[lustreRROrderServices] Couldn't place all services in the round-robin pre-processed list (missing %lu services)", rr_ordered_services.size() - placed_services);
             throw std::runtime_error("Number of placed services differs expected size of the RR-ordered services");
         }
 
@@ -365,36 +365,36 @@ namespace storalloc {
                 ++start_ost_index;
                 auto current_ost = this->static_rr_ordered_services[array_idx];
 
-                // /!\ Used to be a call to getTotalFreeSpaceZeroTime, and maybe it's better...
-                if (current_ost->getTotalFreeSpace() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
+                // /!\ Should (could) this be a call to getTotalFreeSpace() instead ?
+                if (current_ost->getTotalFreeSpaceZeroTime() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                     // Only keep running storage services associated with non-full disks
-                    WRENCH_DEBUG("LustreAlloc: skipping OST (total Free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
+                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST (total Free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
                     continue;
                 }
 
                 // For the first iteration, avoid services which already have an older allocation on them.
                 if (speed == 0 && lustreOstIsUsed(mapping, current_ost)) {
-                    WRENCH_DEBUG("LustreAlloc : Skipping OST because another allocation is already using it");
+                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST because another allocation is already using it");
                     continue;
                 } else {
-                    WRENCH_DEBUG("LustreAlloc : Using OST %s", current_ost->getHostname().c_str());
+                    WRENCH_DEBUG("[lustreRRAllocator] Using OST %s", current_ost->getHostname().c_str());
                     ostSelection.push_back(current_ost);
                     stripe_idx++;
                 }
             }
 
             if (stripe_idx == current_striping.stripes_count) {
-                WRENCH_DEBUG("LustreAlloc : All stripes allocated/ Stopping");
+                WRENCH_DEBUG("[lustreRRAllocator] All stripes allocated/ Stopping");
                 break;
             } else {
                 this->start_ost_index = temp_start_ost_index; // back to original index, but this time we'll allow 'slow' OSTs
-                WRENCH_DEBUG("LustreAlloc : Starting over because stripe_idx != stripe_count and we reached the condition of this loop");
+                WRENCH_DEBUG("[lustreRRAllocator] Starting over because stripe_idx != stripe_count and we reached the condition of this loop");
             }
         }
 
         // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
         if (ostSelection.size() < current_striping.stripes_count) {
-            WRENCH_WARN("LustreAlloc: Expected to find %li OSTs, but could only select %li instead.", current_striping.stripes_count, ostSelection.size());
+            WRENCH_WARN("[lustreRRAllocator] Expected to find %li OSTs, but could only select %li instead.", current_striping.stripes_count, ostSelection.size());
         }
 
         return lustreCreateFileParts(file, ostSelection, current_striping.stripe_size_b);
@@ -405,6 +405,7 @@ namespace storalloc {
         // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/obdclass/lu_tgt_descs.c#L532
 
         if (active_service_count == 0) {
+            WRENCH_WARN("[lustreComputeOstPenalty] active_service_count = 0 - Unable to continue (check the resource map provided to the allocator))");
             throw std::runtime_error("lustreComputeOstPenalty: active_service_count cannot be = 0");
         }
 
@@ -437,7 +438,8 @@ namespace storalloc {
          */
 
         if (ost_count == 0 or oss_count == 0) {
-            throw std::runtime_error("lustreComputeOstPenalty: active_service_count cannot be = 0");
+            WRENCH_WARN("[lustreComputeOstPenalty] oss_count and ost_count cannot be = 0");
+            throw std::runtime_error("lustreComputeOstPenalty: oss_count and ost_count cannot be = 0");
         }
 
         auto oss_penalty = (this->prio_wide * free_space_b * free_inode_count) >> 8;
@@ -469,6 +471,11 @@ namespace storalloc {
         auto active_ost_count = 0;
         for (const auto &resource : resources) {
             active_ost_count += resource.second.size();
+        }
+
+        if (active_ost_count == 0) {
+            WRENCH_WARN("[lustreWeightedAllocator] active_service_count = 0 - Unable to continue");
+            throw std::runtime_error("lustreWeightedAllocator: active_service_count cannot be = 0");
         }
         // std::cout << "Active OST count : " << active_ost_count << std::endl;
 
@@ -541,10 +548,10 @@ namespace storalloc {
         // std::cout << "Stripes per ost " << striping.stripes_per_ost << std::endl;
         // std::cout << "TOTAL WEIGHT : " << total_weight << std::endl;
 
-        WRENCH_DEBUG("LUSTRE WEIGHT ALLOC DEBUG");
-        WRENCH_DEBUG("Stripe count = %ld", striping.stripes_count);
-        WRENCH_DEBUG("Current file_size = %f", file_size_b);
-        WRENCH_DEBUG("Number of OST / services = %i", active_ost_count);
+        WRENCH_DEBUG("[lustreWeightedAllocator] LUSTRE WEIGHT ALLOC DEBUG");
+        WRENCH_DEBUG("[lustreWeightedAllocator] Stripe count = %ld", striping.stripes_count);
+        WRENCH_DEBUG("[lustreWeightedAllocator] Current file_size = %f", file_size_b);
+        WRENCH_DEBUG("[lustreWeightedAllocator] Number of OST / services = %i", active_ost_count);
 
         // from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
         std::random_device rd;
@@ -576,7 +583,7 @@ namespace storalloc {
 
         // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
         if (selectedOSTs.size() < striping.stripes_count) {
-            WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %ld  stripes, but could only allocate %li instead.", striping.stripes_count, selectedOSTs.size());
+            WRENCH_WARN("[lustreWeightedAllocator] Expected to allocate %ld  stripes, but could only allocate %li instead.", striping.stripes_count, selectedOSTs.size());
         }
 
         return lustreCreateFileParts(file, selectedOSTs, striping.stripe_size_b);
