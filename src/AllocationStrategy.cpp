@@ -71,11 +71,11 @@ namespace storalloc {
 
         if (this->lustreUseRR(ba_min_max)) {
             // Consider that every target has roughly the same free space, and use RR allocator
-            WRENCH_DEBUG("[lustreStrategy] Using RR allocator");
+            WRENCH_DEBUG("[LustreAllocator] Using RR allocator");
             return this->lustreRRAllocator(file, resources, mapping, previous_allocations);
         } else {
             // Consider that targets free space use is too much imbalanced and go for the weighted allocator
-            WRENCH_DEBUG("[lustreStrategy] Using weighted allocator");
+            WRENCH_DEBUG("[LustreAllocator] Using WEIGHTED allocator");
             return this->lustreWeightedAllocator(file, resources, mapping, previous_allocations);
         }
     }
@@ -110,40 +110,71 @@ namespace storalloc {
 
         // Note : if your OSTs originally have != capacities, this will most likely not work as intended (but Lustre
         // has other mechanisms to look into for such use cases)
+        WRENCH_DEBUG("[LustreAllocator::lustreUseRR] Min : %lu / Max : %lu", ba_min_max.min, ba_min_max.max);
         return (ba_min_max.max * (256 - this->config->lustre.lq_threshold_rr)) >> 8 < ba_min_max.min;
     }
 
-    std::vector<std::shared_ptr<wrench::StorageService>> LustreAllocator::lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
-                                                                                                const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services) const {
+    /**
+     * @brief Order services in the same fashion Lustre allocator orders OSTs from differents OSSs
+     *        This function is the equivalent as lod_qos_calc_rr() in 'lustre/lod/lod_qos.c'.
+     *        The result in C++ looks slightly unnatural, but follows the same broad logic as the original C code:
+     *        - Create an empty list of OSTs, all values being null (LOV_QOS_EMPTY in Lustre, a simple nullptr in our case), we call it rr_ordered_services
+     *        - Loop over all OSS/servers (storage nodes hostnames in our case)
+     *        - For each OSS/server:
+     *           - loop for i=0 to the number of OSTs that will be in the final ordered list
+     *           - for each i, check if the tgt at position i in the pool of targets is available, if not, continue (we don't check for that all our targets are supposed alive at all time)
+     *           - then check whether or not the identified target belongs to the current server (upper loop), if not, continue
+     *           - then compute where the current target should be placed in the ordered list : this is done with "j * rr_ordered_services.size() / number of OSTs in current server", j being a 0-based index for each server
+     *           - loop over the entire pool of of OSTs being ordered
+     *
+     *
+     * @param resources Reference to the resource map provided to the allocator (vector of services, aka OSTs, for each storage node, aka OSS)
+     * @return List of ordered services
+     */
+    std::vector<std::shared_ptr<wrench::StorageService>> LustreAllocator::lustreRROrderServices(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources) const {
 
-        if ((hostname_to_service_count.size() == 0) or (disk_level_services.size() == 0)) {
-            throw std::runtime_error("lustreRROrderService : Cannot return ordering on empty lists of services");
+        if (resources.empty()) {
+            throw std::runtime_error("[LustreAllocator::lustreRROrderService] Cannot return ordering from empty map of services");
         }
 
-        std::vector<std::shared_ptr<wrench::StorageService>> rr_ordered_services(disk_level_services.size());
-        fill(rr_ordered_services.begin(), rr_ordered_services.end(), nullptr);
+        std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services; // OSTs
+        for (const auto &host : resources) {                                      // Flatten OST list
+            disk_level_services.insert(disk_level_services.end(), host.second.begin(), host.second.end());
+            WRENCH_DEBUG("[LustreAllocator::lustreRROrderServices] Node %s has %lu service(s) (OST(s))",
+                         host.first.c_str(), host.second.size());
+        }
 
-        std::size_t placed_services = 0;
+        uint32_t number_of_services = disk_level_services.size();
+        uint32_t placed_services = 0;
+        std::vector<std::shared_ptr<wrench::StorageService>> rr_ordered_services(number_of_services, nullptr);
 
-        for (const auto &server : hostname_to_service_count) {
+        // Outer loop is at OSS/storage node level
+        for (const auto &server : resources) {
 
             auto j = 0;
             auto srv_hostname = server.first;
-            auto srv_service_count = server.second;
+            auto srv_service_count = server.second.size();
 
-            const auto disk_level_svc_count = disk_level_services.size();
-            for (std::size_t i = 0; i < disk_level_svc_count; i++) {
+            // Here, the C code loops from 0 to lqr->lqr_pool.op_count, which is the
+            // number of targets/OSTs in the final ordered list of targets (the one being updated)
+            for (std::size_t i = 0; i < number_of_services; i++) {
                 int next;
 
+                // Here, the C code checks whether or not the i-th target is available or not
+                // We consider the services are always available
+
+                // If the current service doesn't belong to the currently selected server, skip it
                 if (disk_level_services[i]->getHostname() != srv_hostname) {
                     continue;
                 }
 
-                next = j * disk_level_svc_count / srv_service_count;
+                // Compute placement index for the i-th service currently selected
+                next = j * number_of_services / srv_service_count;
+                // Find first empty slot in the vector, starting after 'next' index (and loop back to the start of the vector if needed)
                 while (rr_ordered_services[next] != nullptr) {
-                    next = (next + 1) % disk_level_svc_count;
+                    next = (next + 1) % number_of_services;
                 }
-
+                // Actual placement
                 rr_ordered_services[next] = disk_level_services[i];
                 j++;
                 placed_services++;
@@ -151,7 +182,7 @@ namespace storalloc {
         }
 
         if (placed_services != rr_ordered_services.size()) {
-            std::cout << "LustreAlloc: couldn't place all services in the round-robin pre-processed list (missing " << std::to_string(rr_ordered_services.size() - placed_services) << " services)" << std::endl;
+            WRENCH_WARN("[LustreAllocator::lustreRROrderServices] Couldn't place all services in the round-robin pre-processed list (missing %lu services)", rr_ordered_services.size() - placed_services);
             throw std::runtime_error("Number of placed services differs expected size of the RR-ordered services");
         }
 
@@ -161,10 +192,23 @@ namespace storalloc {
     /**
      * @brief This method selects appropriate stripe_size and stripe_count values for each file we want to write, depending on the
      *        file size and number of OSTs available.
-     *        In real life, the user would select these parameters himself, but we can't do this here (and we don't know the original values)
+     *        In real life, the user would either rely on system defaults or manually provide these parameters. This second option is not
+     *        available to us (we don't have the data in our datasets and we don't want this kind of user interaction anyway)
      *
-     *        By default, we use the values provided in the configuration file (lustre.stripe_count & lustre.stripe_size), BUT if these values result
-     *        in too many chunks (typically in case of very large IO operations), we increase the stripe_size to reduce the number of operations.
+     *        As a reminder:
+     *          - stripe_count is the number of OSTs used to stored chunks/stripes of a file. For instance, if the stripe_count is set to
+     *            '2', Lustre would balance data blocks for a given files alternatively between 2 OSTs)
+     *          - stripe_size is the size of a single stripe
+     *          - there is also a concept of 'stripes_per_ost', but it is only used with a special feature of Lustre, "overstriping", which
+     *            we don't handle yet, so it's always set to 1 in our case.
+     *
+     *        By default, we use the values provided in the configuration file (lustre.stripe_count & lustre.stripe_size), BUT if these
+     *        values result in too many chunks for a given file (typically in case of very large IO operations), we increase the stripe_size
+     *        to reduce the number of operations on file and speed up the simulation.
+     *
+     * @param file_size_b Size in bytes of the file which will be striped across the storage resources
+     * @param total_number_of_osts Total number of OSTs (StorageServices) available in our storage system
+     * @return Final validated striping parameters
      */
     striping LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t total_number_of_OSTs) const {
 
@@ -173,29 +217,25 @@ namespace storalloc {
         ret_striping.stripes_count = this->config->lustre.stripe_count;
 
         if (this->config->lustre.stripe_count > total_number_of_OSTs) {
-            std::cout << this->config->lustre.stripe_count << std::endl;
+            WRENCH_WARN("[lustreComputeStriping] Configuration lustre.stripe_count (%lu) is superior to the actual number of OSTs accessible by the allocator (%lu)",
+                        this->config->lustre.stripe_count, total_number_of_OSTs);
             throw std::runtime_error("The configured 'stripe_count' is higher than the actual number of available OSTs");
         }
 
+        // Considering the default stripe_size and file size, how many file chunks would be part of the striping pattern?
         uint64_t nb_chunks = std::ceil(file_size_b / ret_striping.stripe_size_b);
-        uint64_t nb_chunks_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+        // Considering the number of chunks at this point, and the default number of OSTs to use, how many chunks would end up on each OST?
+        uint64_t stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+        // ret_striping.stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
 
-        // At this point, if we have too many chunks on each OST, recompute the stripe_size to fit the user definded bounds
-        if (nb_chunks_per_ost > this->config->lustre.max_chunks_per_ost) {
+        // If we have too many chunks on each OST, recompute the stripe_size to fit the user defined bounds
+        // Note: the stripe_count is not updated, only the stripe_size
+        if (stripes_per_ost > this->config->lustre.max_chunks_per_ost) {
             ret_striping.stripe_size_b = std::ceil(file_size_b / (ret_striping.stripes_count * config->lustre.max_chunks_per_ost));
         }
+        stripes_per_ost = std::ceil(std::ceil(file_size_b / ret_striping.stripe_size_b) / ret_striping.stripes_count);
 
-        /*
-        std::cout << "_____________________________________________" << std::endl;
-        std::cout << "File size is                   : " << file_size_b << " bytes" << std::endl;
-        std::cout << "We can use up to " << total_number_of_OSTs << " OSTs" << std::endl;
-        std::cout << "Volume per OST will be around  : " << file_size_b / config.lustre.stripe_count << " bytes" << std::endl;
-        std::cout << "User configured stripe size is : " << this->config->lustre.stripe_size << " bytes" << std::endl;
-        std::cout << "User configured stripe count is : " << this->config->lustre.stripe_count << std::endl;
-        std::cout << "Computed number of chunks per OSTs is " << nb_chunks_per_ost << std::endl;
-        std::cout << "Max number of chunk per ost is " << config.lustre.max_chunks_per_ost << std::endl;
-        std::cout << "Final stripe size will be " << ret_striping.stripe_size_b << std::endl;
-        */
+        WRENCH_DEBUG("[lustreComputeStriping] stripe_count = %lu ; stripe_size = %lu ; stripes_per_ost = %lu", ret_striping.stripes_count, ret_striping.stripe_size_b, stripes_per_ost);
 
         return ret_striping;
     }
@@ -243,52 +283,90 @@ namespace storalloc {
         return designated_locations;
     }
 
+    /**
+     * @brief Lustre Round-Robin allocator. Implemented after the original C sources from the Lustre project (https://github.com/whamcloud/lustre),
+     *        with simplifications and adaptations to fit our own data structures and parameters.
+     *
+     * @param file The file we need to stripe and allocate on the storage resources
+     * @param resources Map of resoureces representing the OSSs and OSTs available to the allocator (in Wrench, hostnames of storage nodes and StorageServices set up on them)
+     * @param mapping Map of current files allocated to the resources, with a list of the locations of all file parts for each file (used mainly to avoid overloaded StorageServices)
+     * @param previous_allocations Not used by the LustreAllocator, this is a list the previous allocations for the other parts of a file, in case the allocator is stateless and the CSS handled file striping.
+     *
+     */
     std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocator::lustreRRAllocator(
         const std::shared_ptr<wrench::DataFile> &file,
         const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
         const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const {
+        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
 
-        // 1. Prepare an ordered list of disk-level services (~OST) from all resources (~OSS)
-        //    Roughly equivalent to lod_qos.c::lod_qos_calc_rr() in Lustre sources.
-        std::map<std::string, int> hostname_to_service_count;                     // OSS
-        std::vector<std::shared_ptr<wrench::StorageService>> disk_level_services; // OST
-        for (const auto &host : resources) {                                      // Flatten OST list
-            disk_level_services.insert(disk_level_services.end(), host.second.begin(), host.second.end());
-            hostname_to_service_count[host.first] = host.second.size();
-        }
-        auto rr_ordered_services = lustreRROrderServices(hostname_to_service_count, disk_level_services);
-        auto rr_services_count = rr_ordered_services.size();
-
-        // 2. Use the rr ordered list of services to allocation stripes for the given file
-        // Roughly the equivalent of lod_qos.c::lod_ost_alloc_rr()
-
-        /** Note: In Lustre, the user provides the striping pattern (stripe size and number of OSTs onto which the stripes will be placed)
-         *  Here we don't have (nor want) this kind of user input, so the simulator's configuration provides a fixed stripe_size and stripe_count
-         * for all jobs, and we possibly adapt it to stay within reasonnable bounds in terms of simulation time.
+        /** 1. Prepare an ordered list of disk-level services (~OST) from all resources (~OSS)
+         *  In Lustre, this operation is systematically triggered because the number of available
+         *  targets may vary from one allocation to another (hosts going offline, ...), but in our case,
+         *  we consider that all storages services acting as OSTs will always be up and running during
+         *  the simulation, so the ordered service list never changes
          */
-        auto current_striping = lustreComputeStriping(file->getSize(), rr_services_count);
+        if (this->static_rr_ordered_services.empty()) {
+            this->static_rr_ordered_services = lustreRROrderServices(resources);
+            WRENCH_DEBUG("[lustreRRAllocator] Static list of ordered services has been updated. It now contains %lu services", static_rr_ordered_services.size());
+        }
+        uint32_t rr_service_count = static_rr_ordered_services.size();
 
-        // Randomly chosen index of first OST of the stripe pattern
-        // (from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution)
-        std::random_device rd;
-        std::mt19937 gen(rd()); // replace rd() by a static seed for reproducibility
-        std::uniform_int_distribution<> distrib(0, rr_services_count - 1);
-        int start_ost_index = distrib(gen); // similar to when Lustre chooses the first OST to be used.
-        int temp_start_ost_index = start_ost_index;
+        /** 1.Bis. Choose an appropriate striping strategy for the current allocation
+         *  In Lustre, the user provides the striping pattern with the stripe_size and stripe_count (number of OSTs onto which the stripes will be placed)
+         *  parameters.
+         *  Here we don't have (nor want) this kind of user input, so the simulator's configuration provides a fixed stripe_size and stripe_count
+         *  for all jobs, and we possibly adapt it to stay within reasonnable bounds in terms of simulation time.
+         */
+        auto current_striping = lustreComputeStriping(file->getSize(), rr_service_count);
+
+        /** 2. Use the rr ordered list of services to allocation stripes for the given file.
+         *  Roughly the equivalent of lod_qos.c::lod_ost_alloc_rr() and lod_qos.c::lod_check_and_reserve_ost()
+         *
+         *  Main steps are:
+         *   - Gather all necessary informations (that's what we did with previous function calls) : stripe_count, OST pool, etc
+         *   - Update the starting index: i.e. the index of the first OST to be used for placing stripes. This is a bit complex.
+         *     Lustre stores a start_count counter in its rr QoS data structure, acting as a 'reseed counter'. When it reaches 0,
+         *     Lustre reseeds the start index with a random value between 0 and the total number of OSTs. The rest of the time,
+         *     the start index is simply either not updated or set to start_index %= number of OSTs, and it's incremented during
+         *     the allocation process afterward
+         *   - If LOV_PATTERN_OVERSTRIPING is set (see overstripe here: https://doc.lustre.org/lustre_manual.xhtml#file_striping.how_it_works),
+         *     compute "stripes_per_ost' (we don't do this so far, stripes_per_osts = 1 in all cases)
+         *   - Loop starting at i=0, with condition i < "number of OSTs * stripes_per_ost" && stripe_idx < stripe_count, where:
+         *     - the first part simply equals to the total number of OSTs
+         *     - the second part means we stop when we have allocated the last stripe (stripe_idx starts at 0)
+         *       - For each iteration, compute an index in the OST array from the start_index, and choose the corresponding OST
+         *       - Run a few preliminary checks (we skip a few which don't easily apply to us)
+         *       - Skip some OST if they go over a given load threshold
+         *       - Actually reserve the OST for a stripe of the current allocation
+         *   - When exiting the loop, check whether or not all stripes have indeed been placed. If not, we can retry once with more relaxed selection of OSTs
+         *
+         */
+
+        // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/lod/lod_qos.c#L771
+        if (--this->start_count <= 0) {
+            std::mt19937 gen(this->rd()); // replace rd() by a static seed for reproducibility
+            std::uniform_int_distribution<> distrib(0, rr_service_count - 1);
+            this->start_ost_index = distrib(gen); // similar to when Lustre chooses the first OST to be used.
+            // The actual line below in Lustre is : '(LOV_CREATE_RESEED_MIN / max(osts->op_count, 1U) + LOV_CREATE_RESEED_MULT) * max(osts->op_count, 1U);'
+            // with LOV_CREATE_RESEED_MIN = 2000 and LOV_CREATE_RESEED_MULT = 30 ...
+            this->start_count = (2000 / rr_service_count + 30) * rr_service_count; // Raaaaaaandomm.
+        } else if (this->start_ost_index > rr_service_count || current_striping.stripes_count >= rr_service_count) {
+            this->start_ost_index %= rr_service_count;
+        }
+        unsigned int temp_start_ost_index = start_ost_index;
         unsigned int stripe_idx = 0;
 
         std::vector<std::shared_ptr<wrench::StorageService>> ostSelection;
 
         // Some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
-        for (auto speed = 0; speed < 2; speed++) {
-            for (size_t i = 0; i < rr_services_count * current_striping.stripes_per_ost && stripe_idx < current_striping.stripes_count; i++) {
+        for (auto speed = 0; speed < 2; speed++) { // IN the C code, this is implemented with a GOTO, not a loop
+            for (size_t i = 0; i < rr_service_count * current_striping.stripes_per_ost && stripe_idx < current_striping.stripes_count; i++) {
+                auto array_idx = start_ost_index % rr_service_count; // there should be an additional offset index here, we simplified the algorithm a bit
+                ++start_ost_index;
+                auto current_ost = this->static_rr_ordered_services[array_idx];
 
-                auto array_idx = temp_start_ost_index % rr_services_count;
-                ++temp_start_ost_index;
-                auto current_ost = rr_ordered_services[array_idx];
-
-                if (current_ost->getTotalFreeSpaceZeroTime() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
+                // /!\ Used to be a call to getTotalFreeSpaceZeroTime, and maybe it's better...
+                if (current_ost->getTotalFreeSpace() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                     // Only keep running storage services associated with non-full disks
                     WRENCH_DEBUG("LustreAlloc: skipping OST (total Free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
                     continue;
@@ -309,16 +387,14 @@ namespace storalloc {
                 WRENCH_DEBUG("LustreAlloc : All stripes allocated/ Stopping");
                 break;
             } else {
-                ostSelection.clear();
-                temp_start_ost_index = start_ost_index; // back to original index, but this time we'll allow 'slow' OSTs
-                stripe_idx = 0;
+                this->start_ost_index = temp_start_ost_index; // back to original index, but this time we'll allow 'slow' OSTs
                 WRENCH_DEBUG("LustreAlloc : Starting over because stripe_idx != stripe_count and we reached the condition of this loop");
             }
         }
 
         // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
         if (ostSelection.size() < current_striping.stripes_count) {
-            WRENCH_WARN("LustreAlloc: Expected to find %i OSTs, but could only select %li instead.", current_striping.stripes_count, ostSelection.size());
+            WRENCH_WARN("LustreAlloc: Expected to find %li OSTs, but could only select %li instead.", current_striping.stripes_count, ostSelection.size());
         }
 
         return lustreCreateFileParts(file, ostSelection, current_striping.stripe_size_b);
@@ -466,7 +542,7 @@ namespace storalloc {
         // std::cout << "TOTAL WEIGHT : " << total_weight << std::endl;
 
         WRENCH_DEBUG("LUSTRE WEIGHT ALLOC DEBUG");
-        WRENCH_DEBUG("Stripe count = %d", striping.stripes_count);
+        WRENCH_DEBUG("Stripe count = %ld", striping.stripes_count);
         WRENCH_DEBUG("Current file_size = %f", file_size_b);
         WRENCH_DEBUG("Number of OST / services = %i", active_ost_count);
 
@@ -500,7 +576,7 @@ namespace storalloc {
 
         // If we could allocate every stripe, return an empty vector that will be interpreted as an allocation failure
         if (selectedOSTs.size() < striping.stripes_count) {
-            WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %d  stripes, but could only allocate %li instead.", striping.stripes_count, selectedOSTs.size());
+            WRENCH_WARN("LustreWeightedAlloc: Expected to allocate %ld  stripes, but could only allocate %li instead.", striping.stripes_count, selectedOSTs.size());
         }
 
         return lustreCreateFileParts(file, selectedOSTs, striping.stripe_size_b);

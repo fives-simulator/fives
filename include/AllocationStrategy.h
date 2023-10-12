@@ -26,9 +26,9 @@ namespace storalloc {
     };
 
     struct striping {
-        uint64_t stripe_size_b;           //  Size of a stripe in bytes (ie. how many bytes to write/read to/from an OST before using the next one in the current selection)
-        unsigned int stripes_per_ost = 1; //  Number of stripes on each OST (used only in PATTERN_OVERSTRIPING case, default to 1)
-        unsigned int stripes_count;       //  Number of OSTs used (on how many OSTs to load balance the reads / writes)
+        uint64_t stripe_size_b;       //  Size of a stripe in bytes (ie. how many bytes to write/read to/from an OST before using the next one in the current selection)
+        uint64_t stripes_per_ost = 1; //  Number of stripes on each OST (based on the number of stripes, computed from file size and stripe size, and the number of OST to be used)
+        uint64_t stripes_count;       //  Number of OSTs used (on how many OSTs to load balance the reads / writes)
     };
 
     class LustreAllocator {
@@ -52,7 +52,7 @@ namespace storalloc {
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const;
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreWeightedAllocator(
             const std::shared_ptr<wrench::DataFile> &file,
@@ -74,8 +74,7 @@ namespace storalloc {
 
         bool lustreUseRR(struct ba_min_max ba_min_max) const;
 
-        std::vector<std::shared_ptr<wrench::StorageService>> lustreRROrderServices(const std::map<std::string, int> &hostname_to_service_count,
-                                                                                   const std::vector<std::shared_ptr<wrench::StorageService>> &disk_level_services) const;
+        std::vector<std::shared_ptr<wrench::StorageService>> lustreRROrderServices(const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources) const;
 
         bool lustreOstIsUsed(const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
                              const std::shared_ptr<wrench::StorageService> ost) const;
@@ -87,6 +86,14 @@ namespace storalloc {
         uint64_t lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count) const;
 
         std::shared_ptr<storalloc::Config> config;
+
+        std::vector<std::shared_ptr<wrench::StorageService>> static_rr_ordered_services;
+
+        std::random_device rd;
+
+        unsigned int start_count = 0;
+
+        unsigned int start_ost_index = 0;
 
         uint64_t prio_wide;
     };

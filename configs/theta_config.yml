@@ -63,6 +63,6 @@ lustre:
   lq_threshold_rr: 43     # lustre default
   lq_prio_free: 232       # lustre default
   stripe_size: 2097152    # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
-  stripe_count: 1         # Default number of OSTs used for each IO operation
+  stripe_count: 8         # Default number of OSTs used for each IO operation
   max_chunks_per_ost: 8   # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 ...
