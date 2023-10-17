@@ -90,7 +90,9 @@ namespace storalloc {
             for (const auto &service : resource.second) {
                 auto ss_service = dynamic_pointer_cast<wrench::SimpleStorageService>(service);
                 uint64_t current_free_space = ss_service->getTotalFreeSpaceZeroTime(); // TODO : should this be ZeroTime or not ?
-                current_free_space >>= 8;                                              // used in Lustre code to prevent overflows, we're blindly doing the same
+                WRENCH_DEBUG("[lustreComputeMinMaxUtilization] Cur. free space [%s]: %ld (>>8 = %ld)",
+                             ss_service->getName().c_str(), current_free_space, current_free_space >> 8);
+                current_free_space >>= 8; // used in Lustre code to prevent overflows, we're blindly doing the same
                 ba_min_max.min = min(current_free_space, ba_min_max.min);
                 ba_min_max.max = max(current_free_space, ba_min_max.max);
             }
@@ -212,9 +214,21 @@ namespace storalloc {
      */
     striping LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t total_number_of_OSTs) const {
 
+        WRENCH_DEBUG("[lustreComputeStriping] file size : %ld bytes, number of OSTs : %lu", file_size_b, total_number_of_OSTs);
+
         striping ret_striping = {};
         ret_striping.stripe_size_b = this->config->lustre.stripe_size;
         ret_striping.stripes_count = this->config->lustre.stripe_count;
+
+        if (file_size_b < 1) {
+            WRENCH_WARN("[lustreComputeStriping] File size can't be < 1B");
+            throw std::runtime_error("File size can't be < 1B");
+        }
+
+        if (total_number_of_OSTs < 1) {
+            WRENCH_WARN("[lustreComputeStriping] Total number of OST can't be < 1");
+            throw std::runtime_error("Total number of OST can't be < 1");
+        }
 
         if (this->config->lustre.stripe_count > total_number_of_OSTs) {
             WRENCH_WARN("[lustreComputeStriping] Configuration lustre.stripe_count (%lu) is superior to the actual number of OSTs accessible by the allocator (%lu)",
@@ -222,20 +236,24 @@ namespace storalloc {
             throw std::runtime_error("The configured 'stripe_count' is higher than the actual number of available OSTs");
         }
 
-        // Considering the default stripe_size and file size, how many file chunks would be part of the striping pattern?
-        uint64_t nb_chunks = std::ceil(file_size_b / ret_striping.stripe_size_b);
+        // Considering the default stripe_size and file size, how many file chunks would be used in the striping pattern?
+        auto nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
+        WRENCH_DEBUG("number of chunks : %f", nb_chunks);
         // Considering the number of chunks at this point, and the default number of OSTs to use, how many chunks would end up on each OST?
-        uint64_t stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
-        // ret_striping.stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+        // uint64_t stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+        ret_striping.max_stripes_per_ost = std::ceil(static_cast<double>(nb_chunks) / ret_striping.stripes_count);
 
         // If we have too many chunks on each OST, recompute the stripe_size to fit the user defined bounds
-        // Note: the stripe_count is not updated, only the stripe_size
-        if (stripes_per_ost > this->config->lustre.max_chunks_per_ost) {
-            ret_striping.stripe_size_b = std::ceil(file_size_b / (ret_striping.stripes_count * config->lustre.max_chunks_per_ost));
+        // Note: the stripe_count is not updated, we still want to use the same number of OSTs in total, only the stripe_size
+        if (ret_striping.max_stripes_per_ost > this->config->lustre.max_chunks_per_ost) {
+            ret_striping.stripe_size_b = std::ceil(static_cast<double>(file_size_b) / (ret_striping.stripes_count * config->lustre.max_chunks_per_ost));
+            WRENCH_WARN("[lustreComputeStriping] Too many stripes per ost with configured stripe_size - recomputing to %lu",
+                        ret_striping.stripe_size_b);
+            nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
+            ret_striping.max_stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
         }
-        stripes_per_ost = std::ceil(std::ceil(file_size_b / ret_striping.stripe_size_b) / ret_striping.stripes_count);
 
-        WRENCH_DEBUG("[lustreComputeStriping] stripe_count = %lu ; stripe_size = %lu ; stripes_per_ost = %lu", ret_striping.stripes_count, ret_striping.stripe_size_b, stripes_per_ost);
+        WRENCH_DEBUG("[lustreComputeStriping] stripe_count = %lu ; stripe_size = %lu ; [stripes_per_ost = %lu]", ret_striping.stripes_count, ret_striping.stripe_size_b, ret_striping.max_stripes_per_ost);
 
         return ret_striping;
     }
@@ -258,6 +276,8 @@ namespace storalloc {
      */
     std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocator::lustreCreateFileParts(const std::shared_ptr<wrench::DataFile> &file, std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs, uint64_t stripeSize) const {
 
+        WRENCH_DEBUG("[lustreCreateFileParts] Creating parts of file %s on %lu != OSTs, with stripe_size=%lu",
+                     file->getID().c_str(), selectedOSTs.size(), stripeSize);
         // Actually create file_parts load-balanced on selected OSTs
         std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
         uint64_t file_size_b = file->getSize();
@@ -279,6 +299,8 @@ namespace storalloc {
                 service++;
             }
         }
+
+        WRENCH_DEBUG("[lustreCreateFileParts] %lu file parts have been created", designated_locations.size());
 
         return designated_locations;
     }
@@ -316,8 +338,15 @@ namespace storalloc {
          *  parameters.
          *  Here we don't have (nor want) this kind of user input, so the simulator's configuration provides a fixed stripe_size and stripe_count
          *  for all jobs, and we possibly adapt it to stay within reasonnable bounds in terms of simulation time.
+         *
+         *  We also compute a conservativeFreeSpaceRequirement, based on the stripe size and the rounded-up number of stripes per OST.
+         *  This is not directly part of Lustre (not in this piece of code at least), but allows us to exclude OSTs which would
+         *  not be able to fit the file parts allocations later on (let's acknowledge that during 'normal' Lustre lifecycle,
+         *  a single allocation is probably not expected to fill up a whole OST very often, but who knows)
          */
+        WRENCH_DEBUG("[lustreAllocator] Computing striping for file %s", file->getID().c_str());
         auto current_striping = lustreComputeStriping(file->getSize(), rr_service_count);
+        uint32_t conservativeFreeSpaceRequirement = current_striping.stripe_size_b * current_striping.max_stripes_per_ost;
 
         /** 2. Use the rr ordered list of services to allocation stripes for the given file.
          *  Roughly the equivalent of lod_qos.c::lod_ost_alloc_rr() and lod_qos.c::lod_check_and_reserve_ost()
@@ -335,16 +364,18 @@ namespace storalloc {
          *     - the first part simply equals to the total number of OSTs
          *     - the second part means we stop when we have allocated the last stripe (stripe_idx starts at 0)
          *       - For each iteration, compute an index in the OST array from the start_index, and choose the corresponding OST
-         *       - Run a few preliminary checks (we skip a few which don't easily apply to us)
-         *       - Skip some OST if they go over a given load threshold
-         *       - Actually reserve the OST for a stripe of the current allocation
+         *       - Run a few preliminary checks (we skip a few which don't easily apply to us, eg: is the target 'active'?
+         *         not read-only? not degraded? a 'composite' layout?)
+         *       - Try to avoid OSTs if they are already part of the striping (when multiple iterations over OSTs are needed?)
+         *       - Actually select the OST for a stripe of the current allocation
          *   - When exiting the loop, check whether or not all stripes have indeed been placed. If not, we can retry once with more relaxed selection of OSTs
          *
          */
 
         // https://github.com/whamcloud/lustre/blob/a336d7c7c1cd62a5a5213835aa85b8eaa87b076a/lustre/lod/lod_qos.c#L771
         if (--this->start_count <= 0) {
-            std::mt19937 gen(this->rd()); // replace rd() by a static seed for reproducibility
+            std::random_device rd;
+            std::mt19937 gen(rd()); // replace rd() by a static seed for reproducibility
             std::uniform_int_distribution<> distrib(0, rr_service_count - 1);
             this->start_ost_index = distrib(gen); // similar to when Lustre chooses the first OST to be used.
             // The actual line below in Lustre is : '(LOV_CREATE_RESEED_MIN / max(osts->op_count, 1U) + LOV_CREATE_RESEED_MULT) * max(osts->op_count, 1U);'
@@ -360,24 +391,25 @@ namespace storalloc {
 
         // Some sort of retry counter (same name as in Lustre but I don't know why they call it 'speed')
         for (auto speed = 0; speed < 2; speed++) { // IN the C code, this is implemented with a GOTO, not a loop
-            for (size_t i = 0; i < rr_service_count * current_striping.stripes_per_ost && stripe_idx < current_striping.stripes_count; i++) {
+            for (size_t i = 0; i < rr_service_count && stripe_idx < current_striping.stripes_count; i++) {
                 auto array_idx = start_ost_index % rr_service_count; // there should be an additional offset index here, we simplified the algorithm a bit
                 ++start_ost_index;
                 auto current_ost = this->static_rr_ordered_services[array_idx];
 
                 // /!\ Should (could) this be a call to getTotalFreeSpace() instead ?
-                if (current_ost->getTotalFreeSpaceZeroTime() < this->config->lustre.stripe_size or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
+                if (current_ost->getTotalFreeSpaceZeroTime() < conservativeFreeSpaceRequirement or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                     // Only keep running storage services associated with non-full disks
-                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST (total Free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
+                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST (total free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
                     continue;
                 }
 
                 // For the first iteration, avoid services which already have an older allocation on them.
                 if (speed == 0 && lustreOstIsUsed(mapping, current_ost)) {
-                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST because another allocation is already using it");
+                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST in first try because another allocation is already using it");
                     continue;
                 } else {
-                    WRENCH_DEBUG("[lustreRRAllocator] Using OST %s", current_ost->getHostname().c_str());
+                    WRENCH_DEBUG("[lustreRRAllocator] Using OST %s -> %s",
+                                 current_ost->getHostname().c_str(), current_ost->getName().c_str());
                     ostSelection.push_back(current_ost);
                     stripe_idx++;
                 }
