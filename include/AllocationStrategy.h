@@ -27,7 +27,7 @@ namespace storalloc {
 
     struct striping {
         uint64_t stripe_size_b;       //  Size of a stripe in bytes (ie. how many bytes to write/read to/from an OST before using the next one in the current selection)
-        uint64_t stripes_per_ost = 1; //  Number of stripes on each OST (based on the number of stripes, computed from file size and stripe size, and the number of OST to be used)
+        uint64_t max_stripes_per_ost; //  Don't mistake with Lustre's own 'stripes_per_ost' used for overstriping purpose
         uint64_t stripes_count;       //  Number of OSTs used (on how many OSTs to load balance the reads / writes)
     };
 
@@ -88,8 +88,6 @@ namespace storalloc {
         std::shared_ptr<storalloc::Config> config;
 
         std::vector<std::shared_ptr<wrench::StorageService>> static_rr_ordered_services;
-
-        std::random_device rd;
 
         unsigned int start_count = 0;
 

@@ -71,12 +71,12 @@ void BasicFunctionalTest::create_platform_test() {
     simulation->instantiatePlatform(platform_factory);
 
     // Check compute nodes topo
-    auto all_hosts_by_cluster = simulation->getHostnameListByCluster();
-    ASSERT_NE(all_hosts_by_cluster.find("AS_DragonflyCompute"), all_hosts_by_cluster.end());
-    ASSERT_EQ(all_hosts_by_cluster["AS_DragonflyCompute"].size(), 384);
-    ASSERT_TRUE(simulation->doesHostExist("compute0"));   // first
+    auto all_hosts = simulation->getHostnameList();
+    ASSERT_EQ(all_hosts.size(), 392);
+    ASSERT_TRUE(simulation->doesHostExist("compute0")); // first
+    ASSERT_TRUE(simulation->isHostOn("compute0"));
+    ASSERT_TRUE(simulation->doesHostExist("compute234"));
     ASSERT_TRUE(simulation->doesHostExist("compute383")); // last compute node
-
     ASSERT_EQ(wrench::Simulation::getHostNumCores("compute0"), 64);
     ASSERT_EQ(wrench::S4U_Simulation::getHostMemoryCapacity("compute78"), 192000000000); // In bytes
 
@@ -135,7 +135,7 @@ void BasicFunctionalTest::create_platform_test() {
 
     // Check links
     auto link_names = wrench::S4U_Simulation::getAllLinknames();
-    ASSERT_EQ(link_names.size(), 1606);
+    ASSERT_EQ(link_names.size(), 1990); // including all dragonfly links + loopbacks for every host
 
     ASSERT_TRUE(simulation->doesLinkExist("backbone_ctrl"));
     ASSERT_TRUE(simulation->doesLinkExist("backbone"));
