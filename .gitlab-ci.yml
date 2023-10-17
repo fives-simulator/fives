@@ -1,0 +1,14 @@
+build-job:
+  stage: build
+  script:
+    - echo "Starting build on runner $CI_RUNNER_ID for commit $CI_COMMIT_SHORT_SHA"
+    - ls -la
+    - cmake --version
+    - g++ --version
+    - date
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make -j 4
+  tags:
+    - build
