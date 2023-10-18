@@ -3,7 +3,7 @@ jobs:
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:09:00'
-  id: 1
+  id: job1
   nodesUsed: 2
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 7000
@@ -22,9 +22,9 @@ jobs:
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:11:00'
-  id: 2
+  id: job2
   nodesUsed: 2
-  readBytes: 600000000  # 600MB
+  readBytes: 0  
   walltimeSeconds: 3600
   runtimeSeconds: 6300
   approxComputeTimeSeconds: 2750
@@ -32,16 +32,16 @@ jobs:
   waitingTimeSeconds: 5
   startTime: '2023-01-01 00:10:05'
   submissionTime: '2023-01-01 00:10:00'
-  writtenBytes: 300000000 # 300MB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  writtenBytes: 3000000000 # 3GB
+  readTimeSeconds: 0
+  writeTimeSeconds: 35
   metaTimeSeconds: 256.299233
-  model: RCW
+  model: CW
 - coresUsed: 64
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:15:45'
-  id: 3
+  id: job3
   nodesUsed: 2
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 6000
@@ -51,72 +51,15 @@ jobs:
   waitingTimeSeconds: 60
   startTime: '2023-01-01 00:15:00'
   submissionTime: '2023-01-01 00:14:00'
-  writtenBytes: 250000000 # 250 MB
+  writtenBytes: 0 
   readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  writeTimeSeconds: 0
   metaTimeSeconds: 256.299233
-  model: RCW
-- coresUsed: 64
-  coreHoursReq: 3.0
-  coreHoursUsed: 2.5
-  endTime: '2023-01-02 00:09:00'
-  id: 4
-  nodesUsed: 2
-  readBytes: 1500000000  # 1.5GB
-  walltimeSeconds: 8500
-  runtimeSeconds: 8000 # seconds
-  approxComputeTimeSeconds: 2500
-  sleepSimulationSeconds: 61800
-  waitingTimeSeconds: 10
-  startTime: '2023-01-02 00:08:10'
-  submissionTime: '2023-01-02 00:08:00'
-  writtenBytes: 250000000 # 250MB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
-  metaTimeSeconds: 256.299233
-  model: RCW
-- coresUsed: 64
-  coreHoursReq: 3.0
-  coreHoursUsed: 2.5
-  endTime: '2023-01-02 00:11:00'
-  id: 5
-  nodesUsed: 2
-  readBytes: 400000000  # 400MB
-  walltimeSeconds: 6600
-  runtimeSeconds: 6300
-  approxComputeTimeSeconds: 2500
-  sleepSimulationSeconds: 7500 # seconds
-  waitingTimeSeconds: 5
-  startTime: '2023-01-02 00:10:05'
-  submissionTime: '2023-01-02 00:10:00'
-  writtenBytes: 250000000 # 250 MB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
-  metaTimeSeconds: 256.299233
-  model: RCW
-- coresUsed: 64
-  coreHoursReq: 3.0
-  coreHoursUsed: 2.5
-  endTime: '2023-01-02 00:15:45'
-  id: 6
-  nodesUsed: 2
-  readBytes: 2000000000  # 2GB
-  walltimeSeconds: 8600
-  runtimeSeconds: 7700
-  approxComputeTimeSeconds: 2500
-  sleepSimulationSeconds: 1000 # seconds
-  waitingTimeSeconds: 60
-  startTime: '2023-01-02 00:15:00'
-  submissionTime: '2023-01-02 00:14:00'
-  writtenBytes: 250000000 # 250 MB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
-  metaTimeSeconds: 256.299233
-  model: RCW
+  model: RC
 preload:        # Note : fake values mostly unrelated to the jobs in this dataset
   duration: 603971
   first_ts: 1646440956
-  job_count: 408
+  job_count: 3
   last_ts: 1647044927
   max_interval_s: 61800
   max_nodes_used: 2

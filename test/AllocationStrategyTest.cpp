@@ -349,7 +349,7 @@ void BasicAllocTest::lustreComputeStriping_test() {
     striping = {};
     striping = allocator4.lustreComputeStriping(50'000'000, 4);
     ASSERT_EQ(striping.stripe_size_b, 100'000'000);
-    ASSERT_EQ(striping.stripes_count, 2);
+    ASSERT_EQ(striping.stripes_count, 1);
     ASSERT_EQ(striping.max_stripes_per_ost, 1);
 }
 
@@ -1012,6 +1012,24 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_EQ(job_2[4]->getName(), "job2_cleanupOutputFiles");
     ASSERT_EQ(job_3[1]->getName(), "job3_copyFromPermanent");
 
+    ASSERT_TRUE(job_1[0]->getSubmitDate() <= job_1[1]->getSubmitDate());
+    ASSERT_TRUE(job_1[1]->getSubmitDate() <= job_1[2]->getSubmitDate());
+    ASSERT_TRUE(job_1[2]->getSubmitDate() <= job_1[3]->getSubmitDate());
+    ASSERT_TRUE(job_1[3]->getSubmitDate() <= job_1[4]->getSubmitDate());
+    ASSERT_TRUE(job_1[4]->getSubmitDate() <= job_1[5]->getSubmitDate());
+    ASSERT_TRUE(job_1[5]->getSubmitDate() <= job_1[6]->getSubmitDate());
+    ASSERT_TRUE(job_1[6]->getSubmitDate() <= job_1[7]->getSubmitDate());
+
+    ASSERT_TRUE(job_2[0]->getSubmitDate() <= job_2[1]->getSubmitDate());
+    ASSERT_TRUE(job_2[1]->getSubmitDate() <= job_2[2]->getSubmitDate());
+    ASSERT_TRUE(job_2[2]->getSubmitDate() <= job_2[3]->getSubmitDate());
+    ASSERT_TRUE(job_2[3]->getSubmitDate() <= job_2[4]->getSubmitDate());
+
+    ASSERT_TRUE(job_3[0]->getSubmitDate() <= job_3[1]->getSubmitDate());
+    ASSERT_TRUE(job_3[1]->getSubmitDate() <= job_3[2]->getSubmitDate());
+    ASSERT_TRUE(job_3[2]->getSubmitDate() <= job_3[3]->getSubmitDate());
+    ASSERT_TRUE(job_3[3]->getSubmitDate() <= job_3[4]->getSubmitDate());
+
     // Introspection in parent job for job 1
     auto parent1 = job_1[0];
     ASSERT_EQ(parent1->getState(), wrench::CompoundJob::State::COMPLETED);
@@ -1028,7 +1046,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_EQ(write2->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(write2->hasSuccessfullyCompleted());
     auto write2Actions = write2->getActions();
-    ASSERT_EQ(write2Actions.size(), 4); // Configuration using 2 nodes / 2 files
+    ASSERT_EQ(write2Actions.size(), 4); // Configuration using 2 nodes / 2 files = 4 write actions in the job
     std::vector<std::string> actionNames{
         "fWrite_output_data_file_job2_writeFiles_sub0_h1",
         "fWrite_output_data_file_job2_writeFiles_sub0_h0",
@@ -1045,321 +1063,107 @@ void FunctionalAllocTest::lustreFullSim_test() {
         ASSERT_NE(std::find(fileNames.begin(), fileNames.end(), file->getID()), fileNames.end());
         ASSERT_EQ(file->getSize(), 3000000000 / 2);
 
-        auto striping = allocator.lustreComputeStriping(file->getSize(), 16); // 16 OSTs in this config
-        std::cout << striping.stripe_size_b << std::endl;
-        std::cout << striping.stripes_count << std::endl;
-        std::cout << customWriteAcion->getWrittenSize() * 4 * striping.stripes_count << std::endl;
-        ASSERT_EQ(customWriteAcion->getWrittenSize(), 19736842);
-        std::cout << file->getID() << " :: " << file->getSize() << std::endl;
-        std::cout << customWriteAcion->getWrittenSize() << std::endl;
+        // The total written bytes is divided among 2 sub files, then divided in n chunks of size stripe_size
+        auto expectedChunkNumber = std::ceil((static_cast<double>(file->getSize()) / 2) / config->lustre.stripe_size);
+        // Each for each action, each 2 nodes involved writes to all stripes of both files
+        auto expectedWrittenSize = std::floor(static_cast<double>(file->getSize()) / 2 / expectedChunkNumber / 2);
+        ASSERT_EQ(customWriteAcion->getWrittenSize(), expectedWrittenSize);
     }
 
-    //     // Check actions from one job in details
-    //     auto job_1_actions = job_1->getActions();
-    //     ASSERT_EQ(job_1_actions.size(), 11);
-    //     auto set_cmp = [](const std::shared_ptr<wrench::Action> &a, const std::shared_ptr<wrench::Action> &b) {
-    //         return (a->getStartDate() < b->getStartDate());
-    //     };
-    //     auto sorted_actions = std::set<std::shared_ptr<wrench::Action>, decltype(set_cmp)>(set_cmp);
-    //     sorted_actions.insert(job_1_actions.begin(), job_1_actions.end());
-    //     int index = 0;
-    //     for (const auto &action : sorted_actions) {
+    // Check actions order inside multiple sub jobs and make sure they match the job's boundary
+    for (const auto &parent : {job_1, job_2, job_3}) {
+        auto parent_job_start_date = parent[0]->getActions().begin()->get()->getStartDate();
+        auto parent_job_end_date = parent[0]->getActions().begin()->get()->getEndDate();
+        double last_job_action_end_date = 0;
+        for (const auto &job : parent) {
+            if ((job->getName() == "job1") or (job->getName() == "job2") or (job->getName() == "job3")) {
+                continue;
+            }
+            auto last_job_submit_date = job->getSubmitDate();
 
-    //         ASSERT_EQ(wrench::Action::getActionTypeAsString(action), action_types[index]);
+            auto actions = job->getActions();
+            auto action_count = actions.size();
+            for (const auto &action : actions) {
+                auto action_start_date = action->getStartDate();
+                auto action_end_date = action->getEndDate();
 
-    //         if (auto r_action = std::dynamic_pointer_cast<wrench::FileReadAction>(action)) {
-    //             auto file = r_action->getFile();
-    //             auto file_locations = r_action->getFileLocations();
+                ASSERT_TRUE(action_start_date >= last_job_submit_date);
+                ASSERT_TRUE(action_start_date >= last_job_action_end_date);
 
-    //             ASSERT_EQ(file->getID(), "input_data_file_1");
-    //             ASSERT_EQ(file->getSize(), 2000000000);
-    //             ASSERT_EQ(file_locations.size(), 1);
-    //             ASSERT_EQ(file_locations[0]->getPath(), "/");
-    //             ASSERT_EQ(file_locations[0]->getStorageService()->getName(), "compound_storage_0_5051");
-    //         }
+                ASSERT_TRUE(action_start_date <= action_end_date);
+                ASSERT_TRUE(action_start_date >= parent_job_start_date);
+                ASSERT_TRUE(action_end_date <= parent_job_end_date);
 
-    //         if (auto w_action = std::dynamic_pointer_cast<wrench::FileWriteAction>(action)) {
-    //             auto file = w_action->getFile();
-    //             auto file_location = w_action->getFileLocation();
+                if (--action_count == 0)
+                    last_job_action_end_date = action->getEndDate();
+            }
+        }
+    }
 
-    //             ASSERT_EQ(file->getID(), "output_data_file_1");
-    //             ASSERT_EQ(file->getSize(), 2500000000);
-    //             ASSERT_EQ(file_location->getPath(), "/");
-    //             ASSERT_EQ(file_location->getStorageService()->getName(), "compound_storage_0_5051");
-    //         }
+    std::map<wrench::IOAction, std::string> IOActionStrings = {
+        {wrench::IOAction::ReadStart, "ReadStart"},
+        {wrench::IOAction::ReadEnd, "ReadEnd"},
+        {wrench::IOAction::WriteStart, "WriteStart"},
+        {wrench::IOAction::WriteEnd, "WriteEnd"},
+        {wrench::IOAction::CopyToStart, "CopyToStart"},
+        {wrench::IOAction::CopyToEnd, "CopyToEnd"},
+        {wrench::IOAction::CopyFromStart, "CopyFromStart"},
+        {wrench::IOAction::CopyFromEnd, "CopyFromEnd"},
+        {wrench::IOAction::DeleteStart, "DeleteStart"},
+        {wrench::IOAction::DeleteEnd, "DeleteEnd"},
+        {wrench::IOAction::None, "None"},
+    };
 
-    //         if (auto c_action = std::dynamic_pointer_cast<wrench::ComputeAction>(action)) {
-    //             ASSERT_EQ(c_action->getFlops(), 5940000000000000);
-    //         }
+    const uint64_t initialFreeSpace = 20000000000;
+    // only the first file stripe name is included in the trace, and the
+    // parts_count field actually informs on the number of stripes for the file
+    std::map<std::string, uint64_t> fileSizes{
+        // Job 1
+        {"input_data_file_job1_copyFromPermanent_sub0_stripe_0", 80000000},
+        {"input_data_file_job1_copyFromPermanent_sub1_stripe_0", 80000000},
+        {"output_data_file_job1_writeFiles_sub0_stripe_0", 78125000},
+        {"output_data_file_job1_writeFiles_sub1_stripe_0", 78125000},
+        // Job 2
+        {"output_data_file_job2_writeFiles_sub0_stripe_0", 78947369},
+        {"output_data_file_job2_writeFiles_sub1_stripe_0", 78947369},
+        // Job 3
+        {"input_data_file_job3_copyFromPermanent_sub0_stripe_0", 80000000.0},
+        {"input_data_file_job3_copyFromPermanent_sub1_stripe_0", 80000000.0},
+    };
 
-    //         if (auto d_action = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {
-    //             auto file = d_action->getFile();
-    //             if (file->getID() == "output_data_file_1") {
-    //                 ASSERT_EQ(file->getSize(), 2500000000);
-    //             } else if (file->getID() == "input_data_file_1") {
-    //                 ASSERT_EQ(file->getSize(), 2000000000);
-    //             } else {
-    //                 GTEST_FAIL();
-    //             }
-    //         }
+    double last_ts = 0;
+    std::map<std::string, uint64_t> currentOSTUsage{};
 
-    //         index++;
-    //     }
+    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 1 + 40);
+    for (const auto &trace : compound_storage_service->internal_storage_use) {
+        ASSERT_TRUE(trace.first >= last_ts);
+        ASSERT_EQ(trace.first, trace.second.ts);
+        last_ts = trace.first;
 
-    //     // Test results from CompoundStorageService internal metrics
-    //     auto first_ts = compound_storage_service->internal_storage_use.front().first;
-    //     auto last_ts = compound_storage_service->internal_storage_use.back().first;
-    //     ASSERT_EQ(first_ts, 0);                                               // Simulation starts at 0s here (no waiting time for first job)
-    //     ASSERT_NEAR(last_ts, 92500, 1000);                                    // Simulation should end close to 94700s, due to sleep times + last job runtime
-    //     ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 49); // 8 traces * 6 jobs + initial trace
+        if (trace.second.act == wrench::IOAction::None) {
+            for (const auto &du : trace.second.disk_usage) {
+                ASSERT_EQ(du.file_count, 0);                            // no file copied/written yet
+                ASSERT_EQ(du.free_space, initialFreeSpace);             // all disks empty
+                currentOSTUsage[du.service->getName()] = du.free_space; // initiate usage map for future checks
+            }
+            continue;
+        }
 
-    //     // All actions from all 6 jobs in the order in which they should execute (only two jobs slightly overlap)
-    //     std::vector<std::pair<int, wrench::IOAction>> action_list = {
-    //         {0, wrench::IOAction::None},
-    //         {1, wrench::IOAction::CopyToStart},
-    //         {1, wrench::IOAction::CopyToEnd},
-    //         {1, wrench::IOAction::WriteStart},
-    //         {1, wrench::IOAction::WriteEnd},
-    //         {1, wrench::IOAction::DeleteStart},
-    //         {1, wrench::IOAction::DeleteEnd},
-    //         {1, wrench::IOAction::DeleteStart},
-    //         {1, wrench::IOAction::DeleteEnd},
-    //         {2, wrench::IOAction::CopyToStart},
-    //         {2, wrench::IOAction::CopyToEnd},
-    //         {2, wrench::IOAction::WriteStart},
-    //         {2, wrench::IOAction::WriteEnd},
-    //         {2, wrench::IOAction::DeleteStart},
-    //         {2, wrench::IOAction::DeleteEnd},
-    //         {2, wrench::IOAction::DeleteStart},
-    //         {2, wrench::IOAction::DeleteEnd},
-    //         {3, wrench::IOAction::CopyToStart},
-    //         {3, wrench::IOAction::CopyToEnd},
-    //         {3, wrench::IOAction::WriteStart},
-    //         {3, wrench::IOAction::WriteEnd},
-    //         {3, wrench::IOAction::DeleteStart},
-    //         {3, wrench::IOAction::DeleteEnd},
-    //         {3, wrench::IOAction::DeleteStart},
-    //         {3, wrench::IOAction::DeleteEnd},
-    //         {4, wrench::IOAction::CopyToStart},
-    //         {4, wrench::IOAction::CopyToEnd},
-    //         {4, wrench::IOAction::WriteStart},
-    //         {4, wrench::IOAction::WriteEnd},
-    //         {4, wrench::IOAction::DeleteStart},
-    //         {4, wrench::IOAction::DeleteEnd},
-    //         {4, wrench::IOAction::DeleteStart},
-    //         {4, wrench::IOAction::DeleteEnd},
-    //         {5, wrench::IOAction::CopyToStart},
-    //         {5, wrench::IOAction::CopyToEnd},
-    //         {6, wrench::IOAction::CopyToStart},
-    //         {6, wrench::IOAction::CopyToEnd},
-    //         {5, wrench::IOAction::WriteStart},
-    //         {5, wrench::IOAction::WriteEnd},
-    //         {5, wrench::IOAction::DeleteStart},
-    //         {5, wrench::IOAction::DeleteEnd},
-    //         {5, wrench::IOAction::DeleteStart},
-    //         {5, wrench::IOAction::DeleteEnd},
-    //         {6, wrench::IOAction::WriteStart},
-    //         {6, wrench::IOAction::WriteEnd},
-    //         {6, wrench::IOAction::DeleteStart},
-    //         {6, wrench::IOAction::DeleteEnd},
-    //         {6, wrench::IOAction::DeleteStart},
-    //         {6, wrench::IOAction::DeleteEnd},
-    //     };
-
-    //     std::vector<int> disk_usage_sizes = {
-    //         16, // Init
-
-    //         16, // Job 1
-    //         16,
-    //         16,
-    //         16,
-    //         16,
-    //         16,
-    //         16,
-    //         16,
-
-    //         15, /// Job 2
-    //         15,
-    //         8,
-    //         8,
-    //         15,
-    //         15,
-    //         8,
-    //         8,
-
-    //         16, // Job 3
-    //         16,
-    //         7,
-    //         7,
-    //         16,
-    //         16,
-    //         7,
-    //         7,
-
-    //         16, // Job 4
-    //         16,
-    //         7,
-    //         7,
-    //         16,
-    //         16,
-    //         7,
-    //         7,
-
-    //         10, // Copy To - Start / End - Job 5
-    //         10,
-
-    //         16, // Copy To - Start / End - Job6
-    //         16,
-
-    //         7, // Job 5
-    //         7,
-    //         10,
-    //         10,
-    //         7,
-    //         7,
-
-    //         7, // Job 6
-    //         7,
-    //         16,
-    //         16,
-    //         7,
-    //         7,
-    //     };
-
-    //     // Check first trace (before any job action takes place), it's a special case before any IO happens
-    //     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[0].second.disk_usage) {
-    //         // std::cout << first_disk_usage.service->getHostname() << " / " << first_disk_usage.service->getName() << " : " << first_disk_usage.free_space << std::endl;
-    //         ASSERT_EQ(first_disk_usage.file_count, 0);
-    //         ASSERT_EQ(first_disk_usage.free_space, 20000000000);
-    //     }
-
-    //     // Checking disk_usage for all traces
-    //     index = 0;
-    //     auto previous_ts = first_ts;
-    //     std::regex file_name_re("(?:(input)|(output))_data_file_([-\\w]+)_part_(\\d+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
-    //     for (const auto &entry : compound_storage_service->internal_storage_use) {
-
-    //         auto ts = entry.first;     // ts
-    //         auto alloc = entry.second; // AllocationTrace structure
-
-    //         // Order of entries in the trace and coherence between the two timestamp for each entry
-    //         ASSERT_EQ(ts, alloc.ts);
-    //         ASSERT_GE(ts, previous_ts);
-    //         previous_ts = ts;
-
-    //         /*
-    //         std::cout << "INDEX " << index << std::endl;
-    //         std::cout << " - " << alloc.file_name << std::endl;
-    //         if ((entry.second.act == wrench::IOAction::CopyFromStart) or (entry.second.act == wrench::IOAction::CopyFromEnd)) {
-    //             std::cout << " - CopyFrom" << std::endl;
-    //         }
-    //         if ((entry.second.act == wrench::IOAction::CopyToStart) or (entry.second.act == wrench::IOAction::CopyToEnd)) {
-    //             std::cout << " - CopyTo" << std::endl;
-    //         }
-    //         if ((entry.second.act == wrench::IOAction::WriteStart) or (entry.second.act == wrench::IOAction::WriteEnd)) {
-    //             std::cout << " - Write" << std::endl;
-    //         }
-    //         if ((entry.second.act == wrench::IOAction::DeleteStart) or (entry.second.act == wrench::IOAction::DeleteEnd)) {
-    //             std::cout << " - Delete" << std::endl;
-    //         }
-    //         */
-
-    //         ASSERT_EQ(entry.second.act, action_list[index].second);
-    //         ASSERT_EQ(alloc.disk_usage.size(), disk_usage_sizes[index]);
-
-    //         // Check correct initial values for all storage services at step 0
-    //         if (index == 0) {
-    //             for (const auto &usage : alloc.disk_usage) {
-    //                 std::cout << usage.service->getHostname() << " / " << usage.service->getName() << " : " << usage.free_space << std::endl;
-    //                 ASSERT_EQ(usage.file_count, 0);
-    //                 ASSERT_EQ(usage.free_space, 20000000000);
-    //             }
-    //         }
-
-    //         // std::cout << " -- Number of files on " << alloc.disk_usage[3].service->getName() << " : " << alloc.disk_usage[3].file_count << std::endl;
-    //         // std::cout << " -- Free space on " << alloc.disk_usage[3].service->getName() << " : " << alloc.disk_usage[3].free_space << std::endl;
-
-    //         // Look into file names from all disk_usage structures (this gives for instance the job ID associated with each trace)
-
-    //         auto file_name = alloc.file_name;
-    //         std::smatch base_match;
-    //         std::string input, output, file_part;
-    //         int job_id;
-    //         std::regex_match(file_name, base_match, file_name_re);
-
-    //         if (!file_name.empty()) {
-    //             if (base_match.size() == 5) {
-    //                 input = base_match[1].str();
-    //                 output = base_match[2].str();
-    //                 job_id = stoi(base_match[3].str());
-    //                 file_part = base_match[4].str();
-    //                 ASSERT_EQ(job_id, action_list[index].first);
-    //             } else {
-    //                 if (file_name == "nofile") {
-    //                     index++;
-    //                     continue;
-    //                 } else {
-    //                     std::cout << "Unable to parse file name " << file_name << std::endl;
-    //                     GTEST_FAIL();
-    //                 }
-    //             }
-
-    //             // Find associated job
-    //             auto current_job = jobs[job_id - 1];
-    //             /* TODO: MORE TESTS HERE */
-    //         }
-
-    //         index++;
-    //     }
-
-    //     // Look at some of the traces and assess whether the storage system is the expected state or not, in terms of file count and free space (per disk)
-
-    //     // Check a random trace, where we know what should be the file count and free_space on each OSS
-    //     ASSERT_EQ(compound_storage_service->internal_storage_use[20].second.act, wrench::IOAction::WriteEnd);
-    //     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[20].second.disk_usage) {
-    //         // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
-    //         // assertions with more or less one file part as error, to account for small irregularities in rounding
-    //         ASSERT_NEAR(first_disk_usage.file_count, 4, 1);                  // 4/5 files parts/server after copying input parts (~4 per OST) and writing output data (1 for some OSTs)
-    //         ASSERT_NEAR(first_disk_usage.free_space, 19840000000, 40000000); // each file part is 40 MB
-    //     }
-
-    //     auto alloc_filename = compound_storage_service->internal_storage_use[20].second.file_name;
-    //     std::smatch base_match1;
-    //     std::regex_match(alloc_filename, base_match1, file_name_re);
-    //     ASSERT_EQ(base_match1[2].str(), "output");
-    //     ASSERT_EQ(base_match1[3].str(), "3");
-    //     ASSERT_LT(stoi(base_match1[4].str()), 100);
-
-    //     // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd)
-    //     ASSERT_EQ(compound_storage_service->internal_storage_use[8].second.act, wrench::IOAction::DeleteEnd);
-    //     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[8].second.disk_usage) {
-    //         // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
-
-    //         ASSERT_EQ(first_disk_usage.file_count, 0);
-    //         ASSERT_EQ(first_disk_usage.free_space, 20000000000);
-    //     }
-
-    //     alloc_filename = compound_storage_service->internal_storage_use[8].second.file_name;
-    //     std::smatch base_match2;
-    //     std::regex_match(alloc_filename, base_match2, file_name_re);
-    //     ASSERT_EQ(base_match2[2].str(), "output");
-    //     ASSERT_EQ(base_match2[3].str(), "1");
-    //     ASSERT_LT(stoi(base_match2[4].str()), 625);
-
-    //     // Check a random trace, where we know what should be the file count and free_space on each OSS (On a DeleteEnd, )
-    //     ASSERT_EQ(compound_storage_service->internal_storage_use[34].second.act, wrench::IOAction::CopyToEnd);
-    //     for (const auto &first_disk_usage : compound_storage_service->internal_storage_use[34].second.disk_usage) {
-
-    //         // std::cout << "File count on server " << first_disk_usage.service->getHostname() << " : " << first_disk_usage.file_count << std::endl;
-
-    //         ASSERT_NEAR(first_disk_usage.file_count, 1, 1);
-    //         ASSERT_NEAR(first_disk_usage.free_space, 19960000000, 40000000);
-    //     }
-
-    //     alloc_filename = compound_storage_service->internal_storage_use[34].second.file_name;
-    //     std::smatch base_match3;
-    //     std::regex_match(alloc_filename, base_match3, file_name_re);
-    //     ASSERT_EQ(base_match3[1].str(), "input");
-    //     ASSERT_EQ(base_match3[3].str(), "5");
-    //     ASSERT_LT(stoi(base_match3[4].str()), 100);
+        if ((trace.second.act == wrench::IOAction::CopyToEnd) or (trace.second.act == wrench::IOAction::WriteEnd)) {
+            // Note : we used a stripe_count == 16 and files are big enough so every OST receives at least 2 stripes
+            for (const auto &du : trace.second.disk_usage) {
+                ASSERT_NE(du.file_count, 0);
+                ASSERT_EQ(du.free_space, initialFreeSpace - config->lustre.stripe_size * du.file_count);
+                ASSERT_LE(du.free_space, initialFreeSpace - fileSizes[trace.second.file_name]);
+            }
+        } else if ((trace.second.act == wrench::IOAction::DeleteEnd) and
+                   (trace.second.file_name != "input_data_file_job1_copyFromPermanent_sub0_stripe_0") and
+                   (trace.second.file_name != "input_data_file_job1_copyFromPermanent_sub1_stripe_0")) {
+            // This is a case where jobs don't overlap on each other
+            for (const auto &du : trace.second.disk_usage) {
+                ASSERT_EQ(du.file_count, 0);
+                ASSERT_EQ(du.free_space, initialFreeSpace);
+            }
+        }
+    }
 }

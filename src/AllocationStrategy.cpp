@@ -225,6 +225,13 @@ namespace storalloc {
             throw std::runtime_error("File size can't be < 1B");
         }
 
+        if (file_size_b <= this->config->lustre.stripe_size) {
+            WRENCH_INFO("[lustreComputeStriping] File size <= stripe_size, there will be only one stripe on one OST");
+            ret_striping.stripes_count = 1;       // not possible to create more than one stripe, so we can't use more than one OST
+            ret_striping.max_stripes_per_ost = 1; // only one stripe on the selected OST
+            return ret_striping;
+        }
+
         if (total_number_of_OSTs < 1) {
             WRENCH_WARN("[lustreComputeStriping] Total number of OST can't be < 1");
             throw std::runtime_error("Total number of OST can't be < 1");
