@@ -29,4 +29,6 @@ test-job:
     - ./unit_tests
   dependencies:
     - build-job
+  tags:
+    - build
  
