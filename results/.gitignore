@@ -1,4 +1,6 @@
-exp_configurations
 exp_results
 *.ipynb
 .ipynb_checkpoints/
+*.pdf
+*.png
+exp_configurations/exp_config_*

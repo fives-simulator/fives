@@ -16,6 +16,7 @@ build-job:
   artifacts:
     paths:
       - "build/"
+    expire_in: 2 day
 
 test-job:
   stage: test
@@ -43,3 +44,8 @@ functional-test-job:
     - build-job
   tags:
     - simulation
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-sim_log.txt"
+    paths:
+      - functional_test/simulation_logs.txt
+    expire_in: 2 weeks
