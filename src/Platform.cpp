@@ -2,6 +2,8 @@
 
 #include <random>
 
+WRENCH_LOG_CATEGORY(storalloc_platform, "Log category for StorAlloc platform factory");
+
 namespace storalloc {
 
     /**
@@ -13,10 +15,14 @@ namespace storalloc {
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
         return [non_linear_coef](double capacity, int n_activities) {
+            if (n_activities < 1) {
+                n_activities = 1;
+            }
             return capacity * (1 / n_activities) * non_linear_coef;
         };
     }
 
+    // REMOVE
     static auto hdd_variability_factory(double read_variability, double write_variability) {
         auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
             std::random_device rd{};
@@ -76,18 +82,21 @@ namespace storalloc {
                     unsigned long id) {
 
         std::string hostname = "compute" + std::to_string(id);
-        auto compute_host =
-            zone->create_host(hostname, "2.2Tf");     // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
-        compute_host->set_core_count(64);             // Theta specs
-        compute_host->set_property("ram", "192GB");   // Theta specs
-        compute_host->set_property("speed", "2.2Tf"); // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
-        // compute_host->set_property(
-        //    "wattage_per_state",
-        //    "95.0:120.0:200.0");
-        // compute_host->set_property("wattage_off", "10");
-        compute_host->seal();
+        auto *host_zone = sg4::create_star_zone(hostname);
+        host_zone->set_parent(zone);
 
-        return std::make_pair(zone->get_netpoint(), compute_host->get_netpoint());
+        auto compute_host =
+            host_zone->create_host(hostname, "2.2Tf"); // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
+        compute_host->set_core_count(64);              // Theta specs
+        compute_host->set_property("ram", "192GB");    // Theta specs
+        compute_host->set_property("speed", "2.2Tf");  // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
+
+        auto link = host_zone->create_link("loopback_compute" + std::to_string(id), "10000Gbps")->set_latency("0");
+        host_zone->add_route(compute_host->get_netpoint(), compute_host->get_netpoint(), nullptr, nullptr, {{link, sg4::LinkInRoute::Direction::UP}, {link, sg4::LinkInRoute::Direction::DOWN}});
+
+        host_zone->seal();
+
+        return std::make_pair(host_zone->get_netpoint(), compute_host->get_netpoint());
     }
 
     void PlatformFactory::create_platform(const std::shared_ptr<storalloc::Config> cfg) const {
@@ -198,13 +207,16 @@ namespace storalloc {
                         }*/
 
                         // Input for contention and variability on HDDs
-                        new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
-                                                     sg4::Disk::SharingPolicy::NONLINEAR,
-                                                     non_linear_disk_bw_factory(config->non_linear_coef_read));
-                        new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
-                                                     sg4::Disk::SharingPolicy::NONLINEAR,
-                                                     non_linear_disk_bw_factory(config->non_linear_coef_write));
+                        if ((config->non_linear_coef_read != 1) or (config->non_linear_coef_write != 1)) {
+                            new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
+                                                         sg4::Disk::SharingPolicy::NONLINEAR,
+                                                         non_linear_disk_bw_factory(config->non_linear_coef_read));
+                            new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
+                                                         sg4::Disk::SharingPolicy::NONLINEAR,
+                                                         non_linear_disk_bw_factory(config->non_linear_coef_write));
+                        }
                         if ((config->read_variability != 1) or (config->write_variability != 1)) {
+                            WRENCH_WARN("[PlatformFactory:create_platform] Using read and write variability factor on disk");
                             new_disk->set_factor_cb(
                                 hdd_variability_factory(config->read_variability, config->write_variability));
                         }
