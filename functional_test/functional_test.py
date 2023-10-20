@@ -276,6 +276,8 @@ def run():
     Run full simulation and do some introspection in the result files
     """
 
+    failed = False
+
     print(f"# Starting test... Opening config file {CONFIG_PATH}")
     yaml_config = None
     with open(CONFIG_PATH, "r", encoding="utf-8") as cfg:
@@ -300,7 +302,7 @@ def run():
         )
 
         if completed.returncode != 0:
-            print(Fore.RED + f"[ERROR] Simulation did not complete. Return code = {completed.returncode}" +  + Style.RESET_ALL)
+            print(Fore.RED + f"[ERROR] Simulation did not complete. Return code = {completed.returncode}" + Style.RESET_ALL)
             return 1
 
         print(Fore.GREEN + 
@@ -319,6 +321,7 @@ def run():
     warnings, errors = analyse_jobs(simJobs_file)
     if errors:
         print(Fore.RED + f"  - [NOK]" + Style.RESET_ALL)
+        failed = True
     elif warnings:
         print(Fore.YELLOW + f"  - [OK::WARN]" + Style.RESET_ALL)
     else:
@@ -342,6 +345,7 @@ def run():
     warnings, errors = analyse_actions(ioactions_file)
     if errors:
         print(Fore.RED + f"  - [NOK]" + Style.RESET_ALL)
+        failed = True
     elif warnings:
         print(Fore.YELLOW + f"  - [OK::WARN]" + Style.RESET_ALL)
     else:
@@ -380,6 +384,8 @@ def run():
         print("storage service traces file was not deleted successfuly")
         return 1
 
+    if failed:
+        return 1
     return 0
 
 

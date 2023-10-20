@@ -32,3 +32,14 @@ test-job:
   tags:
     - build
  
+functional-test-job:
+  stage: test
+  script:
+    - cd functional_test
+    - pip install --user -r requirements.txt
+    - chmod u+x functional_test.py
+    - ./functional_test.py
+  dependencies:
+    - build-job
+  tags:
+    - simulation
