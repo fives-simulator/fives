@@ -2,6 +2,8 @@
 
 #include <random>
 
+WRENCH_LOG_CATEGORY(storalloc_platform, "Log category for StorAlloc platform factory");
+
 namespace storalloc {
 
     /**
@@ -13,6 +15,9 @@ namespace storalloc {
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
         return [non_linear_coef](double capacity, int n_activities) {
+            if (n_activities < 1) {
+                n_activities = 1;
+            }
             return capacity * (1 / n_activities) * non_linear_coef;
         };
     }
@@ -211,6 +216,7 @@ namespace storalloc {
                                                          non_linear_disk_bw_factory(config->non_linear_coef_write));
                         }
                         if ((config->read_variability != 1) or (config->write_variability != 1)) {
+                            WRENCH_WARN("[PlatformFactory:create_platform] Using read and write variability factor on disk");
                             new_disk->set_factor_cb(
                                 hdd_variability_factory(config->read_variability, config->write_variability));
                         }
