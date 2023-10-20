@@ -1,3 +1,5 @@
+https://gitlab.inria.fr/jmonniot/storalloc_wrench/badges/master/pipeline.svg
+
 # StorAlloc
 
 This is the updated, C++, version of StorAlloc, now backed by the [WRENCH library](https://wrench-project.org/). If you are looking for the original Python version, it is available [here](https://github.com/hephtaicie/storalloc).
@@ -17,7 +19,7 @@ The result of a simulation is a set of timestamped execution traces, with emphas
 
 ### Dependencies 
 
-- WRENCH (14/09/23: at the moment you need to use the forked version which can be found [here](https://github.com/julien-monniot/wrench), but changes are periodically upstreamed)
+- WRENCH (20/10/23: at the moment you need to use the `storalloc` branch, but changes are periodically merged to `master`)
 - yaml-cpp (https://github.com/jbeder/yaml-cpp)
 
 ### Build
@@ -27,7 +29,7 @@ Nothing fancy.
 ```bash
 mkdir build && cd build
 cmake ..
-make
+make -j 8
 ```
 
 ## Run
@@ -49,7 +51,7 @@ cd build
 
 Inside the build directory
 
-`make unit_tests`
+`make -j8 unit_tests`
 
 ### Running 
 
