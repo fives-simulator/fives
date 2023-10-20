@@ -1,5 +1,3 @@
-https://gitlab.inria.fr/jmonniot/storalloc_wrench/badges/master/pipeline.svg
-
 # StorAlloc
 
 This is the updated, C++, version of StorAlloc, now backed by the [WRENCH library](https://wrench-project.org/). If you are looking for the original Python version, it is available [here](https://github.com/hephtaicie/storalloc).
