@@ -1,0 +1,88 @@
+jobs:
+- coresUsed: 64
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:09:00'
+  id: job1
+  nodesUsed: 2
+  readBytes: 2000000000  # 2GB
+  walltimeSeconds: 7000
+  runtimeSeconds: 6000 # seconds
+  approxComputeTimeSeconds: 2700
+  sleepSimulationSeconds: 0
+  waitingTimeSeconds: 10
+  startTime: '2023-01-01 00:08:10'
+  submissionTime: '2023-01-01 00:08:00'
+  writtenBytes: 2500000000 # 2.5GB
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0.215317
+  metaTimeSeconds: 256.299233
+  model: RCW
+- coresUsed: 64
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:11:00'
+  id: job2
+  nodesUsed: 2
+  readBytes: 0  
+  walltimeSeconds: 3600
+  runtimeSeconds: 6300
+  approxComputeTimeSeconds: 2750
+  sleepSimulationSeconds: 7500 # seconds
+  waitingTimeSeconds: 5
+  startTime: '2023-01-01 00:10:05'
+  submissionTime: '2023-01-01 00:10:00'
+  writtenBytes: 3000000000 # 3GB
+  readTimeSeconds: 0
+  writeTimeSeconds: 35
+  metaTimeSeconds: 256.299233
+  model: CW
+- coresUsed: 64
+  coreHoursReq: 3.0
+  coreHoursUsed: 2.5
+  endTime: '2023-01-01 00:15:45'
+  id: job3
+  nodesUsed: 2
+  readBytes: 2000000000  # 2GB
+  walltimeSeconds: 6000
+  runtimeSeconds: 5700
+  approxComputeTimeSeconds: 2500
+  sleepSimulationSeconds: 14100 # seconds
+  waitingTimeSeconds: 60
+  startTime: '2023-01-01 00:15:00'
+  submissionTime: '2023-01-01 00:14:00'
+  writtenBytes: 0 
+  readTimeSeconds: 6859.859
+  writeTimeSeconds: 0
+  metaTimeSeconds: 256.299233
+  model: RC
+preload:        # Note : fake values mostly unrelated to the jobs in this dataset
+  duration: 603971
+  first_ts: 1646440956
+  job_count: 3
+  last_ts: 1647044927
+  max_interval_s: 61800
+  max_nodes_used: 2
+  max_read_tbytes: 148.428529082742
+  max_runtime_s: 8000
+  max_written_tbytes: 420.013449602251
+  mean_cores_used: 64
+  mean_interval_s: 15316
+  mean_jobs_per_hour: 2.43
+  mean_nodes_used: 2
+  mean_read_tbytes: 0.014
+  mean_runtime_s: 6666
+  mean_written_tbytes: 0.00633
+  median_cores_used: 8192
+  median_interval_s: 7500
+  median_nodes_used: 128
+  median_read_tbytes: 0.0105
+  median_runtime_s: 6300
+  median_written_tbytes: 0.0025
+  min_interval_s: 1
+  min_runtime_s: 38
+  var_interval_s: 453991388
+  var_nodes_used: 292152
+  var_read_tbytes: 0.162
+  var_runtime_s: 748888
+  var_written_tbytes: 0.069

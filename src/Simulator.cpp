@@ -6,6 +6,7 @@
 
 #include "Simulator.h"
 
+#include <chrono>
 #include <iostream>
 
 #include "yaml-cpp/yaml.h"
@@ -79,23 +80,29 @@ namespace storalloc {
      */
     int run_simulation(int argc, char **argv) {
 
-        if (argc < 3) {
-            std::cout << "################################################################" << std::endl;
-            std::cout << "# USAGE: " << argv[0] << " <config file> <job file>" << std::endl;
+        const std::chrono::time_point<std::chrono::steady_clock> chrono_start = std::chrono::steady_clock::now();
+
+        // Default log settings for a few components
+        xbt_log_control_set("storalloc_jobs.thres:warning");
+
+        if (argc < 4) {
+            std::cout << "##########################################################################" << std::endl;
+            std::cout << "# USAGE: " << argv[0] << " <config file> <job file> <experiment_suffix>" << std::endl;
             std::cout << "#          [Both files are expected to be YAML]" << std::endl;
-            std::cout << "# This program starts a WRENCH simulation of a batch scheduler, " << std::endl;
-            std::cout << "# with emphasis on storage resources model and collecting       " << std::endl;
-            std::cout << "# storage-related metrics.                                      " << std::endl;
-            std::cout << "################################################################" << std::endl;
+            std::cout << "# This program starts a WRENCH simulation of a batch scheduler, with      " << std::endl;
+            std::cout << "# emphasis on storage resources model and collecting storage-related      " << std::endl;
+            std::cout << "# metrics.                                                                " << std::endl;
+            std::cout << "##########################################################################" << std::endl;
             return 1;
         }
 
         // wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Starting StorAlloc simulator");
 
-        std::string tag = "i";
-        if (argc == 4) {
-            tag = argv[3];
+        std::string tag = argv[3];
+        if ((tag.find("-") != std::string::npos) or (tag.find(' ') != std::string::npos)) {
+            WRENCH_WARN("Experiment tag cannot contain '-' or ' ' (space)");
+            return 1;
         }
 
         // Load Compute and Storage configuration
@@ -172,7 +179,9 @@ namespace storalloc {
             new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
 
         WRENCH_INFO("Starting simulation...");
+        const std::chrono::time_point<std::chrono::steady_clock> sim_start = std::chrono::steady_clock::now();
         simulation->launch();
+        const std::chrono::time_point<std::chrono::steady_clock> sim_end = std::chrono::steady_clock::now();
 
         auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
         for (auto const &item : trace) {
@@ -187,6 +196,12 @@ namespace storalloc {
         // Extract traces into files tagged with dataset and config version.
         ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
         ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
+
+        const std::chrono::time_point<std::chrono::steady_clock> chrono_end = std::chrono::steady_clock::now();
+
+        std::cout << "Program duration : " << (chrono_end - chrono_start) / 1ms << "ms" << std::endl;
+        std::cout << "Sim duration : " << (sim_end - sim_start) / 1ms << "ms" << std::endl;
+        std::cout << "Trace processing duration : " << (chrono_end - sim_end) / 1ms << "ms" << std::endl;
 
         return 0;
     }

@@ -1,0 +1,127 @@
+---
+jobs:
+- approxComputeTimeSeconds: 77858
+  coreHoursReq: 3145728.0
+  coreHoursUsed: 3106224.354
+  coresUsed: 131072
+  endTime: '2022-01-16 00:42:58'
+  id: 574381
+  metaTimeSeconds: 346845.135919
+  model: RCW
+  nodesUsed: 2048
+  readBytes: 853015048166
+  readTimeSeconds: 4436143.177948001
+  runtimeSeconds: 85315
+  sleepSimulationSeconds: 7
+  startTime: '2022-01-15 01:01:03'
+  submissionTime: '2022-01-12 05:04:47'
+  waitingTimeSeconds: 0
+  walltimeSeconds: 86400
+  writeTimeSeconds: 972515498.5505399
+  writtenBytes: 7886662594886
+- approxComputeTimeSeconds: 78811
+  coreHoursReq: 3145728.0
+  coreHoursUsed: 3146492.5822
+  coresUsed: 131072
+  endTime: '2022-01-17 04:27:53'
+  id: 574382
+  metaTimeSeconds: 344901.26189200004
+  model: RCW
+  nodesUsed: 2048
+  readBytes: 853015048166
+  readTimeSeconds: 4895654.385852001
+  runtimeSeconds: 86421
+  sleepSimulationSeconds: 12
+  startTime: '2022-01-16 04:27:32'
+  submissionTime: '2022-01-12 05:04:59'
+  waitingTimeSeconds: 343353
+  walltimeSeconds: 86400
+  writeTimeSeconds: 992099342.2672509
+  writtenBytes: 8262813739749
+- approxComputeTimeSeconds: 77663
+  coreHoursReq: 3145728.0
+  coreHoursUsed: 3099488.7081
+  coresUsed: 131072
+  endTime: '2022-01-18 05:21:11'
+  id: 574383
+  metaTimeSeconds: 354068.31534100004
+  model: RCW
+  nodesUsed: 2048
+  readBytes: 853015048166
+  readTimeSeconds: 4554204.663814
+  runtimeSeconds: 85130
+  sleepSimulationSeconds: 7
+  startTime: '2022-01-17 05:42:21'
+  submissionTime: '2022-01-12 05:05:06'
+  waitingTimeSeconds: 434235
+  walltimeSeconds: 86400
+  writeTimeSeconds: 973778768.651575
+  writtenBytes: 7886662586216
+- approxComputeTimeSeconds: 28712
+  coreHoursReq: 491520.0
+  coreHoursUsed: 327395.5532
+  coresUsed: 40960
+  endTime: '2022-01-16 08:43:24'
+  id: 575108
+  metaTimeSeconds: 10008.417445000001
+  model: RCW
+  nodesUsed: 640
+  readBytes: 13563483310
+  readTimeSeconds: 27568.15926
+  runtimeSeconds: 28775
+  sleepSimulationSeconds: 2670
+  startTime: '2022-01-16 00:43:49'
+  submissionTime: '2022-01-14 17:02:59'
+  waitingTimeSeconds: 114050
+  walltimeSeconds: 43200
+  writeTimeSeconds: 2513630.060332
+  writtenBytes: 108811349991
+- approxComputeTimeSeconds: 6048
+  coreHoursReq: 24576.0
+  coreHoursUsed: 13880.8885
+  coresUsed: 8192
+  endTime: '2022-01-15 02:47:13'
+  id: 575159
+  metaTimeSeconds: 9431.123744999999
+  model: RCW
+  nodesUsed: 128
+  readBytes: 30402326528
+  readTimeSeconds: 3082.628007
+  runtimeSeconds: 6050
+  sleepSimulationSeconds: 8909
+  startTime: '2022-01-15 01:06:23'
+  submissionTime: '2022-01-14 19:54:02'
+  waitingTimeSeconds: 18741
+  walltimeSeconds: 10800
+  writeTimeSeconds: 461.392561
+  writtenBytes: 13849731611
+preload:
+  duration: 624822
+  first_ts: 1642208463
+  job_count: 275
+  last_ts: 1642833285
+  max_interval_s: 15868
+  max_nodes_used: 2048
+  max_read_tbytes: 148.428529082742
+  max_runtime_s: 44445
+  max_written_tbytes: 420.013673676061
+  mean_cores_used: 12211
+  mean_interval_s: 1983
+  mean_jobs_per_hour: 1.58
+  mean_nodes_used: 190
+  mean_read_tbytes: 0.18184650000076738
+  mean_runtime_s: 5086
+  mean_written_tbytes: 0.8453636726839846
+  median_cores_used: 8192
+  median_interval_s: 904
+  median_nodes_used: 128
+  median_read_tbytes: 0.0008243155
+  median_runtime_s: 730
+  median_written_tbytes: 0.000102785646
+  min_interval_s: 1
+  min_runtime_s: 20
+  var_interval_s: 9560353
+  var_nodes_used: 117181
+  var_read_tbytes: 11.353191060788243
+  var_runtime_s: 84159675
+  var_written_tbytes: 78.70769824225884
