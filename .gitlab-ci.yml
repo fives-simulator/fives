@@ -2,6 +2,7 @@ stages:
   - build_deps
   - build
   - test
+  - calibration
 
 build_simgrid_v3.34:
   stage: build_deps
@@ -18,8 +19,6 @@ build_simgrid_v3.34:
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[sg3.34\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[stable\]$/
-    - when: manual
-  allow_failure: false
 
 build_wrench_master:
   stage: build_deps
@@ -35,8 +34,6 @@ build_wrench_master:
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[wrenchmaster\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[stable\]$/
-    - when: manual
-  allow_failure: false
 
 build_simgrid_master:
   stage: build_deps
@@ -54,8 +51,6 @@ build_simgrid_master:
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[sg_master\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[exp\]$/
-    - when: manual
-  allow_failure: false
 
 build_wrench_simgrid_master:
   stage: build_deps
@@ -73,8 +68,6 @@ build_wrench_simgrid_master:
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[wrench_sgmaster\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[exp\]$/
-    - when: manual
-  allow_failure: false
 
 build-job:
   stage: build
@@ -129,7 +122,7 @@ functional-test-job:
       - functional_test/simulation_logs.txt
     expire_in: 2 weeks
 
-calibration:
+calibration-job:
   stage: calibration
   variables:
     CALIBRATION_CONFIG_PATH: "./exp_configurations"
