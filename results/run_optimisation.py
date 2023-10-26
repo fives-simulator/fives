@@ -60,7 +60,7 @@ AX_PARAMS = [
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.1, 1.0],
+        "bounds": [0.7, 1.0],
         "digits": 2,
         "value_type": "float",
     },
@@ -93,7 +93,7 @@ AX_PARAMS = [
     {
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 8],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
@@ -106,7 +106,7 @@ AX_PARAMS = [
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0, 1],
+        "bounds": [0.05, 0.2],
         "digits": 2,
         "value_type": "float",
     },
@@ -120,7 +120,7 @@ AX_PARAMS = [
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0, 1],
+        "bounds": [0.05, 0.2],
         "digits": 2,
         "value_type": "float",
     },
@@ -139,7 +139,6 @@ def load_base_config(path: str):
     del yaml_config["storage"]["disk_templates"]
     del yaml_config["storage"]["node_templates"]
 
-    print(json.dumps(yaml_config, indent=4))
     return yaml_config
 
 
@@ -154,12 +153,8 @@ def cohend(data1: list, data2: list):
     return (mean1 - mean2) / global_var
 
 
-def run_simulation(parametrization, base_config, run_idx):
-    """Calibration function : extract parameters as provided by the optimization framework,
-    update the base config and create a fitting configuration file, then run the simulation
-    using the new configuration and always the same dataset.
-    Eventually, compute metrics (correlation / cohens) on the results and output a cost.
-    """
+def update_base_config(parametrization, base_config):
+    """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
     backbone_bw = parametrization.get("backbone_bw")
@@ -208,13 +203,17 @@ def run_simulation(parametrization, base_config, run_idx):
     base_config["lustre"]["stripe_size"] = stripe_size
     base_config["lustre"]["stripe_count"] = stripe_count
 
+
+def save_exp_config(base_config, run_idx):
+    """Save base_config to file"""
+
     # Save config as file with a unique name for each parameter set
     random_part = "".join(
-        random.choices(
-            "A,B,C,D,E,F,0,1,2,3,4,5,6,7,8,9".split(","),
-            k=4,
-        )
+        random.choices("A,B,C,D,E,F,0,1,2,3,4,5,6,7,8,9".split(","), k=4)
     )
+
+    print(f"Updated configuration : ")
+    print(json.dumps(base_config, indent=4))
 
     output_configuration = f"{CONFIGURATION_PATH}/exp_config_{run_idx}_{random_part}"
 
@@ -222,41 +221,11 @@ def run_simulation(parametrization, base_config, run_idx):
         print("Dumping configuration to " + output_configuration)
         yaml.dump(base_config, exp_config)
 
-    # Now run simulatin with the current configuration file
-    completed = subprocess.run(
-        [
-            f"{BUILD_PATH}/storalloc_wrench",
-            output_configuration,
-            f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
-            random_part,
-        ],
-        capture_output=True,
-        check=False,
-    )
-    print(
-        f"Simulation with tag {random_part} has completed with status : {completed.returncode}"
-    )
-    if completed.returncode != 0:
-        raise RuntimeError("Simulation did not complete")
+    return (output_configuration, random_part)
 
-    result_filename = (
-        f"simulatedJobs_{DATASET}__"
-        + f"{base_config['general']['config_name']}"
-        + f"_{base_config['general']['config_version']}"
-        + f"_{random_part}.yml"
-    )
-    print(f"Now looking for result file : {result_filename}")
 
-    result_file = pathlib.Path(f"./{result_filename}")
-    if not result_file.exists() or not result_file.is_file():
-        raise RuntimeError(f"Result file {result_filename} was not found")
-
-    print(result_file.resolve())
-    subprocess.run(
-        ["mv", result_file.resolve(), f"./exp_results/{result_filename}"],
-        capture_output=True,
-        check=True,
-    )
+def process_results(result_filename: str):
+    """Process results from experiment"""
 
     # Now exploit results
     results = None
@@ -318,7 +287,6 @@ def run_simulation(parametrization, base_config, run_idx):
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
-    # Adding weight to the io_time metric
     return {
         "optimization_metric": (
             abs(1 - runtime_corr)
@@ -327,6 +295,107 @@ def run_simulation(parametrization, base_config, run_idx):
             + abs(io_time_cohen_d)
         )
     }
+
+
+def run_simulation(parametrization: dict, base_config: dict, run_idx: int, capture: bool, logs: bool = False):
+    """Calibration function : extract parameters as provided by the optimization framework,
+    update the base config and create a fitting configuration file, then run the simulation
+    using the new configuration and always the same dataset.
+    Eventually, compute metrics (correlation / cohens) on the results and output a cost.
+    """
+
+    # Config
+    update_base_config(parametrization, base_config)
+    output_configuration, random_part = save_exp_config(base_config, run_idx)
+
+    # Now run simulatin with the current configuration file
+    command = [
+        f"{BUILD_PATH}/storalloc_wrench",
+        output_configuration,
+        f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
+        random_part,
+    ]
+    if logs:
+        command.extend([                
+            "--wrench-full-log",
+            "--log=storalloc_controller.threshold=debug",
+            "--log=wrench_core_compound_storage_system.threshold=debug",
+            "--log=wrench_core_logical_file_system.threshold=warning",
+        ])
+
+    completed = subprocess.run(
+        command,
+        capture_output=capture,
+        check=False,
+    )
+
+    print(
+        f"Simulation with tag {random_part} has completed with status : {completed.returncode}"
+    )
+    if completed.returncode != 0:
+        raise RuntimeError("Simulation did not complete")
+
+    result_filename = (
+        f"simulatedJobs_{DATASET}__"
+        + f"{base_config['general']['config_name']}"
+        + f"_{base_config['general']['config_version']}"
+        + f"_{random_part}.yml"
+    )
+    print(f"Now looking for result file : {result_filename}")
+
+    result_file = pathlib.Path(f"./{result_filename}")
+    if not result_file.exists() or not result_file.is_file():
+        raise RuntimeError(f"Result file {result_filename} was not found")
+
+    print(result_file.resolve())
+    subprocess.run(
+        ["mv", result_file.resolve(), f"./exp_results/{result_filename}"],
+        capture_output=True,
+        check=True,
+    )
+
+    return result_filename
+
+
+def run_default_simulation():
+    default_params = {
+        "backbone_bw": 240,
+        "permanent_storage_read_bw": 90,
+        "permanent_storage_write_bw": 90,
+        "preload_percent": 0,
+        "amdahl": 0.8,
+        "walltime_extension": 1.1,
+        "disk_rb": 6000,
+        "disk_wb": 3000,
+        "stripe_size": 2097152,
+        "stripe_count": 4,
+        "nb_files_per_read": 2,
+        "io_read_node_ratio": 0.1,
+        "nb_files_per_write": 2,
+        "io_write_node_ratio": 0.1,
+    }
+
+    # buggy run
+    default_params = {
+        "backbone_bw": 215,
+        "permanent_storage_read_bw": 88,
+        "permanent_storage_write_bw": 70,
+        "preload_percent": 0,
+        "amdahl": 0.42,
+        "walltime_extension": 1.2,
+        "disk_rb": 2617,
+        "disk_wb": 539,
+        "stripe_size": 67108864,
+        "stripe_count": 8,
+        "nb_files_per_read": 1,
+        "io_read_node_ratio": 0.59,
+        "nb_files_per_write": 1,
+        "io_write_node_ratio": 0.75,
+    }
+
+    base_config = load_base_config(CONFIGURATION_BASE)
+
+    run_simulation(default_params, base_config, 0, False, True)
 
 
 def run_calibration():
@@ -353,13 +422,16 @@ def run_calibration():
         parameters, trial_index = ax_client.get_next_trial()
         data = None
         try:
-            data = run_simulation(parameters, base_config, i)
+            data = run_simulation(parameters, base_config, i, True)
+            processed_results = process_results(data)
         except RuntimeError as err:
             print(err)
             ax_client.log_trial_failure(trial_index=trial_index)
             continue
         else:
-            ax_client.complete_trial(trial_index=trial_index, raw_data=data)
+            ax_client.complete_trial(
+                trial_index=trial_index, raw_data=processed_results
+            )
 
     best_parameters, values = ax_client.get_best_parameters()
     print("Best parameters found : " + best_parameters)
@@ -367,6 +439,18 @@ def run_calibration():
     print("Means : " + means)
     print("Covariances : " + covariances)
 
+    # Output calibrated config file
+    calibrated_config = update_base_config(best_parameters, base_config)
+    print("Calibrated config :")
+    print(json.dumps(calibrated_config, indent=4))
+    output_configuration = f"{CONFIGURATION_PATH}/calibration_config.yaml"
+    with open(output_configuration, "w", encoding="utf-8") as calibration_result:
+        print("Dumping configuration to " + output_configuration)
+        yaml.dump(calibrated_config, calibration_result)
+        
+    print("CALIBRATION DONE")
+
 
 if __name__ == "__main__":
+    # run_default_simulation()
     run_calibration()

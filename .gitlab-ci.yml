@@ -127,3 +127,20 @@ functional-test-job:
     paths:
       - functional_test/simulation_logs.txt
     expire_in: 2 weeks
+
+calibration:
+  stage: calibration
+  script:
+    - cd results
+    - pip install --user -r requirements.txt
+    - chmod u+x run_calibration.py
+    - ./run_calibration.py
+  tags:
+    - simulation
+  dependencies:
+    - functional-test-job
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-calibrated_config.yaml"
+    paths:
+      - results/calibration_config.yaml
+    expire_in: 4 weeks
