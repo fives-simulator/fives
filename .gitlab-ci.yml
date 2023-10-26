@@ -1,3 +1,80 @@
+variables:
+  RUNNER_COUNT: 3
+
+stages:
+  - build_deps
+  - build
+  - test
+
+build_simgrid_v3.34:
+  stage: build_deps
+  parallel: $RUNNER_COUNT
+  script: 
+    - cd /builds/deps/simgrid
+    - git checkout v3.34
+    - cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
+    - make -j 4
+    - sudo make install
+  tags:
+    - storalloc
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /\[sg3.34\]$/
+    - if: $CI_COMMIT_MESSAGE =~ /\[stable\]$/
+    - when: manual
+  allow_failure: false
+
+build_wrench_master:
+  stage: build_deps
+  parallel: $RUNNER_COUNT
+  script:
+    - cd /builds/deps/wrench/build
+    - SimGrid_PATH=/opt/simgrid cmake ..
+    - make -j 4
+    - sudo make install
+  tags:
+    - storalloc
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /\[wrenchmaster\]$/
+    - if: $CI_COMMIT_MESSAGE =~ /\[stable\]$/
+    - when: manual
+  allow_failure: false
+
+build_simgrid_master:
+  stage: build_deps
+  parallel: $RUNNER_COUNT
+  script: 
+    - cd /builds/deps/simgrid
+    - git checkout master
+    - git pull origin master
+    - cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
+    - make -j 4
+    - sudo make install
+  tags:
+    - storalloc
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /\[sg_master\]$/
+    - if: $CI_COMMIT_MESSAGE =~ /\[exp\]$/
+    - when: manual
+  allow_failure: false
+
+build_wrench_simgrid_master:
+  stage: build_deps
+  parallel: $RUNNER_COUNT
+  script:
+    - cd /builds/deps/wrench/
+    - git checkout simgrid_master
+    - cd build/
+    - SimGrid_PATH=/opt/simgrid cmake ..
+    - make -j 4
+    - sudo make install
+  tags:
+    - storalloc
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /\[wrench_sgmaster\]$/
+    - if: $CI_COMMIT_MESSAGE =~ /\[exp\]$/
+    - when: manual
+  allow_failure: false
+
 build-job:
   stage: build
   script:
@@ -48,4 +125,4 @@ functional-test-job:
     name: "$CI_COMMIT_REF_NAME-sim_log.txt"
     paths:
       - functional_test/simulation_logs.txt
-    expire_in: 2 weeks
+    expire_in: 2 weeks²
