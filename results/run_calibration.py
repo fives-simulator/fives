@@ -426,20 +426,17 @@ def run_calibration():
     best_parameters, values = ax_client.get_best_parameters()
     print("Best parameters found :")
     print(best_parameters)
-    means, covariances = values
-    print("Means : ")
-    print(means)
-    print("Covariances : ")
-    print(covariances)
+    print("Other calibration values : ")
+    print(values)
 
     # Output calibrated config file
-    calibrated_config = update_base_config(best_parameters, base_config)
+    update_base_config(best_parameters, base_config)
     print("Calibrated config :")
-    print(json.dumps(calibrated_config, indent=4))
+    print(json.dumps(base_config, indent=4))
     output_configuration = f"{CONFIGURATION_PATH}/calibration_config.yaml"
     with open(output_configuration, "w", encoding="utf-8") as calibration_result:
         print("Dumping configuration to " + output_configuration)
-        yaml.dump(calibrated_config, calibration_result)
+        yaml.dump(base_config, calibration_result)
 
     print("CALIBRATION DONE")
 
