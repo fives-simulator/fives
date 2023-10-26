@@ -134,6 +134,7 @@ calibration-job:
     CALIBRATION_RUNS: 25
   script:
     - cd results
+    - mkdir exp_results
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_calibration.py
