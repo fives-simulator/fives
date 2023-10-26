@@ -1,6 +1,3 @@
-variables:
-  RUNNER_COUNT: 3
-
 stages:
   - build_deps
   - build
@@ -8,7 +5,7 @@ stages:
 
 build_simgrid_v3.34:
   stage: build_deps
-  parallel: $RUNNER_COUNT
+  parallel: 3
   script: 
     - cd /builds/deps/simgrid
     - git checkout v3.34
@@ -25,7 +22,7 @@ build_simgrid_v3.34:
 
 build_wrench_master:
   stage: build_deps
-  parallel: $RUNNER_COUNT
+  parallel: 3
   script:
     - cd /builds/deps/wrench/build
     - SimGrid_PATH=/opt/simgrid cmake ..
@@ -41,7 +38,7 @@ build_wrench_master:
 
 build_simgrid_master:
   stage: build_deps
-  parallel: $RUNNER_COUNT
+  parallel: 3
   script: 
     - cd /builds/deps/simgrid
     - git checkout master
@@ -59,7 +56,7 @@ build_simgrid_master:
 
 build_wrench_simgrid_master:
   stage: build_deps
-  parallel: $RUNNER_COUNT
+  parallel: 3
   script:
     - cd /builds/deps/wrench/
     - git checkout simgrid_master
