@@ -29,7 +29,7 @@ DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
 DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4_tiny")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = os.getenv("CALIBRATION_RUNS", default=25)
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=25))
 
 # Define the parameters that will be given to Ax for the optimization loop
 # Bounds / value lists are not final
@@ -424,10 +424,13 @@ def run_calibration():
             )
 
     best_parameters, values = ax_client.get_best_parameters()
-    print("Best parameters found : " + best_parameters)
+    print("Best parameters found :")
+    print(best_parameters)
     means, covariances = values
-    print("Means : " + means)
-    print("Covariances : " + covariances)
+    print("Means : ")
+    print(means)
+    print("Covariances : ")
+    print(covariances)
 
     # Output calibrated config file
     calibrated_config = update_base_config(best_parameters, base_config)
