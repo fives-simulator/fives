@@ -439,8 +439,9 @@ def run_calibration():
         yaml.dump(base_config, calibration_result)
 
     print("CALIBRATION DONE")
+    return 0
 
 
 if __name__ == "__main__":
     # run_default_simulation()
-    run_calibration()
+    return run_calibration()

@@ -4,6 +4,14 @@ stages:
   - test
   - calibration
 
+variables:
+  CALIBRATION_CONFIG_PATH: "./exp_configurations"
+  CALIBRATION_CONFIGURATION_BASE: "$CALIBRATION_CONFIG_PATH/theta_config.yml"
+  CALIBRATION_DATASET_PATH: "./exp_datasets"
+  CALIBRATION_DATASET: "theta2022_week4_tiny"
+  CALIBRATION_DATASET_EXT: ".yaml"
+  CALIBRATION_BUILD_PATH: "../build"
+
 build_simgrid_v3.34:
   stage: build_deps
   parallel: 3
@@ -117,7 +125,7 @@ functional-test-job:
   tags:
     - simulation
   artifacts:
-    name: "$CI_COMMIT_REF_NAME-sim_log.txt"
+    name: "$CI_COMMIT_REF_NAME-CI_COMMIT_SHORT_SHA-sim_log"
     paths:
       - functional_test/simulation_logs.txt
     expire_in: 2 weeks
@@ -125,12 +133,6 @@ functional-test-job:
 calibration-job:
   stage: calibration
   variables:
-    CALIBRATION_CONFIG_PATH: "./exp_configurations"
-    CALIBRATION_CONFIGURATION_BASE: "$CALIBRATION_CONFIG_PATH/theta_config.yml"
-    CALIBRATION_DATASET_PATH: "./exp_datasets"
-    CALIBRATION_DATASET: "theta2022_week4_tiny"
-    CALIBRATION_DATASET_EXT: ".yaml"
-    CALIBRATION_BUILD_PATH: "../build"
     CALIBRATION_RUNS: 25
   script:
     - cd results
@@ -139,13 +141,46 @@ calibration-job:
     - pip install --user -r requirements.txt
     - chmod u+x run_calibration.py
     - ./run_calibration.py
-  tags:
-    - simulation
   dependencies:
     - build-job
     - functional-test-job
   artifacts:
-    name: "$CI_COMMIT_REF_NAME-calibrated_config.yaml"
+    name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_config"
     paths:
       - results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
+    expire_in: 4 weeks
+
+calibrated-simulation-job:
+  stage: calibration
+  script:
+    - cd build
+    - ./storalloc-wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
+    - ls -lah build
+    - mv build/simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+  tags:
+    - simulation
+  dependencies:
+    - calibration-job
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_trace"
+    paths:
+      - ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+    expire_in: 4 weeks
+
+analysis-job:
+  stage: calibration
+  script:
+    - cd results
+    - pip install --user --upgrade pip
+    - pip install --user -r requirements.txt
+    - chmod u+x run_analysis.py
+    - ./run_analysis.py ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
+  tags:
+    - simulation
+  dependencies:
+    - calibrated-simulation-job
+  artifacts:
+    name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
+    paths:
+      - results/analysis.txt
     expire_in: 4 weeks
