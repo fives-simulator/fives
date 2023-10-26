@@ -11,7 +11,7 @@ build_simgrid_v3.34:
     - cd /builds/deps/simgrid
     - git checkout v3.34
     - sudo cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
-    - make -j 4
+    - sudo make -j 4
     - sudo make install
   tags:
     - storalloc
@@ -28,7 +28,7 @@ build_wrench_master:
     - git config --global --add safe.directory /builds/deps/wrench
     - cd /builds/deps/wrench/build
     - sudo SimGrid_PATH=/opt/simgrid cmake ..
-    - make -j 4
+    - sudo make -j 4
     - sudo make install
   tags:
     - storalloc
@@ -47,7 +47,7 @@ build_simgrid_master:
     - git checkout master
     - git pull origin master
     - sudo cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
-    - make -j 4
+    - sudo make -j 4
     - sudo make install
   tags:
     - storalloc
@@ -66,7 +66,7 @@ build_wrench_simgrid_master:
     - git checkout simgrid_master
     - cd build/
     - sudo SimGrid_PATH=/opt/simgrid cmake ..
-    - make -j 4
+    - sudo make -j 4
     - sudo make install
   tags:
     - storalloc
@@ -115,6 +115,7 @@ functional-test-job:
   stage: test
   script:
     - cd functional_test
+    - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x functional_test.py
     - ./functional_test.py
@@ -132,6 +133,7 @@ calibration:
   stage: calibration
   script:
     - cd results
+    - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_calibration.py
     - ./run_calibration.py
