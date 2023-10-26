@@ -141,6 +141,8 @@ calibration-job:
     - pip install --user -r requirements.txt
     - chmod u+x run_calibration.py
     - ./run_calibration.py
+  tags:
+    - simulation
   dependencies:
     - build-job
     - functional-test-job
