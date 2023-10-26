@@ -7,6 +7,7 @@ build_simgrid_v3.34:
   stage: build_deps
   parallel: 3
   script: 
+    - git config --global --add safe.directory /builds/deps/simgrid
     - cd /builds/deps/simgrid
     - git checkout v3.34
     - cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
@@ -24,6 +25,7 @@ build_wrench_master:
   stage: build_deps
   parallel: 3
   script:
+    - git config --global --add safe.directory /builds/deps/wrench
     - cd /builds/deps/wrench/build
     - SimGrid_PATH=/opt/simgrid cmake ..
     - make -j 4
@@ -40,6 +42,7 @@ build_simgrid_master:
   stage: build_deps
   parallel: 3
   script: 
+    - git config --global --add safe.directory /builds/deps/simgrid
     - cd /builds/deps/simgrid
     - git checkout master
     - git pull origin master
@@ -58,6 +61,7 @@ build_wrench_simgrid_master:
   stage: build_deps
   parallel: 3
   script:
+    - git config --global --add safe.directory /builds/deps/wrench
     - cd /builds/deps/wrench/
     - git checkout simgrid_master
     - cd build/
