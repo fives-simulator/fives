@@ -147,5 +147,5 @@ calibration-job:
   artifacts:
     name: "$CI_COMMIT_REF_NAME-calibrated_config.yaml"
     paths:
-      - results/calibration_config.yaml
+      - results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
     expire_in: 4 weeks
