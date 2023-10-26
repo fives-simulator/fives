@@ -13,6 +13,7 @@ import json
 import random
 import subprocess
 import pathlib
+import os
 
 import yaml
 import numpy as np
@@ -22,12 +23,13 @@ from ax.service.ax_client import AxClient, ObjectiveProperties
 
 # from ax.utils.measurement.synthetic_functions import hartmann6
 
-CONFIGURATION_PATH = "./exp_configurations"
-CONFIGURATION_BASE = f"{CONFIGURATION_PATH}/theta_config.yml"
-DATASET_PATH = "./exp_datasets"
-DATASET = "theta2022_week4"
-DATASET_EXT = ".yaml"
-BUILD_PATH = "../build"
+CONFIGURATION_PATH =  os.getenv(CALIBRATION_CONFIG_PATH, default="./exp_configurations")
+CONFIGURATION_BASE = os.getenv(CALIBRATION_CONFIGURATION_BASE, default=f"{CONFIGURATION_PATH}/theta_config.yml")
+DATASET_PATH = os.getenv(CALIBRATION_DATASET_PATH, default="./exp_datasets")
+DATASET = os.getenv(CALIBRATION_DATASET, default="theta2022_week4_tiny")
+DATASET_EXT = os.getenv(CALIBRATION_DATASET_EXT, default=".yaml")
+BUILD_PATH = os.getenv(CALIBRATION_BUILD_PATH, default="../build")
+CALIBRATION_RUNS = os.getenv(CALIBRATION_RUNS, default=25)
 
 # Define the parameters that will be given to Ax for the optimization loop
 # Bounds / value lists are not final
@@ -406,7 +408,7 @@ def run_calibration():
         outcome_constraints=[],
     )
 
-    for i in range(20):
+    for i in range(CALIBRATION_RUNS):
         parameters, trial_index = ax_client.get_next_trial()
         data = None
         try:

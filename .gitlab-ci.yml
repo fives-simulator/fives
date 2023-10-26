@@ -131,6 +131,14 @@ functional-test-job:
 
 calibration:
   stage: calibration
+  variables:
+    CALIBRATION_CONFIG_PATH: "./exp_configurations"
+    CALIBRATION_CONFIGURATION_BASE: "$CALIBRATION_CONFIG_PATH/theta_config.yml"
+    CALIBRATION_DATASET_PATH: "./exp_datasets"
+    CALIBRATION_DATASET: "theta2022_week4_tiny"
+    CALIBRATION_DATASET_EXT: ".yaml"
+    CALIBRATION_BUILD_PATH: "../build"
+    CALIBRATION_RUNS: 25
   script:
     - cd results
     - pip install --user --upgrade pip
@@ -140,6 +148,7 @@ calibration:
   tags:
     - simulation
   dependencies:
+    - build-job
     - functional-test-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-calibrated_config.yaml"
