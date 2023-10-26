@@ -10,7 +10,7 @@ build_simgrid_v3.34:
     - git config --global --add safe.directory /builds/deps/simgrid
     - cd /builds/deps/simgrid
     - git checkout v3.34
-    - cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
+    - sudo cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
     - make -j 4
     - sudo make install
   tags:
@@ -27,7 +27,7 @@ build_wrench_master:
   script:
     - git config --global --add safe.directory /builds/deps/wrench
     - cd /builds/deps/wrench/build
-    - SimGrid_PATH=/opt/simgrid cmake ..
+    - sudo SimGrid_PATH=/opt/simgrid cmake ..
     - make -j 4
     - sudo make install
   tags:
@@ -46,7 +46,7 @@ build_simgrid_master:
     - cd /builds/deps/simgrid
     - git checkout master
     - git pull origin master
-    - cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
+    - sudo cmake -DCMAKE_INSTALL_PREFIX=/opt/simgrid .
     - make -j 4
     - sudo make install
   tags:
@@ -65,7 +65,7 @@ build_wrench_simgrid_master:
     - cd /builds/deps/wrench/
     - git checkout simgrid_master
     - cd build/
-    - SimGrid_PATH=/opt/simgrid cmake ..
+    - sudo SimGrid_PATH=/opt/simgrid cmake ..
     - make -j 4
     - sudo make install
   tags:
