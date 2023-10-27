@@ -151,6 +151,7 @@ calibration-job:
     paths:
       - results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
     expire_in: 4 weeks
+  allow_failure: false
 
 calibrated-simulation-job:
   stage: calibration
@@ -168,6 +169,7 @@ calibrated-simulation-job:
     paths:
       - ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     expire_in: 4 weeks
+  allow_failure: false
 
 analysis-job:
   stage: calibration
@@ -186,3 +188,4 @@ analysis-job:
     paths:
       - results/analysis.txt
     expire_in: 4 weeks
+  allow_failure: false
