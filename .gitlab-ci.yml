@@ -3,6 +3,8 @@ stages:
   - build
   - test
   - calibration
+  - simulation
+  - analysis
 
 variables:
   CALIBRATION_CONFIG_PATH: "./exp_configurations"
@@ -154,7 +156,7 @@ calibration-job:
   allow_failure: false
 
 calibrated-simulation-job:
-  stage: calibration
+  stage: simulation
   script:
     - cd build
     - cat ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
@@ -175,7 +177,7 @@ calibrated-simulation-job:
   allow_failure: false
 
 analysis-job:
-  stage: calibration
+  stage: analysis
   script:
     - cd results
     - pip install --user --upgrade pip
