@@ -444,4 +444,4 @@ def run_calibration():
 
 if __name__ == "__main__":
     # run_default_simulation()
-    return run_calibration()
+    run_calibration()
