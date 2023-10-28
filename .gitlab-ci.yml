@@ -184,7 +184,10 @@ analysis-job:
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_analysis.py
-    - ./run_analysis.py ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
+    - pwd
+    - ls -lah .
+    - ls -lah ../
+    - ./run_analysis.py ../calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
   tags:
     - simulation
   dependencies:
