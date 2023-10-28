@@ -187,11 +187,12 @@ analysis-job:
     - pwd
     - ls -lah .
     - ls -lah ../
-    - ./run_analysis.py ../calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
+    - ./run_analysis.py ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
   tags:
     - simulation
   dependencies:
     - calibrated-simulation-job
+    - build-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
     paths:
