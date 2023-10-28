@@ -165,6 +165,7 @@ calibrated-simulation-job:
     - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
     - ls -lah .
     - mv ./simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+    - ls -lah .
   tags:
     - simulation
   dependencies:
@@ -173,7 +174,7 @@ calibrated-simulation-job:
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_trace"
     paths:
-      - ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+      - build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     expire_in: 4 weeks
   allow_failure: false
 
