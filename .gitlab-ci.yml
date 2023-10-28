@@ -161,10 +161,10 @@ calibrated-simulation-job:
     - cat ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
     - cat ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     - pwd
-    - ls -lah build
+    - ls -lah .
     - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
-    - ls -lah build
-    - mv build/simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+    - ls -lah .
+    - mv ./simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
   tags:
     - simulation
   dependencies:
