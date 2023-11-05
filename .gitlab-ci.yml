@@ -3,6 +3,8 @@ stages:
   - build
   - test
   - calibration
+  - simulation
+  - analysis
 
 variables:
   CALIBRATION_CONFIG_PATH: "./exp_configurations"
@@ -145,7 +147,6 @@ calibration-job:
     - simulation
   dependencies:
     - build-job
-    - functional-test-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_config"
     paths:
@@ -154,35 +155,45 @@ calibration-job:
   allow_failure: false
 
 calibrated-simulation-job:
-  stage: calibration
+  stage: simulation
   script:
     - cd build
-    - ./storalloc-wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
-    - ls -lah build
-    - mv build/simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+    - cat ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
+    - cat ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+    - pwd
+    - ls -lah .
+    - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
+    - ls -lah .
+    - mv ./simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+    - ls -lah .
   tags:
     - simulation
   dependencies:
     - calibration-job
+    - build-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_trace"
     paths:
-      - ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
+      - build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     expire_in: 4 weeks
   allow_failure: false
 
 analysis-job:
-  stage: calibration
+  stage: analysis
   script:
     - cd results
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_analysis.py
-    - ./run_analysis.py ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
+    - pwd
+    - ls -lah .
+    - ls -lah ../
+    - ./run_analysis.py ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
   tags:
     - simulation
   dependencies:
     - calibrated-simulation-job
+    - build-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
     paths:
