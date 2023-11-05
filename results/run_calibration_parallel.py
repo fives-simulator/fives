@@ -20,10 +20,6 @@ import yaml
 import numpy as np
 from scipy.stats import pearsonr
 
-import ray
-from ray import train, tune
-from ray.tune.search.ax import AxSearch
-
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
 # from ax.utils.measurement.synthetic_functions import hartmann6
@@ -323,7 +319,7 @@ def run_simulation(
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
         "--wrench-default-control-message-size=0",
-        "--wrench-mailbox-pool-size=50000"
+        "--wrench-mailbox-pool-size=50000",
     ]
     if logs:
         command.extend(
@@ -410,7 +406,7 @@ def run_default_simulation():
 
 def run_trial(base_config, parameters, trial_index):
     print(f"Starting run #{trial_index}")
-    results = {"trial_index": trial_index, "optimization_metric": None }
+    results = {"trial_index": trial_index, "optimization_metric": None}
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(data)["optimization_metric"]
@@ -464,7 +460,6 @@ def run_calibration():
 
     # Full-parallel pool and loop
     with multiprocessing.Pool(cpu) as p:
-
         print("## Starting the first parallel pool")
         results = p.starmap(run_trial, parallel_pool_params)
 
