@@ -139,8 +139,8 @@ calibration-job:
     - mkdir exp_results
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
-    - chmod u+x run_calibration.py
-    - ./run_calibration.py
+    - chmod u+x run_calibration_parallel.py
+    - ./run_calibration_parallel.py
   tags:
     - simulation
   dependencies:
