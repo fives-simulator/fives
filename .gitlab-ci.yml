@@ -10,7 +10,7 @@ variables:
   CALIBRATION_CONFIG_PATH: "./exp_configurations"
   CALIBRATION_CONFIGURATION_BASE: "$CALIBRATION_CONFIG_PATH/theta_config.yml"
   CALIBRATION_DATASET_PATH: "./exp_datasets"
-  CALIBRATION_DATASET: "theta2022_week4_tiny"
+  CALIBRATION_DATASET: "theta2022_week4"
   CALIBRATION_DATASET_EXT: ".yaml"
   CALIBRATION_BUILD_PATH: "../build"
 
@@ -198,5 +198,9 @@ analysis-job:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
     paths:
       - results/analysis.txt
+      - results/runtimes.pdf
+      - results/runtimes.png
+      - results/iotimes.pdf
+      - results/iotimes.png
     expire_in: 4 weeks
   allow_failure: false
