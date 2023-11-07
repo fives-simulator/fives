@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Storalloc Calibration Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
+</head>
+
+<body>
+
+    <main class="container-fluid" style="width: 80%;">
+        <section id="title">
+            <h1>Storalloc Calibration Results</h1>
+            <ul>
+                <li>From commit {{ commit_sha }} on branch {{ commit_ref }} at {{ commit_ts }}</li>
+                <li> > {{ commit_description }}</li>
+                <li>Job ID {{ job_id }}</li>
+                <li>Pipeline {{ pipeline_id }} -- URL {{ pipeline_url}}</li>
+                <li>Project {{ project_url }}</li>
+            </ul>
+
+            <article id="article">
+
+                <h2>Runtime analysis</h2>
+
+                <ul>
+                    <li><strong>Mean runtime (real)</strong> : <kbd>{{ mean_real_runtime }}</kbd></li>
+                    <li><strong>Mean runtime (simulation)</strong> : <kbd>{{ mean_sim_runtime }}</kbd></li>
+                    <li><strong>Pearson's correlation</strong> : <kbd>{{ runtime_correlation }}</kbd></li>
+                    <li><strong>Cohen's d effect</strong> : <kbd>{{ runtime_cohend_effect }}</kbd></li>
+                </ul>
+
+                <figure style="width:90%; margin:auto;">
+                    <img src="static/runtime.png" alt="runtime">
+                </figure>
+
+                <h2>IO time analysis</h2>
+
+                <ul>
+                    <li><strong>Mean io time (real)</strong> : <kbd>{{ mean_real_iotime }}</kbd></li>
+                    <li><strong>Mean io time (simulation)</strong> : <kbd>{{ mean_sim_iotime }}</kbd></li>
+                    <li><strong>Pearson's correlation</strong> : <kbd>{{ iotime_correlation }}</kbd></li>
+                    <li><strong>Cohen's d effect</strong> : <kbd>{{ iotime_cohend_effect }}</kbd></li>
+                </ul>
+
+                <figure style="width:90%; margin:auto;">
+                    <img src="static/iotime.png" alt="iotimes">
+                </figure>
+
+                <h2>IO Volume analysis</h2>
+
+                <ul>
+                    <li><strong>Mean io volume difference (real / simulated)</strong> : <kbd>{{ mean_iovol_diff }}</kbd>
+                    </li>
+                    <li><strong>Pearson's correlation</strong> : <kbd>{{ iovolume_correlation }}</kbd></li>
+                    <li><strong>Cohen's d effect</strong> : <kbd>{{ iovolume_cohend_effect }}</kbd></li>
+                </ul>
+
+                <figure style="width:90%; margin:auto;">
+                    <img src="static/iovolume.png" alt="iovolume">
+                </figure>
+
+                <h2>Job schedule</h2>
+
+                <figure style="width:90%; margin:auto;">
+                    <img src="static/schedule.png" alt="schedule">
+                </figure>
+
+                <footer>
+                    <button class="secondary" style="max-width:25%;"><a
+                            href="https://gitlab.inria.fr/jmonniot/storalloc_wrench/-/jobs/{{ job_id }}/artifacts/browse/results/">Download
+                            all artefacts from Gitlab</a></button>
+                </footer>
+            </article>
+        </section>
+    </main>
+</body>
+
+</html>

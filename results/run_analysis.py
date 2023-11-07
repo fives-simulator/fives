@@ -15,6 +15,19 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+
+CI_COMMIT_REF_NAME = os.getenv("CI_COMMIT_REF_NAME", default="UNKNOWN COMMIT REF")
+CI_COMMIT_SHORT_SHA = os.getenv("CI_COMMIT_SHORT_SHA", default="UNKNOWN COMMIT SHA")
+CI_COMMIT_TIMESTAMP = os.getenv("CI_COMMIT_TIMESTAMP", default="UNKNOWN COMMIT TS")
+CI_COMMIT_DESCRIPTION = os.getenv("CI_COMMIT_DESCRIPTION", default="UNKNOWN COMMIT DESCRIPTION")
+CI_JOB_ID = os.getenv("CI_JOB_ID", default="UNKNOWN JOB ID")
+CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", default="UNKNOWN PIPELINE ID")
+CI_PIPELINE_URL = os.getenv("CI_PIPELINE_URL", default="UNKNOWN PIPELINE URL")
+CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", default="UNKNOWN PROJECT URL")
+
+
 REAL_COLOR = (0.1, 0.4, 0.8, 0.5)
 SIM_COLOR = (1, 0.5, 0.2, 0.5)
 
@@ -100,12 +113,15 @@ def compute_runtime_diff(jobs, plotting=True):
         sim_hist = sns.histplot(data=sim_runtime, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
         sim_hist.set(xlabel=f"Simulated runtime - binwidth = {binwidth}s")
 
-        plt.savefig("runtimes.pdf", format='pdf')
-        plt.savefig("runtimes.png", format='png')
+        plt.savefig("runtime.pdf", dpi=300, format='pdf')
+        plt.savefig("runtime.png", dpi=300, format='png')
 
-    print("###")
-
-    return {"runtime_correlation": runtime_corr, "runtime_cohend_effect": runtime_cohen_d}
+    return {
+        "runtime_correlation": runtime_corr, 
+        "runtime_cohend_effect": runtime_cohen_d,
+        "mean_real_runtime": mean_real_runtime,
+        "mean_sim_runtime": mean_sim_runtime
+    }
 
 def compute_iotime_diff(jobs, plotting=True):
     """ Compute data for IO durations differences between real and simulated jobs
@@ -200,14 +216,17 @@ def compute_iotime_diff(jobs, plotting=True):
         sim_hist = sns.histplot(data=sim_io_time, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
         sim_hist.set(xlabel=f"Simulated IO time - binwidth = {binwidth}s")
 
-        plt.savefig("iotimes.pdf", format='pdf')
-        plt.savefig("iotimes.png", format='png')
+        plt.savefig("iotime.pdf", dpi=300, format='pdf')
+        plt.savefig("iotime.png", dpi=300, format='png')
 
-    print("###")
+    return {
+        "iotime_correlation": io_time_corr, 
+        "iotime_cohend_effect": io_time_cohen_d,
+        "mean_real_iotime": mean_real_io_time,
+        "mean_sim_iotime": mean_sim_iotime,
+    }
 
-    return {"iotime_correlation": io_time_corr, "iotime_cohend_effect": io_time_cohen_d}
-
-def compute_iovolume_diff(jobs):
+def compute_iovolume_diff(jobs, plotting=True):
     """
     """
 
@@ -251,8 +270,91 @@ def compute_iovolume_diff(jobs):
     print(f"  - The Pearson's corr is {io_vol_corr} (we want a correlation as high as possible)") 
     print(f"  - The Cohen d effect size is {io_vol_cohen_d} (we want an effect size as low as possible, the use of the simulator should lead to values close to real world traces)")
 
-    print("###")
-    return {"iovolume_correlation": io_vol_corr, "iovolume_cohend_effect": io_vol_cohen_d}
+    if plotting:
+        print("    [Plotting io volume analysis]")
+
+        fig, axs = plt.subplots(ncols=3)
+        fig.set_tight_layout(tight=True)
+        fig.set_figheight(6)
+        fig.set_figwidth(20)
+
+        max_target = max(max(real_io_volume_gb), max(sim_io_volume_gb))
+        line = {"x": [0, max_target], "y": [0, max_target]}
+
+        scatter = sns.scatterplot(x=real_io_volume_gb, y=sim_io_volume_gb, s=15, color=".15", ax=axs[0])
+        target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", linewidth=0.3, ax=axs[0])
+        scatter.set(xlabel="Real", ylabel="Simulated")
+
+        binwidth = 100
+        real_hist = sns.histplot(data=real_io_volume_gb, binwidth=binwidth, ax=axs[1], color=REAL_COLOR)
+        real_hist.set(xlabel=f"Real IO Volume - binwidth = {binwidth}GB")
+
+        sim_hist = sns.histplot(data=sim_io_volume_gb, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
+        sim_hist.set(xlabel=f"Simulated IO Volume - binwidth = {binwidth}GB")
+
+        plt.savefig("iovolume.pdf", dpi=300, format='pdf')
+        plt.savefig("iovolume.png", dpi=300, format='png')
+
+    return {"iovolume_correlation": io_vol_corr, "iovolume_cohend_effect": io_vol_cohen_d, "mean_iovol_diff": mean_io_volume_difference}
+
+def trace_job_schedule(jobs):
+    """ /!\ We need access to the dataset in order to get the origin time for all timestamps ! 
+    """
+    
+    fig, axs = plt.subplots(ncols=1)
+    fig.set_tight_layout(tight=True)
+    fig.set_figheight(6)
+    fig.set_figwidth(20)
+
+    job_start_times = []
+
+    lines = []
+
+    runtime_index = 0
+    for job in jobs:
+        
+        job_start_times.append(job["job_start_ts"])
+        
+        lines.append({
+                        "x": [pd.to_timedelta(job["job_start_ts"], unit='s'), 
+                            pd.to_timedelta(job["job_end_ts"], unit='s')], 
+                        "y": [runtime_index, runtime_index]
+                    })
+        runtime_index += 1
+        
+    job_start_times = pd.to_timedelta(job_start_times, unit='s')
+
+    scatter = sns.scatterplot(x=job_start_times, y=range(1,len(jobs) + 1), s=15, color=".15", ax=axs)
+    for line in lines:
+        sns.lineplot(line, x="x", y="y", color="red", linestyle="-", linewidth=0.5, ax=axs)
+    scatter.set(xlabel="Simulation time", ylabel="Nb of jobs run")
+
+    plt.savefig("schedule.pdf", dpi=300, format='pdf')
+    plt.savefig("schedule.png", dpi=300, format='png')
+
+def save_to_web(template_index, metrics):
+    """Fill-in the static page template and output it"""
+
+    env = Environment(
+        loader=FileSystemLoader("web_template"),
+        autoescape=select_autoescape()
+    )
+
+    variables = {
+        "commit_sha": CI_COMMIT_SHORT_SHA,
+        "commit_ref": CI_COMMIT_REF_NAME,
+        "commit_ts": CI_COMMIT_TIMESTAMP,
+        "commit_description": CI_COMMIT_DESCRIPTION,
+        "job_id": CI_JOB_ID,
+        "pipeline_id": CI_PIPELINE_ID,
+        "pipeline_url": CI_PIPELINE_URL,
+        "project_url": CI_PROJECT_URL,
+    }
+    variables.update(metrics)
+
+    template = env.get_template(template_index)
+    with open("rendered_index.html", "w", encoding="utf-8") as rendered:
+        rendered.write(template.render(variables))
 
 
 def analyse(trace, plotting=True):
@@ -262,11 +364,17 @@ def analyse(trace, plotting=True):
 
     results = load_job_trace(trace)
 
-    compute_runtime_diff(results, plotting)
+    metrics = {} 
 
-    compute_iotime_diff(results, plotting)
+    metrics.update(compute_runtime_diff(results, plotting))
 
-    compute_iovolume_diff(results)
+    metrics.update(compute_iotime_diff(results, plotting))
+
+    metrics.update(compute_iovolume_diff(results))
+    
+    trace_job_schedule(results)
+
+    save_to_web("index.html", metrics)
 
 if __name__ == "__main__":
     trace_path = None

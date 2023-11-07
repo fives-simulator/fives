@@ -151,6 +151,7 @@ calibration-job:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_config"
     paths:
       - results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
+      - results/$CALIBRATION_CONFIG_PATH/exp_config_*
     expire_in: 4 weeks
   allow_failure: false
 
@@ -198,9 +199,29 @@ analysis-job:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
     paths:
       - results/analysis.txt
-      - results/runtimes.pdf
-      - results/runtimes.png
-      - results/iotimes.pdf
-      - results/iotimes.png
+      - results/runtime.pdf
+      - results/runtime.png
+      - results/iotime.pdf
+      - results/iotime.png
+      - results/iovolume.pdf
+      - results/iovolume.png
+      - results/schedule.pdf
+      - results/schedule.png
+      - results/rendered_index.html
     expire_in: 4 weeks
   allow_failure: false
+
+pages:
+  script:
+    - mkdir public
+    - mkdir public/static 
+    - mv results/rendered_index.html public/index.html
+    - mv results/runtime.png public/static/runtime.png
+    - mv results/iotime.png public/static/iotime.png
+    - mv results/iovolume.png public/static/iovolume.png
+    - mv results/schedule.png public/static/schedule.png
+  dependencies:
+    - analysis-job
+  artifacts:
+    paths:
+      - public
