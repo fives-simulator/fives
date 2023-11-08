@@ -14,6 +14,7 @@ from scipy.stats import pearsonr
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import Colormap
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -56,7 +57,7 @@ def load_job_trace(job_trace_path: str):
 def compute_runtime_diff(jobs, plotting=True):
     """ Compute data for runtime difference between real and simulated jobs.
     """
-    
+
     print("###################################################################")
     print("# RUNTIMES ---\n")
 
@@ -117,7 +118,7 @@ def compute_runtime_diff(jobs, plotting=True):
         plt.savefig("runtime.png", dpi=300, format='png')
 
     return {
-        "runtime_correlation": runtime_corr, 
+        "runtime_correlation": runtime_corr,
         "runtime_cohend_effect": runtime_cohen_d,
         "mean_real_runtime": mean_real_runtime,
         "mean_sim_runtime": mean_sim_runtime
@@ -140,13 +141,13 @@ def compute_iotime_diff(jobs, plotting=True):
     real_write_time = []
 
     for job in jobs:
-        
+
         # "Real"
         r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["real_cores_used"]
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"] / job["real_cores_used"])
         real_write_time.append(job["real_cWriteTime_s"] / job["real_cores_used"])
-        
+
         # Simulated
         s_io_time = 0
         s_r_time = 0
@@ -161,13 +162,13 @@ def compute_iotime_diff(jobs, plotting=True):
             if action["act_type"] == "CUSTOM":  # only custom action here is our custom write action
                 s_w_time += action["act_duration"]
             s_io_time += action["act_duration"]
-        
+
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
         sim_write_time.append(s_w_time)
-        
+
         io_time_diff.append(abs(s_io_time - r_io_time))
-        
+
 
     mean_real_io_time = np.mean(real_io_time)
     mean_sim_iotime = np.mean(sim_io_time)
@@ -176,21 +177,21 @@ def compute_iotime_diff(jobs, plotting=True):
     # Pearson's correlation
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
 
-    # Cohen's D 
+    # Cohen's D
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
     print(
         f"  - Mean IO time for simulation : {mean_sim_iotime}s\n" +
-        f"  - Mean IO time in traces : {mean_real_io_time}s\n" + 
+        f"  - Mean IO time in traces : {mean_real_io_time}s\n" +
         f"  - The mean IO time difference between simulated and real values for all jobs is {mean_io_time_difference}s " +
-        "(we want a mean difference as close to 0 as possible)\n" + 
-        f"  - The Pearson's corr is {io_time_corr} (we want a correlation as high as possible)\n" + 
-        f"  - The Cohen d effect size is {io_time_cohen_d} (we want an effect size as low as possible, " + 
+        "(we want a mean difference as close to 0 as possible)\n" +
+        f"  - The Pearson's corr is {io_time_corr} (we want a correlation as high as possible)\n" +
+        f"  - The Cohen d effect size is {io_time_cohen_d} (we want an effect size as low as possible, " +
         "the use of the simulator should lead to values close to real world traces)")
 
     if plotting:
         print("    [Plotting io time analysis]")
-        
+
         fig, axs = plt.subplots(ncols=3)
         fig.set_tight_layout(tight=True)
         fig.set_figheight(6)
@@ -220,7 +221,7 @@ def compute_iotime_diff(jobs, plotting=True):
         plt.savefig("iotime.png", dpi=300, format='png')
 
     return {
-        "iotime_correlation": io_time_corr, 
+        "iotime_correlation": io_time_corr,
         "iotime_cohend_effect": io_time_cohen_d,
         "mean_real_iotime": mean_real_io_time,
         "mean_sim_iotime": mean_sim_iotime,
@@ -233,7 +234,7 @@ def compute_iovolume_diff(jobs, plotting=True):
     print("###################################################################")
     print("# IO VOLUMES ---\n")
 
-    ## Compute the IO volume differences and stats for all jobs (Here we're just checking that simulated values are coherent, 
+    ## Compute the IO volume differences and stats for all jobs (Here we're just checking that simulated values are coherent,
     ## as the simulation should always read / write the data volume specified in the dataset anyway.
 
     # Mean diffs
@@ -242,32 +243,32 @@ def compute_iovolume_diff(jobs, plotting=True):
     real_io_volume_gb = []
 
     for job in jobs:
-        
+
         # Real:
         r_io_volume_gb = job["real_read_bytes"] / 1_000_000_000 + job["real_written_bytes"] / 1_000_000_000
         real_io_volume_gb.append(r_io_volume_gb)
-        
+
         # Simulated:
         s_io_volume_gb = 0
         for action in job["actions"]:
-            
+
             if (action["act_type"] == "FILEREAD" or action["act_type"] == "CUSTOM") and action["act_status"] == "COMPLETED":
                 s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
-            
+
         sim_io_volume_gb.append(s_io_volume_gb)
-        
+
         io_volume_diff.append(abs(s_io_volume_gb - r_io_volume_gb))
-        
+
     mean_io_volume_difference = np.mean(io_volume_diff)
 
     # Pearson's correlation
     io_vol_corr, _ = pearsonr(sim_io_volume_gb, real_io_volume_gb)
 
-    # Cohen's D 
+    # Cohen's D
     io_vol_cohen_d = cohend(sim_io_volume_gb, real_io_volume_gb)
 
     print(f"  - The mean IO volume difference between simulated and real values for all jobs is {mean_io_volume_difference}s (we want a mean difference as close to 0 as possible)")
-    print(f"  - The Pearson's corr is {io_vol_corr} (we want a correlation as high as possible)") 
+    print(f"  - The Pearson's corr is {io_vol_corr} (we want a correlation as high as possible)")
     print(f"  - The Cohen d effect size is {io_vol_cohen_d} (we want an effect size as low as possible, the use of the simulator should lead to values close to real world traces)")
 
     if plotting:
@@ -298,36 +299,53 @@ def compute_iovolume_diff(jobs, plotting=True):
     return {"iovolume_correlation": io_vol_corr, "iovolume_cohend_effect": io_vol_cohen_d, "mean_iovol_diff": mean_io_volume_difference}
 
 def trace_job_schedule(jobs):
-    """ /!\ We need access to the dataset in order to get the origin time for all timestamps ! 
+    """ /!\ We need access to the dataset in order to get the origin time for all timestamps !
     """
-    
+
+    print("[Tracing job schedule]")
+
     fig, axs = plt.subplots(ncols=1)
     fig.set_tight_layout(tight=True)
-    fig.set_figheight(6)
+    fig.set_figheight(14)
     fig.set_figwidth(20)
 
-    job_start_times = []
-
+    jobs_scatter = {"x": [], "y": [], "IO (GB)": [], "Cores": []}
     lines = []
+    lines_wait = []
 
     runtime_index = 0
     for job in jobs:
-        
-        job_start_times.append(job["job_start_ts"])
+        jobs_scatter["x"].append(int(job["job_submit_ts"]))
+        jobs_scatter["y"].append(runtime_index)
+        jobs_scatter["IO (GB)"].append((int(job["real_read_bytes"]) + int(job["real_written_bytes"])) / 1000000000),
+        jobs_scatter["Cores"].append(int(job["real_cores_used"]))
         
         lines.append({
-                        "x": [pd.to_timedelta(job["job_start_ts"], unit='s'), 
-                            pd.to_timedelta(job["job_end_ts"], unit='s')], 
+                        "x": [int(job['job_start_ts']), int(job['job_end_ts'])],
+                        "y": [runtime_index, runtime_index]
+                    })
+        lines_wait.append({
+                        "x": [int(job['job_submit_ts']), int(job['job_start_ts'])],
                         "y": [runtime_index, runtime_index]
                     })
         runtime_index += 1
-        
-    job_start_times = pd.to_timedelta(job_start_times, unit='s')
 
-    scatter = sns.scatterplot(x=job_start_times, y=range(1,len(jobs) + 1), s=15, color=".15", ax=axs)
+
     for line in lines:
-        sns.lineplot(line, x="x", y="y", color="red", linestyle="-", linewidth=0.5, ax=axs)
-    scatter.set(xlabel="Simulation time", ylabel="Nb of jobs run")
+        sns.lineplot(line, x="x", y="y", color="green", linestyle="-", linewidth=1.4, ax=axs, zorder=5)
+    for line in lines_wait:
+        sns.lineplot(line, x="x", y="y", color="red", linestyle="dashed", linewidth=1.4, ax=axs, zorder=5)  
+    
+    scatter = sns.scatterplot(
+        data=jobs_scatter, 
+        x="x", y="y", hue="IO (GB)", size="Cores", 
+        palette="RdYlGn_r", 
+        sizes=(20, 200), 
+        ax=axs,
+        zorder=10,
+    )
+
+    scatter.set(xlabel="Timestamps (s) inside simulation", ylabel="Number of jobs run (ordered by submit timestamp)")
 
     plt.savefig("schedule.pdf", dpi=300, format='pdf')
     plt.savefig("schedule.png", dpi=300, format='png')
@@ -364,14 +382,14 @@ def analyse(trace, plotting=True):
 
     results = load_job_trace(trace)
 
-    metrics = {} 
+    metrics = {}
 
     metrics.update(compute_runtime_diff(results, plotting))
 
     metrics.update(compute_iotime_diff(results, plotting))
 
     metrics.update(compute_iovolume_diff(results))
-    
+
     trace_job_schedule(results)
 
     save_to_web("index.html", metrics)
