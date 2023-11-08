@@ -5,6 +5,7 @@ stages:
   - calibration
   - simulation
   - analysis
+  - publish
 
 variables:
   CALIBRATION_CONFIG_PATH: "./exp_configurations"
@@ -212,6 +213,7 @@ analysis-job:
   allow_failure: false
 
 pages:
+  stage: publish
   script:
     - mkdir public
     - mkdir public/static 
