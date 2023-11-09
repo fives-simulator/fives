@@ -225,16 +225,16 @@ namespace storalloc {
             throw std::runtime_error("File size can't be < 1B");
         }
 
+        if (total_number_of_OSTs < 1) {
+            WRENCH_WARN("[lustreComputeStriping] Total number of OST can't be < 1");
+            throw std::runtime_error("Total number of OST can't be < 1");
+        }
+
         if (file_size_b <= this->config->lustre.stripe_size) {
             WRENCH_INFO("[lustreComputeStriping] File size <= stripe_size, there will be only one stripe on one OST");
             ret_striping.stripes_count = 1;       // not possible to create more than one stripe, so we can't use more than one OST
             ret_striping.max_stripes_per_ost = 1; // only one stripe on the selected OST
             return ret_striping;
-        }
-
-        if (total_number_of_OSTs < 1) {
-            WRENCH_WARN("[lustreComputeStriping] Total number of OST can't be < 1");
-            throw std::runtime_error("Total number of OST can't be < 1");
         }
 
         if (this->config->lustre.stripe_count > total_number_of_OSTs) {
@@ -245,7 +245,7 @@ namespace storalloc {
 
         // Considering the default stripe_size and file size, how many file chunks would be used in the striping pattern?
         auto nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
-        WRENCH_DEBUG("number of chunks : %f", nb_chunks);
+        WRENCH_DEBUG("[lustreComputeStriping] Number of chunks (before max_chunks_per_ost check): %f", nb_chunks);
         // Considering the number of chunks at this point, and the default number of OSTs to use, how many chunks would end up on each OST?
         // uint64_t stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
         ret_striping.max_stripes_per_ost = std::ceil(static_cast<double>(nb_chunks) / ret_striping.stripes_count);
