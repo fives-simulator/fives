@@ -518,16 +518,24 @@ namespace storalloc {
 
             unsigned int nb_stripes = file_stripes.size();
             stripes_per_file[read_file] = nb_stripes;
-            unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
-            unsigned int remainder = nb_stripes % max_nb_hosts;
             stripes_per_host_per_file[read_file] = std::vector<unsigned int>();
-            for (unsigned int i = 0; i < max_nb_hosts; i++) {
-                stripes_per_host_per_file[read_file].push_back(stripes_per_host);
-            }
-            stripes_per_host_per_file[read_file][max_nb_hosts - 1] += remainder;
 
-            WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
-                         jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+            if (nb_stripes < max_nb_hosts) {
+                for (unsigned int i = 0; i < nb_stripes; i++) {
+                    stripes_per_host_per_file[read_file].push_back(1);
+                }
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts, reading 1 stripes from the first %u hosts",
+                             jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
+            } else {
+                unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
+                unsigned int remainder = nb_stripes % max_nb_hosts;
+                for (unsigned int i = 0; i < max_nb_hosts; i++) {
+                    stripes_per_host_per_file[read_file].push_back(stripes_per_host);
+                }
+                stripes_per_host_per_file[read_file][max_nb_hosts - 1] += remainder;
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u stripes from each host and last host writes %u stripes",
+                             jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+            }
         }
 
         // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
@@ -635,16 +643,24 @@ namespace storalloc {
 
             unsigned int nb_stripes = file_stripes.size();
             stripes_per_file[write_file] = nb_stripes;
-            unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
-            unsigned int remainder = nb_stripes % max_nb_hosts;
             stripes_per_host_per_file[write_file] = std::vector<unsigned int>();
-            for (unsigned int i = 0; i < max_nb_hosts; i++) {
-                stripes_per_host_per_file[write_file].push_back(stripes_per_host);
-            }
-            stripes_per_host_per_file[write_file][max_nb_hosts - 1] += remainder;
 
-            WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
-                         jobPair.first.id.c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+            if (nb_stripes < max_nb_hosts) {
+                for (unsigned int i = 0; i < nb_stripes; i++) {
+                    stripes_per_host_per_file[write_file].push_back(1);
+                }
+                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts, writing 1 stripes from the first %u hosts",
+                             jobPair.first.id.c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
+            } else {
+                unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
+                unsigned int remainder = nb_stripes % max_nb_hosts;
+                for (unsigned int i = 0; i < max_nb_hosts; i++) {
+                    stripes_per_host_per_file[write_file].push_back(stripes_per_host);
+                }
+                stripes_per_host_per_file[write_file][max_nb_hosts - 1] += remainder;
+                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
+                             jobPair.first.id.c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+            }
         }
 
         // DEBUG : AT THIS POINT, THE CORRECT STORAGE SPACE IS RESERVED ONTO THE SELECTED NODES
