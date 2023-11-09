@@ -1048,14 +1048,15 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto write2Actions = write2->getActions();
     ASSERT_EQ(write2Actions.size(), 4); // Configuration using 2 nodes / 2 files = 4 write actions in the job
     std::vector<std::string> actionNames{
-        "fWrite_output_data_file_job2_writeFiles_sub0_h1",
-        "fWrite_output_data_file_job2_writeFiles_sub0_h0",
-        "fWrite_output_data_file_job2_writeFiles_sub1_h0",
-        "fWrite_output_data_file_job2_writeFiles_sub1_h1"};
+        "fWrite_output_data_file_job2_writeFiles_sub0_compute1_act1",
+        "fWrite_output_data_file_job2_writeFiles_sub0_compute0_act0",
+        "fWrite_output_data_file_job2_writeFiles_sub1_compute0_act2",
+        "fWrite_output_data_file_job2_writeFiles_sub1_compute1_act3"};
     std::vector<std::string> fileNames{
         "output_data_file_job2_writeFiles_sub0",
         "output_data_file_job2_writeFiles_sub1"};
     for (const auto &act : write2Actions) {
+        std::cout << "action name :" << act->getName() << std::endl;
         ASSERT_NE(std::find(actionNames.begin(), actionNames.end(), act->getName()), actionNames.end());
         ASSERT_EQ(act->getState(), wrench::Action::COMPLETED);
         auto customWriteAcion = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(act);
@@ -1063,10 +1064,9 @@ void FunctionalAllocTest::lustreFullSim_test() {
         ASSERT_NE(std::find(fileNames.begin(), fileNames.end(), file->getID()), fileNames.end());
         ASSERT_EQ(file->getSize(), 3000000000 / 2);
 
-        // The total written bytes is divided among 2 sub files, then divided in n chunks of size stripe_size
-        auto expectedChunkNumber = std::ceil((static_cast<double>(file->getSize()) / 2) / config->lustre.stripe_size);
-        // Each for each action, each 2 nodes involved writes to all stripes of both files
-        auto expectedWrittenSize = std::floor(static_cast<double>(file->getSize()) / 2 / expectedChunkNumber / 2);
+        // Each for each action, each 2 nodes involved writes to half of each part (in this case it works
+        // neatly, but sometimes the last host will write a few more stripes)
+        auto expectedWrittenSize = std::floor(static_cast<double>(file->getSize()) / 2);
         ASSERT_EQ(customWriteAcion->getWrittenSize(), expectedWrittenSize);
     }
 

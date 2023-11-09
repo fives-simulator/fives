@@ -67,7 +67,7 @@ AX_PARAMS = [
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.7, 1.0],
+        "bounds": [0.5, 1.0],
         "digits": 2,
         "value_type": "float",
     },
@@ -86,41 +86,41 @@ AX_PARAMS = [
     {
         "name": "stripe_size",
         "type": "choice",
-        "values": [2097152, 4194304, 8388608, 16777216, 67108864, 1073741824],
+        "values": [1048576, 2097152, 4194304, 8388608, 16777216, 67108864, 1073741824, 2147483648],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 8],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 3, 4],
+        "values": [1, 2, 4, 8],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.2],
+        "bounds": [0.05, 0.5],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 3, 4],
+        "values": [1, 2, 4, 8],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.2],
+        "bounds": [0.05, 0.5],
         "digits": 2,
         "value_type": "float",
     },
