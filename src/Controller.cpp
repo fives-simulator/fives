@@ -17,6 +17,7 @@
 
 #include "Controller.h"
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -324,8 +325,10 @@ namespace storalloc {
                 auto internalJobManager = action_executor->createJobManager();
 
                 unsigned int nodes_nb_read = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->io_read_node_ratio) + 1;
+                nodes_nb_read = std::max(nodes_nb_read, 10u);
                 WRENCH_DEBUG("For job %s, %u nodes will be doing read IOs", jobID.c_str(), nodes_nb_read);
                 unsigned int nodes_nb_write = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->io_write_node_ratio) + 1;
+                nodes_nb_write = std::max(nodes_nb_write, 10u);
                 WRENCH_DEBUG("For job %s, %u nodes will be doing write IOs", jobID.c_str(), nodes_nb_write);
 
                 if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadComputeWrite) {
