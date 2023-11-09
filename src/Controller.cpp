@@ -325,10 +325,10 @@ namespace storalloc {
                 auto internalJobManager = action_executor->createJobManager();
 
                 unsigned int nodes_nb_read = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->io_read_node_ratio) + 1;
-                nodes_nb_read = std::max(nodes_nb_read, 10u);
+                nodes_nb_read = std::min(nodes_nb_read, 100u);
                 WRENCH_DEBUG("For job %s, %u nodes will be doing read IOs", jobID.c_str(), nodes_nb_read);
                 unsigned int nodes_nb_write = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->io_write_node_ratio) + 1;
-                nodes_nb_write = std::max(nodes_nb_write, 10u);
+                nodes_nb_write = std::min(nodes_nb_write, 100u);
                 WRENCH_DEBUG("For job %s, %u nodes will be doing write IOs", jobID.c_str(), nodes_nb_write);
 
                 if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadComputeWrite) {
@@ -423,7 +423,9 @@ namespace storalloc {
             if (i == 0) {
                 fileSize += remainder;
             }
+            auto file_name = prefix_name + "_sub" + std::to_string(i);
             files.push_back(wrench::Simulation::addFile(prefix_name + "_sub" + std::to_string(i), fileSize));
+            WRENCH_DEBUG("createFileParts: file %s created and added to simulation", file_name.c_str());
         }
 
         WRENCH_DEBUG("createFileParts: file prefix '%s' : %lu subfiles created, each one of size %lu bytes", prefix_name.c_str(), files.size(), bytes_per_file);
@@ -507,37 +509,46 @@ namespace storalloc {
         if (max_nb_hosts == 0)
             max_nb_hosts = computeResources.size();
 
-        // Compute what should be read by each host from each file (including remainder if values are not round)
-        // In this case, each host reads a part of each file (and read_size must be also divided by the number of stripes, as the CSS will
-        // start a read for read_size for each stripe)
-        std::map<std::shared_ptr<wrench::DataFile>, StripeParams> bytes_per_host_per_input{};
-        // std::map<std::shared_ptr<wrench::DataFile>, uint64_t> remainder_per_input{};
-        for (const auto &input : inputs) {
-            auto file_stripes = this->compound_storage_service->lookupFileLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, input));
+        std::map<std::shared_ptr<wrench::DataFile>, unsigned int> stripes_per_file{};
+        std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> stripes_per_host_per_file{};
+        for (const auto &read_file : inputs) {
+            // We manually invoke this in order to know how the files will be striped before starting partial writes.
+            WRENCH_INFO("Calling lookupFileLocation for file %s", read_file->getID().c_str());
+            auto file_stripes = this->compound_storage_service->lookupFileLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+
             unsigned int nb_stripes = file_stripes.size();
-            bytes_per_host_per_input[input] = {.partial_io_size = static_cast<uint64_t>(std::floor(input->getSize() / (max_nb_hosts * nb_stripes))), .nb_stripes = nb_stripes};
-            WRENCH_DEBUG("readFromTemporary: For file %s (size %f) : %u stripes, reading %lu b to each stripe from each IO node", input->getID().c_str(), input->getSize(), nb_stripes, bytes_per_host_per_input[input].partial_io_size);
-            // remainder_per_input[input] = (static_cast<uint64_t>(input->getSize()) % (max_nb_hosts * nb_stripes));
+            stripes_per_file[read_file] = nb_stripes;
+            unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
+            unsigned int remainder = nb_stripes % max_nb_hosts;
+            stripes_per_host_per_file[read_file] = std::vector<unsigned int>();
+            for (unsigned int i = 0; i < max_nb_hosts; i++) {
+                stripes_per_host_per_file[read_file].push_back(stripes_per_host);
+            }
+            stripes_per_host_per_file[read_file][max_nb_hosts - 1] += remainder;
+
+            WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
+                         jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
         }
 
         // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
         this->pruneIONodes(computeResources, max_nb_hosts);
 
         auto computeResourcesIt = computeResources.begin();
+        unsigned int action_cnt = 0;
         std::map<std::string, std::string> service_specific_args = {};
-        for (const auto &input_data : inputs) {
-            for (unsigned int i = 0; i < max_nb_hosts; i++) {
-                auto action_id = "fRead_f" + input_data->getID() + "_h" + std::to_string(i);
-                this->actions_io_factor[action_id] = bytes_per_host_per_input[input_data].nb_stripes;
+        for (const auto &read_file : inputs) {
 
-                uint64_t readSize = bytes_per_host_per_input[input_data].partial_io_size;
-                /*if (i == 0) {
-                    readSize += remainder_per_input[input_data];
-                }*/
+            auto stripe_size = read_file->getSize() / stripes_per_file[read_file];
 
-                WRENCH_DEBUG("readFromTemporary: New readAction %s on file %s with readSize %lu",
-                             action_id.c_str(), input_data->getID().c_str(), readSize);
-                readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data), readSize);
+            for (const auto &stripes_per_host : stripes_per_host_per_file[read_file]) {
+                WRENCH_INFO("[%s] readFromTemporary: Creating read action for file %s and host %s", jobPair.first.id.c_str(), read_file->getID().c_str(), computeResourcesIt->first.c_str());
+
+                auto action_id = "fRead_f" + read_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
+                auto read_byte_per_node = stripe_size * stripes_per_host;
+                WRENCH_INFO("[%s] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", jobPair.first.id.c_str(), stripes_per_host, read_byte_per_node);
+
+                readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), read_byte_per_node);
+                action_cnt++;
 
                 service_specific_args[action_id] = computeResourcesIt->first;
                 if (++computeResourcesIt == computeResources.end())
@@ -614,17 +625,26 @@ namespace storalloc {
         auto write_files = this->createFileParts(jobPair.first.writtenBytes, nb_files, prefix);
 
         // Compute what should be written by each host to each file (including remainder if values are not round)
-        std::map<std::shared_ptr<wrench::DataFile>, StripeParams> bytes_per_host_per_output{};
-        // std::map<std::shared_ptr<wrench::DataFile>, uint64_t> remainder_per_output{};
+        std::map<std::shared_ptr<wrench::DataFile>, unsigned int> stripes_per_file{};
+        std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> stripes_per_host_per_file{};
+
         for (auto write_file : write_files) {
             // We manually invoke this in order to know how the files will be striped before starting partial writes.
+            WRENCH_INFO("Calling lookupOrDesignate for file %s", write_file->getID().c_str());
             auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+
             unsigned int nb_stripes = file_stripes.size();
-            // bytes_per_host_per_output[write_file] = std::floor(write_file->getSize() / (max_nb_hosts * nb_stripes));
-            bytes_per_host_per_output[write_file] = {.partial_io_size = static_cast<uint64_t>(std::floor(write_file->getSize() / (max_nb_hosts * nb_stripes))), .nb_stripes = nb_stripes};
-            WRENCH_DEBUG("writeToTemporary: For file %s (size %f) : %u stripes, writing %lu b to each stripe from each IO node",
-                         write_file->getID().c_str(), write_file->getSize(), nb_stripes, bytes_per_host_per_output[write_file].partial_io_size);
-            // remainder_per_output[write_file] = (static_cast<uint64_t>(write_file->getSize()) % max_nb_hosts);
+            stripes_per_file[write_file] = nb_stripes;
+            unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
+            unsigned int remainder = nb_stripes % max_nb_hosts;
+            stripes_per_host_per_file[write_file] = std::vector<unsigned int>();
+            for (unsigned int i = 0; i < max_nb_hosts; i++) {
+                stripes_per_host_per_file[write_file].push_back(stripes_per_host);
+            }
+            stripes_per_host_per_file[write_file][max_nb_hosts - 1] += remainder;
+
+            WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
+                         jobPair.first.id.c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
         }
 
         // DEBUG : AT THIS POINT, THE CORRECT STORAGE SPACE IS RESERVED ONTO THE SELECTED NODES
@@ -635,38 +655,33 @@ namespace storalloc {
         // Create one write action per file (each one will run on one host, unless there are more actions than 'max_nb_hosts',
         // in which case multiple actions can be scheduled on the same host)
         auto computeResourcesIt = computeResources.begin();
+        unsigned int action_cnt = 0;
         std::map<std::string, std::string> service_specific_args = {};
         for (auto &write_file : write_files) {
-            for (unsigned int i = 0; i < max_nb_hosts; i++) {
 
-                WRENCH_INFO("[%s]  writeToTemporary: Creating custom write action for file %s and host %u", jobPair.first.id.c_str(), write_file->getID().c_str(), i);
+            auto stripe_size = write_file->getSize() / stripes_per_file[write_file];
 
-                auto action_id = "fWrite_" + write_file->getID() + "_h" + std::to_string(i);
-                this->actions_io_factor[action_id] = bytes_per_host_per_output[write_file].nb_stripes;
-                auto writtenSize = bytes_per_host_per_output[write_file].partial_io_size;
-                /*if (i == 0) {
-                    writtenSize += remainder_per_output[write_file];
-                }*/
+            for (const auto &stripes_per_host : stripes_per_host_per_file[write_file]) {
+                WRENCH_INFO("[%s] writeToTemporary: Creating custom write action for file %s and host %s", jobPair.first.id.c_str(), write_file->getID().c_str(), computeResourcesIt->first.c_str());
 
-                if (writtenSize > write_file->getSize()) {
-                    WRENCH_WARN("[%s] writeFiles : writtenSize (%lu) larger than writeFile size (%f)",
-                                jobPair.first.id.c_str(), writtenSize, write_file->getSize());
-                    throw("writtenSize exceeds current write file size");
-                }
+                auto action_id = "fWrite_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
+                auto write_byte_per_node = stripe_size * stripes_per_host;
+                WRENCH_INFO("[%s] writeToTemporary:   We'll be writing %d stripes from this host, for a total of %f bytes from this host", jobPair.first.id.c_str(), stripes_per_host, write_byte_per_node);
 
                 auto customWriteAction = std::make_shared<PartialWriteCustomAction>(
                     action_id, 0, 0,
-                    [this, write_file, writtenSize](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
+                    [this, write_file, write_byte_per_node](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
                         this->compound_storage_service->writeFile(S4U_Daemon::getRunningActorRecvMailbox(),
                                                                   wrench::FileLocation::LOCATION(this->compound_storage_service, write_file),
-                                                                  writtenSize,
+                                                                  write_byte_per_node,
                                                                   true);
                     },
-                    [action_id, writtenSize, jobPair](std::shared_ptr<wrench::ActionExecutor> executor) {
-                        WRENCH_DEBUG("[%s]  writeToTemporary: %s terminating - wrote %lu", jobPair.first.id.c_str(), action_id.c_str(), writtenSize);
+                    [action_id, write_byte_per_node, jobPair](std::shared_ptr<wrench::ActionExecutor> executor) {
+                        WRENCH_DEBUG("[%s] writeToTemporary: %s terminating - wrote %f", jobPair.first.id.c_str(), action_id.c_str(), write_byte_per_node);
                     },
-                    write_file, writtenSize);
+                    write_file, write_byte_per_node);
                 writeJob->addCustomAction(customWriteAction);
+                action_cnt++;
 
                 // One copy per compute node, looping over if there are more files than nodes
                 service_specific_args[action_id] = computeResourcesIt->first;
@@ -944,7 +959,7 @@ namespace storalloc {
 
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
-                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileRead->getNumBytesToRead() * actions_io_factor[action->getName()];
+                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileRead->getNumBytesToRead();
 
             } else if (auto fileWrite = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(action)) {
                 // auto usedLocation = fileWrite->getFileLocation();
@@ -955,7 +970,7 @@ namespace storalloc {
                 out_jobs << YAML::Key << "parts_count" << YAML::Value << write_trace.parts_count;
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
-                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileWrite->getWrittenSize() * actions_io_factor[action->getName()];
+                out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileWrite->getWrittenSize();
 
                 for (const auto &trace_loc : write_trace.internal_locations) {
                     auto keys = updateIoUsageWrite(this->volume_per_storage_service_disk, trace_loc);
