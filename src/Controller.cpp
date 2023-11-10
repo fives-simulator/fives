@@ -325,10 +325,10 @@ namespace storalloc {
                 auto internalJobManager = action_executor->createJobManager();
 
                 unsigned int nodes_nb_read = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->io_read_node_ratio) + 1;
-                nodes_nb_read = std::min(nodes_nb_read, 100u);
+                nodes_nb_read = std::min(nodes_nb_read, 20u);
                 WRENCH_DEBUG("For job %s, %u nodes will be doing read IOs", jobID.c_str(), nodes_nb_read);
                 unsigned int nodes_nb_write = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->io_write_node_ratio) + 1;
-                nodes_nb_write = std::min(nodes_nb_write, 100u);
+                nodes_nb_write = std::min(nodes_nb_write, 20u);
                 WRENCH_DEBUG("For job %s, %u nodes will be doing write IOs", jobID.c_str(), nodes_nb_write);
 
                 if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadComputeWrite) {
@@ -532,7 +532,9 @@ namespace storalloc {
                 for (unsigned int i = 0; i < max_nb_hosts; i++) {
                     stripes_per_host_per_file[read_file].push_back(stripes_per_host);
                 }
-                stripes_per_host_per_file[read_file][max_nb_hosts - 1] += remainder;
+                for (unsigned int i = 0; i < remainder; i++) {
+                    stripes_per_host_per_file[read_file][i] += 1;
+                }
                 WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u stripes from each host and last host writes %u stripes",
                              jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
             }
@@ -657,7 +659,9 @@ namespace storalloc {
                 for (unsigned int i = 0; i < max_nb_hosts; i++) {
                     stripes_per_host_per_file[write_file].push_back(stripes_per_host);
                 }
-                stripes_per_host_per_file[write_file][max_nb_hosts - 1] += remainder;
+                for (unsigned int i = 0; i < remainder; i++) {
+                    stripes_per_host_per_file[write_file][i] += 1;
+                }
                 WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
                              jobPair.first.id.c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
             }
@@ -1220,9 +1224,9 @@ namespace storalloc {
                 io_ops << simple_storage->getHostname() << ",";                    // storage_hostname
                 io_ops << simple_storage->getBaseRootPath() << ",";                // disk_id
                 io_ops << capacity_bytes << ",";                                   // disk_capacity
-                io_ops << disk_usage.file_count << ";";                            // current file count on disk
+                io_ops << disk_usage.file_count << ",";                            // current file count on disk
                 io_ops << disk_usage.free_space << ",";                            // disk_free_space
-                io_ops << alloc.file_name << ";";                                  // file_name
+                io_ops << alloc.file_name << ",";                                  // file_name
                 io_ops << alloc.parts_count << "\n";                               // number of parts for file
             }
         }
