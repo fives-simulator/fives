@@ -91,8 +91,8 @@ build-job:
     - mkdir build
     - cd build
     - cmake ..
-    - make -j 4
-    - make -j 4 unit_tests
+    - make -j
+    - make -j unit_tests
   tags:
     - build
   artifacts:
@@ -104,9 +104,6 @@ test-job:
   stage: test
   script:
     - echo "Starting unit_tests on runner $CI_RUNNER_ID for commit $CI_COMMIT_SHORT_SHA"
-    - ls -la 
-    - cmake --version
-    - g++ --version
     - date
     - cd build
     - ./unit_tests
@@ -136,7 +133,7 @@ functional-test-job:
 calibration-job:
   stage: calibration
   variables:
-    CALIBRATION_RUNS: 25
+    CALIBRATION_RUNS: 20
   script:
     - cd results
     - mkdir exp_results
@@ -153,21 +150,21 @@ calibration-job:
     paths:
       - results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
       - results/$CALIBRATION_CONFIG_PATH/exp_config_*
-    expire_in: 4 weeks
+    expire_in: 26 weeks
   allow_failure: false
 
 calibrated-simulation-job:
   stage: simulation
   script:
     - cd build
+    - echo "../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml"
     - cat ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
+    - echo "../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT"
     - cat ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     - pwd
     - ls -lah .
     - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
-    - ls -lah .
     - mv ./simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
-    - ls -lah .
   tags:
     - simulation
   dependencies:
@@ -177,7 +174,7 @@ calibrated-simulation-job:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_trace"
     paths:
       - build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
-    expire_in: 4 weeks
+    expire_in: 26 weeks
   allow_failure: false
 
 analysis-job:
@@ -187,9 +184,6 @@ analysis-job:
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_analysis.py
-    - pwd
-    - ls -lah .
-    - ls -lah ../
     - ./run_analysis.py ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
   tags:
     - simulation
@@ -209,7 +203,7 @@ analysis-job:
       - results/schedule.pdf
       - results/schedule.png
       - results/rendered_index.html
-    expire_in: 4 weeks
+    expire_in: 26 weeks
   allow_failure: false
 
 pages:

@@ -35,6 +35,8 @@ DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4_tiny")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=5))
+CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
+
 
 # Define the parameters that will be given to Ax for the optimization loop
 # Bounds / value lists are not final
@@ -42,7 +44,7 @@ AX_PARAMS = [
     {
         "name": "backbone_bw",
         "type": "range",
-        "bounds": [120, 240],  # Use large ranges
+        "bounds": [100, 240],  # Use large ranges
         "value_type": "int",
     },
     {
@@ -67,7 +69,7 @@ AX_PARAMS = [
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.5, 1.0],
+        "bounds": [0.4, 1.0],
         "digits": 2,
         "value_type": "float",
     },
@@ -86,7 +88,16 @@ AX_PARAMS = [
     {
         "name": "stripe_size",
         "type": "choice",
-        "values": [1048576, 2097152, 4194304, 8388608, 16777216, 67108864, 1073741824, 2147483648],
+        "values": [
+            1048576,
+            2097152,
+            4194304,
+            8388608,
+            16777216,
+            67108864,
+            1073741824,
+            2147483648,
+        ],
         "is_ordered": True,
         "value_type": "int",
     },
@@ -106,7 +117,7 @@ AX_PARAMS = [
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.5],
+        "bounds": [0.05, 0.4],
         "digits": 2,
         "value_type": "float",
     },
@@ -120,7 +131,21 @@ AX_PARAMS = [
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.5],
+        "bounds": [0.05, 0.4],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [0.1, 1],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [0.1, 1],
         "digits": 2,
         "value_type": "float",
     },
@@ -153,7 +178,7 @@ def cohend(data1: list, data2: list):
     return (mean1 - mean2) / global_var
 
 
-def update_base_config(parametrization, base_config):
+def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
@@ -171,7 +196,13 @@ def update_base_config(parametrization, base_config):
     nb_files_per_write = parametrization.get("nb_files_per_write")
     io_write_node_ratio = parametrization.get("io_write_node_ratio")
 
+    # Non-linear coefficient for altering read/write during concurrent disk access
+    non_linear_coef_read = parametrization.get("non_linear_coef_read")
+    non_linear_coef_write = parametrization.get("non_linear_coef_write")
+
     # Update config file according to parameters provided by Ax
+    base_config["general"]["config_name"] = cfg_name
+    base_config["general"]["config_version"] = CFG_VERSION
     base_config["general"]["backbone_bw"] = f"{backbone_bw}GBps"
     base_config["general"][
         "permanent_storage_read_bw"
@@ -190,6 +221,9 @@ def update_base_config(parametrization, base_config):
     base_config["general"]["io_read_node_ratio"] = io_read_node_ratio
     base_config["general"]["nb_files_per_write"] = nb_files_per_write
     base_config["general"]["io_write_node_ratio"] = io_write_node_ratio
+
+    base_config["general"]["non_linear_coef_read"] = non_linear_coef_read
+    base_config["general"]["non_linear_coef_write"] = non_linear_coef_write
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
@@ -309,7 +343,9 @@ def run_simulation(
     """
 
     # Config
-    update_base_config(parametrization, base_config)
+    update_base_config(
+        parametrization, base_config, f"Storalloc_CalibrationCfg__{run_idx}"
+    )
     output_configuration, random_part = save_exp_config(base_config, run_idx)
 
     # Now run simulatin with the current configuration file
@@ -498,7 +534,7 @@ def run_calibration():
     print(values)
 
     # Output calibrated config file
-    update_base_config(best_parameters, base_config)
+    update_base_config(best_parameters, base_config, "Storalloc_Calibrated_ThetaCfg")
     print("Calibrated config :")
     print(json.dumps(base_config, indent=4))
     output_configuration = f"{CONFIGURATION_PATH}/calibration_config.yaml"
