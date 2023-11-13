@@ -10,16 +10,33 @@ namespace storalloc {
      * @brief Factory for the disk_dynamic_sharing callback used on the Simgrid Disk objects
      *        of the simulated storage system.
      */
-    static auto non_linear_disk_bw_factory(float non_linear_coef) {
+    auto non_linear_disk_bw_factory(float non_linear_coef) {
         /* capacity = Current Simgrid capacity of this disk
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
         return [non_linear_coef](double capacity, int n_activities) {
+            std::cout << "[DEBUG NON LINEAR] Capacity  " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
             if (n_activities < 1) {
                 n_activities = 1;
             }
+            std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (1 / n_activities) * non_linear_coef) << std::endl;
             return capacity * (1 / n_activities) * non_linear_coef;
         };
+    }
+
+    double non_linear_read_bw(double capacity, int n_activities) {
+        std::cout << "[DEBUG NON LINEAR READ] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+        return capacity * (1 / 3);
+    }
+
+    double non_linear_write_bw(double capacity, int n_activities) {
+        std::cout << "[DEBUG NON LINEAR WRITE] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+        return capacity * (1 / 3);
+    }
+
+    double non_linear_host_bw(double capacity, int n_activities) {
+        std::cout << "[DEBUG NON LINEAR - HOST] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+        return capacity * (1 / 3);
     }
 
     // REMOVE
@@ -105,6 +122,7 @@ namespace storalloc {
         auto main_zone = sg4::create_star_zone("AS_Root");
         auto main_link_bb =
             main_zone->create_link("backbone", cfg->bkbone_bw)->set_latency("20us");
+        // main_link_bb->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_link_bw);
         sg4::LinkInRoute backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
@@ -180,11 +198,13 @@ namespace storalloc {
                 //    "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
                 // storage_host->set_property("wattage_off", "10");
                 // storage_host->set_property("latency", "10");
+                // storage_host->set_sharing_policy(sg4::Host::SharingPolicy::NONLINEAR, non_linear_host_bw);
 
                 // Link to storage backbone
                 auto link = storage_zone->create_split_duplex_link(hostname, "100GBps")
                                 ->set_latency("24us")
                                 ->seal();
+                // link->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_host_bw);
                 storage_zone->add_route(
                     storage_host->get_netpoint(), storage_router, nullptr, nullptr,
                     {{link, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
@@ -210,16 +230,20 @@ namespace storalloc {
                         if ((config->non_linear_coef_read != 1) or (config->non_linear_coef_write != 1)) {
                             new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         non_linear_disk_bw_factory(config->non_linear_coef_read));
+                                                         // non_linear_disk_bw_factory(config->non_linear_coef_read));
+                                                         non_linear_read_bw);
                             new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         non_linear_disk_bw_factory(config->non_linear_coef_write));
+                                                         non_linear_write_bw);
+                            // non_linear_disk_bw_factory(config->non_linear_coef_write));
                         }
                         if ((config->read_variability != 1) or (config->write_variability != 1)) {
                             WRENCH_WARN("[PlatformFactory:create_platform] Using read and write variability factor on disk");
                             new_disk->set_factor_cb(
                                 hdd_variability_factory(config->read_variability, config->write_variability));
                         }
+
+                        new_disk->seal();
                     }
                 }
             }
