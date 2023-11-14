@@ -91,8 +91,8 @@ build-job:
     - mkdir build
     - cd build
     - cmake ..
-    - make -j
-    - make -j unit_tests
+    - make -j 4
+    - make -j 4 unit_tests
   tags:
     - build
   artifacts:
