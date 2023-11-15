@@ -387,7 +387,7 @@ namespace storalloc {
             this->start_ost_index = distrib(gen); // similar to when Lustre chooses the first OST to be used.
             // The actual line below in Lustre is : '(LOV_CREATE_RESEED_MIN / max(osts->op_count, 1U) + LOV_CREATE_RESEED_MULT) * max(osts->op_count, 1U);'
             // with LOV_CREATE_RESEED_MIN = 2000 and LOV_CREATE_RESEED_MULT = 30 ...
-            this->start_count = (2000 / rr_service_count + 30) * rr_service_count; // Raaaaaaandomm.
+            this->start_count = (2000 / rr_service_count + 30) * rr_service_count; // Raaaaaaandomm (but taken from Lustre sources)
         } else if (this->start_ost_index > rr_service_count || current_striping.stripes_count >= rr_service_count) {
             this->start_ost_index %= rr_service_count;
         }

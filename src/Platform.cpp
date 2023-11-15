@@ -1,4 +1,7 @@
 #include "Platform.h"
+#include "Constants.h"
+
+#include <simgrid/forward.h>
 
 #include <random>
 
@@ -10,7 +13,7 @@ namespace storalloc {
      * @brief Factory for the disk_dynamic_sharing callback used on the Simgrid Disk objects
      *        of the simulated storage system.
      */
-    auto non_linear_disk_bw_factory(float non_linear_coef) {
+    static auto non_linear_disk_bw_factory(float non_linear_coef) {
         /* capacity = Current Simgrid capacity of this disk
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
@@ -24,22 +27,17 @@ namespace storalloc {
         };
     }
 
-    double non_linear_read_bw(double capacity, int n_activities) {
-        std::cout << "[DEBUG NON LINEAR READ] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
-        return capacity * (1 / 3);
+    static double non_linear_read_bw(double capacity, int n_activities) {
+        // std::cout << "[DEBUG NON LINEAR READ] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+        return capacity - n_activities * 10;
     }
 
-    double non_linear_write_bw(double capacity, int n_activities) {
-        std::cout << "[DEBUG NON LINEAR WRITE] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
-        return capacity * (1 / 3);
+    static double non_linear_write_bw(double capacity, int n_activities) {
+        // std::cout << "[DEBUG NON LINEAR WRITE] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+        return capacity - n_activities * 10;
     }
 
-    double non_linear_host_bw(double capacity, int n_activities) {
-        std::cout << "[DEBUG NON LINEAR - HOST] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
-        return capacity * (1 / 3);
-    }
-
-    // REMOVE
+    // REMOVE OR REPLACE WITH DETERMINISTIC VERSION ?
     static auto hdd_variability_factory(double read_variability, double write_variability) {
         auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
             std::random_device rd{};
@@ -118,180 +116,198 @@ namespace storalloc {
 
     void PlatformFactory::create_platform(const std::shared_ptr<storalloc::Config> cfg) const {
 
-        // Create the top-level zone and backbone "link"
+        // --- TOP LEVEL ZONE AND MAIN BACKBONE ---
         auto main_zone = sg4::create_star_zone("AS_Root");
         auto main_link_bb =
-            main_zone->create_link("backbone", cfg->bkbone_bw)->set_latency("20us");
-        // main_link_bb->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_link_bw);
-        sg4::LinkInRoute backbone{main_link_bb};
+            main_zone->create_link("backbone", cfg->net.bw_backbone)->set_latency(cfg->net.link_latency);
+        // main_link_bb->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_link_bw); // Last time used, simgrid crashed pretty hard
+        sg4::LinkInRoute main_backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
-        // Create a network zone for control hosts
-        auto control_zone = sg4::create_floyd_zone("AS_Ctrl");
-        control_zone->set_parent(main_zone);
-        auto backbone_link_ctrl =
-            control_zone->create_link("backbone_ctrl", "1.25GBps")->seal();
-        sg4::LinkInRoute backbone_ctrl(backbone_link_ctrl);
+        // --- CONTROL ZONE ---
+        auto ctrl_zone = sg4::create_star_zone("AS_Ctrl");
+        ctrl_zone->set_parent(main_zone);
+        auto backbone_link_ctrl = ctrl_zone->create_link("backbone_ctrl", cfg->net.bw_backbone_ctrl)->set_latency(cfg->net.link_latency)->seal();
 
         // Create a user host & batch head node
         std::vector<s4u_Host *> control_hosts = {};
-        auto user_host =
-            control_zone->create_host("user0", {"25.0Mf", "10.0Mf", "5.0Mf"});
-        control_hosts.push_back(user_host);
-        auto batch_head =
-            control_zone->create_host("batch0", {"25.0Mf", "10.0Mf", "5.0Mf"});
-        control_hosts.push_back(batch_head);
-        auto control_router = control_zone->create_router("control_zone_router_0");
+        control_hosts.push_back(ctrl_zone->create_host(USER, "2.2Tf"));
+        control_hosts.push_back(ctrl_zone->create_host(BATCH, "2.2Tf"));
+        auto control_router = ctrl_zone->create_router("ctrl_zone_router");
 
-        for (auto &host : control_hosts) {
-            host->set_core_count(64);
-            host->set_property("ram", "64GB");
-            host->set_property("wattage_per_state",
-                               "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-            host->set_property("wattage_off", "10");
+        for (auto &ctrl_host : control_hosts) {
+            ctrl_host->set_core_count(64);
+            ctrl_host->set_property("ram", "64GB");
 
-            auto link =
-                control_zone->create_split_duplex_link(host->get_name(), "1.25GBps")
-                    ->set_latency("24us")
-                    ->seal();
-            /* add link and backbone for communications from the host */
-            control_zone->add_route(
-                host->get_netpoint(), control_router, nullptr, nullptr,
-                {{link, sg4::LinkInRoute::Direction::UP}, backbone_ctrl}, true);
+            auto uplink = ctrl_zone->create_link(ctrl_host->get_name() + "_up", "1.25GBps")
+                              ->set_latency("24us")
+                              ->seal();
+            auto downlink = ctrl_zone->create_link(ctrl_host->get_name() + "_down", "1.25GBps")
+                                ->set_latency("24us")
+                                ->seal();
+
+            sg4::LinkInRoute ctrl_backbone(backbone_link_ctrl);
+            sg4::LinkInRoute link_up{uplink};
+            sg4::LinkInRoute link_down{downlink};
+            ctrl_zone->add_route(
+                ctrl_host->get_netpoint(), nullptr, nullptr, nullptr,
+                {{link_up, ctrl_backbone}}, false);
+            ctrl_zone->add_route(
+                nullptr, ctrl_host->get_netpoint(), nullptr, nullptr,
+                {{ctrl_backbone, link_down}}, false);
         }
+        ctrl_zone->seal();
 
-        control_zone->seal();
-
-        // Create a Dragonfly compute zone
+        // DRAGONFLY ZONE (COMPUTE)
         auto compute_zone = sg4::create_dragonfly_zone("AS_DragonflyCompute", main_zone,
-                                                       {{cfg->d_groups, cfg->d_group_links},
-                                                        {cfg->d_chassis, cfg->d_chassis_links},
-                                                        {cfg->d_routers, cfg->d_router_links},
-                                                        cfg->d_nodes},
+                                                       {{cfg->compute.d_groups, cfg->compute.d_group_links},
+                                                        {cfg->compute.d_chassis, cfg->compute.d_chassis_links},
+                                                        {cfg->compute.d_routers, cfg->compute.d_router_links},
+                                                        cfg->compute.d_nodes},
                                                        {create_hostzone, {}, create_limiter}, 10e9,
                                                        10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX);
         // Add a global router for zone-zone routes
-        auto compute_router = compute_zone->create_router("compute_router_0");
+        auto compute_router = compute_zone->create_router("compute_router");
         compute_zone->seal();
 
-        // Create a storage zone
-        auto storage_zone = sg4::create_floyd_zone("AS_Storage");
+        // --- STORAGE ZONE (PFS) ---
+        auto storage_zone = sg4::create_star_zone("AS_Storage");
         storage_zone->set_parent(main_zone);
-        auto backbone_link_storage =
-            storage_zone->create_link("backbone_storage", cfg->bkbone_bw);
-        sg4::LinkInRoute backbone_storage(backbone_link_storage);
-        auto storage_router = storage_zone->create_router("storage_zone_router_0");
+        auto backbone_link_storage = storage_zone->create_link("backbone_storage",
+                                                               cfg->net.bw_backbone_storage)
+                                         ->set_latency(cfg->net.link_latency)
+                                         ->seal();
+        auto storage_router = storage_zone->create_router("storage_zone_router");
+        sg4::LinkInRoute storage_backbone{backbone_link_storage};
 
-        // Simple storage services that will be accessed through
-        // CompoundStorageService
-        for (const auto &node : config->nodes) { // node types in use
+        // Nodes for Simple storage services that will be accessed through the CSS
+        for (const auto &node : config->stor.nodes) {
+            for (unsigned int i = 0; i < node.qtt; i++) {
 
-            for (auto i = 0; i < node.qtt; i++) { // qtt of each type
-
-                // Base node characteristics
                 auto hostname = node.tpl.id + std::to_string(i);
-                auto storage_host =
-                    storage_zone->create_host(hostname, "2.6Tf");
+                auto storage_host = storage_zone->create_host(hostname, "2.2Tf");
                 storage_host->set_core_count(16);
-                // storage_host->set_property(
-                //    "wattage_per_state",
-                //    "95.0:120.0:200.0, 93.0:115.0:170.0, 90.0:110.0:150.0");
-                // storage_host->set_property("wattage_off", "10");
-                // storage_host->set_property("latency", "10");
-                // storage_host->set_sharing_policy(sg4::Host::SharingPolicy::NONLINEAR, non_linear_host_bw);
 
                 // Link to storage backbone
-                auto link = storage_zone->create_split_duplex_link(hostname, "100GBps")
-                                ->set_latency("24us")
-                                ->seal();
-                // link->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_host_bw);
-                storage_zone->add_route(
-                    storage_host->get_netpoint(), storage_router, nullptr, nullptr,
-                    {{link, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
+                auto uplink = storage_zone->create_link(hostname + "_up", "100GBps")
+                                  ->set_latency(cfg->net.link_latency)
+                                  ->seal();
+                auto downlink = storage_zone->create_link(hostname + "_down", "100GBps")
+                                    ->set_latency(cfg->net.link_latency)
+                                    ->seal();
 
+                sg4::LinkInRoute link_up{uplink};
+                sg4::LinkInRoute link_down{downlink};
+                storage_zone->add_route(
+                    storage_host->get_netpoint(), nullptr, nullptr, nullptr,
+                    {{link_up, storage_backbone}}, false);
+                storage_zone->add_route(
+                    nullptr, storage_host->get_netpoint(), nullptr, nullptr,
+                    {{storage_backbone, link_down}}, false);
+
+                // Adding disk(s) to the current storage node
                 for (const auto &disk : node.tpl.disks) {
 
-                    for (auto j = 0; j < disk.qtt; j++) {
+                    for (unsigned int j = 0; j < disk.qtt; j++) {
+
                         auto new_disk = storage_host->create_disk(
                             disk.tpl.id + std::to_string(j),
                             std::to_string(disk.tpl.read_bw) + "MBps",
                             std::to_string(disk.tpl.write_bw) + "MBps");
-                        new_disk->set_property("size",
-                                               std::to_string(disk.tpl.capacity) + "GB");
-                        new_disk->set_property("mount",
-                                               disk.tpl.mount_prefix + std::to_string(j));
-
-                        /*if (disk.tpl.id == "hdd_capa") {
-                            new_disk->set_concurrency_limit(500);       // Not working, but I
-                        don't why so far
-                        }*/
+                        new_disk->set_property("size", std::to_string(disk.tpl.capacity) + "GB");
+                        new_disk->set_property("mount", disk.tpl.mount_prefix + std::to_string(j));
 
                         // Input for contention and variability on HDDs
-                        if ((config->non_linear_coef_read != 1) or (config->non_linear_coef_write != 1)) {
+                        if ((config->stor.non_linear_coef_read != 1) or (config->stor.non_linear_coef_write != 1)) {
+                            WRENCH_INFO("[PlatformFactory:create_platform] Adding non linear sharing policy to disk %s%i on %s", disk.tpl.id.c_str(), j, hostname.c_str());
                             new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         // non_linear_disk_bw_factory(config->non_linear_coef_read));
-                                                         non_linear_read_bw);
+                                                         &non_linear_read_bw);
                             new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         non_linear_write_bw);
-                            // non_linear_disk_bw_factory(config->non_linear_coef_write));
+                                                         &non_linear_write_bw);
                         }
-                        if ((config->read_variability != 1) or (config->write_variability != 1)) {
+                        if ((config->stor.read_variability != 1) or (config->stor.write_variability != 1)) {
                             WRENCH_WARN("[PlatformFactory:create_platform] Using read and write variability factor on disk");
                             new_disk->set_factor_cb(
-                                hdd_variability_factory(config->read_variability, config->write_variability));
+                                hdd_variability_factory(config->stor.read_variability, config->stor.write_variability));
                         }
-
                         new_disk->seal();
                     }
                 }
             }
         }
 
-        // Also add one 'special' storage service for permanent storage (external to
-        // the supercomputer, or at least not directly among the usual storage nodes
-        // used by jobs)
-        auto permanent_storage = storage_zone->create_host("permanent_storage", "2.6Tf")
-                                     ->set_core_count(16)
-                                     ->set_property("ram", "32GB")
-                                     ->set_property("latency", "10");
-        permanent_storage->create_disk("disk0", cfg->perm_storage_r_bw, cfg->perm_storage_w_bw)
-            ->set_property("size", cfg->perm_storage_capa)
-            ->set_property("mount", "/dev/disk0");
-        // Link to storage backbone
-        auto link_perm =
-            storage_zone->create_split_duplex_link("permanent_storage", "100GBps")
-                ->set_latency("24us")
-                ->seal();
-        storage_zone->add_route(
-            permanent_storage->get_netpoint(), storage_router, nullptr, nullptr,
-            {{link_perm, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
-
-        // And finally a node for the compound storage service itself
+        // Add a node for the compound storage service itself
         auto cmpd_storage =
             storage_zone
-                ->create_host("compound_storage", "2.6Tf")
+                ->create_host(COMPOUND_STORAGE, "2.6Tf")
                 ->set_core_count(64)
-                ->set_property("ram", "192GB")
-                ->set_property("latency", "10");
-        auto link_cpd =
-            storage_zone->create_split_duplex_link("compound_storage", "25GBps")
-                ->set_latency("24us")
-                ->seal();
+                ->set_property("ram", "192GB");
+
+        auto css_uplink = storage_zone->create_link("compound_storage_up", "100GBps")
+                              ->set_latency(cfg->net.link_latency)
+                              ->seal();
+        auto css_downlink = storage_zone->create_link("compound_storage_down", "100GBps")
+                                ->set_latency(cfg->net.link_latency)
+                                ->seal();
+
+        sg4::LinkInRoute css_link_up{css_uplink};
+        sg4::LinkInRoute css_link_down{css_downlink};
         storage_zone->add_route(
-            cmpd_storage->get_netpoint(), storage_router, nullptr, nullptr,
-            {{link_cpd, sg4::LinkInRoute::Direction::UP}, backbone_storage}, true);
+            cmpd_storage->get_netpoint(), nullptr, nullptr, nullptr,
+            {{css_link_up, storage_backbone}}, false);
+        storage_zone->add_route(
+            nullptr, cmpd_storage->get_netpoint(), nullptr, nullptr,
+            {{storage_backbone, css_link_down}}, false);
 
         storage_zone->seal();
 
-        // Route from main zone to sub zones.
+        // --- STORAGE ZONE (PERMANENT) ---
+        auto pstorage_zone = sg4::create_star_zone("AS_StoragePermanent");
+        pstorage_zone->set_parent(main_zone);
+        // TODO: backbone bandwidth value could be a separate config field for this zone
+        auto backbone_link_pstorage = pstorage_zone->create_link("backbone_permanent_storage",
+                                                                 cfg->net.bw_backbone_perm_storage)
+                                          ->set_latency(cfg->net.link_latency)
+                                          ->seal();
+        auto pstorage_router = pstorage_zone->create_router("permanent_storage_zone_router");
+
+        auto perm_uplink = pstorage_zone->create_link("permanent_storage_up", "12.5GBps")
+                               ->set_latency(cfg->net.link_latency)
+                               ->seal();
+        auto perm_downlink = pstorage_zone->create_link("permanent_storage_down", "12.5GBps")
+                                 ->set_latency(cfg->net.link_latency)
+                                 ->seal();
+
+        sg4::LinkInRoute pstorage_backbone{backbone_link_pstorage};
+        sg4::LinkInRoute link_up{perm_uplink};
+        sg4::LinkInRoute link_down{perm_downlink};
+
+        auto permanent_storage = pstorage_zone->create_host(PERMANENT_STORAGE, "2.6Tf")
+                                     ->set_core_count(16)
+                                     ->set_property("ram", "32GB");
+        permanent_storage->create_disk(cfg->pstor.disk_id, cfg->pstor.r_bw, cfg->pstor.w_bw)
+            ->set_property("size", cfg->pstor.capa)
+            ->set_property("mount", cfg->pstor.mount_prefix);
+
+        pstorage_zone->add_route(
+            permanent_storage->get_netpoint(), nullptr, nullptr, nullptr,
+            {{link_up, pstorage_backbone}}, false);
+        pstorage_zone->add_route(
+            nullptr, permanent_storage->get_netpoint(), nullptr, nullptr,
+            {{pstorage_backbone, link_down}}, false);
+        pstorage_zone->seal();
+
+        // ROUTES FROM MAIN BACKBONE TO SUB ZONES
         main_zone->add_route(storage_zone->get_netpoint(), nullptr, storage_router,
-                             nullptr, {backbone});
-        main_zone->add_route(control_zone->get_netpoint(), nullptr, control_router,
-                             nullptr, {backbone});
+                             nullptr, {main_backbone}, true);
+        main_zone->add_route(ctrl_zone->get_netpoint(), nullptr, control_router,
+                             nullptr, {main_backbone}, true);
         main_zone->add_route(compute_zone->get_netpoint(), nullptr, compute_router,
-                             nullptr, {backbone});
+                             nullptr, {main_backbone}, true);
+        main_zone->add_route(pstorage_zone->get_netpoint(), nullptr, pstorage_router,
+                             nullptr, {main_backbone}, true);
 
         main_zone->seal();
     }
