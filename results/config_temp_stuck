@@ -1,0 +1,4 @@
+ax.service.ax_client: Generated new trial 0 with parameters {'backbone_bw': 215, 'permanent_storage_read_bw': 88, 'permanent_storage_write_bw': 70, 'preload_percent': 0.3, 'amdahl': 0.42, 'walltime_extension': 1.2, 'disk_rb': 2617, 'disk_wb': 539, 'stripe_size': 67108864, 'stripe_count': 8, 'nb_files_per_read': 1, 'io_read_node_ratio': 0.59, 'nb_files_per_write': 1, 'io_write_node_ratio': 0.75}.
+Dumping configuration to ./exp_configurations/exp_config_0_A786
+
+~ 22min30s for 1 job (id 574382) with simgrid 3.34
