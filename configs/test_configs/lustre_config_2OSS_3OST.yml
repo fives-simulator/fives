@@ -1,31 +1,33 @@
 ---
 
-# Test config for a tiny Lustre filesystem
-# - 3 HDD per node
-# - 2 nodes (in total)
-# - We used two different node templates with the same caracteristics, but different IDs in order to test more easily.
-# - Small compute system on the side
+## TEST CONFIG 20SS with 3OSTs each
+#  
 
 general:
-  backbone_bw: 25000MBps    # 200Gbps backbone...
-  config_version: 0.0.1
   config_name: StorAlloc_Test_Lustre_2OSSTypes
-  max_stripe_size: 640000000    # Max size for allocation stripes (in bytes) (when striping is done at CSS level)
-  permanent_storage_read_bw: 10000MBps
-  permanent_storage_write_bw: 10000MBps
-  permanent_storage_capacity: 10000TB
-  preload_percent: 0
-  amdahl: 0.5
+  config_version: 0.0.1
+  max_stripe_size: 640000000          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
+  preload_percent: 0.0
+  amdahl: 0.7                         # From 0 to 1, degree of // in compute tasks
   walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
-  non_linear_coef_read: 0.9
-  non_linear_coef_write: 0.6
-  read_variability: 1.0
+network:
+  bandwidth_backbone: 9TBps
+  bandwidth_backbone_storage: 25000MBps
+  bandwidth_backbone_perm_storage: 90GBps
+  bandwidth_backbone_ctrl: 12.5GBps
+  link_latency: 24us
+storage:
+  read_variability: 1.0             # read AND write set to 1.0 to deactivate
   write_variability: 1.0
+  non_linear_coef_read: 0.5         # read AND write set to 1.0 to deactivate
+  non_linear_coef_write: 0.5
   nb_files_per_read: 2
   nb_files_per_write: 2
   io_read_node_ratio: 0.1
+  max_read_node_cnt: 20
   io_write_node_ratio: 0.1
-storage:
+  max_write_node_cnt: 20
+  io_buffer_size: 1GB
   disk_templates:
     - &raid_OSS
       id: raid_OSS
@@ -49,27 +51,40 @@ storage:
       template: *node_capa_A
     - quantity: 1
       template: *node_capa_B
-dragonfly:
-  groups: 2         # Entire Dragonfly zone
-  group_links: 2
-  chassis: 2        # per group
-  chassis_links: 2
-  routers: 2        # per chassis
-  router_links: 2
-  nodes: 2          # per router
+permanent_storage:
+  read_bw: 10000MBps   # ALCF Tape archive cache speed is 90Gbps / and also the link between HDR and FDR is 100GBps. Here we reduce the link speed
+  write_bw: 10000MBps  # Same
+  capacity: 10000TB  # Tape capacity is 305 PB
+  mount_prefix: /dev/disk0
+  read_path: read/
+  write_path: write/
+  disk_id: perm_disk0
+dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
+  groups: 2        # Entire Dragonfly zone (should be 4392 nodes in total, we use slightly more)
+  group_links: 1
+  chassis: 2        # Per group
+  chassis_links: 1
+  routers: 2       # Per chassis
+  router_links: 1
+  nodes: 2          # Per router
   core_count: 64    # Compute node core count - unused
-  ram: 192GB        # Compute node ram - unused
+  ram: 192          # GB Compute node ram
+  flops: 2.2TF      # Flops for each compute node
   node_local_storage:
     enabled: no     # Not implemented yet anyway
     nb_disks: 1
-    capacity: 8 # GB
-    read_bw: 1000 # MBps
-    write_bw: 500 # MBps
+    capacity: 128 # GB
+    read_bw: 1000 # MBps      # https://docs.alcf.anl.gov/data-management/filesystem-and-storage/file-systems/
+    write_bw: 500 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
 allocator: lustre
 lustre:
   lq_threshold_rr: 43     # lustre default
   lq_prio_free: 232       # lustre default
-  stripe_size: 40000000    
-  stripe_count: 8         
-  max_chunks_per_ost: 80  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
+  stripe_size: 40000000    # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
+  stripe_count: 8         # Default number of OSTs used for each IO operation
+  max_chunks_per_ost: 80   # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
+outputs:
+  job_filename_prefix: simulatedJobs_
+  io_actions_prefix: io_actions_ts_
+  storage_svc_prefix: storage_services_operations_
 ...

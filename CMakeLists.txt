@@ -34,6 +34,7 @@ set(SOURCE_FILES
         include/JobDefinition.h
         include/ConfigDefinition.h
         include/Utils.h
+        include/Constants.h
         src/Controller.cpp
         src/Simulator.cpp
         src/Platform.cpp
