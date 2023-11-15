@@ -42,9 +42,15 @@ CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 # Bounds / value lists are not final
 AX_PARAMS = [
     {
-        "name": "backbone_bw",
+        "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [100, 240],  # Use large ranges
+        "bounds": [100, 240],  
+        "value_type": "int",
+    },
+    {
+        "name": "bandwidth_backbone_perm_storage",
+        "type": "range",
+        "bounds": [20, 90],
         "value_type": "int",
     },
     {
@@ -182,7 +188,8 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
-    backbone_bw = parametrization.get("backbone_bw")
+    bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
+    bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
     permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
     permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
     preload_percent = parametrization.get("preload_percent")
@@ -203,27 +210,29 @@ def update_base_config(parametrization, base_config, cfg_name):
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
-    base_config["general"]["backbone_bw"] = f"{backbone_bw}GBps"
-    base_config["general"][
-        "permanent_storage_read_bw"
-    ] = f"{permanent_storage_read_bw}GBps"
-    base_config["general"][
-        "permanent_storage_write_bw"
-    ] = f"{permanent_storage_write_bw}GBps"
     base_config["general"]["preload_percent"] = preload_percent
     base_config["general"]["amdahl"] = amdahl
-    base_config["general"]["non_linear_coef_read"] = 1  # deactivated
-    base_config["general"]["non_linear_coef_write"] = 1  # deactivated
-    base_config["general"]["read_variability"] = 1  # deactivated
-    base_config["general"]["write_variability"] = 1  # deactivated
+    base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
+    base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
+    base_config["permanent_storage"][
+        "read_bw"
+    ] = f"{permanent_storage_read_bw}GBps"
+    base_config["permanent_storage"][
+        "write_bw"
+    ] = f"{permanent_storage_write_bw}GBps"
 
-    base_config["general"]["nb_files_per_read"] = nb_files_per_read
-    base_config["general"]["io_read_node_ratio"] = io_read_node_ratio
-    base_config["general"]["nb_files_per_write"] = nb_files_per_write
-    base_config["general"]["io_write_node_ratio"] = io_write_node_ratio
+    base_config["storage"]["read_variability"] = 1  # deactivated
+    base_config["storage"]["write_variability"] = 1  # deactivated
 
-    base_config["general"]["non_linear_coef_read"] = non_linear_coef_read
-    base_config["general"]["non_linear_coef_write"] = non_linear_coef_write
+    base_config["storage"]["io_buffer_size"] = stripe_size
+
+    base_config["storage"]["nb_files_per_read"] = nb_files_per_read
+    base_config["storage"]["io_read_node_ratio"] = io_read_node_ratio
+    base_config["storage"]["nb_files_per_write"] = nb_files_per_write
+    base_config["storage"]["io_write_node_ratio"] = io_write_node_ratio
+
+    base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
+    base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.

@@ -3,6 +3,7 @@
 
 #include <simgrid/forward.h>
 
+#include <cmath>
 #include <random>
 
 WRENCH_LOG_CATEGORY(storalloc_platform, "Log category for StorAlloc platform factory");
@@ -22,19 +23,12 @@ namespace storalloc {
             if (n_activities < 1) {
                 n_activities = 1;
             }
-            std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (1 / n_activities) * non_linear_coef) << std::endl;
-            return capacity * (1 / n_activities) * non_linear_coef;
+            if (n_activities == 1) {
+                return capacity;
+            }
+            std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (non_linear_coef / std::sqrt(n_activities))) << std::endl;
+            return capacity * (non_linear_coef / std::sqrt(n_activities));
         };
-    }
-
-    static double non_linear_read_bw(double capacity, int n_activities) {
-        // std::cout << "[DEBUG NON LINEAR READ] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
-        return capacity - n_activities * 10;
-    }
-
-    static double non_linear_write_bw(double capacity, int n_activities) {
-        // std::cout << "[DEBUG NON LINEAR WRITE] Capacity " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
-        return capacity - n_activities * 10;
     }
 
     // REMOVE OR REPLACE WITH DETERMINISTIC VERSION ?
@@ -222,10 +216,10 @@ namespace storalloc {
                             WRENCH_INFO("[PlatformFactory:create_platform] Adding non linear sharing policy to disk %s%i on %s", disk.tpl.id.c_str(), j, hostname.c_str());
                             new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         &non_linear_read_bw);
+                                                         non_linear_disk_bw_factory(cfg->stor.non_linear_coef_read));
                             new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         &non_linear_write_bw);
+                                                         non_linear_disk_bw_factory(cfg->stor.non_linear_coef_write));
                         }
                         if ((config->stor.read_variability != 1) or (config->stor.write_variability != 1)) {
                             WRENCH_WARN("[PlatformFactory:create_platform] Using read and write variability factor on disk");
