@@ -221,3 +221,5 @@ pages:
   artifacts:
     paths:
       - public
+  tags:
+    - simulation
