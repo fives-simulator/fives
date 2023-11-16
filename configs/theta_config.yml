@@ -22,15 +22,15 @@ network:
 storage:
   read_variability: 1.0             # read AND write set to 1.0 to deactivate
   write_variability: 1.0
-  non_linear_coef_read: 0.5         # read AND write set to 1.0 to deactivate
-  non_linear_coef_write: 0.5
+  non_linear_coef_read: 0.95         # read AND write set to 1.0 to deactivate
+  non_linear_coef_write: 0.85
   nb_files_per_read: 2
   nb_files_per_write: 2
   io_read_node_ratio: 0.1
-  max_read_node_cnt: 20
+  max_read_node_cnt: 10
   io_write_node_ratio: 0.1
-  max_write_node_cnt: 20
-  io_buffer_size: 1GB
+  max_write_node_cnt: 10
+  io_buffer_size: 2097152B
   disk_templates:
     - &raid_OSS
       id: raid_OSS
@@ -65,7 +65,7 @@ dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html 
   nodes: 4          # Per router
   core_count: 64    # Compute node core count - unused
   ram: 192          # GB Compute node ram
-  flops: 2.2TF      # Flops for each compute node
+  flops: 2.2Tf      # Flops for each compute node
   node_local_storage:
     enabled: no     # Not implemented yet anyway
     nb_disks: 1
@@ -77,8 +77,8 @@ lustre:
   lq_threshold_rr: 43     # lustre default
   lq_prio_free: 232       # lustre default
   stripe_size: 2097152    # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
-  stripe_count: 8         # Default number of OSTs used for each IO operation
-  max_chunks_per_ost: 8   # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
+  stripe_count: 4         # Default number of OSTs used for each IO operation
+  max_chunks_per_ost: 12   # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 outputs:
   job_filename_prefix: simulatedJobs_
   io_actions_prefix: io_actions_ts_

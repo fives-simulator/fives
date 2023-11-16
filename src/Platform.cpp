@@ -14,19 +14,22 @@ namespace storalloc {
      * @brief Factory for the disk_dynamic_sharing callback used on the Simgrid Disk objects
      *        of the simulated storage system.
      */
-    static auto non_linear_disk_bw_factory(float non_linear_coef) {
+    static auto non_linear_disk_bw_factory(const sg4::Disk *disk, float non_linear_coef) {
         /* capacity = Current Simgrid capacity of this disk
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
-        return [non_linear_coef](double capacity, int n_activities) {
-            std::cout << "[DEBUG NON LINEAR] Capacity  " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+        return [non_linear_coef, disk](double capacity, int n_activities) {
+            auto clock = wrench::S4U_Simulation::getClock();
+            // std::cout << "[NL Cb at " << std::to_string(clock) << "] Capacity  " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+            // std::cout << "[NL disk] " << disk->get_name() << " on " << disk->get_host()->get_name() << std::endl;
+
             if (n_activities < 1) {
                 n_activities = 1;
             }
             if (n_activities == 1) {
                 return capacity;
             }
-            std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (non_linear_coef / std::sqrt(n_activities))) << std::endl;
+            // std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (non_linear_coef / std::sqrt(n_activities))) << std::endl;
             return capacity * (non_linear_coef / std::sqrt(n_activities));
         };
     }
@@ -84,28 +87,27 @@ namespace storalloc {
      * @param id Internal identifier in the torus (for information)
      * @return netpoint, gateway: the netpoint to the Dragonfly zone
      */
-    static std::pair<simgrid::kernel::routing::NetPoint *,
-                     simgrid::kernel::routing::NetPoint *>
-    create_hostzone(sg4::NetZone *zone,
-                    const std::vector<unsigned long> & /*coord*/,
-                    unsigned long id) {
+    static auto create_hostzone_factory(const std::string &flops, unsigned int core_count, unsigned int ram) {
 
-        std::string hostname = "compute" + std::to_string(id);
-        auto *host_zone = sg4::create_star_zone(hostname);
-        host_zone->set_parent(zone);
+        return [flops, core_count, ram](sg4::NetZone *zone,
+                                        const std::vector<unsigned long> & /*coord*/,
+                                        unsigned long id) {
+            std::string hostname = "compute" + std::to_string(id);
+            auto *host_zone = sg4::create_star_zone(hostname);
+            host_zone->set_parent(zone);
 
-        auto compute_host =
-            host_zone->create_host(hostname, "2.2Tf"); // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
-        compute_host->set_core_count(64);              // Theta specs
-        compute_host->set_property("ram", "192GB");    // Theta specs
-        compute_host->set_property("speed", "2.2Tf");  // Computed value from Theta spec is 2.6TF, adjusted to 2.2TF to take into account some variability
+            auto compute_host =
+                host_zone->create_host(hostname, flops);
+            compute_host->set_core_count(core_count);
+            compute_host->set_property("ram", std::to_string(ram) + "GB");
 
-        auto link = host_zone->create_link("loopback_compute" + std::to_string(id), "10000Gbps")->set_latency("0");
-        host_zone->add_route(compute_host->get_netpoint(), compute_host->get_netpoint(), nullptr, nullptr, {{link, sg4::LinkInRoute::Direction::UP}, {link, sg4::LinkInRoute::Direction::DOWN}});
+            auto link = host_zone->create_link("loopback_compute" + std::to_string(id), LOOPBACK)->set_latency("0");
+            host_zone->add_route(compute_host->get_netpoint(), compute_host->get_netpoint(), nullptr, nullptr, {{link, sg4::LinkInRoute::Direction::UP}, {link, sg4::LinkInRoute::Direction::DOWN}});
 
-        host_zone->seal();
+            host_zone->seal();
 
-        return std::make_pair(host_zone->get_netpoint(), compute_host->get_netpoint());
+            return std::make_pair(host_zone->get_netpoint(), compute_host->get_netpoint());
+        };
     }
 
     void PlatformFactory::create_platform(const std::shared_ptr<storalloc::Config> cfg) const {
@@ -125,19 +127,19 @@ namespace storalloc {
 
         // Create a user host & batch head node
         std::vector<s4u_Host *> control_hosts = {};
-        control_hosts.push_back(ctrl_zone->create_host(USER, "2.2Tf"));
-        control_hosts.push_back(ctrl_zone->create_host(BATCH, "2.2Tf"));
+        control_hosts.push_back(ctrl_zone->create_host(USER, cfg->compute.flops)); // cfg->compute.flops));
+        control_hosts.push_back(ctrl_zone->create_host(BATCH, cfg->compute.flops));
         auto control_router = ctrl_zone->create_router("ctrl_zone_router");
 
         for (auto &ctrl_host : control_hosts) {
             ctrl_host->set_core_count(64);
             ctrl_host->set_property("ram", "64GB");
 
-            auto uplink = ctrl_zone->create_link(ctrl_host->get_name() + "_up", "1.25GBps")
-                              ->set_latency("24us")
+            auto uplink = ctrl_zone->create_link(ctrl_host->get_name() + "_up", SLOWLINK)
+                              ->set_latency(cfg->net.link_latency)
                               ->seal();
-            auto downlink = ctrl_zone->create_link(ctrl_host->get_name() + "_down", "1.25GBps")
-                                ->set_latency("24us")
+            auto downlink = ctrl_zone->create_link(ctrl_host->get_name() + "_down", SLOWLINK)
+                                ->set_latency(cfg->net.link_latency)
                                 ->seal();
 
             sg4::LinkInRoute ctrl_backbone(backbone_link_ctrl);
@@ -153,6 +155,7 @@ namespace storalloc {
         ctrl_zone->seal();
 
         // DRAGONFLY ZONE (COMPUTE)
+        auto create_hostzone = create_hostzone_factory(cfg->compute.flops, cfg->compute.core_count, cfg->compute.ram);
         auto compute_zone = sg4::create_dragonfly_zone("AS_DragonflyCompute", main_zone,
                                                        {{cfg->compute.d_groups, cfg->compute.d_group_links},
                                                         {cfg->compute.d_chassis, cfg->compute.d_chassis_links},
@@ -179,14 +182,14 @@ namespace storalloc {
             for (unsigned int i = 0; i < node.qtt; i++) {
 
                 auto hostname = node.tpl.id + std::to_string(i);
-                auto storage_host = storage_zone->create_host(hostname, "2.2Tf");
+                auto storage_host = storage_zone->create_host(hostname, cfg->compute.flops);
                 storage_host->set_core_count(16);
 
                 // Link to storage backbone
-                auto uplink = storage_zone->create_link(hostname + "_up", "100GBps")
+                auto uplink = storage_zone->create_link(hostname + "_up", FASTLINK)
                                   ->set_latency(cfg->net.link_latency)
                                   ->seal();
-                auto downlink = storage_zone->create_link(hostname + "_down", "100GBps")
+                auto downlink = storage_zone->create_link(hostname + "_down", FASTLINK)
                                     ->set_latency(cfg->net.link_latency)
                                     ->seal();
 
@@ -216,10 +219,10 @@ namespace storalloc {
                             WRENCH_INFO("[PlatformFactory:create_platform] Adding non linear sharing policy to disk %s%i on %s", disk.tpl.id.c_str(), j, hostname.c_str());
                             new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         non_linear_disk_bw_factory(cfg->stor.non_linear_coef_read));
+                                                         non_linear_disk_bw_factory(new_disk, cfg->stor.non_linear_coef_read));
                             new_disk->set_sharing_policy(sg4::Disk::Operation::WRITE,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
-                                                         non_linear_disk_bw_factory(cfg->stor.non_linear_coef_write));
+                                                         non_linear_disk_bw_factory(new_disk, cfg->stor.non_linear_coef_write));
                         }
                         if ((config->stor.read_variability != 1) or (config->stor.write_variability != 1)) {
                             WRENCH_WARN("[PlatformFactory:create_platform] Using read and write variability factor on disk");
@@ -235,14 +238,14 @@ namespace storalloc {
         // Add a node for the compound storage service itself
         auto cmpd_storage =
             storage_zone
-                ->create_host(COMPOUND_STORAGE, "2.6Tf")
-                ->set_core_count(64)
-                ->set_property("ram", "192GB");
+                ->create_host(COMPOUND_STORAGE, cfg->compute.flops)
+                ->set_core_count(cfg->compute.core_count)
+                ->set_property("ram", std::to_string(cfg->compute.ram) + "GB");
 
-        auto css_uplink = storage_zone->create_link("compound_storage_up", "100GBps")
+        auto css_uplink = storage_zone->create_link("compound_storage_up", FASTLINK)
                               ->set_latency(cfg->net.link_latency)
                               ->seal();
-        auto css_downlink = storage_zone->create_link("compound_storage_down", "100GBps")
+        auto css_downlink = storage_zone->create_link("compound_storage_down", FASTLINK)
                                 ->set_latency(cfg->net.link_latency)
                                 ->seal();
 
@@ -267,10 +270,10 @@ namespace storalloc {
                                           ->seal();
         auto pstorage_router = pstorage_zone->create_router("permanent_storage_zone_router");
 
-        auto perm_uplink = pstorage_zone->create_link("permanent_storage_up", "12.5GBps")
+        auto perm_uplink = pstorage_zone->create_link("permanent_storage_up", FASTLINK)
                                ->set_latency(cfg->net.link_latency)
                                ->seal();
-        auto perm_downlink = pstorage_zone->create_link("permanent_storage_down", "12.5GBps")
+        auto perm_downlink = pstorage_zone->create_link("permanent_storage_down", FASTLINK)
                                  ->set_latency(cfg->net.link_latency)
                                  ->seal();
 
@@ -278,7 +281,7 @@ namespace storalloc {
         sg4::LinkInRoute link_up{perm_uplink};
         sg4::LinkInRoute link_down{perm_downlink};
 
-        auto permanent_storage = pstorage_zone->create_host(PERMANENT_STORAGE, "2.6Tf")
+        auto permanent_storage = pstorage_zone->create_host(PERMANENT_STORAGE, cfg->compute.flops)
                                      ->set_core_count(16)
                                      ->set_property("ram", "32GB");
         permanent_storage->create_disk(cfg->pstor.disk_id, cfg->pstor.r_bw, cfg->pstor.w_bw)

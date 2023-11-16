@@ -38,6 +38,11 @@ namespace storalloc {
                 }
             }
 
+            wrench::WRENCH_PROPERTY_COLLECTION_TYPE ss_params = {};
+            if (config->stor.io_buffer_size != "0GB") {
+                ss_params[wrench::SimpleStorageServiceProperty::BUFFER_SIZE] = config->stor.io_buffer_size;
+            }
+
             for (unsigned int i = 0; i < node.qtt; i++) { // qtt of each type
                 auto disk_count = 0;
                 for (const auto &mnt_pt : mount_points) {
@@ -47,7 +52,7 @@ namespace storalloc {
                             wrench::SimpleStorageService::createSimpleStorageService(
                                 node.tpl.id + std::to_string(i),
                                 {mnt_pt},
-                                {{wrench::SimpleStorageServiceProperty::BUFFER_SIZE, config->stor.io_buffer_size}},
+                                ss_params,
                                 {})));
                 }
             }
@@ -170,9 +175,13 @@ namespace storalloc {
                 {}));
 
         /* Permanent storage */
+        wrench::WRENCH_PROPERTY_COLLECTION_TYPE ss_params = {};
+        if (config->stor.io_buffer_size != "0GB") {
+            ss_params[wrench::SimpleStorageServiceProperty::BUFFER_SIZE] = config->stor.io_buffer_size;
+        }
         auto permanent_storage = simulation->add(
             wrench::SimpleStorageService::createSimpleStorageService(
-                PERMANENT_STORAGE, {config->pstor.mount_prefix}, {}, {}));
+                PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
         /* Batch compute service */
         auto batch_service = storalloc::instantiateComputeServices(simulation, config);
