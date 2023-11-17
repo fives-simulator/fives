@@ -50,19 +50,19 @@ AX_PARAMS = [
     {
         "name": "bandwidth_backbone_perm_storage",
         "type": "range",
-        "bounds": [20, 90],
+        "bounds": [50, 100],
         "value_type": "int",
     },
     {
         "name": "permanent_storage_read_bw",
         "type": "range",
-        "bounds": [5, 90],
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
         "name": "permanent_storage_write_bw",
         "type": "range",
-        "bounds": [5, 90],
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
@@ -75,27 +75,26 @@ AX_PARAMS = [
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.4, 1.0],
+        "bounds": [0.4, 0.8],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "disk_rb",
         "type": "range",
-        "bounds": [600, 6000],
+        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "disk_wb",
         "type": "range",
-        "bounds": [300, 3000],
+        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "stripe_size",
         "type": "choice",
         "values": [
-            1048576,
             2097152,
             4194304,
             8388608,
@@ -110,48 +109,48 @@ AX_PARAMS = [
     {
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 8],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 4, 8],
+        "values": [1, 2, 3, 4],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.4],
+        "bounds": [0.05, 0.5],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 4, 8],
+        "values": [1, 2, 3, 4],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.4],
+        "bounds": [0.05, 0.5],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "non_linear_coef_read",
         "type": "range",
-        "bounds": [0.1, 1],
+        "bounds": [0.5, 1],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "non_linear_coef_write",
         "type": "range",
-        "bounds": [0.1, 1],
+        "bounds": [0.5, 1],
         "digits": 2,
         "value_type": "float",
     },
@@ -475,6 +474,9 @@ def run_calibration():
         parameter_constraints=[
             "disk_rb >= disk_wb",
             "permanent_storage_read_bw >= permanent_storage_write_bw",
+            "non_linear_coef_read >= non_linear_coef_write",
+            "permanent_storage_read_bw >= permanent_storage_write_bw",
+            "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage"
         ],
         outcome_constraints=[],
     )

@@ -34,7 +34,7 @@ storage:
   disk_templates:
     - &raid_OSS
       id: raid_OSS
-      capacity: 164000    # GB (~ 164 TB, obtained from 9.2PB total capacity / 56 OSS  - 1 OST per OSS)
+      capacity: 164000    # GB (~ 164 TB -> 41*6TB dRAID, for a total of 10PB on 56 OSS)
       read_bw: 2500       # MBps   theoretical 6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
       write_bw: 1400      # MBps 
       mount_prefix: /dev/hdd
