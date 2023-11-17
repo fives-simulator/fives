@@ -10,6 +10,7 @@
     from the functionnal_test directory
 """
 
+import sys
 import subprocess
 import pathlib
 import random
@@ -557,4 +558,5 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    returncode = run()
+    sys.exit(returncode)
