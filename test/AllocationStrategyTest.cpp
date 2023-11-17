@@ -7,6 +7,7 @@
 #include "./include/TestWithFork.h"
 
 #include "../include/AllocationStrategy.h"
+#include "../include/Constants.h"
 #include "../include/Controller.h"
 #include "../include/Platform.h"
 #include "../include/Simulator.h"
@@ -983,9 +984,14 @@ void FunctionalAllocTest::lustreFullSim_test() {
             {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->lustre.stripe_size)},
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
+
+    wrench::WRENCH_PROPERTY_COLLECTION_TYPE ss_params = {};
+    if (config->pstor.io_buffer_size != "0GB") {
+        ss_params[wrench::SimpleStorageServiceProperty::BUFFER_SIZE] = config->pstor.io_buffer_size;
+    }
     auto permanent_storage = simulation->add(
         wrench::SimpleStorageService::createSimpleStorageService(
-            "permanent_storage", {"/dev/disk0"}, {}, {}));
+            PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
     // Controler
     auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
@@ -1047,16 +1053,14 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_TRUE(write2->hasSuccessfullyCompleted());
     auto write2Actions = write2->getActions();
     ASSERT_EQ(write2Actions.size(), 4); // Configuration using 2 nodes / 2 files = 4 write actions in the job
-    std::vector<std::string> actionNames{
-        "fWrite_output_data_file_job2_writeFiles_sub0_compute1_act1",
-        "fWrite_output_data_file_job2_writeFiles_sub0_compute0_act0",
-        "fWrite_output_data_file_job2_writeFiles_sub1_compute0_act2",
-        "fWrite_output_data_file_job2_writeFiles_sub1_compute1_act3"};
     std::vector<std::string> fileNames{
         "output_data_file_job2_writeFiles_sub0",
         "output_data_file_job2_writeFiles_sub1"};
+    regex reg("fWrite_output_data_file_job2_writeFiles_sub[0,1]_compute\\d+_act[0-3]");
     for (const auto &act : write2Actions) {
-        ASSERT_NE(std::find(actionNames.begin(), actionNames.end(), act->getName()), actionNames.end());
+        auto action_name = act->getName();
+        std::smatch base_match;
+        ASSERT_TRUE(std::regex_match(action_name, base_match, reg));
         ASSERT_EQ(act->getState(), wrench::Action::COMPLETED);
         auto customWriteAcion = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(act);
         auto file = customWriteAcion->getFile();

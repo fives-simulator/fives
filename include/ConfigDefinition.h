@@ -124,18 +124,20 @@ namespace storalloc {
         std::string read_path;
         std::string write_path;
         std::string disk_id;
+        std::string io_buffer_size;
     };
 
     struct ComputeCfg {
-        unsigned int d_groups;        // Dragonfly compute zone sizing
-        unsigned int d_group_links;   // Dragonfly compute zone sizing
-        unsigned int d_chassis;       // Dragonfly compute zone sizing
-        unsigned int d_chassis_links; // Dragonfly compute zone sizing
-        unsigned int d_routers;       // Dragonfly compute zone sizing
-        unsigned int d_router_links;  // Dragonfly compute zone sizing
-        unsigned int d_nodes;         // Dragonfly compute zone sizing
-        unsigned int core_count;      // Core count on each compute node - eg. 64
-        unsigned int ram;             // Ram on each compute node - eg. '192' (in GB)
+        unsigned int d_groups;          // Dragonfly compute zone sizing
+        unsigned int d_group_links;     // Dragonfly compute zone sizing
+        unsigned int d_chassis;         // Dragonfly compute zone sizing
+        unsigned int d_chassis_links;   // Dragonfly compute zone sizing
+        unsigned int d_routers;         // Dragonfly compute zone sizing
+        unsigned int d_router_links;    // Dragonfly compute zone sizing
+        unsigned int d_nodes;           // Dragonfly compute zone sizing
+        unsigned int max_compute_nodes; // Max number of compute nodes to create, regardless of the total dragonfly size
+        unsigned int core_count;        // Core count on each compute node - eg. 64
+        unsigned int ram;               // Ram on each compute node - eg. '192' (in GB)
         std::string flops;
 
         bool local_storage;            // Enable or disable node local storage creation on compute nodes - NOT IMPLEMENTED in simulation

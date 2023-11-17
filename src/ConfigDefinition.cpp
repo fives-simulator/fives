@@ -71,6 +71,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         rhs.compute.d_routers = ynode["dragonfly"]["routers"].as<int>();
         rhs.compute.d_router_links = ynode["dragonfly"]["router_links"].as<int>();
         rhs.compute.d_nodes = ynode["dragonfly"]["nodes"].as<int>();
+        rhs.compute.max_compute_nodes = ynode["dragonfly"]["max_compute_nodes"].as<unsigned int>();
         rhs.compute.core_count = ynode["dragonfly"]["core_count"].as<int>();
         rhs.compute.ram = ynode["dragonfly"]["ram"].as<unsigned int>();
         rhs.compute.flops = ynode["dragonfly"]["flops"].as<std::string>();
@@ -155,6 +156,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         rhs.pstor.read_path = ynode["permanent_storage"]["read_path"].as<std::string>();
         rhs.pstor.write_path = ynode["permanent_storage"]["write_path"].as<std::string>();
         rhs.pstor.disk_id = ynode["permanent_storage"]["disk_id"].as<std::string>();
+        rhs.pstor.io_buffer_size = ynode["permanent_storage"]["io_buffer_size"].as<std::string>();
 
         // Allocator callback
         auto alloc = ynode["allocator"].as<std::string>();

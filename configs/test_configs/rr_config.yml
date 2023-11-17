@@ -56,6 +56,7 @@ permanent_storage:
   read_path: read/
   write_path: write/
   disk_id: perm_disk0
+  io_buffer_size: 1GB
 dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
   groups: 2         # Entire Dragonfly zone
   group_links: 3
@@ -66,7 +67,8 @@ dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html 
   nodes: 8          # Per router
   core_count: 64    # Compute node core count - unused
   ram: 192          # GB Compute node ram
-  flops: 2.2TF      # Flops for each compute node
+  flops: 2.2Tf      # Flops for each compute node
+  max_compute_nodes: 4392
   node_local_storage:
     enabled: no     # Not implemented yet anyway
     nb_disks: 1

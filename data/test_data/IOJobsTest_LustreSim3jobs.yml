@@ -1,10 +1,10 @@
 jobs:
-- coresUsed: 64
+- coresUsed: 1280
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:09:00'
   id: job1
-  nodesUsed: 2
+  nodesUsed: 20
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 7000
   runtimeSeconds: 6000 # seconds
@@ -18,12 +18,12 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   model: RCW
-- coresUsed: 64
+- coresUsed: 1280
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:11:00'
   id: job2
-  nodesUsed: 2
+  nodesUsed: 20
   readBytes: 0  
   walltimeSeconds: 3600
   runtimeSeconds: 6300
@@ -37,12 +37,12 @@ jobs:
   writeTimeSeconds: 35
   metaTimeSeconds: 256.299233
   model: CW
-- coresUsed: 64
+- coresUsed: 1280
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:15:45'
   id: job3
-  nodesUsed: 2
+  nodesUsed: 20
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 6000
   runtimeSeconds: 5700

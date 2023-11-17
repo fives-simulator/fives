@@ -224,8 +224,6 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["storage"]["read_variability"] = 1  # deactivated
     base_config["storage"]["write_variability"] = 1  # deactivated
 
-    base_config["storage"]["io_buffer_size"] = stripe_size
-
     base_config["storage"]["nb_files_per_read"] = nb_files_per_read
     base_config["storage"]["io_read_node_ratio"] = io_read_node_ratio
     base_config["storage"]["nb_files_per_write"] = nb_files_per_write
