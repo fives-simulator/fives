@@ -118,13 +118,6 @@ namespace storalloc {
             }
         }
 
-        auto services = this->compound_storage_service->getAllServices();
-        for (const auto &service : services) {
-            for (const auto &ost : service.second) {
-                WRENCH_INFO("NUMBER OF FILES CURRENTLY ON OST %s : %f", ost->getName().c_str(), ost->getTotalFilesZeroTime());
-            }
-        }
-
         // Process any remaining events (number unknown, depends on jobs runtime vs simulation sleep between jobs)
         while (processed_events < total_events) {
             this->waitForAndProcessNextEvent();
@@ -343,12 +336,12 @@ namespace storalloc {
                 nodes_nb_read = std::min(
                     std::min(nodes_nb_read, this->config->stor.max_read_node_cnt),
                     this->compound_jobs[jobID].first.nodesUsed);
-                WRENCH_DEBUG(" - [%s] : %u nodes will be doing read IOs", jobID.c_str(), nodes_nb_read);
+                WRENCH_DEBUG(" - [%s] : %u nodes will be doing copy/read IOs", jobID.c_str(), nodes_nb_read);
                 unsigned int nodes_nb_write = std::ceil(this->compound_jobs[jobID].first.nodesUsed * this->config->stor.io_write_node_ratio);
                 nodes_nb_write = std::min(
                     std::min(nodes_nb_write, this->config->stor.max_write_node_cnt),
                     this->compound_jobs[jobID].first.nodesUsed);
-                WRENCH_DEBUG(" - [%s] : %u nodes will be doing write IOs", jobID.c_str(), nodes_nb_write);
+                WRENCH_DEBUG(" - [%s] : %u nodes will be doing write/copy IOs", jobID.c_str(), nodes_nb_write);
 
                 if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadComputeWrite) {
 
@@ -373,8 +366,8 @@ namespace storalloc {
                     auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
                                                               this->config->stor.nb_files_per_read, nodes_nb_read);
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_data, nodes_nb_read);
-                    // this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
-                    // this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_data);
+                    this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
+                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_data);
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::Compute) {
 
