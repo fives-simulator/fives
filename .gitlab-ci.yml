@@ -37,6 +37,7 @@ build_wrench_master:
   script:
     - git config --global --add safe.directory /builds/deps/wrench
     - cd /builds/deps/wrench/build
+    - git checkout master
     - sudo SimGrid_PATH=/opt/simgrid cmake ..
     - sudo make -j 4
     - sudo make install
@@ -97,7 +98,8 @@ build-job:
     - build
   artifacts:
     paths:
-      - "build/"
+      - "build/storalloc_wrench"
+      - "build/unit_tests"  
     expire_in: 2 days
 
 test-job:
