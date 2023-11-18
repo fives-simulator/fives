@@ -80,6 +80,13 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
+        "name": "flops",
+        "type": "range",
+        "bounds": [1.4, 2.6],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
         "name": "disk_rb",
         "type": "range",
         "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
@@ -193,6 +200,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
     preload_percent = parametrization.get("preload_percent")
     amdahl = parametrization.get("amdahl")
+    flops = parametrization.get("flops")
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
     stripe_size = parametrization.get("stripe_size")
@@ -211,6 +219,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["general"]["config_version"] = CFG_VERSION
     base_config["general"]["preload_percent"] = preload_percent
     base_config["general"]["amdahl"] = amdahl
+    base_config["dragonfly"]["flops"] = f"{flops}Tf"
     base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
     base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
     base_config["permanent_storage"][
