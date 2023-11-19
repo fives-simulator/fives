@@ -69,7 +69,7 @@ AX_PARAMS = [
         "name": "preload_percent",
         "type": "choice",
         "is_ordered": True,
-        "values": [0.1, 0.2, 0.3],
+        "values": [0.1, 0.2, 0.3, 0.4],
         "value_type": "float",
     },
     {
@@ -151,14 +151,14 @@ AX_PARAMS = [
         "name": "non_linear_coef_read",
         "type": "range",
         "bounds": [1.5, 20],
-        "digits": 2,
+        "digits": 1,
         "value_type": "float",
     },
     {
         "name": "non_linear_coef_write",
         "type": "range",
         "bounds": [1.5, 20],
-        "digits": 2,
+        "digits": 1,
         "value_type": "float",
     },
 ]
@@ -392,6 +392,10 @@ def run_simulation(
         f"Simulation with tag {random_part} has completed with status : {completed.returncode}"
     )
     if completed.returncode != 0:
+        print(f"############## FAILED RUN {run_idx} OUTPUT ###########")
+        print(completed.stdout)
+        print(completed.stderr)
+        print(f"############## FAILED RUN {run_idx} END OF OUTPUT ####")
         raise RuntimeError("Simulation did not complete")
 
     result_filename = (
