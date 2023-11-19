@@ -7,7 +7,7 @@
 import os
 import sys
 
-from yaml import load, CLoader
+from yaml import load, CLoader, dump, CDumper
 import numpy as np
 from scipy.stats import pearsonr
 
@@ -358,6 +358,13 @@ def save_to_web(template_index, metrics):
         autoescape=select_autoescape()
     )
 
+    calibrated_config = None
+    try:
+        with open("./calibrated_config.yml", "r", encoding='utf-8') as job_results:
+            calibrated_config = load(job_results, Loader=CLoader)
+    except:
+        calibrated_config = {}
+
     variables = {
         "commit_sha": CI_COMMIT_SHORT_SHA,
         "commit_ref": CI_COMMIT_REF_NAME,
@@ -367,6 +374,7 @@ def save_to_web(template_index, metrics):
         "pipeline_id": CI_PIPELINE_ID,
         "pipeline_url": CI_PIPELINE_URL,
         "project_url": CI_PROJECT_URL,
+        "calibrated_config": dump(calibrated_config, encoding=None),
     }
     variables.update(metrics)
 

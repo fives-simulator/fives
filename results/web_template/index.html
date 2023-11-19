@@ -14,12 +14,24 @@
         <section id="title">
             <h1>Storalloc Calibration Results</h1>
             <ul>
-                <li>From commit {{ commit_sha }} on branch {{ commit_ref }} at {{ commit_ts }}</li>
-                <li> > {{ commit_description }}</li>
-                <li>Job ID {{ job_id }}</li>
-                <li>Pipeline {{ pipeline_id }} -- URL {{ pipeline_url}}</li>
-                <li>Project {{ project_url }}</li>
+                <li>From commit <em>{{ commit_sha }}</em> on branch <em>{{ commit_ref }}</em> at {{ commit_ts }}</li>
+                <li>Commit message: {{ commit_description }}</li>
+                <li>Job ID <em>{{ job_id }}</em></li>
+                <li><a href="{{ pipeline_url}}">Pipeline {{ pipeline_id }}</a></li>
+                <li><a href="{{ project_url }}">Project</a></li>
             </ul>
+
+            <section id="accordions">
+                <details>
+                    <summary>Calibrated configuration:</summary>
+                    <pre>
+                        <code>
+{{ calibrated_config }}
+                        </code>
+                    </pre>
+
+                </details>
+            </section>
 
             <article id="article">
 
