@@ -82,7 +82,7 @@ AX_PARAMS = [
     {
         "name": "flops",
         "type": "range",
-        "bounds": [1.4, 2.6],
+        "bounds": [1.2, 2.6],
         "digits": 2,
         "value_type": "float",
     },
@@ -116,7 +116,7 @@ AX_PARAMS = [
     {
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 8],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
@@ -150,14 +150,14 @@ AX_PARAMS = [
     {
         "name": "non_linear_coef_read",
         "type": "range",
-        "bounds": [0.5, 1],
+        "bounds": [1.5, 20],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "non_linear_coef_write",
         "type": "range",
-        "bounds": [0.5, 1],
+        "bounds": [1.5, 20],
         "digits": 2,
         "value_type": "float",
     },
@@ -478,7 +478,7 @@ def run_calibration():
         name="StorallocWrench_ThetaExperiment",
         parameters=AX_PARAMS,
         objectives={
-            "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.1),
+            "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.05),
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",

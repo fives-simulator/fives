@@ -26,11 +26,8 @@ namespace storalloc {
             if (n_activities < 1) {
                 n_activities = 1;
             }
-            if (n_activities == 1) {
-                return capacity;
-            }
             // std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (non_linear_coef / std::sqrt(n_activities))) << std::endl;
-            return capacity * (non_linear_coef / std::sqrt(n_activities));
+            return capacity * (1 / std::log(n_activities * non_linear_coef));
         };
     }
 
