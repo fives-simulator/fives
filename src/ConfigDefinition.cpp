@@ -93,13 +93,13 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             return false;
         }
         rhs.stor.non_linear_coef_read = ynode["storage"]["non_linear_coef_read"].as<float>();
-        if (rhs.stor.non_linear_coef_read < 0 || rhs.stor.non_linear_coef_read > 1) {
-            WRENCH_WARN("non_linear_coef_read should be bounded in [0, 1]");
+        if (rhs.stor.non_linear_coef_read < 0) {
+            WRENCH_WARN("non_linear_coef_read should be > 0");
             return false;
         }
         rhs.stor.non_linear_coef_write = ynode["storage"]["non_linear_coef_write"].as<float>();
-        if (rhs.stor.non_linear_coef_write < 0 || rhs.stor.non_linear_coef_write > 1) {
-            WRENCH_WARN("non_linear_coef_write should be bounded in [0, 1]");
+        if (rhs.stor.non_linear_coef_write < 0) {
+            WRENCH_WARN("non_linear_coef_write should be > 0");
             return false;
         }
         rhs.stor.nb_files_per_read = ynode["storage"]["nb_files_per_read"].as<unsigned int>();

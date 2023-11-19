@@ -19,7 +19,7 @@ namespace storalloc {
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
         return [non_linear_coef, disk](double capacity, int n_activities) {
-            auto clock = wrench::S4U_Simulation::getClock();
+            // auto clock = wrench::S4U_Simulation::getClock();
             // std::cout << "[NL Cb at " << std::to_string(clock) << "] Capacity  " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
             // std::cout << "[NL disk] " << disk->get_name() << " on " << disk->get_host()->get_name() << std::endl;
 
