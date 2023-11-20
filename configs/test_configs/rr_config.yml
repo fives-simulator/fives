@@ -1,25 +1,29 @@
 ---
-
 general:
-  backbone_bw: 25000MBps              # 200Gbps backbone...
-  config_version: 0.0.1
   config_name: StorAlloc_Test_RR
-  max_stripe_size: 100000000          # Max size for allocation stripes (in bytes) -> 100MB
-  permanent_storage_read_bw: 10000MBps
-  permanent_storage_write_bw: 10000MBps
-  permanent_storage_capacity: 10000TB
-  preload_percent: 0                  # Used with test dataset with only 1 job, generating preload jobs would be hazardous                 
-  amdahl: 0.5
+  config_version: 0.0.1
+  max_stripe_size: 100000000          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
+  preload_percent: 0.0
+  amdahl: 0.5                         # From 0 to 1, degree of // in compute tasks
   walltime_extension: 1.2             # The final walltime passed to the batch sched will be walltime * walltime_extension
-  non_linear_coef_read: 0.9
-  non_linear_coef_write: 0.6
-  read_variability: 1.0
-  write_variability: 1.0
-  nb_files_per_read: 1
-  nb_files_per_write: 1
-  io_read_node_ratio: 0.1
-  io_write_node_ratio: 0.1
+network:
+  bandwidth_backbone: 9TBps
+  bandwidth_backbone_storage: 25000MBps
+  bandwidth_backbone_perm_storage: 90GBps
+  bandwidth_backbone_ctrl: 12.5GBps
+  link_latency: 24us
 storage:
+  read_variability: 1.0             # read AND write set to 1.0 to deactivate
+  write_variability: 1.0
+  non_linear_coef_read: 0.9         # read AND write set to 1.0 to deactivate
+  non_linear_coef_write: 0.6
+  nb_files_per_read: 2
+  nb_files_per_write: 2
+  io_read_node_ratio: 0.1
+  max_read_node_cnt: 20
+  io_write_node_ratio: 0.1
+  max_write_node_cnt: 20
+  io_buffer_size: 1GB
   disk_templates:
     - &hdd_capa
       id: hdd_capa
@@ -44,7 +48,16 @@ storage:
   nodes:
     - quantity: 4
       template: *node_capa
-dragonfly:
+permanent_storage:
+  read_bw: 10000MBps   # ALCF Tape archive cache speed is 90Gbps / and also the link between HDR and FDR is 100GBps. Here we reduce the link speed
+  write_bw: 10000MBps  # Same
+  capacity: 10000TB  # Tape capacity is 305 PB
+  mount_prefix: /dev/disk0
+  read_path: read/
+  write_path: write/
+  disk_id: perm_disk0
+  io_buffer_size: 1GB
+dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
   groups: 2         # Entire Dragonfly zone
   group_links: 3
   chassis: 4        # Per group
@@ -53,12 +66,18 @@ dragonfly:
   router_links: 7
   nodes: 8          # Per router
   core_count: 64    # Compute node core count - unused
-  ram: 192GB        # Compute node ram - unused
+  ram: 192          # GB Compute node ram
+  flops: 2.2Tf      # Flops for each compute node
+  max_compute_nodes: 4392
   node_local_storage:
-    enabled: false     # Not implemented yet
+    enabled: no     # Not implemented yet anyway
     nb_disks: 1
     capacity: 128 # GB
-    read_bw: 1000 # MBps
-    write_bw: 500 # MBps
+    read_bw: 1000 # MBps      # https://docs.alcf.anl.gov/data-management/filesystem-and-storage/file-systems/
+    write_bw: 500 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
 allocator: rr
+outputs:
+  job_filename_prefix: simulatedJobs_
+  io_actions_prefix: io_actions_ts_
+  storage_svc_prefix: storage_services_operations_
 ...

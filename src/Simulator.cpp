@@ -13,6 +13,7 @@
 #include <simgrid/kernel/routing/NetPoint.hpp>
 
 #include "AllocationStrategy.h"
+#include "Constants.h"
 #include "Controller.h"
 #include "Platform.h"
 #include "Utils.h"
@@ -27,17 +28,22 @@ namespace storalloc {
         // Simple storage services that will be accessed through CompoundStorageService
         std::set<std::shared_ptr<wrench::StorageService>> sstorageservices;
 
-        for (const auto &node : config->nodes) { // node types
+        for (const auto &node : config->stor.nodes) { // node types
 
             // mount points list is the same for all nodes of a given type
             std::set<std::string> mount_points;
             for (const auto &disk : node.tpl.disks) {
-                for (auto j = 0; j < disk.qtt; j++) {
+                for (unsigned int j = 0; j < disk.qtt; j++) {
                     mount_points.insert(disk.tpl.mount_prefix + std::to_string(j));
                 }
             }
 
-            for (auto i = 0; i < node.qtt; i++) { // qtt of each type
+            wrench::WRENCH_PROPERTY_COLLECTION_TYPE ss_params = {};
+            if (config->stor.io_buffer_size != "0GB") {
+                ss_params[wrench::SimpleStorageServiceProperty::BUFFER_SIZE] = config->stor.io_buffer_size;
+            }
+
+            for (unsigned int i = 0; i < node.qtt; i++) { // qtt of each type
                 auto disk_count = 0;
                 for (const auto &mnt_pt : mount_points) {
                     // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
@@ -45,7 +51,9 @@ namespace storalloc {
                         simulation->add(
                             wrench::SimpleStorageService::createSimpleStorageService(
                                 node.tpl.id + std::to_string(i),
-                                {mnt_pt}, {}, {})));
+                                {mnt_pt},
+                                ss_params,
+                                {})));
                 }
             }
         }
@@ -58,15 +66,16 @@ namespace storalloc {
     std::shared_ptr<wrench::BatchComputeService> instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
                                                                             std::shared_ptr<Config> config) {
         std::vector<std::string> compute_nodes;
-        auto nb_compute_nodes = config->d_nodes * config->d_routers * config->d_chassis * config->d_groups;
-        WRENCH_INFO("Using %d compute nodes", nb_compute_nodes);
-        for (unsigned int i = 0; i < nb_compute_nodes; i++) {
+        auto nb_compute_nodes = config->compute.d_nodes * config->compute.d_routers * config->compute.d_chassis * config->compute.d_groups;
+        WRENCH_INFO("Dragonfly has %d available compute nodes, and config set limit is %u", nb_compute_nodes, config->compute.max_compute_nodes);
+        for (unsigned int i = 0; i < nb_compute_nodes && i < config->compute.max_compute_nodes; i++) {
             compute_nodes.push_back("compute" + std::to_string(i));
         }
         auto batch_service = simulation->add(new wrench::BatchComputeService(
-            "batch0", compute_nodes, "",
+            BATCH, compute_nodes, "",
             {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf"}}, {}));
-        //{{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "easy_bf"}}, {}));
+
+        WRENCH_INFO("  -> %ld compute services instantiated", compute_nodes.size());
 
         return batch_service;
     }
@@ -84,6 +93,7 @@ namespace storalloc {
 
         // Default log settings for a few components
         xbt_log_control_set("storalloc_jobs.thres:warning");
+        xbt_log_control_set("storalloc_config.thres:info");
 
         if (argc < 4) {
             std::cout << "##########################################################################" << std::endl;
@@ -159,7 +169,7 @@ namespace storalloc {
         /* Compound storage service*/
         auto compound_storage_service = simulation->add(
             new wrench::CompoundStorageService(
-                "compound_storage",
+                COMPOUND_STORAGE,
                 sstorageservices,
                 allocatorCallback,
                 {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE, std::to_string(config->max_stripe_size)},
@@ -167,16 +177,20 @@ namespace storalloc {
                 {}));
 
         /* Permanent storage */
+        wrench::WRENCH_PROPERTY_COLLECTION_TYPE ss_params = {};
+        if (config->pstor.io_buffer_size != "0GB") {
+            ss_params[wrench::SimpleStorageServiceProperty::BUFFER_SIZE] = config->pstor.io_buffer_size;
+        }
         auto permanent_storage = simulation->add(
             wrench::SimpleStorageService::createSimpleStorageService(
-                "permanent_storage", {"/dev/disk0"}, {}, {}));
+                PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
         /* Batch compute service */
         auto batch_service = storalloc::instantiateComputeServices(simulation, config);
 
         /* Execution controller */
         auto ctrl = simulation->add(
-            new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
+            new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, USER, header, jobs, config));
 
         WRENCH_INFO("Starting simulation...");
         const std::chrono::time_point<std::chrono::steady_clock> sim_start = std::chrono::steady_clock::now();
@@ -199,9 +213,11 @@ namespace storalloc {
 
         const std::chrono::time_point<std::chrono::steady_clock> chrono_end = std::chrono::steady_clock::now();
 
-        std::cout << "Program duration : " << (chrono_end - chrono_start) / 1ms << "ms" << std::endl;
-        std::cout << "Sim duration : " << (sim_end - sim_start) / 1ms << "ms" << std::endl;
-        std::cout << "Trace processing duration : " << (chrono_end - sim_end) / 1ms << "ms" << std::endl;
+        std::cout << "##########################################" << std::endl;
+        std::cout << "# Program duration : " << (chrono_end - chrono_start) / 1ms << "ms" << std::endl;
+        std::cout << "# Sim duration : " << (sim_end - sim_start) / 1ms << "ms" << std::endl;
+        std::cout << "# Trace processing duration : " << (chrono_end - sim_end) / 1ms << "ms" << std::endl;
+        std::cout << "##########################################" << std::endl;
 
         return 0;
     }

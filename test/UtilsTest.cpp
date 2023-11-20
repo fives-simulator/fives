@@ -79,19 +79,19 @@ void BasicUtilsTest::loadConfig_test() {
 
     auto config = loadConfig(test::CONFIG_PATH + "rr_config.yml");
 
-    ASSERT_EQ(config.bkbone_bw, "25000MBps");
+    ASSERT_EQ(config.net.bw_backbone, "9TBps");
     ASSERT_EQ(config.config_version, "0.0.1");
     ASSERT_EQ(config.config_name, "StorAlloc_Test_RR");
     ASSERT_EQ(config.max_stripe_size, 100000000);
-    ASSERT_EQ(config.d_groups, 2);
-    ASSERT_EQ(config.d_group_links, 3);
-    ASSERT_EQ(config.d_chassis, 4);
-    ASSERT_EQ(config.d_chassis_links, 5);
-    ASSERT_EQ(config.d_routers, 6);
-    ASSERT_EQ(config.d_router_links, 7);
+    ASSERT_EQ(config.compute.d_groups, 2);
+    ASSERT_EQ(config.compute.d_group_links, 3);
+    ASSERT_EQ(config.compute.d_chassis, 4);
+    ASSERT_EQ(config.compute.d_chassis_links, 5);
+    ASSERT_EQ(config.compute.d_routers, 6);
+    ASSERT_EQ(config.compute.d_router_links, 7);
 
     // nodes
-    auto nodes = config.nodes;
+    auto nodes = config.stor.nodes;
 
     auto capa0 = nodes[0];
     ASSERT_EQ(capa0.qtt, 4); // number of nodes of type capacity
@@ -118,13 +118,13 @@ void BasicUtilsTest::loadConfig_test() {
     ASSERT_EQ(capa0_tpl_disk1_tpl.mount_prefix, "/dev/hdd");
     ASSERT_EQ(capa0_tpl_disk1_tpl.id, "hdd_capa");
 
-    auto nodes_tpl = config.node_templates;
+    auto nodes_tpl = config.stor.node_templates;
     ASSERT_EQ(nodes_tpl.size(), 1);
     auto node_capa = nodes_tpl["capacity"];
     ASSERT_EQ(node_capa.disks.size(), 2);
     ASSERT_EQ(node_capa.id, "capacity");
 
-    auto disks_tpl = config.disk_templates;
+    auto disks_tpl = config.stor.disk_templates;
     ASSERT_EQ(disks_tpl.size(), 2);
 
     auto disk_perf = disks_tpl["ssd_perf"];

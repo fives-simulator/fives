@@ -159,8 +159,6 @@ namespace storalloc {
         std::shared_ptr<storalloc::Config> config;
 
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
-
-        std::map<std::string, uint64_t> actions_io_factor = {};
     };
 
 } // namespace storalloc
