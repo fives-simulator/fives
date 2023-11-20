@@ -19,6 +19,7 @@ import multiprocessing
 import yaml
 import numpy as np
 from scipy.stats import pearsonr
+import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
@@ -35,65 +36,88 @@ DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4_tiny")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=5))
+CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
+
 
 # Define the parameters that will be given to Ax for the optimization loop
 # Bounds / value lists are not final
 AX_PARAMS = [
     {
-        "name": "backbone_bw",
+        "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [120, 240],  # Use large ranges
+        "bounds": [100, 240],  
+        "value_type": "int",
+    },
+    {
+        "name": "bandwidth_backbone_perm_storage",
+        "type": "range",
+        "bounds": [50, 100],
         "value_type": "int",
     },
     {
         "name": "permanent_storage_read_bw",
         "type": "range",
-        "bounds": [5, 90],
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
         "name": "permanent_storage_write_bw",
         "type": "range",
-        "bounds": [5, 90],
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
         "name": "preload_percent",
         "type": "choice",
         "is_ordered": True,
-        "values": [0.1, 0.2, 0.3],
+        "values": [0.1, 0.2, 0.3, 0.4],
         "value_type": "float",
     },
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.7, 1.0],
+        "bounds": [0.5, 0.8],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "flops",
+        "type": "range",
+        "bounds": [1.6, 2.6],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "disk_rb",
         "type": "range",
-        "bounds": [600, 6000],
+        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "disk_wb",
         "type": "range",
-        "bounds": [300, 3000],
+        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "stripe_size",
         "type": "choice",
-        "values": [2097152, 4194304, 8388608, 16777216, 67108864, 1073741824],
+        "values": [
+            2097152,
+            4194304,
+            8388608,
+            16777216,
+            67108864,
+            1073741824,
+            2147483648,
+        ],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 8],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
@@ -106,7 +130,7 @@ AX_PARAMS = [
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.2],
+        "bounds": [0.05, 0.5],
         "digits": 2,
         "value_type": "float",
     },
@@ -120,8 +144,22 @@ AX_PARAMS = [
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0.05, 0.2],
+        "bounds": [0.05, 0.5],
         "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
         "value_type": "float",
     },
 ]
@@ -153,15 +191,17 @@ def cohend(data1: list, data2: list):
     return (mean1 - mean2) / global_var
 
 
-def update_base_config(parametrization, base_config):
+def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
-    backbone_bw = parametrization.get("backbone_bw")
+    bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
+    bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
     permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
     permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
     preload_percent = parametrization.get("preload_percent")
     amdahl = parametrization.get("amdahl")
+    flops = parametrization.get("flops")
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
     stripe_size = parametrization.get("stripe_size")
@@ -171,25 +211,35 @@ def update_base_config(parametrization, base_config):
     nb_files_per_write = parametrization.get("nb_files_per_write")
     io_write_node_ratio = parametrization.get("io_write_node_ratio")
 
+    # Non-linear coefficient for altering read/write during concurrent disk access
+    non_linear_coef_read = parametrization.get("non_linear_coef_read")
+    non_linear_coef_write = parametrization.get("non_linear_coef_write")
+
     # Update config file according to parameters provided by Ax
-    base_config["general"]["backbone_bw"] = f"{backbone_bw}GBps"
-    base_config["general"][
-        "permanent_storage_read_bw"
-    ] = f"{permanent_storage_read_bw}GBps"
-    base_config["general"][
-        "permanent_storage_write_bw"
-    ] = f"{permanent_storage_write_bw}GBps"
+    base_config["general"]["config_name"] = cfg_name
+    base_config["general"]["config_version"] = CFG_VERSION
     base_config["general"]["preload_percent"] = preload_percent
     base_config["general"]["amdahl"] = amdahl
-    base_config["general"]["non_linear_coef_read"] = 1  # deactivated
-    base_config["general"]["non_linear_coef_write"] = 1  # deactivated
-    base_config["general"]["read_variability"] = 1  # deactivated
-    base_config["general"]["write_variability"] = 1  # deactivated
+    base_config["dragonfly"]["flops"] = f"{flops}Tf"
+    base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
+    base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
+    base_config["permanent_storage"][
+        "read_bw"
+    ] = f"{permanent_storage_read_bw}GBps"
+    base_config["permanent_storage"][
+        "write_bw"
+    ] = f"{permanent_storage_write_bw}GBps"
 
-    base_config["general"]["nb_files_per_read"] = nb_files_per_read
-    base_config["general"]["io_read_node_ratio"] = io_read_node_ratio
-    base_config["general"]["nb_files_per_write"] = nb_files_per_write
-    base_config["general"]["io_write_node_ratio"] = io_write_node_ratio
+    base_config["storage"]["read_variability"] = 1  # deactivated
+    base_config["storage"]["write_variability"] = 1  # deactivated
+
+    base_config["storage"]["nb_files_per_read"] = nb_files_per_read
+    base_config["storage"]["io_read_node_ratio"] = io_read_node_ratio
+    base_config["storage"]["nb_files_per_write"] = nb_files_per_write
+    base_config["storage"]["io_write_node_ratio"] = io_write_node_ratio
+
+    base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
+    base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
@@ -274,11 +324,34 @@ def process_results(result_filename: str):
             if action["act_type"] == "CUSTOM":
                 s_w_time += action["act_duration"]
                 s_io_time += action["act_duration"]
+            """
+            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "sss_to_css":
+                s_r_time += action["act_duration"]
+                s_io_time += action["act_duration"]
+            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "css_to_sss":
+                s_w_time += action["act_duration"]
+                s_io_time += action["act_duration"]
+            """
 
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
         sim_write_time.append(s_w_time)
         io_time_diff.append(abs(s_io_time - r_io_time))
+
+        
+    # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
+    ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
+    ztest_runtime = 0
+    ztest_iotime = 0
+
+    if abs(ztest_runtime_tstat) > 1.96 and ztest_runtime_pvalue < 0.01:
+        print("Statistically significant difference between simulated runtime values and real runtime values - degrading metric by 1")
+        ztest_runtime = 1
+
+    if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
+        print("Statistically significant difference between simulated io time values and real io time values - degrading metric by 1")
+        ztest_iotime = 1
 
     runtime_corr, _ = pearsonr(sim_runtime, real_runtime)
     runtime_cohen_d = cohend(sim_runtime, real_runtime)
@@ -291,6 +364,8 @@ def process_results(result_filename: str):
             + abs(1 - io_time_corr)
             + abs(runtime_cohen_d)
             + abs(io_time_cohen_d)
+            + ztest_runtime
+            + ztest_iotime
         )
     }
 
@@ -309,7 +384,9 @@ def run_simulation(
     """
 
     # Config
-    update_base_config(parametrization, base_config)
+    update_base_config(
+        parametrization, base_config, f"Storalloc_CalibrationCfg__{run_idx}"
+    )
     output_configuration, random_part = save_exp_config(base_config, run_idx)
 
     # Now run simulatin with the current configuration file
@@ -341,6 +418,10 @@ def run_simulation(
         f"Simulation with tag {random_part} has completed with status : {completed.returncode}"
     )
     if completed.returncode != 0:
+        print(f"############## FAILED RUN {run_idx} OUTPUT ###########")
+        print(completed.stdout)
+        print(completed.stderr)
+        print(f"############## FAILED RUN {run_idx} END OF OUTPUT ####")
         raise RuntimeError("Simulation did not complete")
 
     result_filename = (
@@ -410,10 +491,10 @@ def run_trial(base_config, parameters, trial_index):
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(data)["optimization_metric"]
-    except RuntimeError as err:
-        print(f"Trial {trial_index} FAILED")
+    except:
+        print(f"==> Trial {trial_index} FAILED")
 
-    print(f"Results for trial {trial_index} = {results}")
+    print(f"## Results for trial {trial_index} == {results}")
     return results
 
 
@@ -427,11 +508,14 @@ def run_calibration():
         name="StorallocWrench_ThetaExperiment",
         parameters=AX_PARAMS,
         objectives={
-            "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.1),
+            "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.05),
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
             "permanent_storage_read_bw >= permanent_storage_write_bw",
+            "non_linear_coef_read >= non_linear_coef_write",
+            "permanent_storage_read_bw >= permanent_storage_write_bw",
+            "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage"
         ],
         outcome_constraints=[],
     )
@@ -498,7 +582,7 @@ def run_calibration():
     print(values)
 
     # Output calibrated config file
-    update_base_config(best_parameters, base_config)
+    update_base_config(best_parameters, base_config, "Storalloc_Calibrated_ThetaCfg")
     print("Calibrated config :")
     print(json.dumps(base_config, indent=4))
     output_configuration = f"{CONFIGURATION_PATH}/calibration_config.yaml"

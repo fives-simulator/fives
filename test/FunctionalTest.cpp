@@ -81,7 +81,7 @@ void BasicFunctionalTest::create_platform_test() {
     ASSERT_EQ(wrench::S4U_Simulation::getHostMemoryCapacity("compute78"), 192000000000); // In bytes
 
     // Check other zones topo
-    auto all_hosts_by_zone = wrench::S4U_Simulation::getAllHostnamesByZone();
+    auto all_hosts_by_zone = simulation->getHostnameListByCluster();
     ASSERT_NE(all_hosts_by_zone.find("AS_Ctrl"), all_hosts_by_zone.end());
     ASSERT_TRUE(simulation->doesHostExist("user0"));
     ASSERT_TRUE(simulation->doesHostExist("batch0"));
@@ -135,23 +135,24 @@ void BasicFunctionalTest::create_platform_test() {
 
     // Check links
     auto link_names = wrench::S4U_Simulation::getAllLinknames();
-    ASSERT_EQ(link_names.size(), 1990); // including all dragonfly links + loopbacks for every host
+    ASSERT_EQ(link_names.size(), 1991); // including all dragonfly links + loopbacks for every host
 
     ASSERT_TRUE(simulation->doesLinkExist("backbone_ctrl"));
     ASSERT_TRUE(simulation->doesLinkExist("backbone"));
-    ASSERT_TRUE(simulation->doesLinkExist("batch0_DOWN"));
-    ASSERT_TRUE(simulation->doesLinkExist("batch0_UP"));
-    ASSERT_TRUE(simulation->doesLinkExist("user0_DOWN"));
-    ASSERT_TRUE(simulation->doesLinkExist("user0_UP"));
+    ASSERT_TRUE(simulation->doesLinkExist("batch0_down"));
+    ASSERT_TRUE(simulation->doesLinkExist("batch0_up"));
+    ASSERT_TRUE(simulation->doesLinkExist("user0_down"));
+    ASSERT_TRUE(simulation->doesLinkExist("user0_up"));
     ASSERT_TRUE(simulation->doesLinkExist("backbone_storage"));
-    ASSERT_TRUE(simulation->doesLinkExist("capacity0_DOWN"));
-    ASSERT_TRUE(simulation->doesLinkExist("capacity0_UP"));
-    ASSERT_TRUE(simulation->doesLinkExist("capacity3_DOWN"));
-    ASSERT_TRUE(simulation->doesLinkExist("capacity3_UP"));
-    ASSERT_TRUE(simulation->doesLinkExist("permanent_storage_DOWN"));
-    ASSERT_TRUE(simulation->doesLinkExist("permanent_storage_UP"));
-    ASSERT_TRUE(simulation->doesLinkExist("compound_storage_DOWN"));
-    ASSERT_TRUE(simulation->doesLinkExist("compound_storage_UP"));
+    ASSERT_TRUE(simulation->doesLinkExist("capacity0_down"));
+    ASSERT_TRUE(simulation->doesLinkExist("capacity0_up"));
+    ASSERT_TRUE(simulation->doesLinkExist("capacity3_down"));
+    ASSERT_TRUE(simulation->doesLinkExist("capacity3_up"));
+    ASSERT_TRUE(simulation->doesLinkExist("permanent_storage_down"));
+    ASSERT_TRUE(simulation->doesLinkExist("permanent_storage_up"));
+    ASSERT_TRUE(simulation->doesLinkExist("compound_storage_down"));
+    ASSERT_TRUE(simulation->doesLinkExist("compound_storage_up"));
+    ASSERT_TRUE(simulation->doesLinkExist("loopback_compute1"));
 
     // auto s1 = wrench::SimpleStorageService::createSimpleStorageService("capacity1", {"/dev/hdd1"});
 }

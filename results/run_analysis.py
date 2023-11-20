@@ -7,7 +7,7 @@
 import os
 import sys
 
-from yaml import load, CLoader
+from yaml import load, CLoader, dump, CDumper
 import numpy as np
 from scipy.stats import pearsonr
 
@@ -319,7 +319,7 @@ def trace_job_schedule(jobs):
         jobs_scatter["y"].append(runtime_index)
         jobs_scatter["IO (GB)"].append((int(job["real_read_bytes"]) + int(job["real_written_bytes"])) / 1000000000),
         jobs_scatter["Cores"].append(int(job["real_cores_used"]))
-        
+
         lines.append({
                         "x": [int(job['job_start_ts']), int(job['job_end_ts'])],
                         "y": [runtime_index, runtime_index]
@@ -334,13 +334,13 @@ def trace_job_schedule(jobs):
     for line in lines:
         sns.lineplot(line, x="x", y="y", color="green", linestyle="-", linewidth=1.4, ax=axs, zorder=5)
     for line in lines_wait:
-        sns.lineplot(line, x="x", y="y", color="red", linestyle="dashed", linewidth=1.4, ax=axs, zorder=5)  
-    
+        sns.lineplot(line, x="x", y="y", color="red", linestyle="dashed", linewidth=1.4, ax=axs, zorder=5)
+
     scatter = sns.scatterplot(
-        data=jobs_scatter, 
-        x="x", y="y", hue="IO (GB)", size="Cores", 
-        palette="RdYlGn_r", 
-        sizes=(20, 200), 
+        data=jobs_scatter,
+        x="x", y="y", hue="IO (GB)", size="Cores",
+        palette="RdYlGn_r",
+        sizes=(20, 200),
         ax=axs,
         zorder=10,
     )
@@ -358,6 +358,13 @@ def save_to_web(template_index, metrics):
         autoescape=select_autoescape()
     )
 
+    calibrated_config = None
+    try:
+        with open("./calibrated_config.yml", "r", encoding='utf-8') as job_results:
+            calibrated_config = load(job_results, Loader=CLoader)
+    except:
+        calibrated_config = {}
+
     variables = {
         "commit_sha": CI_COMMIT_SHORT_SHA,
         "commit_ref": CI_COMMIT_REF_NAME,
@@ -367,6 +374,7 @@ def save_to_web(template_index, metrics):
         "pipeline_id": CI_PIPELINE_ID,
         "pipeline_url": CI_PIPELINE_URL,
         "project_url": CI_PROJECT_URL,
+        "calibrated_config": dump(calibrated_config, encoding=None),
     }
     variables.update(metrics)
 

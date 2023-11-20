@@ -49,7 +49,7 @@ namespace storalloc {
      *        This is the actual structure used when creating the disks of a storage node.
      */
     struct DiskEntry {
-        int qtt;          // Number of disks
+        unsigned int qtt; // Number of disks
         DiskTemplate tpl; // Type of disks
 
         std::string to_string() const;
@@ -71,7 +71,7 @@ namespace storalloc {
      *        or heterogeneity of storage resources).
      */
     struct NodeEntry {
-        int qtt;
+        unsigned int qtt;
         NodeTemplate tpl;
 
         std::string to_string() const;
@@ -86,45 +86,90 @@ namespace storalloc {
         GenericRR, // 'rr' in config
     };
 
+    struct NetworkCfg {
+        std::string bw_backbone;
+        std::string bw_backbone_storage;
+        std::string bw_backbone_perm_storage;
+        std::string bw_backbone_ctrl;
+        std::string link_latency;
+    };
+
+    struct StorageCfg {
+
+        float read_variability;      // Mean of the normal distribution used in disk read bandwidth variability - eg. 0.8
+        float write_variability;     // Mean of the normal distribution used in disk write bandwidth variability - eg. 0.6
+        float non_linear_coef_read;  // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.8
+        float non_linear_coef_write; // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.6
+
+        unsigned int nb_files_per_read;  // How many files should be used to represent the read amount of each job
+        unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
+
+        float io_read_node_ratio; // From ]0,1], how many nodes should be involved in read IOs (+1 after rounding with ceil)
+        unsigned int max_read_node_cnt;
+        float io_write_node_ratio; // From ]0,1], how many nodes should be involved in write IOs (+1 after rounding with ceil)
+        unsigned int max_write_node_cnt;
+
+        std::string io_buffer_size;
+
+        std::map<std::string, DiskTemplate> disk_templates;
+        std::map<std::string, NodeTemplate> node_templates;
+        std::vector<NodeEntry> nodes;
+    };
+
+    struct PermStorageCfg {
+        std::string r_bw; // Read bandwidth of the external storage zone (outside HPC machine) - eg. "1000MBps"
+        std::string w_bw; // Write bandwidth of the external storage zone (outside HPC machine) - eg. "1000MBps"
+        std::string capa; // Capacity of external storage (currently doesn't matter as long as it's not limiting) - eg. "10000TB"
+        std::string mount_prefix;
+        std::string read_path;
+        std::string write_path;
+        std::string disk_id;
+        std::string io_buffer_size;
+    };
+
+    struct ComputeCfg {
+        unsigned int d_groups;          // Dragonfly compute zone sizing
+        unsigned int d_group_links;     // Dragonfly compute zone sizing
+        unsigned int d_chassis;         // Dragonfly compute zone sizing
+        unsigned int d_chassis_links;   // Dragonfly compute zone sizing
+        unsigned int d_routers;         // Dragonfly compute zone sizing
+        unsigned int d_router_links;    // Dragonfly compute zone sizing
+        unsigned int d_nodes;           // Dragonfly compute zone sizing
+        unsigned int max_compute_nodes; // Max number of compute nodes to create, regardless of the total dragonfly size
+        unsigned int core_count;        // Core count on each compute node - eg. 64
+        unsigned int ram;               // Ram on each compute node - eg. '192' (in GB)
+        std::string flops;
+
+        bool local_storage;            // Enable or disable node local storage creation on compute nodes - NOT IMPLEMENTED in simulation
+        unsigned int ls_disks;         // Node local storage settings
+        std::string ls_disks_capa;     // Node local storage settings
+        std::string ls_disks_read_bw;  // Node local storage settings
+        std::string ls_disks_write_bw; // Node local storage settings
+    };
+
+    struct OutputCfg {
+        std::string job_filename_prefix;
+        std::string io_actions_prefix;
+        std::string storage_svc_prefix;
+    };
+
     /**
      * @brief Main configuration structure
      */
     struct Config {
         std::string config_name;
         std::string config_version;
-        std::string bkbone_bw;           // Bandwidth of the backbone between compute and storage zones - eg. "25000MBps"
-        std::string perm_storage_r_bw;   // Read bandwidth of the external storage zone (outside HPC machine) - eg. "1000MBps"
-        std::string perm_storage_w_bw;   // Write bandwidth of the external storage zone (outside HPC machine) - eg. "1000MBps"
-        std::string perm_storage_capa;   // Capacity of external storage (currently doesn't matter as long as it's not limiting) - eg. "10000TB"
-        float preload_percent;           // Number of preload jobs to create from job dataset, as a percentage of the number of jobs in the dataset
-        float amdahl;                    // Compute task parallelism degree (0 - sequential to 1 - fully parallel)
-        float walltime_extension;        // Coefficient to increase or decrease the original walltime of jobs - eg. 1.2
-        float non_linear_coef_read;      // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.8
-        float non_linear_coef_write;     // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.6
-        float read_variability;          // Mean of the normal distribution used in disk read bandwidth variability - eg. 0.8
-        float write_variability;         // Mean of the normal distribution used in disk write bandwidth variability - eg. 0.6
-        unsigned int nb_files_per_read;  // How many files should be used to represent the read amount of each job
-        unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
-        float io_read_node_ratio;        // From ]0,1], how many nodes should be involved in read IOs (+1 after rounding with ceil)
-        float io_write_node_ratio;       // From ]0,1], how many nodes should be involved in write IOs (+1 after rounding with ceil)
-        unsigned int max_stripe_size;    // Maximum stripe size in bytes (when files are stripped by the CSS, and not inside a specifid allocator)
-        unsigned int d_groups;           // Dragonfly compute zone sizing
-        unsigned int d_group_links;      // Dragonfly compute zone sizing
-        unsigned int d_chassis;          // Dragonfly compute zone sizing
-        unsigned int d_chassis_links;    // Dragonfly compute zone sizing
-        unsigned int d_routers;          // Dragonfly compute zone sizing
-        unsigned int d_router_links;     // Dragonfly compute zone sizing
-        unsigned int d_nodes;            // Dragonfly compute zone sizing
-        unsigned int core_count;         // Core count on each compute node - eg. 64
-        std::string ram;                 // Ram on each compute node - eg. '192GB' (not really useful)
-        bool local_storage;              // Enable or disable node local storage creation on compute nodes - NOT IMPLEMENTED in simulation
-        unsigned int ls_disks;           // Node local storage settings
-        std::string ls_disks_capa;       // Node local storage settings
-        std::string ls_disks_read_bw;    // Node local storage settings
-        std::string ls_disks_write_bw;   // Node local storage settings
-        std::map<std::string, DiskTemplate> disk_templates;
-        std::map<std::string, NodeTemplate> node_templates;
-        std::vector<NodeEntry> nodes;
+        unsigned int max_stripe_size; // Maximum stripe size in bytes (when files are stripped by the CSS, and not inside a specifid allocator)
+        float preload_percent;        // Number of preload jobs to create from job dataset, as a percentage of the number of jobs in the dataset
+        float amdahl;                 // Compute task parallelism degree (0 - sequential to 1 - fully parallel)
+        float walltime_extension;     // Coefficient to increase or decrease the original walltime of jobs - eg. 1.2
+
+        ComputeCfg compute;
+        NetworkCfg net;
+        StorageCfg stor;
+        PermStorageCfg pstor;
+        OutputCfg out;
+
         enum AllocatorType allocator;
         struct LustreConfig lustre; // May be empty if 'allocator' is not 'Lustre'
     };
