@@ -75,14 +75,14 @@ AX_PARAMS = [
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.4, 0.8],
+        "bounds": [0.5, 0.8],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "flops",
         "type": "range",
-        "bounds": [1.2, 2.6],
+        "bounds": [1.6, 2.6],
         "digits": 2,
         "value_type": "float",
     },
