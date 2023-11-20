@@ -186,8 +186,8 @@ analysis-job:
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_analysis.py
-    - mv ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT ./calibrated_config.yml
-    - ./run_analysis.py ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
+    - mv ./$CALIBRATION_CONFIG_PATH/calibration_config.yaml ./calibrated_config.yml
+    - ./run_analysis.py ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
   tags:
     - simulation
   dependencies:
