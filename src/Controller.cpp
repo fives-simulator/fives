@@ -1050,14 +1050,14 @@ namespace storalloc {
                 out_jobs << YAML::Key << "parts_count" << YAML::Value << copy_trace.internal_locations.size();
                 out_jobs << YAML::Key << "sss" << YAML::Value << sss->getStorageService()->getName();
                 out_jobs << YAML::Key << "sss_server" << YAML::Value << sss->getStorageService()->getHostname();
-                out_jobs << YAML::Key << "src_file_path" << YAML::Value << sss->getPath();
-                out_jobs << YAML::Key << "src_file_name" << YAML::Value << sss->getFile()->getID();
-                out_jobs << YAML::Key << "src_file_size_bytes" << YAML::Value << sss->getFile()->getSize();
+                out_jobs << YAML::Key << "sss_file_path" << YAML::Value << sss->getPath();
+                out_jobs << YAML::Key << "sss_file_name" << YAML::Value << sss->getFile()->getID();
+                out_jobs << YAML::Key << "sss_file_size_bytes" << YAML::Value << sss->getFile()->getSize();
                 out_jobs << YAML::Key << "css" << YAML::Value << css->getStorageService()->getName();
                 out_jobs << YAML::Key << "css_server" << YAML::Value << css->getStorageService()->getHostname();
-                out_jobs << YAML::Key << "dst_file_path" << YAML::Value << css->getPath();
-                out_jobs << YAML::Key << "dst_file_name" << YAML::Value << css->getFile()->getID();
-                out_jobs << YAML::Key << "dst_file_size_bytes" << YAML::Value << css->getFile()->getSize();
+                out_jobs << YAML::Key << "css_file_path" << YAML::Value << css->getPath();
+                out_jobs << YAML::Key << "css_file_name" << YAML::Value << css->getFile()->getID();
+                out_jobs << YAML::Key << "css_file_size_bytes" << YAML::Value << css->getFile()->getSize();
 
                 // only record a write if it's from SSS (external permanent storage) to CSS
                 if (fileCopy->getDestinationFileLocation()->getStorageService()->getHostname() != "permanent_storage") {

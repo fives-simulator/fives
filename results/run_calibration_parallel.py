@@ -19,6 +19,7 @@ import multiprocessing
 import yaml
 import numpy as np
 from scipy.stats import pearsonr
+import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
@@ -323,11 +324,34 @@ def process_results(result_filename: str):
             if action["act_type"] == "CUSTOM":
                 s_w_time += action["act_duration"]
                 s_io_time += action["act_duration"]
+            """
+            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "sss_to_css":
+                s_r_time += action["act_duration"]
+                s_io_time += action["act_duration"]
+            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "css_to_sss":
+                s_w_time += action["act_duration"]
+                s_io_time += action["act_duration"]
+            """
 
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
         sim_write_time.append(s_w_time)
         io_time_diff.append(abs(s_io_time - r_io_time))
+
+        
+    # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
+    ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
+    ztest_runtime = 0
+    ztest_iotime = 0
+
+    if abs(ztest_runtime_tstat) > 1.96 and ztest_runtime_pvalue < 0.01:
+        print("Statistically significant difference between simulated runtime values and real runtime values - degrading metric by 1")
+        ztest_runtime = 1
+
+    if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
+        print("Statistically significant difference between simulated io time values and real io time values - degrading metric by 1")
+        ztest_iotime = 1
 
     runtime_corr, _ = pearsonr(sim_runtime, real_runtime)
     runtime_cohen_d = cohend(sim_runtime, real_runtime)
@@ -340,6 +364,8 @@ def process_results(result_filename: str):
             + abs(1 - io_time_corr)
             + abs(runtime_cohen_d)
             + abs(io_time_cohen_d)
+            + ztest_runtime
+            + ztest_iotime
         )
     }
 
@@ -465,10 +491,10 @@ def run_trial(base_config, parameters, trial_index):
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(data)["optimization_metric"]
-    except RuntimeError as err:
-        print(f"Trial {trial_index} FAILED")
+    except:
+        print(f"==> Trial {trial_index} FAILED")
 
-    print(f"Results for trial {trial_index} = {results}")
+    print(f"## Results for trial {trial_index} == {results}")
     return results
 
 
