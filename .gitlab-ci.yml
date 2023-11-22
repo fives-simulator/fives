@@ -135,7 +135,7 @@ functional-test-job:
 calibration-job:
   stage: calibration
   variables:
-    CALIBRATION_RUNS: 30
+    CALIBRATION_RUNS: 10
   script:
     - cd results
     - mkdir exp_results
