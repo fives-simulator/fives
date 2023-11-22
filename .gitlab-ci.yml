@@ -193,17 +193,17 @@ analysis-job:
     - build-job
     - calibrated-simulation-job
   artifacts:
-    name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
+    name: "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-calibration_analysis"
     paths:
-      - "results/$CI_PIPELINE_ID_metrics.yaml"
-      - "results/$CI_PIPELINE_ID_runtime.pdf"
-      - "results/$CI_PIPELINE_ID_runtime.png"
-      - "results/$CI_PIPELINE_ID_iotime.pdf"
-      - "results/$CI_PIPELINE_ID_iotime.png"
-      - "results/$CI_PIPELINE_ID_iovolume.pdf"
-      - "results/$CI_PIPELINE_ID_iovolume.png"
-      - "results/$CI_PIPELINE_ID_schedule.pdf"
-      - "results/$CI_PIPELINE_ID_schedule.png"
+      - results/${CI_PIPELINE_ID}_metrics.yaml
+      - results/${CI_PIPELINE_ID}_runtime.pdf
+      - results/${CI_PIPELINE_ID}_runtime.png
+      - results/${CI_PIPELINE_ID}_iotime.pdf
+      - results/${CI_PIPELINE_ID}_iotime.png
+      - results/${CI_PIPELINE_ID}_iovolume.pdf
+      - results/${CI_PIPELINE_ID}_iovolume.png
+      - results/${CI_PIPELINE_ID}_schedule.pdf
+      - results/${CI_PIPELINE_ID}_schedule.png
     expire_in: 26 weeks
   allow_failure: false
 
@@ -215,14 +215,14 @@ pages:
     - cd results
     - tree results
     - mkdir -p public/static
-    - mv results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ./$CI_PIPELINE_ID_calibrated_config.yml
-    - mv results/$CI_PIPELINE_ID_runtime.png public/static/$CI_PIPELINE_ID_runtime.png
-    - mv results/$CI_PIPELINE_ID_iotime.png public/static/$CI_PIPELINE_ID_iotime.png
-    - mv results/$CI_PIPELINE_ID_iovolume.png public/static/$CI_PIPELINE_ID_iovolume.png
-    - mv results/$CI_PIPELINE_ID_schedule.png public/static/$CI_PIPELINE_ID_schedule.png
+    - mv results/${CALIBRATION_CONFIG_PATH}/calibration_config.yaml ./${CI_PIPELINE_ID}_calibrated_config.yml
+    - mv results/${CI_PIPELINE_ID}_runtime.png public/static/${CI_PIPELINE_ID}_runtime.png
+    - mv results/${CI_PIPELINE_ID}_iotime.png public/static/${CI_PIPELINE_ID}_iotime.png
+    - mv results/${CI_PIPELINE_ID}_iovolume.png public/static/${CI_PIPELINE_ID}_iovolume.png
+    - mv results/${CI_PIPELINE_ID}_schedule.png public/static/${CI_PIPELINE_ID}_schedule.png
     - ls -lah results/
     - chmod u+x build_pages.py
-    - ./build_pages.py $PAGES_TOKEN
+    - ./build_pages.py ${PAGES_TOKEN}
     - tree resuls/public
   dependencies:
     - analysis-job

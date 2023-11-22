@@ -30,6 +30,8 @@ storage:
   io_write_node_ratio: 0.1
   max_write_node_cnt: 20
   io_buffer_size: 1GB
+  read_bytes_preload_thres: 100000000
+  write_bytes_copy_thres:  2000000000
   disk_templates:
     - &raid_OSS
       id: raid_OSS

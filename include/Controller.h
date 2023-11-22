@@ -92,6 +92,8 @@ namespace storalloc {
 
         virtual std::vector<storalloc::YamlJob> createPreloadJobs() const;
 
+        virtual void preloadData();
+
         virtual void submitJob(std::string jobID);
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
@@ -123,12 +125,14 @@ namespace storalloc {
         virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                   std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs);
+                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs,
+                                  bool cleanup_external = true);
 
         virtual void cleanupOutput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                    const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                    std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs);
+                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs,
+                                   bool cleanup_external = true);
 
         void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
@@ -151,6 +155,8 @@ namespace storalloc {
         const std::vector<storalloc::YamlJob> &jobs;
 
         std::map<std::string, storalloc::YamlJob> jobsWithPreload{}; // jobId, YamlJob
+
+        std::map<std::string, std::vector<std::shared_ptr<wrench::DataFile>>> preloadedData;
 
         std::shared_ptr<wrench::JobManager> job_manager;
 
