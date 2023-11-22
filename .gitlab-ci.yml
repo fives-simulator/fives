@@ -150,7 +150,7 @@ calibration-job:
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibrated_config"
     paths:
-      - results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
+      - results/$CALIBRATION_CONFIG_PATH/calibrated_config.yaml
       - results/$CALIBRATION_CONFIG_PATH/exp_config_*
     expire_in: 26 weeks
   allow_failure: false
@@ -159,13 +159,13 @@ calibrated-simulation-job:
   stage: simulation
   script:
     - cd build
-    - echo "../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml"
-    - cat ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml
+    - echo "../results/$CALIBRATION_CONFIG_PATH/calibrated_config.yaml"
+    - cat ../results/$CALIBRATION_CONFIG_PATH/calibrated_config.yaml
     - echo "../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT"
     - cat ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     - pwd
     - ls -lah .
-    - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
+    - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibrated_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
     - mv ./simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
   tags:
     - simulation
@@ -186,43 +186,49 @@ analysis-job:
     - pip install --user --upgrade pip
     - pip install --user -r requirements.txt
     - chmod u+x run_analysis.py
-    - mv ./$CALIBRATION_CONFIG_PATH/calibration_config.yaml ./calibrated_config.yml
-    - ./run_analysis.py ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT > analysis.txt
+    - ./run_analysis.py ../build/calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
   tags:
     - simulation
   dependencies:
-    - calibrated-simulation-job
     - build-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
     paths:
-      - results/analysis.txt
-      - results/runtime.pdf
-      - results/runtime.png
-      - results/iotime.pdf
-      - results/iotime.png
-      - results/iovolume.pdf
-      - results/iovolume.png
-      - results/schedule.pdf
-      - results/schedule.png
-      - results/rendered_index.html
+      - "results/$CI_PIPELINE_ID_metrics.yaml"
+      - "results/$CI_PIPELINE_ID_runtime.pdf"
+      - "results/$CI_PIPELINE_ID_runtime.png"
+      - "results/$CI_PIPELINE_ID_iotime.pdf"
+      - "results/$CI_PIPELINE_ID_iotime.png"
+      - "results/$CI_PIPELINE_ID_iovolume.pdf"
+      - "results/$CI_PIPELINE_ID_iovolume.png"
+      - "results/$CI_PIPELINE_ID_schedule.pdf"
+      - "results/$CI_PIPELINE_ID_schedule.png"
     expire_in: 26 weeks
   allow_failure: false
 
 pages:
   stage: publish
+  variables:
+    MAX_PIPELINES: 0
   script:
-    - mkdir public
-    - mkdir public/static 
-    - mv results/rendered_index.html public/index.html
-    - mv results/runtime.png public/static/runtime.png
-    - mv results/iotime.png public/static/iotime.png
-    - mv results/iovolume.png public/static/iovolume.png
-    - mv results/schedule.png public/static/schedule.png
+    - cd results
+    - tree results
+    - mkdir -p public/static
+    - mv results/$CALIBRATION_CONFIG_PATH/calibration_config.yaml ./$CI_PIPELINE_ID_calibrated_config.yml
+    - mv results/$CI_PIPELINE_ID_runtime.png public/static/$CI_PIPELINE_ID_runtime.png
+    - mv results/$CI_PIPELINE_ID_iotime.png public/static/$CI_PIPELINE_ID_iotime.png
+    - mv results/$CI_PIPELINE_ID_iovolume.png public/static/$CI_PIPELINE_ID_iovolume.png
+    - mv results/$CI_PIPELINE_ID_schedule.png public/static/$CI_PIPELINE_ID_schedule.png
+    - ls -lah results/
+    - chmod u+x build_pages.py
+    - ./build_pages.py $PAGES_TOKEN
+    - tree resuls/public
   dependencies:
     - analysis-job
+    - calibrated-simulation-job
+    - calibration-job
   artifacts:
     paths:
-      - public
+      - results/public
   tags:
     - simulation

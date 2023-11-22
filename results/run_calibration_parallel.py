@@ -585,7 +585,7 @@ def run_calibration():
     update_base_config(best_parameters, base_config, "Storalloc_Calibrated_ThetaCfg")
     print("Calibrated config :")
     print(json.dumps(base_config, indent=4))
-    output_configuration = f"{CONFIGURATION_PATH}/calibration_config.yaml"
+    output_configuration = f"{CONFIGURATION_PATH}/calibrated_config.yaml"
     with open(output_configuration, "w", encoding="utf-8") as calibration_result:
         print("Dumping configuration to " + output_configuration)
         yaml.dump(base_config, calibration_result)

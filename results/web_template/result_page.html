@@ -10,6 +10,17 @@
 
 <body>
 
+    <nav style="padding-left: 2%; padding-right: 2%;">
+        <ul>
+            <li><a href="{{ latest }}" class="contrast"><strong>Storalloc Calibration Results</strong></a></li>
+        </ul>
+        <ul>
+            {% for pipeline_id in result_pages %}
+            <li><a href="{{ pipeline_id }}.html" class="contrast">{{ loop.index }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+
     <main class="container-fluid" style="width: 80%;">
         <section id="title">
             <h1>Storalloc Calibration Results</h1>
@@ -45,7 +56,7 @@
                 </ul>
 
                 <figure style="width:90%; margin:auto;">
-                    <img src="static/runtime.png" alt="runtime">
+                    <img src="{{ static_path }}/{{ pipeline_id }}_runtime.png" alt="runtime">
                 </figure>
 
                 <h2>IO time analysis</h2>
@@ -58,7 +69,7 @@
                 </ul>
 
                 <figure style="width:90%; margin:auto;">
-                    <img src="static/iotime.png" alt="iotimes">
+                    <img src="{{ static_path }}/{{ pipeline_id }}_iotime.png" alt="iotimes">
                 </figure>
 
                 <h2>IO Volume analysis</h2>
@@ -71,13 +82,13 @@
                 </ul>
 
                 <figure style="width:90%; margin:auto;">
-                    <img src="static/iovolume.png" alt="iovolume">
+                    <img src="{{ static_path }}/{{ pipeline_id }}_iovolume.png" alt="iovolume">
                 </figure>
 
                 <h2>Jobs schedule</h2>
 
                 <figure style="width:90%; margin:auto;">
-                    <img src="static/schedule.png" alt="schedule">
+                    <img src="{{ static_path }}/{{ pipeline_id }}_schedule.png" alt="schedule">
                 </figure>
 
                 <footer>
