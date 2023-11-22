@@ -16,17 +16,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-
-CI_COMMIT_REF_NAME = os.getenv("CI_COMMIT_REF_NAME", default="UNKNOWN COMMIT REF")
-CI_COMMIT_SHORT_SHA = os.getenv("CI_COMMIT_SHORT_SHA", default="UNKNOWN COMMIT SHA")
-CI_COMMIT_TIMESTAMP = os.getenv("CI_COMMIT_TIMESTAMP", default="UNKNOWN COMMIT TS")
-CI_COMMIT_DESCRIPTION = os.getenv("CI_COMMIT_DESCRIPTION", default="UNKNOWN COMMIT DESCRIPTION")
-CI_JOB_ID = os.getenv("CI_JOB_ID", default="UNKNOWN JOB ID")
-CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", default="UNKNOWN PIPELINE ID")
-CI_PIPELINE_URL = os.getenv("CI_PIPELINE_URL", default="UNKNOWN PIPELINE URL")
-CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", default="UNKNOWN PROJECT URL")
+CI_COMMIT_REF_NAME = os.getenv("CI_COMMIT_REF_NAME", default="UNKNOWN_COMMIT_REF")
+CI_COMMIT_SHORT_SHA = os.getenv("CI_COMMIT_SHORT_SHA", default="UNKNOWN_COMMIT_SHA")
+CI_COMMIT_TIMESTAMP = os.getenv("CI_COMMIT_TIMESTAMP", default="UNKNOWN_COMMIT_TS")
+CI_COMMIT_DESCRIPTION = os.getenv("CI_COMMIT_DESCRIPTION", default="UNKNOWN_COMMIT_DESCRIPTION")
+CI_JOB_ID = os.getenv("CI_JOB_ID", default="UNKNOWN_JOB_ID")
+CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", default="UNKNOWN_PIPELINE_ID")
+CI_PIPELINE_URL = os.getenv("CI_PIPELINE_URL", default="UNKNOWN_PIPELINE_URL")
+CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", default="UNKNOWN_PROJECT_URL")
 
 
 REAL_COLOR = (0.1, 0.4, 0.8, 0.5)
@@ -114,8 +111,8 @@ def compute_runtime_diff(jobs, plotting=True):
         sim_hist = sns.histplot(data=sim_runtime, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
         sim_hist.set(xlabel=f"Simulated runtime - binwidth = {binwidth}s")
 
-        plt.savefig("runtime.pdf", dpi=300, format='pdf')
-        plt.savefig("runtime.png", dpi=300, format='png')
+        plt.savefig(f"{CI_PIPELINE_ID}_runtime.pdf", dpi=300, format='pdf')
+        plt.savefig(f"{CI_PIPELINE_ID}_runtime.png", dpi=300, format='png')
 
     return {
         "runtime_correlation": runtime_corr,
@@ -217,8 +214,8 @@ def compute_iotime_diff(jobs, plotting=True):
         sim_hist = sns.histplot(data=sim_io_time, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
         sim_hist.set(xlabel=f"Simulated IO time - binwidth = {binwidth}s")
 
-        plt.savefig("iotime.pdf", dpi=300, format='pdf')
-        plt.savefig("iotime.png", dpi=300, format='png')
+        plt.savefig(f"{CI_PIPELINE_ID}_iotime.pdf", dpi=300, format='pdf')
+        plt.savefig(f"{CI_PIPELINE_ID}_iotime.png", dpi=300, format='png')
 
     return {
         "iotime_correlation": io_time_corr,
@@ -293,8 +290,8 @@ def compute_iovolume_diff(jobs, plotting=True):
         sim_hist = sns.histplot(data=sim_io_volume_gb, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
         sim_hist.set(xlabel=f"Simulated IO Volume - binwidth = {binwidth}GB")
 
-        plt.savefig("iovolume.pdf", dpi=300, format='pdf')
-        plt.savefig("iovolume.png", dpi=300, format='png')
+        plt.savefig(f"{CI_PIPELINE_ID}_iovolume.pdf", dpi=300, format='pdf')
+        plt.savefig(f"{CI_PIPELINE_ID}_iovolume.png", dpi=300, format='png')
 
     return {"iovolume_correlation": io_vol_corr, "iovolume_cohend_effect": io_vol_cohen_d, "mean_iovol_diff": mean_io_volume_difference}
 
@@ -347,23 +344,11 @@ def trace_job_schedule(jobs):
 
     scatter.set(xlabel="Timestamps (s) inside simulation", ylabel="Number of jobs run (ordered by submit timestamp)")
 
-    plt.savefig("schedule.pdf", dpi=300, format='pdf')
-    plt.savefig("schedule.png", dpi=300, format='png')
+    plt.savefig(f"{CI_PIPELINE_ID}_schedule.pdf", dpi=300, format='pdf')
+    plt.savefig(f"{CI_PIPELINE_ID}_schedule.png", dpi=300, format='png')
 
-def save_to_web(template_index, metrics):
-    """Fill-in the static page template and output it"""
-
-    env = Environment(
-        loader=FileSystemLoader("web_template"),
-        autoescape=select_autoescape()
-    )
-
-    calibrated_config = None
-    try:
-        with open("./calibrated_config.yml", "r", encoding='utf-8') as job_results:
-            calibrated_config = load(job_results, Loader=CLoader)
-    except:
-        calibrated_config = {}
+def save_metrics_to_file(metrics: dict, filename):
+    """Save computed metrics and used configuration to a yaml file"""
 
     variables = {
         "commit_sha": CI_COMMIT_SHORT_SHA,
@@ -374,13 +359,13 @@ def save_to_web(template_index, metrics):
         "pipeline_id": CI_PIPELINE_ID,
         "pipeline_url": CI_PIPELINE_URL,
         "project_url": CI_PROJECT_URL,
-        "calibrated_config": dump(calibrated_config, encoding=None),
     }
     variables.update(metrics)
 
-    template = env.get_template(template_index)
-    with open("rendered_index.html", "w", encoding="utf-8") as rendered:
-        rendered.write(template.render(variables))
+    print(variables)
+
+    with open(filename, "w", encoding="utf-8") as metric_file:
+        dump(variables, metric_file, Dumper=CDumper)
 
 
 def analyse(trace, plotting=True):
@@ -400,7 +385,7 @@ def analyse(trace, plotting=True):
 
     trace_job_schedule(results)
 
-    save_to_web("index.html", metrics)
+    save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
 
 if __name__ == "__main__":
     trace_path = None
