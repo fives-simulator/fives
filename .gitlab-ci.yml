@@ -191,6 +191,7 @@ analysis-job:
     - simulation
   dependencies:
     - build-job
+    - calibrated-simulation-job
   artifacts:
     name: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-calibration_analysis"
     paths:
