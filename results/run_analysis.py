@@ -115,10 +115,10 @@ def compute_runtime_diff(jobs, plotting=True):
         plt.savefig(f"{CI_PIPELINE_ID}_runtime.png", dpi=300, format='png')
 
     return {
-        "runtime_correlation": runtime_corr,
-        "runtime_cohend_effect": runtime_cohen_d,
-        "mean_real_runtime": mean_real_runtime,
-        "mean_sim_runtime": mean_sim_runtime
+        "runtime_correlation": float(runtime_corr),
+        "runtime_cohend_effect": float(runtime_cohen_d),
+        "mean_real_runtime": float(mean_real_runtime),
+        "mean_sim_runtime": float(mean_sim_runtime)
     }
 
 def compute_iotime_diff(jobs, plotting=True):
@@ -218,10 +218,10 @@ def compute_iotime_diff(jobs, plotting=True):
         plt.savefig(f"{CI_PIPELINE_ID}_iotime.png", dpi=300, format='png')
 
     return {
-        "iotime_correlation": io_time_corr,
-        "iotime_cohend_effect": io_time_cohen_d,
-        "mean_real_iotime": mean_real_io_time,
-        "mean_sim_iotime": mean_sim_iotime,
+        "iotime_correlation": float(io_time_corr),
+        "iotime_cohend_effect": float(io_time_cohen_d),
+        "mean_real_iotime": float(mean_real_io_time),
+        "mean_sim_iotime": float(mean_sim_iotime),
     }
 
 def compute_iovolume_diff(jobs, plotting=True):
@@ -293,7 +293,7 @@ def compute_iovolume_diff(jobs, plotting=True):
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.pdf", dpi=300, format='pdf')
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.png", dpi=300, format='png')
 
-    return {"iovolume_correlation": io_vol_corr, "iovolume_cohend_effect": io_vol_cohen_d, "mean_iovol_diff": mean_io_volume_difference}
+    return {"iovolume_correlation": float(io_vol_corr), "iovolume_cohend_effect": float(io_vol_cohen_d), "mean_iovol_diff": float(mean_io_volume_difference)}
 
 def trace_job_schedule(jobs):
     """ /!\ We need access to the dataset in order to get the origin time for all timestamps !
