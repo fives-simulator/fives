@@ -92,7 +92,7 @@ namespace storalloc {
 
         virtual std::vector<storalloc::YamlJob> createPreloadJobs() const;
 
-        virtual void preloadData(const std::map<std::string, storalloc::YamlJob>& job_map);
+        virtual void preloadData(const std::map<std::string, storalloc::YamlJob> &job_map);
 
         virtual void submitJob(std::string jobID);
 
@@ -157,6 +157,12 @@ namespace storalloc {
         std::map<std::string, storalloc::YamlJob> jobsWithPreload{}; // jobId, YamlJob
 
         std::map<std::string, std::vector<std::shared_ptr<wrench::DataFile>>> preloadedData;
+
+        std::random_device rd;
+
+        std::mt19937 gen; // (rd());
+
+        std::uniform_real_distribution<float> uni_dis; //(0, 1.0);
 
         std::shared_ptr<wrench::JobManager> job_manager;
 

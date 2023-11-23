@@ -114,6 +114,8 @@ namespace storalloc {
         uint64_t read_bytes_preload_thres;
         uint64_t write_bytes_copy_thres;
 
+        float cleanup_threshold;
+
         std::map<std::string, DiskTemplate> disk_templates;
         std::map<std::string, NodeTemplate> node_templates;
         std::vector<NodeEntry> nodes;
