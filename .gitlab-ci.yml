@@ -213,7 +213,7 @@ pages:
     MAX_PIPELINES: 0
   script:
     - cd results
-    - tree results
+    - tree .
     - mkdir -p public/static
     - mv results/${CALIBRATION_CONFIG_PATH}/calibration_config.yaml ./${CI_PIPELINE_ID}_calibrated_config.yml
     - mv results/${CI_PIPELINE_ID}_runtime.png public/static/${CI_PIPELINE_ID}_runtime.png
@@ -223,7 +223,7 @@ pages:
     - ls -lah results/
     - chmod u+x build_pages.py
     - ./build_pages.py ${PAGES_TOKEN}
-    - tree resuls/public
+    - tree ./public
   dependencies:
     - analysis-job
     - calibrated-simulation-job
