@@ -12,11 +12,14 @@
 
     <nav style="padding-left: 2%; padding-right: 2%;">
         <ul>
-            <li><a href="{{ latest }}" class="contrast"><strong>Storalloc Calibration Results</strong></a></li>
+            <li><strong><a href="{{ project_url }}">
+                        Storalloc Calibration Results</a></strong>
+            </li>
         </ul>
         <ul>
+            <li><a href="{{ latest }}" class="contrast">Current</a></li>
             {% for pipeline_id in result_pages %}
-            <li><a href="{{ pipeline_id }}.html" class="contrast">{{ loop.index }}</a></li>
+            <li><a href="{{ pipeline_id }}.html" class="contrast">N-{{ loop.index }}</a></li>
             {% endfor %}
         </ul>
     </nav>
@@ -25,11 +28,16 @@
         <section id="title">
             <h1>Storalloc Calibration Results</h1>
             <ul>
-                <li>From commit <em>{{ commit_sha }}</em> on branch <em>{{ commit_ref }}</em> at {{ commit_ts }}</li>
-                <li>Commit message: {{ commit_description }}</li>
-                <li>Job ID <em>{{ job_id }}</em></li>
-                <li><a href="{{ pipeline_url}}">Pipeline {{ pipeline_id }}</a></li>
-                <li><a href="{{ project_url }}">Project</a></li>
+                <li>From commit <a href="https://gitlab.inria.fr/jmonniot/storalloc_wrench/-/commit/{{ commit_sha }}">
+                        {{commit_sha}}</a> on branch <strong>{{ commit_ref }}</strong> at {{ commit_ts}}
+                </li>
+                <li>Commit message:
+                    <pre><code>{{ commit_description }}</code></pre>
+                </li>
+                <li><a href="{{ pipeline_url}}">Pipeline {{ pipeline_id
+                        }}</a></li>
+                <li>Analysis Job ID <em>{{ job_id }}</em></li>
+                <li>Number of iterations for calibration (after initial // run) : <em>{{calibration_iter}}</em></li>
             </ul>
 
             <section id="accordions">
