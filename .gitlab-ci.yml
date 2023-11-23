@@ -210,7 +210,7 @@ analysis-job:
 pages:
   stage: publish
   variables:
-    MAX_PIPELINES: 0
+    MAX_PIPELINES: 1
   script:
     - cd results
     - tree .
@@ -224,12 +224,13 @@ pages:
     - chmod u+x build_pages.py
     - ./build_pages.py ${PAGES_TOKEN}
     - tree ./public
+    - mv public ..
   dependencies:
     - analysis-job
     - calibrated-simulation-job
     - calibration-job
   artifacts:
     paths:
-      - results/public
+      - public
   tags:
     - simulation
