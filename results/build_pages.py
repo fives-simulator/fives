@@ -2,6 +2,7 @@
 
 import sys
 import os
+import glob
 import requests
 from yaml import load, dump, CLoader, CDumper
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -198,7 +199,15 @@ def run(token):
             "calibrated_config": dump(calibrated_config, encoding=None),
             "static_path": f"{ARTEFACTS_DIR}/{pipeline_id}"
         }
-    
+
+        os.remove(calibrated_config_path)
+        os.remove(analysis_path)
+        undesired_files = glob.glob(f"./public/static/{pipeline_id}/results/exp_configurations/exp_config*")
+        for rfile in undesired_files: 
+            print(f"Attempting to remove file {rfile}")
+            os.remove(rfile)
+
+
     build_current_results(fetched_pipelines)
 
 if __name__ == "__main__":
