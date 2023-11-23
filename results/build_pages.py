@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+from datetime import datetime
 import os
 import glob
 import requests
@@ -14,7 +15,7 @@ BASE_URL="https://gitlab.inria.fr/api/v4"
 CI_PIPELINE_ID=os.getenv("CI_PIPELINE_ID", default="UNKNOWN_PIPELINE_ID")
 PROJECT_URL=f"{BASE_URL}/projects/{PROJECT_ID}"
 ARTEFACTS_DIR="./public/static"
-MAX_PIPELINES=int(os.getenv("MAX_PIPELINES", default=3))
+MAX_PIPELINES=int(os.getenv("MAX_PIPELINES", default=1))
 PUBLIC_PROJECT_URL=os.getenv("CI_PROJECT_URL", default="https://gitlab.inria.fr/jmonniot/storalloc_wrench")
 
 
@@ -112,6 +113,13 @@ def build_previous_result(result_pages: list, pipeline_id: str):
     metrics["calibrated_config"] = dump(calibrated_config, Dumper=CDumper, encoding=None)
     metrics["latest"] = "index.html"
     metrics["static_path"] = f"./static/{pipeline_id}/results/"
+    if not "calibration_iter" in metrics:
+        metrics["calibration_iter"] = "Unknown"
+    if "commit_ts" not in metrics:
+        metrics["commit_ts"] = "Unknown date" 
+    else: 
+        metrics["commit_ts"] = datetime.strptime(metrics["commit_ts"], '%Y-%m-%dT%H:%M:%S%z').strftime('%a %d %b %Y, %H:%M')
+    print(metrics["commit_ts"])
 
     env = Environment(
         loader=FileSystemLoader("web_template"),
@@ -119,7 +127,7 @@ def build_previous_result(result_pages: list, pipeline_id: str):
     )
 
     template = env.get_template("result_page.html")
-    with open("public/index.html", "w", encoding="utf-8") as rendered:
+    with open(f"public/{pipeline_id}.html", "w", encoding="utf-8") as rendered:
         rendered.write(template.render(metrics))
 
 
@@ -149,6 +157,14 @@ def build_current_results(result_pages: list):
     metrics["calibrated_config"] = dump(calibrated_config, Dumper=CDumper, encoding=None)
     metrics["latest"] = "index.html"
     metrics["static_path"] = "./static"
+    if not "calibration_iter" in metrics:
+        metrics["calibration_iter"] = "Unknown"
+    if "commit_ts" not in metrics:
+        metrics["commit_ts"] =  "Unknown date" 
+    else: 
+        metrics["commit_ts"] =  datetime.strptime(metrics["commit_ts"], '%Y-%m-%dT%H:%M:%S%z').strftime('%a %d %b %Y, %H:%M')
+
+    print(metrics["commit_ts"])
 
     env = Environment(
         loader=FileSystemLoader("web_template"),
@@ -168,6 +184,7 @@ def run(token):
     session.headers["PRIVATE-TOKEN"] = token
 
     fetched_pipelines = []
+    pipeline_variables = {}
     
     for pipeline in get_pipelines(session):
 
@@ -185,20 +202,17 @@ def run(token):
         print(f" Artifacts for analysis_job downloaded at {analysis_path}")
         unzip_file(analysis_path, pipeline_id)
 
-        calibrated_config = {}
-
+        # Not used so far
         variables = {
             "commit_sha": analysis_job["commit"]["short_id"],
             "commit_ref": analysis_job["pipeline"]["ref"],
             "commit_ts": analysis_job["commit"]["committed_date"],
             "commit_description": analysis_job["commit"]["message"],
             "job_id": analysis_job["id"],
-            "pipeline_id": pipeline_id,
             "pipeline_url": analysis_job["pipeline"]["web_url"],
             "project_url": PUBLIC_PROJECT_URL,
-            "calibrated_config": dump(calibrated_config, encoding=None),
-            "static_path": f"{ARTEFACTS_DIR}/{pipeline_id}"
         }
+        pipeline_variables[pipeline_id] = variables
 
         os.remove(calibrated_config_path)
         os.remove(analysis_path)
@@ -207,8 +221,11 @@ def run(token):
             print(f"Attempting to remove file {rfile}")
             os.remove(rfile)
 
-
     build_current_results(fetched_pipelines)
+
+    for pipeline in fetched_pipelines:
+        build_previous_result(fetched_pipelines, pipeline)
+
 
 if __name__ == "__main__":
     

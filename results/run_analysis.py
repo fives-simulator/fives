@@ -24,6 +24,7 @@ CI_JOB_ID = os.getenv("CI_JOB_ID", default="UNKNOWN_JOB_ID")
 CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", default="UNKNOWN_PIPELINE_ID")
 CI_PIPELINE_URL = os.getenv("CI_PIPELINE_URL", default="UNKNOWN_PIPELINE_URL")
 CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", default="UNKNOWN_PROJECT_URL")
+CALIBRATION_RUNS = os.getenv("CALIBRATION_RUNS", default="UNKNOWN_CALIBRATION_ITER_COUNT")
 
 
 REAL_COLOR = (0.1, 0.4, 0.8, 0.5)
@@ -359,6 +360,7 @@ def save_metrics_to_file(metrics: dict, filename):
         "pipeline_id": CI_PIPELINE_ID,
         "pipeline_url": CI_PIPELINE_URL,
         "project_url": CI_PROJECT_URL,
+        "calibration_iter": CALIBRATION_RUNS,
     }
     variables.update(metrics)
 
