@@ -215,7 +215,7 @@ pages:
     - cd results
     - tree .
     - mkdir -p public/static
-    - mv ${CALIBRATION_CONFIG_PATH}/calibrated_config.yaml ./${CI_PIPELINE_ID}_calibrated_config.yml
+    - mv ${CALIBRATION_CONFIG_PATH}/calibrated_config.yaml ./${CI_PIPELINE_ID}_calibrated_config.yaml
     - mv ./${CI_PIPELINE_ID}_runtime.png public/static/${CI_PIPELINE_ID}_runtime.png
     - mv ./${CI_PIPELINE_ID}_iotime.png public/static/${CI_PIPELINE_ID}_iotime.png
     - mv ./${CI_PIPELINE_ID}_iovolume.png public/static/${CI_PIPELINE_ID}_iovolume.png
