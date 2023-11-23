@@ -165,7 +165,7 @@ AX_PARAMS = [
     {
         "name": "cleanup_threshold",
         "type": "range",
-        "bounds": [0.1, 0.9],
+        "bounds": [0.1, 1],
         "digits": 2,
         "value_type": "float",
     },
