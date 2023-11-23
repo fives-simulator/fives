@@ -215,15 +215,15 @@ pages:
     - cd results
     - tree results
     - mkdir -p public/static
-    - mv results/${CALIBRATION_CONFIG_PATH}/calibration_config.yaml ./${CI_PIPELINE_ID}_calibrated_config.yml
-    - mv results/${CI_PIPELINE_ID}_runtime.png public/static/${CI_PIPELINE_ID}_runtime.png
-    - mv results/${CI_PIPELINE_ID}_iotime.png public/static/${CI_PIPELINE_ID}_iotime.png
-    - mv results/${CI_PIPELINE_ID}_iovolume.png public/static/${CI_PIPELINE_ID}_iovolume.png
-    - mv results/${CI_PIPELINE_ID}_schedule.png public/static/${CI_PIPELINE_ID}_schedule.png
+    - mv ${CALIBRATION_CONFIG_PATH}/calibrated_config.yaml ./${CI_PIPELINE_ID}_calibrated_config.yml
+    - mv ./${CI_PIPELINE_ID}_runtime.png public/static/${CI_PIPELINE_ID}_runtime.png
+    - mv ./${CI_PIPELINE_ID}_iotime.png public/static/${CI_PIPELINE_ID}_iotime.png
+    - mv ./${CI_PIPELINE_ID}_iovolume.png public/static/${CI_PIPELINE_ID}_iovolume.png
+    - mv ./${CI_PIPELINE_ID}_schedule.png public/static/${CI_PIPELINE_ID}_schedule.png
     - ls -lah results/
     - chmod u+x build_pages.py
     - ./build_pages.py ${PAGES_TOKEN}
-    - tree resuls/public
+    - tree ./public
   dependencies:
     - analysis-job
     - calibrated-simulation-job
