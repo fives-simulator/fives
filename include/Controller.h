@@ -92,7 +92,7 @@ namespace storalloc {
 
         virtual std::vector<storalloc::YamlJob> createPreloadJobs() const;
 
-        virtual void preloadData();
+        virtual void preloadData(const std::map<std::string, storalloc::YamlJob>& job_map);
 
         virtual void submitJob(std::string jobID);
 
