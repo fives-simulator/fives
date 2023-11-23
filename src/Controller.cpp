@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <random>
 #include <wrench/services/helper_services/action_execution_service/ActionExecutionService.h>
 #include <wrench/util/UnitParser.h>
 
@@ -69,6 +70,9 @@ namespace storalloc {
 
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller : %s jobs to create and submit", std::to_string(jobs.size()).c_str());
+
+        // Forced seed for rand (used later on to decide whether or not to cleanup files after write / copy operations of jobs)
+        std::srand(1);
 
         this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
 
@@ -351,6 +355,9 @@ namespace storalloc {
         this->compound_jobs[yJob.id].second.push_back(parentJob);
         WRENCH_INFO("[%s] Preparing parent job of type %d for submission", yJob.id.c_str(), yJob.model);
 
+        this->gen = std::mt19937(this->rd());
+        this->uni_dis = std::uniform_real_distribution<float>(0.0, 1.0);
+
         parentJob->addCustomAction(
             "parentJob" + yJob.id,
             0, 0, // RAM & num cores
@@ -375,11 +382,10 @@ namespace storalloc {
 
                     std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                     if (this->preloadedData.find(jobID) == this->preloadedData.end()) {
-                        auto input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
-                                                                   this->config->stor.nb_files_per_read, nodes_nb_read);
+                        input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
+                                                              this->config->stor.nb_files_per_read, nodes_nb_read);
                     } else {
                         input_files = this->preloadedData[jobID];
-                        std::cout << "JOB " << jobID << " already has " << std::to_string(input_files.size()) << " known preloaded files" << std::endl;
                         cleanup_external_read = false;
                     }
 
@@ -392,8 +398,11 @@ namespace storalloc {
                     } else {
                         cleanup_external_write = false;
                     }
-                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, cleanup_external_read);
-                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, cleanup_external_write);
+
+                    if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
+                        this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, cleanup_external_read);
+                        this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, cleanup_external_write);
+                    }
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::ComputeWrite) {
 
@@ -405,15 +414,18 @@ namespace storalloc {
                     } else {
                         cleanup_external_write = false;
                     }
-                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, cleanup_external_write);
+
+                    if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
+                        this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, cleanup_external_write);
+                    }
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadCompute) {
 
                     bool cleanup_external_read = true;
                     std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                     if (this->preloadedData.find(jobID) == this->preloadedData.end()) {
-                        auto input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
-                                                                   this->config->stor.nb_files_per_read, nodes_nb_read);
+                        input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
+                                                              this->config->stor.nb_files_per_read, nodes_nb_read);
                     } else {
                         input_files = this->preloadedData[jobID];
                         cleanup_external_read = false;
@@ -421,7 +433,10 @@ namespace storalloc {
 
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, nodes_nb_read);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
-                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, cleanup_external_read);
+
+                    if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
+                        this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, cleanup_external_read);
+                    }
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::Compute) {
 

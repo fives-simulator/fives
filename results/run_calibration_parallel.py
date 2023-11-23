@@ -537,7 +537,7 @@ def run_calibration():
         f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
     )
 
-    cpu = min(multiprocessing.cpu_count() - 1, parallelism[0][1])
+    cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )

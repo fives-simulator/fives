@@ -26,6 +26,7 @@ storage:
   io_buffer_size: 1GB
   read_bytes_preload_thres: 100000000
   write_bytes_copy_thres:  2000000000
+  cleanup_threshold: 0.0
   disk_templates:
     - &hdd_capa
       id: hdd_capa

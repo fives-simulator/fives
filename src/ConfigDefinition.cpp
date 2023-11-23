@@ -121,6 +121,8 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         rhs.stor.read_bytes_preload_thres = ynode["storage"]["read_bytes_preload_thres"].as<uint64_t>();
         rhs.stor.write_bytes_copy_thres = ynode["storage"]["write_bytes_copy_thres"].as<uint64_t>();
 
+        rhs.stor.cleanup_threshold = ynode["storage"]["cleanup_threshold"].as<float>();
+
         for (const auto node : ynode["storage"]["nodes"]) {
 
             storalloc::NodeEntry node_entry = {};
