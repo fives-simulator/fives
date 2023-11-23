@@ -162,6 +162,13 @@ AX_PARAMS = [
         "digits": 1,
         "value_type": "float",
     },
+    {
+        "name": "cleanup_threshold",
+        "type": "range",
+        "bounds": [0.1, 0.9],
+        "digits": 2,
+        "value_type": "float",
+    },
 ]
 
 
@@ -210,6 +217,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     io_read_node_ratio = parametrization.get("io_read_node_ratio")
     nb_files_per_write = parametrization.get("nb_files_per_write")
     io_write_node_ratio = parametrization.get("io_write_node_ratio")
+    cleanup_threshold = parametrization.get("cleanup_threshold")
 
     # Non-linear coefficient for altering read/write during concurrent disk access
     non_linear_coef_read = parametrization.get("non_linear_coef_read")
@@ -240,6 +248,8 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
     base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
+
+    base_config["storage"]["cleanup_threshold"] = cleanup_threshold
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
@@ -537,7 +547,7 @@ def run_calibration():
         f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
     )
 
-    cpu = min(multiprocessing.cpu_count() - 1, parallelism[0][1])
+    cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )

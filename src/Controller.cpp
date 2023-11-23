@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <random>
 #include <wrench/services/helper_services/action_execution_service/ActionExecutionService.h>
 #include <wrench/util/UnitParser.h>
 
@@ -70,6 +71,9 @@ namespace storalloc {
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller : %s jobs to create and submit", std::to_string(jobs.size()).c_str());
 
+        // Forced seed for rand (used later on to decide whether or not to cleanup files after write / copy operations of jobs)
+        std::srand(1);
+
         this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
 
         this->job_manager = this->createJobManager();
@@ -85,6 +89,8 @@ namespace storalloc {
             this->jobsWithPreload[job.id] = job;
         }
         preload_jobs.clear(); // no need for the extra memory footprint
+
+        this->preloadData(this->jobsWithPreload);
 
         auto total_events = 0;
         auto processed_events = 0;
@@ -173,6 +179,29 @@ namespace storalloc {
         }
 
         return success;
+    }
+
+    void Controller::preloadData(const std::map<std::string, storalloc::YamlJob> &job_map) {
+
+        for (const auto &map_entry : job_map) {
+            auto job = map_entry.second;
+            if ((job.model == JobType::ReadComputeWrite) or (job.model == JobType::ReadCompute)) {
+                if (job.readBytes >= this->config->stor.read_bytes_preload_thres) {
+
+                    auto prefix = "preloaded_input_data_file_" + job.id;
+                    auto read_files = this->createFileParts(job.readBytes, this->config->stor.nb_files_per_read, prefix);
+
+                    for (const auto &read_file : read_files) {
+                        auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                        for (const auto &stripe : file_stripes) {
+                            wrench::StorageService::createFileAtLocation(stripe);
+                        }
+                    }
+
+                    this->preloadedData[job.id] = read_files;
+                }
+            }
+        }
     }
 
     std::vector<storalloc::YamlJob> Controller::createPreloadJobs() const {
@@ -326,6 +355,9 @@ namespace storalloc {
         this->compound_jobs[yJob.id].second.push_back(parentJob);
         WRENCH_INFO("[%s] Preparing parent job of type %d for submission", yJob.id.c_str(), yJob.model);
 
+        this->gen = std::mt19937(this->rd());
+        this->uni_dis = std::uniform_real_distribution<float>(0.0, 1.0);
+
         parentJob->addCustomAction(
             "parentJob" + yJob.id,
             0, 0, // RAM & num cores
@@ -345,29 +377,66 @@ namespace storalloc {
 
                 if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadComputeWrite) {
 
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
+                    bool cleanup_external_read = true;
+                    bool cleanup_external_write = true;
+
+                    std::vector<std::shared_ptr<wrench::DataFile>> input_files;
+                    if (this->preloadedData.find(jobID) == this->preloadedData.end()) {
+                        input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
                                                               this->config->stor.nb_files_per_read, nodes_nb_read);
-                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_data, nodes_nb_read);
+                    } else {
+                        input_files = this->preloadedData[jobID];
+                        cleanup_external_read = false;
+                    }
+
+                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, nodes_nb_read);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
+
                     auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], this->config->stor.nb_files_per_write, nodes_nb_write);
-                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, nodes_nb_write);
-                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_data);
-                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data);
+                    if (this->compound_jobs[jobID].first.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
+                        this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, nodes_nb_write);
+                    } else {
+                        cleanup_external_write = false;
+                    }
+
+                    if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
+                        this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, cleanup_external_read);
+                        this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, cleanup_external_write);
+                    }
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::ComputeWrite) {
 
+                    bool cleanup_external_write = true;
                     this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
                     auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], this->config->stor.nb_files_per_write, nodes_nb_write);
-                    this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, nodes_nb_write);
-                    this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data);
+                    if (this->compound_jobs[jobID].first.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
+                        this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, nodes_nb_write);
+                    } else {
+                        cleanup_external_write = false;
+                    }
+
+                    if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
+                        this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, cleanup_external_write);
+                    }
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::ReadCompute) {
 
-                    auto input_data = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
+                    bool cleanup_external_read = true;
+                    std::vector<std::shared_ptr<wrench::DataFile>> input_files;
+                    if (this->preloadedData.find(jobID) == this->preloadedData.end()) {
+                        input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
                                                               this->config->stor.nb_files_per_read, nodes_nb_read);
-                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_data, nodes_nb_read);
+                    } else {
+                        input_files = this->preloadedData[jobID];
+                        cleanup_external_read = false;
+                    }
+
+                    this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, nodes_nb_read);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
-                    this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_data);
+
+                    if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
+                        this->cleanupInput(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, cleanup_external_read);
+                    }
 
                 } else if (this->compound_jobs[jobID].first.model == storalloc::JobType::Compute) {
 
@@ -795,7 +864,8 @@ namespace storalloc {
     void Controller::cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                   std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs) {
+                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs,
+                                  bool cleanup_external) {
 
         WRENCH_INFO("[%s] Creating cleanup actions for input file(s) with cumulative size %ld", jobPair.first.id.c_str(), jobPair.first.readBytes);
 
@@ -809,20 +879,25 @@ namespace storalloc {
         auto computeResourcesIt = computeResources.begin();
         auto action_cnt = 0;
         for (const auto &input_data : inputs) {
-            auto del_id_1 = "delRF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
-            auto del_id_2 = "delERF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
-            auto deleteReadAction = cleanupJob->addFileDeleteAction(del_id_1, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
-            auto deleteExternalReadAction = cleanupJob->addFileDeleteAction(del_id_2, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, input_data));
-            cleanupJob->addActionDependency(deleteReadAction, deleteExternalReadAction);
+            auto del_id = "delRF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
+            auto deleteReadAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
             if (computeResourcesIt == computeResources.end()) {
                 computeResourcesIt = computeResources.begin();
             }
-            service_specific_args[del_id_1] = computeResourcesIt->first;
-            if (computeResourcesIt == computeResources.end()) {
-                computeResourcesIt = computeResources.begin();
-            }
-            service_specific_args[del_id_2] = computeResourcesIt->first;
+            service_specific_args[del_id] = computeResourcesIt->first;
             action_cnt++;
+        }
+
+        if (cleanup_external) {
+            for (const auto &input_data : inputs) {
+                auto del_id = "delERF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
+                auto deleteExternalReadAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, input_data));
+                if (computeResourcesIt == computeResources.end()) {
+                    computeResourcesIt = computeResources.begin();
+                }
+                service_specific_args[del_id] = computeResourcesIt->first;
+                action_cnt++;
+            }
         }
 
         internalJobManager->submitJob(cleanupJob, bare_metal, {});
@@ -835,7 +910,8 @@ namespace storalloc {
     void Controller::cleanupOutput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                    const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                    std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs) {
+                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs,
+                                   bool cleanup_external) {
 
         WRENCH_INFO("[%s] Creating cleanup actions for output file(s) with cumulative size %ld", jobPair.first.id.c_str(), jobPair.first.writtenBytes);
 
@@ -849,20 +925,25 @@ namespace storalloc {
         auto computeResourcesIt = computeResources.begin();
         auto action_cnt = 0;
         for (const auto &output_data : outputs) {
-            auto del_id_1 = "delWF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
-            auto del_id_2 = "delEWF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
-            auto deleteWriteAction = cleanupJob->addFileDeleteAction(del_id_1, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
-            auto deleteExternalWriteAction = cleanupJob->addFileDeleteAction(del_id_2, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.write_path, output_data));
-            cleanupJob->addActionDependency(deleteWriteAction, deleteExternalWriteAction);
+            auto del_id = "delWF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
+            auto deleteWriteAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
             if (computeResourcesIt == computeResources.end()) {
                 computeResourcesIt = computeResources.begin();
             }
-            service_specific_args[del_id_1] = computeResourcesIt->first;
-            if (computeResourcesIt == computeResources.end()) {
-                computeResourcesIt = computeResources.begin();
-            }
-            service_specific_args[del_id_2] = computeResourcesIt->first;
+            service_specific_args[del_id] = computeResourcesIt->first;
             action_cnt++;
+        }
+
+        if (cleanup_external) {
+            for (const auto &output_data : outputs) {
+                auto del_id = "delEWF_" + jobPair.first.id + "_" + std::to_string(action_cnt);
+                auto deleteExternalWriteAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.write_path, output_data));
+                if (computeResourcesIt == computeResources.end()) {
+                    computeResourcesIt = computeResources.begin();
+                }
+                service_specific_args[del_id] = computeResourcesIt->first;
+                action_cnt++;
+            }
         }
 
         internalJobManager->submitJob(cleanupJob, bare_metal, {});
