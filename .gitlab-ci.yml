@@ -135,7 +135,7 @@ functional-test-job:
 calibration-job:
   stage: calibration
   variables:
-    CALIBRATION_RUNS: 10
+    CALIBRATION_RUNS: 5
   script:
     - cd results
     - mkdir exp_results
@@ -220,7 +220,7 @@ pages:
     - mv ./${CI_PIPELINE_ID}_iotime.png public/static/${CI_PIPELINE_ID}_iotime.png
     - mv ./${CI_PIPELINE_ID}_iovolume.png public/static/${CI_PIPELINE_ID}_iovolume.png
     - mv ./${CI_PIPELINE_ID}_schedule.png public/static/${CI_PIPELINE_ID}_schedule.png
-    - ls -lah results/
+    - tree . 
     - chmod u+x build_pages.py
     - ./build_pages.py ${PAGES_TOKEN}
     - tree ./public
