@@ -74,8 +74,6 @@ namespace storalloc {
 
         this->job_manager = this->createJobManager();
 
-        this->preloadData();
-
         // Simulate 'fake' load before the actual dataset is used
         auto preload_jobs = this->createPreloadJobs();
 
@@ -87,6 +85,8 @@ namespace storalloc {
             this->jobsWithPreload[job.id] = job;
         }
         preload_jobs.clear(); // no need for the extra memory footprint
+
+        this->preloadData(this->jobsWithPreload);
 
         auto total_events = 0;
         auto processed_events = 0;
@@ -177,9 +177,10 @@ namespace storalloc {
         return success;
     }
 
-    void Controller::preloadData() {
+    void Controller::preloadData(const std::map<std::string, storalloc::YamlJob> &job_map) {
 
-        for (const auto &job : this->jobs) {
+        for (const auto &map_entry : job_map) {
+            auto job = map_entry.second;
             if ((job.model == JobType::ReadComputeWrite) or (job.model == JobType::ReadCompute)) {
                 if (job.readBytes >= this->config->stor.read_bytes_preload_thres) {
 
@@ -371,19 +372,21 @@ namespace storalloc {
 
                     bool cleanup_external_read = true;
                     bool cleanup_external_write = true;
+
                     std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                     if (this->preloadedData.find(jobID) == this->preloadedData.end()) {
                         auto input_files = this->copyFromPermanent(action_executor, internalJobManager, this->compound_jobs[jobID],
                                                                    this->config->stor.nb_files_per_read, nodes_nb_read);
                     } else {
                         input_files = this->preloadedData[jobID];
+                        std::cout << "JOB " << jobID << " already has " << std::to_string(input_files.size()) << " known preloaded files" << std::endl;
                         cleanup_external_read = false;
                     }
 
                     this->readFromTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], input_files, nodes_nb_read);
                     this->compute(action_executor, internalJobManager, this->compound_jobs[jobID]);
-                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], this->config->stor.nb_files_per_write, nodes_nb_write);
 
+                    auto output_data = this->writeToTemporary(action_executor, internalJobManager, this->compound_jobs[jobID], this->config->stor.nb_files_per_write, nodes_nb_write);
                     if (this->compound_jobs[jobID].first.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
                         this->copyToPermanent(action_executor, internalJobManager, this->compound_jobs[jobID], output_data, nodes_nb_write);
                     } else {
