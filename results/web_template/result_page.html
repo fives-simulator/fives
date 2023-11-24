@@ -29,7 +29,7 @@
             <h1>Storalloc Calibration Results</h1>
             <ul>
                 <li>From commit <a href="https://gitlab.inria.fr/jmonniot/storalloc_wrench/-/commit/{{ commit_sha }}">
-                        {{commit_sha}}</a> on branch <strong>{{ commit_ref }}</strong> at {{ commit_ts}}
+                        {{commit_sha}}</a> on branch <strong>{{ commit_ref }}</strong> on {{ commit_ts}}
                 </li>
                 <li>Commit message:
                     <pre><code>{{ commit_description }}</code></pre>
@@ -38,6 +38,9 @@
                         }}</a></li>
                 <li>Analysis Job ID <em>{{ job_id }}</em></li>
                 <li>Number of iterations for calibration (after initial // run) : <em>{{calibration_iter}}</em></li>
+                <li>Buffer size (storage / permanent storage) : <em>{{stor_buff_size}}</em> /
+                    <em>{{pstor_buff_size}}</em>
+                </li>
             </ul>
 
             <section id="accordions">
