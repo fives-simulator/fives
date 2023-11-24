@@ -83,7 +83,7 @@ AX_PARAMS = [
     {
         "name": "flops",
         "type": "range",
-        "bounds": [1.6, 2.6],
+        "bounds": [1.5, 2.6],
         "digits": 2,
         "value_type": "float",
     },
