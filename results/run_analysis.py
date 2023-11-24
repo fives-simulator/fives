@@ -19,7 +19,7 @@ from matplotlib.colors import Colormap
 CI_COMMIT_REF_NAME = os.getenv("CI_COMMIT_REF_NAME", default="UNKNOWN_COMMIT_REF")
 CI_COMMIT_SHORT_SHA = os.getenv("CI_COMMIT_SHORT_SHA", default="UNKNOWN_COMMIT_SHA")
 CI_COMMIT_TIMESTAMP = os.getenv("CI_COMMIT_TIMESTAMP", default="UNKNOWN_COMMIT_TS")
-CI_COMMIT_DESCRIPTION = os.getenv("CI_COMMIT_DESCRIPTION", default="UNKNOWN_COMMIT_DESCRIPTION")
+CI_COMMIT_MESSAGE = os.getenv("CI_COMMIT_MESSAGE", default="UNKNOWN_COMMIT_MESSAGE")
 CI_JOB_ID = os.getenv("CI_JOB_ID", default="UNKNOWN_JOB_ID")
 CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", default="UNKNOWN_PIPELINE_ID")
 CI_PIPELINE_URL = os.getenv("CI_PIPELINE_URL", default="UNKNOWN_PIPELINE_URL")
@@ -355,7 +355,7 @@ def save_metrics_to_file(metrics: dict, filename):
         "commit_sha": CI_COMMIT_SHORT_SHA,
         "commit_ref": CI_COMMIT_REF_NAME,
         "commit_ts": CI_COMMIT_TIMESTAMP,
-        "commit_description": CI_COMMIT_DESCRIPTION,
+        "commit_description": CI_COMMIT_MESSAGE,
         "job_id": CI_JOB_ID,
         "pipeline_id": CI_PIPELINE_ID,
         "pipeline_url": CI_PIPELINE_URL,
