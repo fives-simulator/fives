@@ -14,6 +14,7 @@ variables:
   CALIBRATION_DATASET: "theta2022_week4"
   CALIBRATION_DATASET_EXT: ".yaml"
   CALIBRATION_BUILD_PATH: "../build"
+  CALIBRATION_RUNS: 30
 
 build_simgrid_v3.34:
   stage: build_deps
