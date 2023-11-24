@@ -9,10 +9,10 @@
 general:
   config_name: StorAlloc_Theta_Lustre_fs0
   config_version: 0.0.1
-  max_stripe_size: 100048576          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
-  preload_percent: 0.3
+  max_stripe_size: 100048576          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here) - Fixed
+  preload_percent: 0.1                #  
   amdahl: 0.5                         # From 0 to 1, degree of // in compute tasks
-  walltime_extension: 1.0             # The final walltime passed to the batch sched will be walltime * walltime_extension
+  walltime_extension: 1.0             # The final walltime passed to the batch sched will be walltime * walltime_extension - Fixed
 network:
   bandwidth_backbone: 9TBps
   bandwidth_backbone_storage: 200GBps     # 240Gbps theoretical
@@ -27,17 +27,17 @@ storage:
   nb_files_per_read: 2
   nb_files_per_write: 2
   io_read_node_ratio: 0.1
-  max_read_node_cnt: 10
+  max_read_node_cnt: 20               # Fixed
   io_write_node_ratio: 0.1
-  max_write_node_cnt: 10
+  max_write_node_cnt: 20              # Fixed
   io_buffer_size: 268435456B
-  read_bytes_preload_thres: 100000000
-  write_bytes_copy_thres:  2000000000
-  cleanup_threshold: 0.5
+  read_bytes_preload_thres: 1000000000  # Not doing copy *in* if job reads more than 1GB - Fixed
+  write_bytes_copy_thres:   2000000000  # Not doing copy *out* if job writes more than 2GB - Fixed
+  cleanup_threshold: 0.45               # Threshold for adding or not cleanup action to a job - Fixed 
   disk_templates:
     - &raid_OSS
       id: raid_OSS
-      capacity: 164000    # GB (~ 164 TB, obtained from 9.2PB total capacity / 56 OSS  - 1 OST per OSS)
+      capacity: 164000    # GB (~ 164 TB -> 41*6TB dRAID, for a total of 10PB on 56 OSS)
       read_bw: 2500       # MBps   theoretical 6GBps peak performance (https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf)
       write_bw: 1400      # MBps 
       mount_prefix: /dev/hdd
@@ -58,29 +58,29 @@ permanent_storage:
   read_path: read/
   write_path: write/
   disk_id: perm_disk0
-  io_buffer_size: 536870912B
+  io_buffer_size: 268435456B
 dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html - Dragonfly
-  groups: 12        # Entire Dragonfly zone (should be 4392 nodes in total, we use slightly more)
+  groups: 12        # Entire Dragonfly zone (should be 4392 nodes in total, we use slightly more) - FIXED
   group_links: 1
-  chassis: 6        # Per group
+  chassis: 6        # Per group 
   chassis_links: 1
   routers: 16       # Per chassis
   router_links: 1
   nodes: 4          # Per router
   core_count: 64    # Compute node core count - unused
   ram: 192          # GB Compute node ram
-  flops: 2Tf      # Flops for each compute node
-  max_compute_nodes: 4392
+  flops: 2Tf        # Flops for each compute node
+  max_compute_nodes: 4392 # Fixed (Value for Theta)
   node_local_storage:
-    enabled: no     # Not implemented yet anyway
-    nb_disks: 1
+    enabled: no     # Not implemented yet anyway - Fixed
+    nb_disks: 1     
     capacity: 128 # GB
     read_bw: 1000 # MBps      # https://docs.alcf.anl.gov/data-management/filesystem-and-storage/file-systems/
     write_bw: 500 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
 allocator: lustre
 lustre:
-  lq_threshold_rr: 43     # lustre default
-  lq_prio_free: 232       # lustre default
+  lq_threshold_rr: 43     # lustre default  - Fixed
+  lq_prio_free: 232       # lustre default  - Fixed 
   stripe_size: 268435456  # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
   stripe_count: 4         # Default number of OSTs used for each IO operation
   max_chunks_per_ost: 12  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)

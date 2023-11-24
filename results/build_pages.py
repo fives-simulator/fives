@@ -120,6 +120,8 @@ def build_previous_result(result_pages: list, pipeline_id: str):
     else: 
         metrics["commit_ts"] = datetime.strptime(metrics["commit_ts"], '%Y-%m-%dT%H:%M:%S%z').strftime('%a %d %b %Y, %H:%M')
     print(metrics["commit_ts"])
+    metrics["pstor_buff_size"] = calibrated_config["permanent_storage"]["io_buffer_size"]
+    metrics["stor_buff_size"] = calibrated_config["storage"]["io_buffer_size"]
 
     env = Environment(
         loader=FileSystemLoader("web_template"),

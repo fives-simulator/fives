@@ -520,7 +520,7 @@ jobs:
   endTime: '2022-01-29 05:34:22'
   id: 579811
   metaTimeSeconds: 659.12135
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 3270047680
   readTimeSeconds: 204.231306
@@ -767,7 +767,7 @@ jobs:
   endTime: '2022-01-29 03:50:40'
   id: 579903
   metaTimeSeconds: 132.64515
-  model: CW
+  model: RCW
   nodesUsed: 128
   readBytes: 149659326
   readTimeSeconds: 0.306704
@@ -976,7 +976,7 @@ jobs:
   endTime: '2022-01-29 07:31:05'
   id: 579917
   metaTimeSeconds: 695.1620760000001
-  model: RC
+  model: RCW
   nodesUsed: 256
   readBytes: 3269160892
   readTimeSeconds: 210.158425
@@ -1565,7 +1565,7 @@ jobs:
   endTime: '2022-01-29 08:40:59'
   id: 579979
   metaTimeSeconds: 178.175991
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 11.089618
@@ -1584,7 +1584,7 @@ jobs:
   endTime: '2022-01-29 09:07:15'
   id: 579984
   metaTimeSeconds: 176.524075
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 10.774355
@@ -1603,7 +1603,7 @@ jobs:
   endTime: '2022-01-29 09:14:32'
   id: 579986
   metaTimeSeconds: 175.040438
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 10.814036
@@ -1622,7 +1622,7 @@ jobs:
   endTime: '2022-01-29 09:21:45'
   id: 579988
   metaTimeSeconds: 178.081982
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 10.541642999999999
@@ -1641,7 +1641,7 @@ jobs:
   endTime: '2022-01-29 09:27:56'
   id: 579990
   metaTimeSeconds: 182.85796799999997
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 11.210134
@@ -1660,7 +1660,7 @@ jobs:
   endTime: '2022-01-29 09:35:27'
   id: 579991
   metaTimeSeconds: 177.394525
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 10.905304000000001
@@ -1679,7 +1679,7 @@ jobs:
   endTime: '2022-01-29 09:48:04'
   id: 579995
   metaTimeSeconds: 181.299321
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 119484416
   readTimeSeconds: 10.656357
@@ -3047,7 +3047,7 @@ jobs:
   endTime: '2022-01-30 18:18:47'
   id: 580206
   metaTimeSeconds: 471.520553
-  model: CW
+  model: RCW
   nodesUsed: 8
   readBytes: 114932736
   readTimeSeconds: 8.836115
@@ -3902,7 +3902,7 @@ jobs:
   endTime: '2022-01-31 22:11:40'
   id: 580441
   metaTimeSeconds: 9.65792
-  model: C
+  model: CW
   nodesUsed: 128
   readBytes: 4378000
   readTimeSeconds: 92.229386
@@ -4054,7 +4054,7 @@ jobs:
   endTime: '2022-02-01 02:51:53'
   id: 580502
   metaTimeSeconds: 698.406465
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 3264827332
   readTimeSeconds: 3227.393223
@@ -4187,7 +4187,7 @@ jobs:
   endTime: '2022-02-01 03:52:04'
   id: 580514
   metaTimeSeconds: 585.999425
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 3269916612
   readTimeSeconds: 2514.696593
@@ -5194,7 +5194,7 @@ jobs:
   endTime: '2022-02-02 21:44:51'
   id: 580820
   metaTimeSeconds: 59.767911
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 567098508
   readTimeSeconds: 34.841774
@@ -5574,7 +5574,7 @@ jobs:
   endTime: '2022-02-02 22:43:53'
   id: 580894
   metaTimeSeconds: 34.011291
-  model: C
+  model: RC
   nodesUsed: 8
   readBytes: 135638932
   readTimeSeconds: 39.109298
@@ -5821,7 +5821,7 @@ jobs:
   endTime: '2022-02-03 04:33:22'
   id: 580985
   metaTimeSeconds: 34.853203
-  model: C
+  model: RC
   nodesUsed: 8
   readBytes: 136634368
   readTimeSeconds: 38.476077000000004
@@ -6068,7 +6068,7 @@ jobs:
   endTime: '2022-02-03 19:21:10'
   id: 581178
   metaTimeSeconds: 30.679148
-  model: C
+  model: RC
   nodesUsed: 8
   readBytes: 136563968
   readTimeSeconds: 31.714695000000003
@@ -6448,7 +6448,7 @@ jobs:
   endTime: '2022-02-03 23:31:30'
   id: 581279
   metaTimeSeconds: 53.499837
-  model: RC
+  model: RCW
   nodesUsed: 8
   readBytes: 1375966944
   readTimeSeconds: 80.262536
@@ -6505,7 +6505,7 @@ jobs:
   endTime: '2022-02-04 02:30:43'
   id: 581330
   metaTimeSeconds: 36.726174
-  model: RC
+  model: RCW
   nodesUsed: 8
   readBytes: 211566832
   readTimeSeconds: 39.61705

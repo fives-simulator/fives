@@ -311,7 +311,7 @@ jobs:
   endTime: '2022-01-15 04:03:25'
   id: 575235
   metaTimeSeconds: 224.69752400000002
-  model: C
+  model: RC
   nodesUsed: 128
   readBytes: 188966245
   readTimeSeconds: 9.604739
@@ -349,7 +349,7 @@ jobs:
   endTime: '2022-01-15 15:57:16'
   id: 575254
   metaTimeSeconds: 219.784151
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 282707140
   readTimeSeconds: 9.696608999999999
@@ -425,7 +425,7 @@ jobs:
   endTime: '2022-01-15 19:32:19'
   id: 575270
   metaTimeSeconds: 216.34521999999998
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 282749902
   readTimeSeconds: 9.621198
@@ -501,7 +501,7 @@ jobs:
   endTime: '2022-01-16 01:21:52'
   id: 575298
   metaTimeSeconds: 215.202982
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 282759458
   readTimeSeconds: 9.774488
@@ -539,7 +539,7 @@ jobs:
   endTime: '2022-01-16 03:09:16'
   id: 575324
   metaTimeSeconds: 254.57266099999998
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 282751202
   readTimeSeconds: 9.743909
@@ -710,7 +710,7 @@ jobs:
   endTime: '2022-01-16 06:29:20'
   id: 575349
   metaTimeSeconds: 61.374044
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 282783689
   readTimeSeconds: 9.630287000000001
@@ -1090,7 +1090,7 @@ jobs:
   endTime: '2022-01-17 00:32:10'
   id: 575481
   metaTimeSeconds: 267.855295
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 128579
   readTimeSeconds: 0.077664
@@ -1128,7 +1128,7 @@ jobs:
   endTime: '2022-01-17 00:38:03'
   id: 575485
   metaTimeSeconds: 246.469222
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 77271
   readTimeSeconds: 0.046015
@@ -1147,7 +1147,7 @@ jobs:
   endTime: '2022-01-17 00:44:30'
   id: 575487
   metaTimeSeconds: 36.808408
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 5243
   readTimeSeconds: 0.004931
@@ -1166,7 +1166,7 @@ jobs:
   endTime: '2022-01-17 00:53:23'
   id: 575490
   metaTimeSeconds: 241.391546
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 77271
   readTimeSeconds: 0.048643
@@ -1185,7 +1185,7 @@ jobs:
   endTime: '2022-01-17 01:04:58'
   id: 575494
   metaTimeSeconds: 241.103708
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 77271
   readTimeSeconds: 0.036548
@@ -1204,7 +1204,7 @@ jobs:
   endTime: '2022-01-17 01:11:41'
   id: 575496
   metaTimeSeconds: 259.457302
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 128579
   readTimeSeconds: 0.071266
@@ -1527,7 +1527,7 @@ jobs:
   endTime: '2022-01-17 20:50:08'
   id: 575663
   metaTimeSeconds: 647.516948
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 424055
   readTimeSeconds: 0.073127
@@ -1546,7 +1546,7 @@ jobs:
   endTime: '2022-01-17 21:20:38'
   id: 575668
   metaTimeSeconds: 777.2127290000001
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 424303
   readTimeSeconds: 0.108051
@@ -1584,7 +1584,7 @@ jobs:
   endTime: '2022-01-17 21:27:51'
   id: 575671
   metaTimeSeconds: 647.2230609999999
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 372995
   readTimeSeconds: 0.064095
@@ -1603,7 +1603,7 @@ jobs:
   endTime: '2022-01-17 21:43:33'
   id: 575673
   metaTimeSeconds: 720.305408
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 239795
   readTimeSeconds: 0.031449
@@ -1736,7 +1736,7 @@ jobs:
   endTime: '2022-01-17 22:39:44'
   id: 575699
   metaTimeSeconds: 656.279468
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 373235
   readTimeSeconds: 0.105794
@@ -1774,7 +1774,7 @@ jobs:
   endTime: '2022-01-18 02:42:31'
   id: 575758
   metaTimeSeconds: 642.294547
-  model: C
+  model: CW
   nodesUsed: 8
   readBytes: 373235
   readTimeSeconds: 0.183317
@@ -2211,7 +2211,7 @@ jobs:
   endTime: '2022-01-18 19:39:08'
   id: 575893
   metaTimeSeconds: 679.913866
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 373235
   readTimeSeconds: 0.117492
@@ -2477,7 +2477,7 @@ jobs:
   endTime: '2022-01-18 22:44:58'
   id: 575946
   metaTimeSeconds: 634.438874
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 373235
   readTimeSeconds: 0.166143
@@ -2553,7 +2553,7 @@ jobs:
   endTime: '2022-01-19 00:28:04'
   id: 575968
   metaTimeSeconds: 1246.956121
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 239783
   readTimeSeconds: 0.091151
@@ -2610,7 +2610,7 @@ jobs:
   endTime: '2022-01-19 01:52:56'
   id: 575982
   metaTimeSeconds: 480.908752
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 239783
   readTimeSeconds: 0.111575
@@ -2781,7 +2781,7 @@ jobs:
   endTime: '2022-01-19 07:33:19'
   id: 576032
   metaTimeSeconds: 461.339097
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 239783
   readTimeSeconds: 0.09397
@@ -2800,7 +2800,7 @@ jobs:
   endTime: '2022-01-19 07:48:56'
   id: 576038
   metaTimeSeconds: 425.846391
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 239783
   readTimeSeconds: 0.104672
@@ -3085,7 +3085,7 @@ jobs:
   endTime: '2022-01-19 19:35:06'
   id: 576093
   metaTimeSeconds: 481.506884
-  model: RC
+  model: RCW
   nodesUsed: 256
   readBytes: 1194519468
   readTimeSeconds: 198.02713200000002
@@ -3446,7 +3446,7 @@ jobs:
   endTime: '2022-01-19 21:03:55'
   id: 576164
   metaTimeSeconds: 623.168263
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 1200031664
   readTimeSeconds: 154.415345
@@ -3484,7 +3484,7 @@ jobs:
   endTime: '2022-01-20 11:06:16'
   id: 576166
   metaTimeSeconds: 435.870771
-  model: RC
+  model: RCW
   nodesUsed: 128
   readBytes: 1200031664
   readTimeSeconds: 190.619212
@@ -3769,7 +3769,7 @@ jobs:
   endTime: '2022-01-19 22:04:45'
   id: 576213
   metaTimeSeconds: 708.1003939999999
-  model: C
+  model: CW
   nodesUsed: 2
   readBytes: 424543
   readTimeSeconds: 0.180876
@@ -4206,7 +4206,7 @@ jobs:
   endTime: '2022-01-21 21:05:05'
   id: 576421
   metaTimeSeconds: 33.858171999999996
-  model: RC
+  model: RCW
   nodesUsed: 256
   readBytes: 364407120
   readTimeSeconds: 46.359306000000004
@@ -5080,7 +5080,7 @@ jobs:
   endTime: '2022-01-21 23:13:17'
   id: 576803
   metaTimeSeconds: 7.07694
-  model: C
+  model: RC
   nodesUsed: 5
   readBytes: 128225908
   readTimeSeconds: 9.999525
@@ -5118,7 +5118,7 @@ jobs:
   endTime: '2022-01-21 23:19:04'
   id: 576806
   metaTimeSeconds: 3.688711
-  model: C
+  model: RC
   nodesUsed: 5
   readBytes: 128225908
   readTimeSeconds: 6.117613
@@ -5137,7 +5137,7 @@ jobs:
   endTime: '2022-01-21 23:22:05'
   id: 576808
   metaTimeSeconds: 4.293452
-  model: C
+  model: RC
   nodesUsed: 5
   readBytes: 128225908
   readTimeSeconds: 8.24239
@@ -5156,7 +5156,7 @@ jobs:
   endTime: '2022-01-21 23:24:51'
   id: 576809
   metaTimeSeconds: 6.405373
-  model: C
+  model: RC
   nodesUsed: 5
   readBytes: 128225908
   readTimeSeconds: 13.371016

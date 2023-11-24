@@ -123,7 +123,7 @@ AX_PARAMS = [
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 3, 4],
+        "values": [1, 2, 3, 4, 8, 12],
         "is_ordered": True,
         "value_type": "int",
     },
@@ -137,7 +137,7 @@ AX_PARAMS = [
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 3, 4],
+        "values": [1, 2, 3, 4, 8, 12],
         "is_ordered": True,
         "value_type": "int",
     },
@@ -160,13 +160,6 @@ AX_PARAMS = [
         "type": "range",
         "bounds": [1.5, 20],
         "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "cleanup_threshold",
-        "type": "range",
-        "bounds": [0.1, 1],
-        "digits": 2,
         "value_type": "float",
     },
 ]
@@ -217,7 +210,6 @@ def update_base_config(parametrization, base_config, cfg_name):
     io_read_node_ratio = parametrization.get("io_read_node_ratio")
     nb_files_per_write = parametrization.get("nb_files_per_write")
     io_write_node_ratio = parametrization.get("io_write_node_ratio")
-    cleanup_threshold = parametrization.get("cleanup_threshold")
 
     # Non-linear coefficient for altering read/write during concurrent disk access
     non_linear_coef_read = parametrization.get("non_linear_coef_read")
@@ -248,8 +240,6 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
     base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
-
-    base_config["storage"]["cleanup_threshold"] = cleanup_threshold
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
