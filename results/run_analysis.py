@@ -15,6 +15,7 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
+import statsmodels.api as sm
 
 CI_COMMIT_REF_NAME = os.getenv("CI_COMMIT_REF_NAME", default="UNKNOWN_COMMIT_REF")
 CI_COMMIT_SHORT_SHA = os.getenv("CI_COMMIT_SHORT_SHA", default="UNKNOWN_COMMIT_SHA")
@@ -79,6 +80,8 @@ def compute_runtime_diff(jobs, plotting=True):
     # Cohen's D
     runtime_cohen_d = cohend(sim_runtime, real_runtime)
 
+    ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
+    
     print(
         f"  - Mean runtime for simulation : {mean_sim_runtime}s\n"+
         f"  - Mean runtime in traces : {mean_real_runtime}s\n" +
@@ -119,7 +122,9 @@ def compute_runtime_diff(jobs, plotting=True):
         "runtime_correlation": float(runtime_corr),
         "runtime_cohend_effect": float(runtime_cohen_d),
         "mean_real_runtime": float(mean_real_runtime),
-        "mean_sim_runtime": float(mean_sim_runtime)
+        "mean_sim_runtime": float(mean_sim_runtime),
+        "ztest_runtime_tstat": float(ztest_runtime_tstat),
+        "ztest_runtime_pvalue": float(ztest_runtime_pvalue)
     }
 
 def compute_iotime_diff(jobs, plotting=True):
@@ -178,6 +183,8 @@ def compute_iotime_diff(jobs, plotting=True):
     # Cohen's D
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
+
     print(
         f"  - Mean IO time for simulation : {mean_sim_iotime}s\n" +
         f"  - Mean IO time in traces : {mean_real_io_time}s\n" +
@@ -223,6 +230,8 @@ def compute_iotime_diff(jobs, plotting=True):
         "iotime_cohend_effect": float(io_time_cohen_d),
         "mean_real_iotime": float(mean_real_io_time),
         "mean_sim_iotime": float(mean_sim_iotime),
+        "ztest_iotime_tstat": float(ztest_iotime_tstat),
+        "ztest_iotime_pvalue": float(ztest_iotime_pvalue)
     }
 
 def compute_iovolume_diff(jobs, plotting=True):

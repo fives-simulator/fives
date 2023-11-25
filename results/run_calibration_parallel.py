@@ -358,14 +358,18 @@ def process_results(result_filename: str):
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
+    # return {
+    #     "optimization_metric": (
+    #         abs(1 - runtime_corr)
+    #         + abs(1 - io_time_corr)
+    #         + abs(runtime_cohen_d)
+    #         + abs(io_time_cohen_d)
+    #     )
+    # }
     return {
         "optimization_metric": (
-            abs(1 - runtime_corr)
-            + abs(1 - io_time_corr)
-            + abs(runtime_cohen_d)
-            + abs(io_time_cohen_d)
-            + ztest_runtime
-            + ztest_iotime
+            ztest_runtime_tstat + 
+            ztest_iotime_tstat
         )
     }
 
