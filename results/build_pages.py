@@ -165,6 +165,9 @@ def build_current_results(result_pages: list):
         metrics["commit_ts"] =  "Unknown date" 
     else: 
         metrics["commit_ts"] =  datetime.strptime(metrics["commit_ts"], '%Y-%m-%dT%H:%M:%S%z').strftime('%a %d %b %Y, %H:%M')
+    
+    metrics["pstor_buff_size"] = calibrated_config["permanent_storage"]["io_buffer_size"]
+    metrics["stor_buff_size"] = calibrated_config["storage"]["io_buffer_size"]
 
     print(metrics["commit_ts"])
 
