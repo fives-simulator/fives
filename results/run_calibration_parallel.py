@@ -342,16 +342,12 @@ def process_results(result_filename: str):
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
     ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
     ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
-    ztest_runtime = 0
-    ztest_iotime = 0
 
     if abs(ztest_runtime_tstat) > 1.96 and ztest_runtime_pvalue < 0.01:
-        print("Statistically significant difference between simulated runtime values and real runtime values - degrading metric by 1")
-        ztest_runtime = 1
+        print("Statistically significant difference between simulated runtime values and real runtime values")
 
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
-        print("Statistically significant difference between simulated io time values and real io time values - degrading metric by 1")
-        ztest_iotime = 1
+        print("Statistically significant difference between simulated io time values and real io time values")
 
     runtime_corr, _ = pearsonr(sim_runtime, real_runtime)
     runtime_cohen_d = cohend(sim_runtime, real_runtime)
@@ -368,8 +364,8 @@ def process_results(result_filename: str):
     # }
     return {
         "optimization_metric": (
-            ztest_runtime_tstat + 
-            ztest_iotime_tstat
+            abs(ztest_runtime_tstat) + 
+            abs(ztest_iotime_tstat)
         )
     }
 
