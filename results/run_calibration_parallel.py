@@ -294,7 +294,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
-    stripe_count = 1
+    stripe_count = 8
     if stripe_count in parametrization:
         stripe_count = parametrization.get("stripe_count")
     

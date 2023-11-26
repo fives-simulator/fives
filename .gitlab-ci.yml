@@ -209,7 +209,7 @@ analysis-job:
 pages:
   stage: publish
   variables:
-    MAX_PIPELINES: 4
+    MAX_PIPELINES: 5
   script:
     - cd results
     - tree .
