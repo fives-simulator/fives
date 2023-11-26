@@ -164,6 +164,87 @@ AX_PARAMS = [
     },
 ]
 
+AX_PARAMS_REDUCED = [
+    {
+        "name": "bandwidth_backbone_storage",
+        "type": "range",
+        "bounds": [100, 240],  
+        "value_type": "int",
+    },
+    {
+        "name": "bandwidth_backbone_perm_storage",
+        "type": "range",
+        "bounds": [50, 100],
+        "value_type": "int",
+    },
+    {
+        "name": "permanent_storage_read_bw",
+        "type": "range",
+        "bounds": [10, 90],
+        "value_type": "int",
+    },
+    {
+        "name": "permanent_storage_write_bw",
+        "type": "range",
+        "bounds": [10, 90],
+        "value_type": "int",
+    },
+    {
+        "name": "amdahl",
+        "type": "range",
+        "bounds": [0.1, 0.8],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "flops",
+        "type": "range",
+        "bounds": [0.5, 2.6],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "disk_rb",
+        "type": "range",
+        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "disk_wb",
+        "type": "range",
+        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "choice",
+        "values": [1, 2, 10],
+        "is_ordered": True,
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "choice",
+        "values": [1, 2, 10],
+        "is_ordered": True,
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    }
+]
+
 
 def load_base_config(path: str):
     """Open configuration file that serves as base config, cleanup the dictionnary and return it"""
@@ -199,17 +280,36 @@ def update_base_config(parametrization, base_config, cfg_name):
     bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
     permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
     permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
-    preload_percent = parametrization.get("preload_percent")
+    
+    preload_percent = 0.1   
+    if "preload_percent" in parametrization:
+        preload_percent = parametrization.get("preload_percent")
+        
     amdahl = parametrization.get("amdahl")
     flops = parametrization.get("flops")
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
-    stripe_size = parametrization.get("stripe_size")
-    stripe_count = parametrization.get("stripe_count")
+    
+    stripe_size = 16777216
+    if "stripe_size" in parametrization:
+        stripe_size = parametrization.get("stripe_size")
+
+    stripe_count = 1
+    if stripe_count in parametrization:
+        stripe_count = parametrization.get("stripe_count")
+    
     nb_files_per_read = parametrization.get("nb_files_per_read")
-    io_read_node_ratio = parametrization.get("io_read_node_ratio")
+
+    io_read_node_ratio = 0.2
+    if "io_read_node_ratio" in parametrization:
+        io_read_node_ratio = parametrization.get("io_read_node_ratio")
+    
     nb_files_per_write = parametrization.get("nb_files_per_write")
-    io_write_node_ratio = parametrization.get("io_write_node_ratio")
+
+    io_write_node_ratio = 0.2
+    if "io_write_node_ratio" in parametrization:
+        io_write_node_ratio = parametrization.get("io_write_node_ratio")
+        
 
     # Non-linear coefficient for altering read/write during concurrent disk access
     non_linear_coef_read = parametrization.get("non_linear_coef_read")
@@ -506,7 +606,7 @@ def run_calibration():
     ax_client = AxClient(enforce_sequential_optimization=False)
     ax_client.create_experiment(
         name="StorallocWrench_ThetaExperiment",
-        parameters=AX_PARAMS,
+        parameters=AX_PARAMS_REDUCED,
         objectives={
             "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.05),
         },
