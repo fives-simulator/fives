@@ -146,7 +146,7 @@ def compute_iotime_diff(jobs, plotting=True):
     for job in jobs:
 
         # "Real"
-        r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+        r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"] # + job["real_cMetaTime_s"]
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"])
         real_write_time.append(job["real_cWriteTime_s"])
@@ -162,7 +162,7 @@ def compute_iotime_diff(jobs, plotting=True):
                 continue
             if action["act_type"] == "FILEREAD":
                 s_r_time += action["act_duration"]
-            if action["act_type"] == "CUSTOM":  # only custom action here is our custom write action
+            if action["act_type"] == "CUSTOM":  # only custom action out there is our custom write action
                 s_w_time += action["act_duration"]
             s_io_time += action["act_duration"]
 
@@ -215,7 +215,7 @@ def compute_iotime_diff(jobs, plotting=True):
         #axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.2])
 
-        binwidth = 100
+        binwidth = 10000
         real_hist = sns.histplot(data=real_io_time, binwidth=binwidth, ax=axs[1], color=REAL_COLOR)
         real_hist.set(xlabel=f"Real IO time - binwidth = {binwidth}s")
 
