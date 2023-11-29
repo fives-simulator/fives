@@ -609,7 +609,7 @@ namespace storalloc {
                 for (unsigned int i = 0; i < nb_stripes; i++) {
                     stripes_per_host_per_file[read_file].push_back(1);
                 }
-                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts, reading 1 stripes from the first %u hosts",
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts => reading 1 stripes from the first %u hosts",
                              jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
             } else {
                 unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
@@ -620,8 +620,8 @@ namespace storalloc {
                 for (unsigned int i = 0; i < remainder; i++) {
                     stripes_per_host_per_file[read_file][i] += 1;
                 }
-                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u stripes from each host and last host writes %u stripes",
-                             jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u or %u stripes from each host (%u hosts will read more)",
+                             jobPair.first.id.c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + 1, remainder);
             }
         }
 

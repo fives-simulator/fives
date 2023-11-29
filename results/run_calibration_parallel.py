@@ -403,10 +403,10 @@ def process_results(result_filename: str):
         # IO TIME
         r_io_time = (
             job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
-        ) / job["real_cores_used"]
+        )
         real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"] / job["real_cores_used"])
-        real_write_time.append(job["real_cWriteTime_s"] / job["real_cores_used"])
+        real_read_time.append(job["real_cReadTime_s"])
+        real_write_time.append(job["real_cWriteTime_s"])
 
         s_io_time = 0
         s_r_time = 0
