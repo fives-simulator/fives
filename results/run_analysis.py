@@ -146,10 +146,10 @@ def compute_iotime_diff(jobs, plotting=True):
     for job in jobs:
 
         # "Real"
-        r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["real_cores_used"]
+        r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
         real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"] / job["real_cores_used"])
-        real_write_time.append(job["real_cWriteTime_s"] / job["real_cores_used"])
+        real_read_time.append(job["real_cReadTime_s"])
+        real_write_time.append(job["real_cWriteTime_s"])
 
         # Simulated
         s_io_time = 0
