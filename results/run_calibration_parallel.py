@@ -300,13 +300,13 @@ def update_base_config(parametrization, base_config, cfg_name):
     
     nb_files_per_read = parametrization.get("nb_files_per_read")
 
-    io_read_node_ratio = 0.2
+    io_read_node_ratio = 0.3
     if "io_read_node_ratio" in parametrization:
         io_read_node_ratio = parametrization.get("io_read_node_ratio")
     
     nb_files_per_write = parametrization.get("nb_files_per_write")
 
-    io_write_node_ratio = 0.2
+    io_write_node_ratio = 0.3
     if "io_write_node_ratio" in parametrization:
         io_write_node_ratio = parametrization.get("io_write_node_ratio")
         
@@ -402,7 +402,7 @@ def process_results(result_filename: str):
 
         # IO TIME
         r_io_time = (
-            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+            job["real_cReadTime_s"] + job["real_cWriteTime_s"] # + job["real_cMetaTime_s"]
         )
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"])
