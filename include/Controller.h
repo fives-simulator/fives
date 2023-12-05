@@ -99,38 +99,40 @@ namespace storalloc {
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
                                                                                  std::shared_ptr<wrench::JobManager> internalJobManager,
                                                                                  std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+                                                                                 const storalloc::DarshanRecord &record,
                                                                                  unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
 
         virtual void readFromTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                        const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                        std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+                                       const storalloc::DarshanRecord &record,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs,
                                        unsigned int max_nb_hosts = 1);
-
-        virtual void compute(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                             const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                             std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair);
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                                                                 const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                                                                 std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+                                                                                const storalloc::DarshanRecord &record,
                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
 
         virtual void copyToPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                      const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                      std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+                                     const storalloc::DarshanRecord &record,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                      unsigned int max_nb_hosts = 1);
 
         virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                   std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+                                  const storalloc::DarshanRecord &record,
                                   std::vector<std::shared_ptr<wrench::DataFile>> inputs,
                                   bool cleanup_external = true);
 
         virtual void cleanupOutput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
                                    const std::shared_ptr<wrench::JobManager> &internalJobManager,
                                    std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+                                   const storalloc::DarshanRecord &record,
                                    std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                    bool cleanup_external = true);
 
