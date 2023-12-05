@@ -192,14 +192,14 @@ AX_PARAMS_REDUCED = [
     {
         "name": "amdahl",
         "type": "range",
-        "bounds": [0.1, 0.8],
+        "bounds": [0.3, 0.8],
         "digits": 2,
         "value_type": "float",
     },
     {
         "name": "flops",
         "type": "range",
-        "bounds": [0.5, 2.6],
+        "bounds": [1.6, 2.6],
         "digits": 2,
         "value_type": "float",
     },
@@ -218,14 +218,14 @@ AX_PARAMS_REDUCED = [
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 10],
+        "values": [1, 10, 100],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 10],
+        "values": [1, 10, 100],
         "is_ordered": True,
         "value_type": "int",
     },
