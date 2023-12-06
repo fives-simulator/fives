@@ -4,75 +4,75 @@ jobs:
   coresUsed: 64
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
-  endTime: '2023-01-01 00:09:00'
+  endTime: '2023-01-01 03:09:00'
   nodesUsed: 2
-  readBytes: 2000000000  # 2GB
-  walltimeSeconds: 7000
-  runtimeSeconds: 6000 # seconds
+  readBytes: 20000000  # 20 MB
+  walltimeSeconds: 4000
+  runtimeSeconds: 3000 # seconds
   sleepSimulationSeconds: 0
   waitingTimeSeconds: 10
   startTime: '2023-01-01 00:08:10'
   submissionTime: '2023-01-01 00:08:00'
-  writtenBytes: 2500000000 # 2.5GB
+  writtenBytes: 25000000 # 25 MB
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runs:
     - id: 1
       nprocs: 32
-      readBytes: 3000000000
-      writtenBytes: 1500000000
-      sleepDelay: 40
-      dStartTime: 1672528245
-      dEndTime: 1672529245
+      readBytes: 1000000000000
+      writtenBytes: 1250000000000
+      sleepDelay: 250
+      dStartTime: 1672528090
+      dEndTime: 1672530090
       runtime: 1000
     - id: 2
       nprocs: 32
-      readBytes: 3000000000
-      writtenBytes: 1500000000
-      sleepDelay: 80
-      dStartTime: 1672528285
-      dEndTime: 1672529285
+      readBytes: 1000000000000
+      writtenBytes: 1250000000000
+      sleepDelay: 105
+      dStartTime: 1672530390
+      dEndTime: 1672532390
       runtime: 1000
 - id: 2
   coresUsed: 64
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
-  endTime: '2023-01-01 00:08:00'
+  endTime: '2023-01-01 03:09:00'
   nodesUsed: 2
-  readBytes: 2000000000  # 2GB
-  walltimeSeconds: 7000
-  runtimeSeconds: 6000 # seconds
-  sleepSimulationSeconds: 0
+  readBytes: 20000000  # 20 MB
+  walltimeSeconds: 4000
+  runtimeSeconds: 3000 # seconds
+  sleepSimulationSeconds: 6000
   waitingTimeSeconds: 10
   startTime: '2023-01-01 00:08:10'
-  submissionTime: '2023-01-01 00:02:30'
-  writtenBytes: 2500000000 # 2.5GB
+  submissionTime: '2023-01-01 00:08:00'
+  writtenBytes: 25000000 # 25 MB
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runs:
     - id: 1
       nprocs: 32
-      readBytes: 3000000000
-      writtenBytes: 1500000000
-      sleepDelay: 40
-      dStartTime: 1672528245
-      dEndTime: 1672529245
+      readBytes: 1000000000000
+      writtenBytes: 1250000000000
+      sleepDelay: 250
+      dStartTime: 1672528090
+      dEndTime: 1672530090
       runtime: 1000
     - id: 2
       nprocs: 32
-      readBytes: 3000000000
-      writtenBytes: 1500000000
-      sleepDelay: 80
-      dStartTime: 1672528285
-      dEndTime: 1672529285
+      readBytes: 1000000000000
+      writtenBytes: 1250000000000
+      sleepDelay: 105
+      dStartTime: 1672530390
+      dEndTime: 1672532390
       runtime: 1000
 preload:
-  duration: 12000
+  duration: 6000
   first_ts: 1672528090
   job_count: 1
-  last_ts: 1672540090
+  last_ts: 1672534090
   max_interval_s: 0
   max_nodes_used: 2
   max_read_tbytes: 0.002
