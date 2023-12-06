@@ -188,8 +188,8 @@ namespace storalloc {
             for (const auto &run : job.runs) {
                 if (run.readBytes >= this->config->stor.read_bytes_preload_thres) {
 
-                    auto prefix = "preloaded_input_data_file_" + job.id + "_" + std::to_string(run.id);
-                    auto read_files = this->createFileParts(job.readBytes, this->config->stor.nb_files_per_read, prefix);
+                    auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
+                    auto read_files = this->createFileParts(run.readBytes, this->config->stor.nb_files_per_read, prefix);
 
                     for (const auto &read_file : read_files) {
                         auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
@@ -382,8 +382,9 @@ namespace storalloc {
                 0, 0, // RAM & num cores
                 [this, jobID](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
                     // Sub-job for each row in the Darshan log (corresponding to a monitored application / application run during the reservation)
-                    unsigned subJobCount = 0;
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
+
+                        wrench::S4U_Simulation::sleep(run.sleepDelay);
 
                         auto internalJobManager = action_executor->createJobManager();
                         auto actionExecutorService = action_executor->getActionExecutionService();
@@ -398,20 +399,20 @@ namespace storalloc {
                         nodes_nb_read = std::min(
                             std::min(nodes_nb_read, this->config->stor.max_read_node_cnt),
                             nprocs_nodes);
-                        WRENCH_DEBUG(" - [%s-%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), subJobCount, nodes_nb_read);
+                        WRENCH_DEBUG(" - [%s-%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), run.id, nodes_nb_read);
                         unsigned int nodes_nb_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
                         nodes_nb_write = std::min(
                             std::min(nodes_nb_write, this->config->stor.max_write_node_cnt),
                             nprocs_nodes);
-                        WRENCH_DEBUG(" - [%s-%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), subJobCount, nodes_nb_write);
+                        WRENCH_DEBUG(" - [%s-%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nodes_nb_write);
 
                         // 2. Sleep until it's time to start the subjob
-                        auto sleepUntilSubJob = internalJobManager->createCompoundJob(this->compound_jobs[jobID].first.id + "_sleepUntilSubJob" + std::to_string(subJobCount));
-                        sleepUntilSubJob->addSleepAction(this->compound_jobs[jobID].first.id + "_sleepUntilSubJob" + std::to_string(subJobCount), run.sleepDelay);
-                        internalJobManager->submitJob(sleepUntilSubJob, bare_metal);
-                        WRENCH_DEBUG("submitJob: sleep job submitted with 1 action");
-                        if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
-                            throw std::runtime_error("Sub-job 'sleepJob' " + sleepUntilSubJob->getName() + " failed");
+                        // auto sleepUntilSubJob = internalJobManager->createCompoundJob(this->compound_jobs[jobID].first.id + "_sleepUntilSubJob_" + std::to_string(run.id));
+                        // sleepUntilSubJob->addSleepAction(this->compound_jobs[jobID].first.id + "_sleepUntilSubJob_exec" + std::to_string(run.id), run.sleepDelay);
+                        // internalJobManager->submitJob(sleepUntilSubJob, bare_metal);
+                        // WRENCH_DEBUG("submitJob: sleep job submitted with 1 action");
+                        // if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
+                        //     throw std::runtime_error("Sub-job 'sleepJob' " + sleepUntilSubJob->getName() + " failed");
 
                         // 3. Start copy / read / write / copy jobs
                         bool cleanup_external_read = true;
@@ -448,8 +449,6 @@ namespace storalloc {
                             if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen))
                                 this->cleanupOutput(action_executor, internalJobManager, this->compound_jobs[jobID], run, output_data, cleanup_external_write);
                         }
-
-                        subJobCount++;
                     }
                 },
                 [jobID](std::shared_ptr<wrench::ActionExecutor> action_executor) {
@@ -511,7 +510,7 @@ namespace storalloc {
             if (remainder-- > 0) {
                 fileSize += 1;
             }
-            auto file_name = prefix_name + "_sub" + std::to_string(i);
+            auto file_name = prefix_name + "_part" + std::to_string(i);
             files.push_back(wrench::Simulation::addFile(file_name, fileSize));
             WRENCH_DEBUG("createFileParts: file %s created with size %lu and added to simulation", file_name.c_str(), fileSize);
         }
@@ -546,11 +545,11 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto copyJob = internalJobManager->createCompoundJob(jobPair.first.id + "_copyFromPermanent_" + std::to_string(record.id));
+        auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobPair.first.id + "_exec" + std::to_string(record.id));
         jobPair.second.push_back(copyJob);
 
         // Subdivide the amount of copied bytes between as many files as requested (one allocation per file)
-        auto prefix = "input_data_file_" + copyJob->getName();
+        auto prefix = "inputFile_" + copyJob->getName();
         auto read_files = this->createFileParts(record.readBytes, nb_files, prefix);
 
         // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
@@ -563,7 +562,7 @@ namespace storalloc {
         for (const auto &read_file : read_files) {
             auto source_location = wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, read_file);
             wrench::StorageService::createFileAtLocation(source_location);
-            auto action_id = "stagingCopy_" + read_file->getID();
+            auto action_id = "SC_" + read_file->getID();
             copyJob->addFileCopyAction(
                 action_id,
                 source_location,
@@ -596,7 +595,7 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto readJob = internalJobManager->createCompoundJob(jobPair.first.id + "_readFiles_" + std::to_string(record.id));
+        auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobPair.first.id + "_exec" + std::to_string(record.id));
         jobPair.second.push_back(readJob);
 
         if (max_nb_hosts == 0)
@@ -646,7 +645,7 @@ namespace storalloc {
             for (const auto &stripes_per_host : stripes_per_host_per_file[read_file]) {
                 WRENCH_DEBUG("[%s-%u] readFromTemporary: Creating read action for file %s and host %s", jobPair.first.id.c_str(), record.id, read_file->getID().c_str(), computeResourcesIt->first.c_str());
 
-                auto action_id = "fRead_f" + read_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
+                auto action_id = "FR_" + read_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
                 auto read_byte_per_node = stripe_size * stripes_per_host;
                 WRENCH_DEBUG("[%s-%u] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", jobPair.first.id.c_str(), record.id, stripes_per_host, read_byte_per_node);
 
@@ -679,7 +678,7 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto writeJob = internalJobManager->createCompoundJob(jobPair.first.id + "_writeFiles_" + std::to_string(record.id));
+        auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobPair.first.id + "_exec" + std::to_string(record.id));
         jobPair.second.push_back(writeJob);
 
         if (nb_files < 1) {
@@ -690,7 +689,7 @@ namespace storalloc {
         }
 
         // Subdivide the amount of written bytes between as many files as requested (one allocation per file)
-        auto prefix = "output_data_file_" + writeJob->getName();
+        auto prefix = "outputFile_" + writeJob->getName();
         auto write_files = this->createFileParts(record.writtenBytes, nb_files, prefix);
 
         // Compute what should be written by each host to each file (including remainder if values are not round)
@@ -743,7 +742,7 @@ namespace storalloc {
             for (const auto &stripes_per_host : stripes_per_host_per_file[write_file]) {
                 WRENCH_DEBUG("[%s-%u] writeToTemporary: Creating custom write action for file %s and host %s", jobPair.first.id.c_str(), record.id, write_file->getID().c_str(), computeResourcesIt->first.c_str());
 
-                auto action_id = "fWrite_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
+                auto action_id = "FW_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
                 auto write_byte_per_node = stripe_size * stripes_per_host;
                 WRENCH_DEBUG("[%s-%u] writeToTemporary:   We'll be writing %d stripes from this host, for a total of %f bytes from this host", jobPair.first.id.c_str(), record.id, stripes_per_host, write_byte_per_node);
 
@@ -799,7 +798,7 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto copyJob = internalJobManager->createCompoundJob(jobPair.first.id + "_copyToPermanent_" + std::to_string(record.id));
+        auto copyJob = internalJobManager->createCompoundJob("archiveCopy_id" + jobPair.first.id + "_exec" + std::to_string(record.id));
         jobPair.second.push_back(copyJob);
 
         if (nb_hosts == 0) {
@@ -816,7 +815,7 @@ namespace storalloc {
         std::map<std::string, std::string> service_specific_args = {};
         auto computeResourcesIt = computeResources.begin();
         for (const auto &output_data : outputs) {
-            auto action_id = "archiveCopy_" + jobPair.first.id + "_f" + output_data->getID();
+            auto action_id = "AC_" + output_data->getID();
             auto archiveAction = copyJob->addFileCopyAction(
                 action_id,
                 wrench::FileLocation::LOCATION(this->compound_storage_service, output_data),
@@ -846,14 +845,14 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto cleanupJob = internalJobManager->createCompoundJob(jobPair.first.id + "_cleanupInputFiles_" + std::to_string(record.id));
+        auto cleanupJob = internalJobManager->createCompoundJob("deleteInput_id" + jobPair.first.id + "_exec" + std::to_string(record.id));
         jobPair.second.push_back(cleanupJob);
 
         std::map<std::string, std::string> service_specific_args = {};
         auto computeResourcesIt = computeResources.begin();
         auto action_cnt = 0;
         for (const auto &input_data : inputs) {
-            auto del_id = "delRF_" + jobPair.first.id + "_" + std::to_string(record.id) + "_" + std::to_string(action_cnt);
+            auto del_id = "DRF_" + input_data->getID();
             auto deleteReadAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
             if (computeResourcesIt == computeResources.end()) {
                 computeResourcesIt = computeResources.begin();
@@ -864,7 +863,7 @@ namespace storalloc {
 
         if (cleanup_external) {
             for (const auto &input_data : inputs) {
-                auto del_id = "delERF_" + jobPair.first.id + "_" + std::to_string(record.id) + "_" + std::to_string(action_cnt);
+                auto del_id = "DERF_" + input_data->getID();
                 auto deleteExternalReadAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, input_data));
                 if (computeResourcesIt == computeResources.end()) {
                     computeResourcesIt = computeResources.begin();
@@ -893,14 +892,14 @@ namespace storalloc {
         auto actionExecutorService = action_executor->getActionExecutionService();
         auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
         auto computeResources = bare_metal->getPerHostNumCores();
-        auto cleanupJob = internalJobManager->createCompoundJob(jobPair.first.id + "_cleanupOutputFiles_" + std::to_string(record.id));
+        auto cleanupJob = internalJobManager->createCompoundJob("deleteOutput_id" + jobPair.first.id + "_exec" + std::to_string(record.id));
         jobPair.second.push_back(cleanupJob);
 
         std::map<std::string, std::string> service_specific_args = {};
         auto computeResourcesIt = computeResources.begin();
         auto action_cnt = 0;
         for (const auto &output_data : outputs) {
-            auto del_id = "delWF_" + jobPair.first.id + "_" + std::to_string(record.id) + "_" + std::to_string(action_cnt);
+            auto del_id = "DWF_" + output_data->getID();
             auto deleteWriteAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
             if (computeResourcesIt == computeResources.end()) {
                 computeResourcesIt = computeResources.begin();
@@ -911,7 +910,7 @@ namespace storalloc {
 
         if (cleanup_external) {
             for (const auto &output_data : outputs) {
-                auto del_id = "delEWF_" + jobPair.first.id + "_" + std::to_string(record.id) + "_" + std::to_string(action_cnt);
+                auto del_id = "DEWF_" + output_data->getID();
                 auto deleteExternalWriteAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.write_path, output_data));
                 if (computeResourcesIt == computeResources.end()) {
                     computeResourcesIt = computeResources.begin();
