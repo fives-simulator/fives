@@ -8,7 +8,6 @@ jobs:
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 7000
   runtimeSeconds: 6000 # seconds
-  approxComputeTimeSeconds: 2700
   sleepSimulationSeconds: 0
   waitingTimeSeconds: 10
   startTime: '2023-01-01 00:08:10'
@@ -17,7 +16,23 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runs:
+    - id: 1
+      nprocs: 1280
+      readBytes: 1000000000
+      writtenBytes: 1250000000
+      sleepDelay: 1000
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 2
+      nprocs: 1280
+      readBytes: 1000000000
+      writtenBytes: 1250000000
+      sleepDelay: 1500
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
 - coresUsed: 1280
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -25,9 +40,8 @@ jobs:
   id: job2
   nodesUsed: 20
   readBytes: 0  
-  walltimeSeconds: 3600
+  walltimeSeconds: 7000
   runtimeSeconds: 6300
-  approxComputeTimeSeconds: 2750
   sleepSimulationSeconds: 7500 # seconds
   waitingTimeSeconds: 5
   startTime: '2023-01-01 00:10:05'
@@ -36,7 +50,23 @@ jobs:
   readTimeSeconds: 0
   writeTimeSeconds: 35
   metaTimeSeconds: 256.299233
-  model: CW
+  runs:
+    - id: 1
+      nprocs: 640
+      readBytes: 0
+      writtenBytes: 1500000000
+      sleepDelay: 0
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 2
+      nprocs: 640
+      readBytes: 0
+      writtenBytes: 1500000000
+      sleepDelay: 0
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
 - coresUsed: 1280
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -46,7 +76,6 @@ jobs:
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 6000
   runtimeSeconds: 5700
-  approxComputeTimeSeconds: 2500
   sleepSimulationSeconds: 14100 # seconds
   waitingTimeSeconds: 60
   startTime: '2023-01-01 00:15:00'
@@ -55,7 +84,23 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0
   metaTimeSeconds: 256.299233
-  model: RC
+  runs:
+    - id: 1
+      nprocs: 640
+      readBytes: 1000000000
+      writtenBytes: 300
+      sleepDelay: 40
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 2
+      nprocs: 640
+      readBytes: 1000000000
+      writtenBytes: 310
+      sleepDelay: 80
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
 preload:        # Note : fake values mostly unrelated to the jobs in this dataset
   duration: 603971
   first_ts: 1646440956
