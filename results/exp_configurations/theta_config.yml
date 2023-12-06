@@ -10,7 +10,7 @@ general:
   config_name: StorAlloc_Theta_Lustre_fs0
   config_version: 0.0.1
   max_stripe_size: 100048576          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here) - Fixed
-  preload_percent: 0.1                #  
+  preload_percent: 0                  #  
   amdahl: 0.5                         # From 0 to 1, degree of // in compute tasks
   walltime_extension: 1.0             # The final walltime passed to the batch sched will be walltime * walltime_extension - Fixed
 network:
