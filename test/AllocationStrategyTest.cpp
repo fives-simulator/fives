@@ -1009,54 +1009,101 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto job_2 = ctrl->getCompletedJobsById("job2");
     auto job_3 = ctrl->getCompletedJobsById("job3");
 
-    ASSERT_EQ(job_1.size(), 8); // parent, copy, read, compute, write, copy, clean (x2)
-    ASSERT_EQ(job_2.size(), 5); // parent, compute, write, copy, clean (x1)
-    ASSERT_EQ(job_3.size(), 5); // parent, copy, read, compute, clean (x1)
+    // for (const auto &subjob : job_3) {
+    //     std::cout << subjob->getName() << std::endl;
+    // }
 
-    ASSERT_EQ(job_1[3]->getName(), "job1_compute");
-    ASSERT_EQ(job_1[4]->getName(), "job1_writeFiles");
-    ASSERT_EQ(job_2[4]->getName(), "job2_cleanupOutputFiles");
-    ASSERT_EQ(job_3[1]->getName(), "job3_copyFromPermanent");
+    ASSERT_EQ(job_1.size(), 11); // 2 sub jobs, R/W for each + archive copy + cleanup ; 2nd one does staging copy
+    ASSERT_EQ(job_2.size(), 10); // 3 sub jobs, write only
+    ASSERT_EQ(job_3.size(), 19); // parent, copy, read, compute, clean (x1)
 
-    ASSERT_TRUE(job_1[0]->getSubmitDate() <= job_1[1]->getSubmitDate());
-    ASSERT_TRUE(job_1[1]->getSubmitDate() <= job_1[2]->getSubmitDate());
-    ASSERT_TRUE(job_1[2]->getSubmitDate() <= job_1[3]->getSubmitDate());
-    ASSERT_TRUE(job_1[3]->getSubmitDate() <= job_1[4]->getSubmitDate());
-    ASSERT_TRUE(job_1[4]->getSubmitDate() <= job_1[5]->getSubmitDate());
-    ASSERT_TRUE(job_1[5]->getSubmitDate() <= job_1[6]->getSubmitDate());
-    ASSERT_TRUE(job_1[6]->getSubmitDate() <= job_1[7]->getSubmitDate());
+    ASSERT_EQ(job_1[0]->getName(), "job1");
+    ASSERT_EQ(job_2[0]->getName(), "job2");
+    ASSERT_EQ(job_3[0]->getName(), "job3");
 
-    ASSERT_TRUE(job_2[0]->getSubmitDate() <= job_2[1]->getSubmitDate());
-    ASSERT_TRUE(job_2[1]->getSubmitDate() <= job_2[2]->getSubmitDate());
-    ASSERT_TRUE(job_2[2]->getSubmitDate() <= job_2[3]->getSubmitDate());
-    ASSERT_TRUE(job_2[3]->getSubmitDate() <= job_2[4]->getSubmitDate());
+    ASSERT_EQ(job_1[2]->getName(), "writeFiles_idjob1_exec1");
+    ASSERT_EQ(job_1[3]->getName(), "archiveCopy_idjob1_exec1");
+    ASSERT_EQ(job_1[4]->getName(), "cleanupInput_idjob1_exec1");
+    ASSERT_EQ(job_1[6]->getName(), "stagingCopy_idjob1_exec2");
 
-    ASSERT_TRUE(job_3[0]->getSubmitDate() <= job_3[1]->getSubmitDate());
-    ASSERT_TRUE(job_3[1]->getSubmitDate() <= job_3[2]->getSubmitDate());
-    ASSERT_TRUE(job_3[2]->getSubmitDate() <= job_3[3]->getSubmitDate());
-    ASSERT_TRUE(job_3[3]->getSubmitDate() <= job_3[4]->getSubmitDate());
+    ASSERT_EQ(job_2[2]->getName(), "archiveCopy_idjob2_exec1");
+    ASSERT_EQ(job_2[3]->getName(), "cleanupOutput_idjob2_exec1");
+
+    ASSERT_EQ(job_3[1]->getName(), "stagingCopy_idjob3_exec1");
+    ASSERT_EQ(job_3[2]->getName(), "readFiles_idjob3_exec1");
+    ASSERT_EQ(job_3[4]->getName(), "stagingCopy_idjob3_exec2");
+
+    // JOB 1 (easy, all sequential)
+    for (unsigned int i = 0; i < 10; i++) {
+        ASSERT_TRUE(job_1[i]->getSubmitDate() <= job_1[i + 1]->getSubmitDate());
+    }
+
+    // JOB 2
+    for (unsigned int i = 1; i < 3; i++) {
+        ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 4; i < 6; i++) {
+        ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 7; i < 9; i++) {
+        ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
+    }
+
+    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[4]->getSubmitDate(), 1);
+    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[7]->getSubmitDate(), 1);
+
+    // JOB 3
+    for (unsigned int i = 1; i < 3; i++) {
+        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 4; i < 6; i++) {
+        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 7; i < 9; i++) {
+        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 10; i < 12; i++) {
+        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 13; i < 15; i++) {
+        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    }
+    for (unsigned int i = 16; i < 18; i++) {
+        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    }
+
+    ASSERT_TRUE(job_3[4]->getSubmitDate() <= job_3[3]->getSubmitDate());
+    ASSERT_TRUE(job_3[16]->getSubmitDate() <= job_3[3]->getSubmitDate());
 
     // Introspection in parent job for job 1
     auto parent1 = job_1[0];
     ASSERT_EQ(parent1->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(parent1->hasSuccessfullyCompleted());
-    ASSERT_NEAR(parent1->getSubmitDate(), 0, 2);
-    ASSERT_EQ(parent1->getActions().size(), 1); // one custom action
+    ASSERT_NEAR(parent1->getSubmitDate(), 60, 1);
+    ASSERT_EQ(parent1->getActions().size(), 2); // one custom action
     ASSERT_EQ(wrench::Action::getActionTypeAsString(*(parent1->getActions().begin())), "CUSTOM-");
     ASSERT_EQ(parent1->getName(), "job1");
     ASSERT_EQ(parent1->getMinimumRequiredNumCores(), 0);
 
+    // Parent job 2
+    auto parent2 = job_2[0];
+    ASSERT_NEAR(parent2->getSubmitDate(), 3860, 1);
+
+    // Parent job 3
+    auto parent3 = job_3[0];
+    ASSERT_NEAR(parent3->getSubmitDate(), 3860, 1);
+
     // Introspection in one of the sub jobs
-    auto write2 = job_2[2];
-    ASSERT_EQ(write2->getName(), "job2_writeFiles");
+    auto write2 = job_2[1];
+    ASSERT_EQ(write2->getName(), "writeFiles_idjob2_exec1");
     ASSERT_EQ(write2->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(write2->hasSuccessfullyCompleted());
     auto write2Actions = write2->getActions();
     ASSERT_EQ(write2Actions.size(), 4); // Configuration using 2 nodes / 2 files = 4 write actions in the job
     std::vector<std::string> fileNames{
-        "output_data_file_job2_writeFiles_sub0",
-        "output_data_file_job2_writeFiles_sub1"};
-    regex reg("fWrite_output_data_file_job2_writeFiles_sub[0,1]_compute\\d+_act[0-3]");
+        "outputFile_writeFiles_idjob2_exec1_part0",
+        "outputFile_writeFiles_idjob2_exec1_part1"};
+    regex reg("FW_outputFile_writeFiles_idjob2_exec1_part[0,1]_compute\\d+_act[0-3]");
     for (const auto &act : write2Actions) {
         auto action_name = act->getName();
         std::smatch base_match;
@@ -1065,7 +1112,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
         auto customWriteAcion = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(act);
         auto file = customWriteAcion->getFile();
         ASSERT_NE(std::find(fileNames.begin(), fileNames.end(), file->getID()), fileNames.end());
-        ASSERT_EQ(file->getSize(), 3000000000 / 2);
+        ASSERT_EQ(file->getSize(), 7500000000);
 
         // Each for each action, each 2 nodes involved writes to half of each part (in this case it works
         // neatly, but sometimes the last host will write a few more stripes)
@@ -1077,7 +1124,6 @@ void FunctionalAllocTest::lustreFullSim_test() {
     for (const auto &parent : {job_1, job_2, job_3}) {
         auto parent_job_start_date = parent[0]->getActions().begin()->get()->getStartDate();
         auto parent_job_end_date = parent[0]->getActions().begin()->get()->getEndDate();
-        double last_job_action_end_date = 0;
         for (const auto &job : parent) {
             if ((job->getName() == "job1") or (job->getName() == "job2") or (job->getName() == "job3")) {
                 continue;
@@ -1091,14 +1137,9 @@ void FunctionalAllocTest::lustreFullSim_test() {
                 auto action_end_date = action->getEndDate();
 
                 ASSERT_TRUE(action_start_date >= last_job_submit_date);
-                ASSERT_TRUE(action_start_date >= last_job_action_end_date);
-
                 ASSERT_TRUE(action_start_date <= action_end_date);
                 ASSERT_TRUE(action_start_date >= parent_job_start_date);
                 ASSERT_TRUE(action_end_date <= parent_job_end_date);
-
-                if (--action_count == 0)
-                    last_job_action_end_date = action->getEndDate();
             }
         }
     }
@@ -1117,7 +1158,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
         {wrench::IOAction::None, "None"},
     };
 
-    const uint64_t initialFreeSpace = 20000000000;
+    const uint64_t initialFreeSpace = 200000000000;
     // only the first file stripe name is included in the trace, and the
     // parts_count field actually informs on the number of stripes for the file
     std::map<std::string, uint64_t> fileSizes{
@@ -1137,7 +1178,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
     double last_ts = 0;
     std::map<std::string, uint64_t> currentOSTUsage{};
 
-    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 1 + 40);
+    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 213);
     for (const auto &trace : compound_storage_service->internal_storage_use) {
         ASSERT_TRUE(trace.first >= last_ts);
         ASSERT_EQ(trace.first, trace.second.ts);
