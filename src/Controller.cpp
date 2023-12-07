@@ -374,7 +374,7 @@ namespace storalloc {
          * This is because some jobs have internal scripts or interactive behaviours that make the
          * reservation stay alive even though nothing much might be happening on the nodes
          */
-        parentJob->addSleepAction("fullRuntimeSleep", static_cast<double>(yJob.runtimeSeconds));
+        parentJob->addSleepAction("fullRuntimeSleep", static_cast<double>(std::min(yJob.runtimeSeconds, yJob.walltimeSeconds - 1)));
 
         // In // add the actual workload taken from Darshan traces (there might not be any)
         if (yJob.runs.size() != 0) {
@@ -384,10 +384,11 @@ namespace storalloc {
                 0, 0, // RAM & num cores
                 [this, jobID](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
                     // Internal job manager used to create jobs for all Darshan records
-                    auto internalJobManager = action_executor->createJobManager();
-                    auto actionExecutorService = action_executor->getActionExecutionService();
+
                     // BareMetalComputeService gives access to the list of resources for this reservation, used by actions which require
                     // some service_specific_arguments.
+                    auto internalJobManager = action_executor->createJobManager();
+                    auto actionExecutorService = action_executor->getActionExecutionService();
                     auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
 
                     std::map<std::string, std::map<std::string, std::string>> service_specific_args;
@@ -395,7 +396,10 @@ namespace storalloc {
                     // Create and keep trace of all exec_jobs for each of the Darshan records / monitored runs of an application
                     // inside the reservation  -- DO NOT SUBMIT JOBS IN THIS LOOP
                     std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> exec_jobs;
+
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
+
+                        WRENCH_INFO("submitJob : bare_metal compute service for job %s :: %s", jobID.c_str(), bare_metal->getName().c_str());
 
                         exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
 
@@ -412,6 +416,14 @@ namespace storalloc {
                         nodes_nb_write = std::min(std::min(nodes_nb_write, this->config->stor.max_write_node_cnt), nprocs_nodes);
                         WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nodes_nb_write);
 
+                        if (run.sleepDelay != 0) {
+                            auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
+                            sleepJob->addSleepAction("sleep", run.sleepDelay);
+                            exec_jobs[run.id].push_back(sleepJob);
+                            service_specific_args[sleepJob->getName()] = std::map<std::string, std::string>();
+                            service_specific_args[sleepJob->getName()]["sleep"] = {};
+                        }
+
                         // 2. Create copy / read / write / copy jobs
                         bool cleanup_external_read = true;
                         bool cleanup_external_write = true;
@@ -424,6 +436,9 @@ namespace storalloc {
                                 // Copy job before the read
                                 auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
                                 input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, this->config->stor.nb_files_per_read, nodes_nb_read);
+                                if (exec_jobs[run.id].size() != 0) {
+                                    exec_jobs[run.id].back()->addChildJob(copyJob);
+                                }
                                 exec_jobs[run.id].push_back(copyJob);
                             } else {
                                 // No need for copy jobs, files have been created already
@@ -480,16 +495,26 @@ namespace storalloc {
                         }
 
                         // Keep trace of all jobs for later analysis
-                        this->compound_jobs[jobID].second.insert(
-                            this->compound_jobs[jobID].second.end(),
-                            exec_jobs[run.id].begin(),
-                            exec_jobs[run.id].end());
+
+                        for (const auto &job : exec_jobs[run.id]) {
+                            if (job->getName().substr(0, 5) == "sleep") {
+                                continue;
+                            }
+                            this->compound_jobs[jobID].second.push_back(job);
+                        }
                     }
 
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
-                        wrench::S4U_Simulation::sleep(run.sleepDelay);
+                        // wrench::S4U_Simulation::sleep(run.sleepDelay);
                         for (const auto &subJob : exec_jobs[run.id]) {
                             WRENCH_DEBUG("Submitting job %s with %lu actions", subJob->getName().c_str(), subJob->getActions().size());
+                            if (bare_metal->hasReturnedFromMain()) {
+                                WRENCH_DEBUG("Bare metal service has already returned from main");
+                            }
+                            if (bare_metal->getState() != wrench::S4U_Daemon::State::UP) {
+                                WRENCH_DEBUG("Bare metal service is not up anymore");
+                            }
+                            WRENCH_DEBUG("Using internal job manager %s and bare_metal %s", internalJobManager->getName().c_str(), bare_metal->getName().c_str());
                             internalJobManager->submitJob(subJob, bare_metal, service_specific_args[subJob->getName()]);
                         }
                     }
