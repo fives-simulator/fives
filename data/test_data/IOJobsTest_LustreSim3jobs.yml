@@ -1,103 +1,143 @@
 jobs:
 - coresUsed: 1280
-  coreHoursReq: 3.0
-  coreHoursUsed: 2.5
-  endTime: '2023-01-01 00:09:00'
+  coreHoursReq: 1280
+  coreHoursUsed: 984.5
+  endTime: '2023-01-01 14:54:34'
   id: job1
-  nodesUsed: 20
-  readBytes: 2000000000  # 2GB
-  walltimeSeconds: 7000
-  runtimeSeconds: 6000 # seconds
-  sleepSimulationSeconds: 0
+  nodesUsed: 20       # With a config using offering 32 nodes
+  readBytes: 20000000000  # 20GB
+  walltimeSeconds: 3600   # 1 h
+  runtimeSeconds: 2769 # seconds
+  sleepSimulationSeconds: 60      # Start the first job after 1 min in simulation time
   waitingTimeSeconds: 10
-  startTime: '2023-01-01 00:08:10'
-  submissionTime: '2023-01-01 00:08:00'
-  writtenBytes: 2500000000 # 2.5GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
-  metaTimeSeconds: 256.299233
+  startTime: '2023-01-01 14:08:10'
+  submissionTime: '2023-01-01 14:08:00'
+  writtenBytes: 25000000000 # 25 GB
+  readTimeSeconds: 1000   # arbitrary
+  writeTimeSeconds: 1400  # arbitrary
+  metaTimeSeconds: 458.29 # arbitrary
   runs:
     - id: 1
       nprocs: 1280
-      readBytes: 1000000000
-      writtenBytes: 1250000000
-      sleepDelay: 1000
-      dStartTime: 1672528245
-      dEndTime: 1672529245
+      readBytes: 15000000000      # Read 3/4 of the total read bytes
+      writtenBytes: 12500000000   # Write 1/2 of the total
+      sleepDelay: 450            # Start this execution 1000s in the reservation
+      dStartTime: 1672528245      # fake
+      dEndTime: 1672529245        # Fake
       runtime: 1000
     - id: 2
       nprocs: 1280
-      readBytes: 1000000000
-      writtenBytes: 1250000000
-      sleepDelay: 1500
-      dStartTime: 1672528285
-      dEndTime: 1672529285
+      readBytes: 5000000000       # Read the remaining 1/4
+      writtenBytes: 12500000000   # Write the other 1/2
+      sleepDelay: 1050             # Start this execution 1750s in the reservation
+      dStartTime: 1672528285      # fake
+      dEndTime: 1672529285        # fake
       runtime: 1000
-- coresUsed: 1280
+- coresUsed: 960
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
-  endTime: '2023-01-01 00:11:00'
+  endTime: '2023-01-01 17:15:47'
   id: job2
-  nodesUsed: 20
+  nodesUsed: 15
   readBytes: 0  
-  walltimeSeconds: 7000
-  runtimeSeconds: 6300
-  sleepSimulationSeconds: 7500 # seconds
-  waitingTimeSeconds: 5
-  startTime: '2023-01-01 00:10:05'
-  submissionTime: '2023-01-01 00:10:00'
-  writtenBytes: 3000000000 # 3GB
+  walltimeSeconds: 7200
+  runtimeSeconds: 7100
+  sleepSimulationSeconds: 3800 # seconds
+  waitingTimeSeconds: 1157
+  startTime: '2023-01-01 15:30:47'
+  submissionTime: '2023-01-01 15:11:30'
+  writtenBytes: 45000000000 # 45GB
   readTimeSeconds: 0
-  writeTimeSeconds: 35
+  writeTimeSeconds: 3000
   metaTimeSeconds: 256.299233
   runs:
     - id: 1
-      nprocs: 640
+      nprocs: 320
       readBytes: 0
-      writtenBytes: 1500000000
+      writtenBytes: 15000000000
       sleepDelay: 0
-      dStartTime: 1672528245
-      dEndTime: 1672529245
+      dStartTime: 1672583447
+      dEndTime: 1672584447
       runtime: 1000
     - id: 2
-      nprocs: 640
+      nprocs: 320
       readBytes: 0
-      writtenBytes: 1500000000
+      writtenBytes: 15000000000
       sleepDelay: 0
-      dStartTime: 1672528285
-      dEndTime: 1672529285
+      dStartTime: 1672583447
+      dEndTime: 1672584447
       runtime: 1000
-- coresUsed: 1280
+    - id: 3
+      nprocs: 320
+      readBytes: 0
+      writtenBytes: 15000000000
+      sleepDelay: 0
+      dStartTime: 1672583447
+      dEndTime: 1672584447
+      runtime: 1000
+- coresUsed: 768
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
-  endTime: '2023-01-01 00:15:45'
+  endTime: '2023-01-01 18:15:45'
   id: job3
-  nodesUsed: 20
-  readBytes: 2000000000  # 2GB
-  walltimeSeconds: 6000
-  runtimeSeconds: 5700
-  sleepSimulationSeconds: 14100 # seconds
-  waitingTimeSeconds: 60
-  startTime: '2023-01-01 00:15:00'
-  submissionTime: '2023-01-01 00:14:00'
+  nodesUsed: 12
+  readBytes: 24000000000  # 20GB
+  walltimeSeconds: 10800
+  runtimeSeconds: 8000
+  sleepSimulationSeconds: 0 # seconds -> submitted at the same time as job 2
+  waitingTimeSeconds: 1157
+  startTime: '2023-01-01 15:30:47'
+  submissionTime: '2023-01-01 15:11:30'
   writtenBytes: 0 
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0
   metaTimeSeconds: 256.299233
   runs:
     - id: 1
-      nprocs: 640
-      readBytes: 1000000000
-      writtenBytes: 300
+      nprocs: 128
+      readBytes: 4000000000
+      writtenBytes: 0
       sleepDelay: 40
       dStartTime: 1672528245
       dEndTime: 1672529245
       runtime: 1000
     - id: 2
-      nprocs: 640
-      readBytes: 1000000000
-      writtenBytes: 310
+      nprocs: 128
+      readBytes: 4000000000
+      writtenBytes: 0
       sleepDelay: 80
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
+    - id: 3
+      nprocs: 128
+      readBytes: 4000000000
+      writtenBytes: 0
+      sleepDelay: 120
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 4
+      nprocs: 128
+      readBytes: 4000000000
+      writtenBytes: 0
+      sleepDelay: 160
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
+    - id: 5
+      nprocs: 128
+      readBytes: 4000000000
+      writtenBytes: 0
+      sleepDelay: 200
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 6
+      nprocs: 128
+      readBytes: 4000000000
+      writtenBytes: 0
+      sleepDelay: 240
       dStartTime: 1672528285
       dEndTime: 1672529285
       runtime: 1000

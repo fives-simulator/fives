@@ -438,7 +438,6 @@ namespace storalloc {
                                 exec_jobs[run.id].back()->addChildJob(readJob); // Add dependencies between jobs (but inside a job, actions are //)
                             }
                             exec_jobs[run.id].push_back(readJob);
-                            this->compound_jobs[jobID].second.push_back(readJob);
                         }
 
                         // 2.2 WRITE
@@ -452,7 +451,7 @@ namespace storalloc {
                             }
                             exec_jobs[run.id].push_back(writeJob);
 
-                            if (this->compound_jobs[jobID].first.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
+                            if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
                                 auto copyJob = internalJobManager->createCompoundJob("archiveCopy_id" + jobID + "_exec" + std::to_string(run.id));
                                 this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nodes_nb_write);
                                 exec_jobs[run.id].back()->addChildJob(copyJob);
@@ -1237,9 +1236,9 @@ namespace storalloc {
             double earliest_action_start_time = UINT64_MAX;
             // Note that we start at ++begin(), to skip the first job (parent) in vector
             for (auto it = job_list.begin(); it < job_list.end(); it++) {
-                // WRENCH_DEBUG("Actions of job %s : ", it->get()->getName().c_str());
+                WRENCH_DEBUG("Actions of job %s : ", it->get()->getName().c_str());
                 auto actions = (it->get())->getActions();
-                // WRENCH_DEBUG(" ->> %lu", actions.size());
+                WRENCH_DEBUG(" ->> %lu", actions.size());
                 processActions(out_jobs, out_actions, actions, earliest_action_start_time);
             }
 
