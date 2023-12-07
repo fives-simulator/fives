@@ -16,12 +16,13 @@ jobs:
   readTimeSeconds: 1000   # arbitrary
   writeTimeSeconds: 1400  # arbitrary
   metaTimeSeconds: 458.29 # arbitrary
+  runsCount: 2
   runs:
     - id: 1
       nprocs: 1280
       readBytes: 15000000000      # Read 3/4 of the total read bytes
       writtenBytes: 8000000000    #  Write 8GB out of 25
-      sleepDelay: 450             # Start this execution 1000s in the reservation
+      sleepDelay: 450             # Start this execution 450s in the reservation
       dStartTime: 1672528245      # fake
       dEndTime: 1672529245        # Fake
       runtime: 1000
@@ -29,7 +30,7 @@ jobs:
       nprocs: 1280
       readBytes: 5000000000       # Read the remaining 1/4
       writtenBytes: 17000000000   # Write 17GB (remainer)
-      sleepDelay: 1050             # Start this execution 1750s in the reservation
+      sleepDelay: 1550             # Start this execution 1550s in the reservation 
       dStartTime: 1672528285      # fake
       dEndTime: 1672529285        # fake
       runtime: 1000
@@ -50,6 +51,7 @@ jobs:
   readTimeSeconds: 0
   writeTimeSeconds: 3000
   metaTimeSeconds: 256.299233
+  runsCount: 3
   runs:
     - id: 1
       nprocs: 320
@@ -92,6 +94,7 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0
   metaTimeSeconds: 256.299233
+  runsCount: 6
   runs:
     - id: 1
       nprocs: 128

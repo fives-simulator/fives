@@ -67,27 +67,6 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
-        "name": "preload_percent",
-        "type": "choice",
-        "is_ordered": True,
-        "values": [0.1, 0.2, 0.3, 0.4],
-        "value_type": "float",
-    },
-    {
-        "name": "amdahl",
-        "type": "range",
-        "bounds": [0.1, 0.9],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "flops",
-        "type": "range",
-        "bounds": [1, 2.6],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
         "name": "disk_rb",
         "type": "range",
         "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
@@ -98,6 +77,58 @@ AX_PARAMS = [
         "type": "range",
         "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "choice",
+        "values": [1, 2, 3, 4, 8],
+        "is_ordered": True,
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "choice",
+        "values": [1, 2, 3, 4, 8],
+        "is_ordered": True,
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+]
+
+""" UNUSED PARAMS
+    {
+        "name": "preload_percent",
+        "type": "choice",
+        "is_ordered": True,
+        "values": [0.1, 0.2, 0.3, 0.4],
+        "value_type": "float",
+    },
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.2, 0.5],
+        "digits": 2,
+        "value_type": "float",
+    },
+    {
+        "name": "io_read_node_ratio",
+        "type": "range",
+        "bounds": [0.2, 0.5],
+        "digits": 2,
+        "value_type": "float",
     },
     {
         "name": "stripe_size",
@@ -117,134 +148,10 @@ AX_PARAMS = [
     {
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 4],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
-    {
-        "name": "nb_files_per_read",
-        "type": "choice",
-        "values": [1, 2, 3, 4, 8, 12],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "io_read_node_ratio",
-        "type": "range",
-        "bounds": [0.05, 0.5],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "choice",
-        "values": [1, 2, 3, 4, 8, 12],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "io_write_node_ratio",
-        "type": "range",
-        "bounds": [0.05, 0.5],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "non_linear_coef_read",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "non_linear_coef_write",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-]
-
-AX_PARAMS_REDUCED = [
-    {
-        "name": "bandwidth_backbone_storage",
-        "type": "range",
-        "bounds": [100, 240],  
-        "value_type": "int",
-    },
-    {
-        "name": "bandwidth_backbone_perm_storage",
-        "type": "range",
-        "bounds": [50, 100],
-        "value_type": "int",
-    },
-    {
-        "name": "permanent_storage_read_bw",
-        "type": "range",
-        "bounds": [10, 90],
-        "value_type": "int",
-    },
-    {
-        "name": "permanent_storage_write_bw",
-        "type": "range",
-        "bounds": [10, 90],
-        "value_type": "int",
-    },
-    {
-        "name": "amdahl",
-        "type": "range",
-        "bounds": [0.3, 0.8],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "flops",
-        "type": "range",
-        "bounds": [1.6, 2.6],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "disk_rb",
-        "type": "range",
-        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
-        "value_type": "int",
-    },
-    {
-        "name": "disk_wb",
-        "type": "range",
-        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_read",
-        "type": "choice",
-        "values": [1, 10, 100],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "choice",
-        "values": [1, 10, 100],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "non_linear_coef_read",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "non_linear_coef_write",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    }
-]
-
+"""
 
 def load_base_config(path: str):
     """Open configuration file that serves as base config, cleanup the dictionnary and return it"""
@@ -281,12 +188,10 @@ def update_base_config(parametrization, base_config, cfg_name):
     permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
     permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
     
-    preload_percent = 0.1   
+    preload_percent = 0   
     if "preload_percent" in parametrization:
         preload_percent = parametrization.get("preload_percent")
         
-    amdahl = parametrization.get("amdahl")
-    flops = parametrization.get("flops")
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
     
@@ -294,7 +199,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
-    stripe_count = 8
+    stripe_count = 4
     if stripe_count in parametrization:
         stripe_count = parametrization.get("stripe_count")
     
@@ -319,8 +224,6 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
     base_config["general"]["preload_percent"] = preload_percent
-    base_config["general"]["amdahl"] = amdahl
-    base_config["dragonfly"]["flops"] = f"{flops}Tf"
     base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
     base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
     base_config["permanent_storage"][
@@ -380,11 +283,6 @@ def process_results(result_filename: str):
     with open(f"./exp_results/{result_filename}", "r", encoding="utf-8") as job_results:
         results = yaml.load(job_results, Loader=yaml.CLoader)
 
-    # RUNTIME
-    runtime_diffs = []
-    sim_runtime = []
-    real_runtime = []
-
     # IO TIME
     io_time_diff = []
     sim_io_time = []
@@ -395,14 +293,10 @@ def process_results(result_filename: str):
     real_write_time = []
 
     for job in results:
-        # RUNTIME
-        runtime_diffs.append(abs(job["job_runtime_s"] - job["real_runtime_s"]))
-        sim_runtime.append(job["job_runtime_s"])
-        real_runtime.append(job["real_runtime_s"])
 
         # IO TIME
         r_io_time = (
-            job["real_cReadTime_s"] + job["real_cWriteTime_s"] # + job["real_cMetaTime_s"]
+            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
         )
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"])
@@ -440,31 +334,22 @@ def process_results(result_filename: str):
 
         
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
-    ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
     ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
-
-    if abs(ztest_runtime_tstat) > 1.96 and ztest_runtime_pvalue < 0.01:
-        print("Statistically significant difference between simulated runtime values and real runtime values")
 
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
         print("Statistically significant difference between simulated io time values and real io time values")
 
-    runtime_corr, _ = pearsonr(sim_runtime, real_runtime)
-    runtime_cohen_d = cohend(sim_runtime, real_runtime)
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
     # return {
     #     "optimization_metric": (
-    #         abs(1 - runtime_corr)
     #         + abs(1 - io_time_corr)
-    #         + abs(runtime_cohen_d)
     #         + abs(io_time_cohen_d)
     #     )
     # }
     return {
         "optimization_metric": (
-            abs(ztest_runtime_tstat) + 
             abs(ztest_iotime_tstat)
         )
     }
@@ -603,12 +488,12 @@ def run_calibration():
 
     base_config = load_base_config(CONFIGURATION_BASE)
 
-    ax_client = AxClient(enforce_sequential_optimization=False)
+    ax_client = AxClient() # enforce_sequential_optimization=False)
     ax_client.create_experiment(
         name="StorallocWrench_ThetaExperiment",
-        parameters=AX_PARAMS_REDUCED,
+        parameters=AX_PARAMS,
         objectives={
-            "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.05),
+            "optimization_metric": ObjectiveProperties(minimize=True),
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
