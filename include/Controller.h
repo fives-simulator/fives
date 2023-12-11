@@ -136,13 +136,16 @@ namespace storalloc {
 
         void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
-                            double &job_start_time);
+                            double &job_start_time,
+                            const std::string &job_id);
 
         void pruneIONodes(std::map<std::string, unsigned long> &resources, unsigned int max_nb_hosts) const;
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
+
+        std::map<std::string, std::map<unsigned int, std::pair<unsigned int, unsigned int>>> node_rw_count;
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
 

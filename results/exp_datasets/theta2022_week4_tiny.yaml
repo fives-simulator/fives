@@ -47,6 +47,7 @@ jobs:
   sleepSimulationSeconds: 7
   startTime: '2022-01-15 01:01:03'
   submissionTime: '2022-01-12 05:04:47'
+  sum_nprocs: 131072
   waitingTimeSeconds: 0
   walltimeSeconds: 86400
   writeTimeSeconds: 972515498.5505399
@@ -98,6 +99,7 @@ jobs:
   sleepSimulationSeconds: 12
   startTime: '2022-01-16 04:27:32'
   submissionTime: '2022-01-12 05:04:59'
+  sum_nprocs: 131072
   waitingTimeSeconds: 343353
   walltimeSeconds: 86400
   writeTimeSeconds: 992099342.2672509
@@ -149,6 +151,7 @@ jobs:
   sleepSimulationSeconds: 7
   startTime: '2022-01-17 05:42:21'
   submissionTime: '2022-01-12 05:05:06'
+  sum_nprocs: 131072
   waitingTimeSeconds: 434235
   walltimeSeconds: 86400
   writeTimeSeconds: 973778768.651575
@@ -200,6 +203,7 @@ jobs:
   sleepSimulationSeconds: 13
   startTime: '2022-01-18 11:09:15'
   submissionTime: '2022-01-12 05:05:19'
+  sum_nprocs: 131072
   waitingTimeSeconds: 540236
   walltimeSeconds: 86400
   writeTimeSeconds: 1017671209.8208051
@@ -251,6 +255,7 @@ jobs:
   sleepSimulationSeconds: 18
   startTime: '2022-01-19 20:02:18'
   submissionTime: '2022-01-12 05:05:37'
+  sum_nprocs: 131072
   waitingTimeSeconds: 658601
   walltimeSeconds: 86400
   writeTimeSeconds: 1010207397.537597
@@ -278,6 +283,7 @@ jobs:
   sleepSimulationSeconds: 4306
   startTime: '2022-01-16 11:58:00'
   submissionTime: '2022-01-12 10:59:30'
+  sum_nprocs: 16384
   waitingTimeSeconds: 349110
   walltimeSeconds: 21600
   writeTimeSeconds: 1.555351
@@ -305,6 +311,7 @@ jobs:
   sleepSimulationSeconds: 161
   startTime: '2022-01-17 04:29:34'
   submissionTime: '2022-01-12 11:02:11'
+  sum_nprocs: 8192
   waitingTimeSeconds: 408443
   walltimeSeconds: 21600
   writeTimeSeconds: 1.249188
@@ -332,6 +339,7 @@ jobs:
   sleepSimulationSeconds: 1667
   startTime: '2022-01-15 16:39:06'
   submissionTime: '2022-01-13 15:14:04'
+  sum_nprocs: 5120
   waitingTimeSeconds: 177902
   walltimeSeconds: 43200
   writeTimeSeconds: 1189423.245363
@@ -359,6 +367,7 @@ jobs:
   sleepSimulationSeconds: 40
   startTime: '2022-01-15 13:01:56'
   submissionTime: '2022-01-13 16:28:34'
+  sum_nprocs: 16384
   waitingTimeSeconds: 160402
   walltimeSeconds: 21600
   writeTimeSeconds: 782355.80207
@@ -386,6 +395,7 @@ jobs:
   sleepSimulationSeconds: 2972
   startTime: '2022-01-16 12:10:30'
   submissionTime: '2022-01-13 23:50:51'
+  sum_nprocs: 16384
   waitingTimeSeconds: 217179
   walltimeSeconds: 21600
   writeTimeSeconds: 0.001112
@@ -413,6 +423,7 @@ jobs:
   sleepSimulationSeconds: 2670
   startTime: '2022-01-16 00:43:49'
   submissionTime: '2022-01-14 17:02:59'
+  sum_nprocs: 10240
   waitingTimeSeconds: 114050
   walltimeSeconds: 43200
   writeTimeSeconds: 2513630.060332
@@ -560,6 +571,7 @@ jobs:
   sleepSimulationSeconds: 8909
   startTime: '2022-01-15 01:06:23'
   submissionTime: '2022-01-14 19:54:02'
+  sum_nprocs: 4096
   waitingTimeSeconds: 18741
   walltimeSeconds: 10800
   writeTimeSeconds: 461.392561
@@ -587,6 +599,7 @@ jobs:
   sleepSimulationSeconds: 3389
   startTime: '2022-01-15 13:01:34'
   submissionTime: '2022-01-14 20:55:34'
+  sum_nprocs: 256
   waitingTimeSeconds: 57960
   walltimeSeconds: 21600
   writeTimeSeconds: 272.949213
@@ -614,6 +627,7 @@ jobs:
   sleepSimulationSeconds: 273
   startTime: '2022-01-15 13:01:34'
   submissionTime: '2022-01-14 23:04:49'
+  sum_nprocs: 32768
   waitingTimeSeconds: 50205
   walltimeSeconds: 32400
   writeTimeSeconds: 21354619.712844
@@ -633,6 +647,7 @@ jobs:
   sleepSimulationSeconds: 2678
   startTime: '2022-01-15 01:18:20'
   submissionTime: '2022-01-14 23:49:27'
+  sum_nprocs: 512
   waitingTimeSeconds: 5333
   walltimeSeconds: 3600
   writeTimeSeconds: 0.0
@@ -652,6 +667,7 @@ jobs:
   sleepSimulationSeconds: 1288
   startTime: '2022-01-15 03:10:05'
   submissionTime: '2022-01-15 00:10:55'
+  sum_nprocs: 512
   waitingTimeSeconds: 10750
   walltimeSeconds: 5400
   writeTimeSeconds: 0.0
@@ -679,6 +695,7 @@ jobs:
   sleepSimulationSeconds: 8012
   startTime: '2022-01-15 03:09:16'
   submissionTime: '2022-01-15 02:24:27'
+  sum_nprocs: 8065
   waitingTimeSeconds: 2689
   walltimeSeconds: 1800
   writeTimeSeconds: 2.9446109999999996
@@ -706,6 +723,7 @@ jobs:
   sleepSimulationSeconds: 6062
   startTime: '2022-01-15 04:05:47'
   submissionTime: '2022-01-15 04:05:29'
+  sum_nprocs: 8064
   waitingTimeSeconds: 18
   walltimeSeconds: 1800
   writeTimeSeconds: 13.34734
@@ -733,6 +751,7 @@ jobs:
   sleepSimulationSeconds: 9935
   startTime: '2022-01-15 15:22:56'
   submissionTime: '2022-01-15 06:51:04'
+  sum_nprocs: 8065
   waitingTimeSeconds: 30712
   walltimeSeconds: 3600
   writeTimeSeconds: 15.374146999999999
@@ -752,6 +771,7 @@ jobs:
   sleepSimulationSeconds: 1302
   startTime: '2022-01-15 07:12:52'
   submissionTime: '2022-01-15 07:12:46'
+  sum_nprocs: 512
   waitingTimeSeconds: 6
   walltimeSeconds: 3600
   writeTimeSeconds: 0.0
@@ -771,6 +791,7 @@ jobs:
   sleepSimulationSeconds: 339
   startTime: '2022-01-16 00:44:42'
   submissionTime: '2022-01-15 07:18:25'
+  sum_nprocs: 512
   waitingTimeSeconds: 62777
   walltimeSeconds: 3600
   writeTimeSeconds: 0.0
@@ -790,6 +811,7 @@ jobs:
   sleepSimulationSeconds: 26046
   startTime: '2022-01-15 22:03:09'
   submissionTime: '2022-01-15 14:32:31'
+  sum_nprocs: 16384
   waitingTimeSeconds: 27038
   walltimeSeconds: 21540
   writeTimeSeconds: 0.0
@@ -817,6 +839,7 @@ jobs:
   sleepSimulationSeconds: 7274
   startTime: '2022-01-15 18:55:57'
   submissionTime: '2022-01-15 16:33:45'
+  sum_nprocs: 8065
   waitingTimeSeconds: 8532
   walltimeSeconds: 3600
   writeTimeSeconds: 15.275139
@@ -844,6 +867,7 @@ jobs:
   sleepSimulationSeconds: 7622
   startTime: '2022-01-15 23:21:42'
   submissionTime: '2022-01-15 18:40:47'
+  sum_nprocs: 128
   waitingTimeSeconds: 16855
   walltimeSeconds: 10800
   writeTimeSeconds: 0.328593
@@ -871,6 +895,7 @@ jobs:
   sleepSimulationSeconds: 4946
   startTime: '2022-01-16 00:23:55'
   submissionTime: '2022-01-15 20:03:13'
+  sum_nprocs: 32768
   waitingTimeSeconds: 15642
   walltimeSeconds: 32400
   writeTimeSeconds: 21940756.232495
@@ -898,6 +923,7 @@ jobs:
   sleepSimulationSeconds: 951
   startTime: '2022-01-16 12:12:10'
   submissionTime: '2022-01-15 20:19:04'
+  sum_nprocs: 16384
   waitingTimeSeconds: 57186
   walltimeSeconds: 21600
   writeTimeSeconds: 0.000772
@@ -925,6 +951,7 @@ jobs:
   sleepSimulationSeconds: 2392
   startTime: '2022-01-16 00:45:24'
   submissionTime: '2022-01-15 20:58:56'
+  sum_nprocs: 8065
   waitingTimeSeconds: 13588
   walltimeSeconds: 3600
   writeTimeSeconds: 15.319938
@@ -952,6 +979,7 @@ jobs:
   sleepSimulationSeconds: 4123
   startTime: '2022-01-16 00:43:42'
   submissionTime: '2022-01-15 22:07:39'
+  sum_nprocs: 16384
   waitingTimeSeconds: 9363
   walltimeSeconds: 21540
   writeTimeSeconds: 15638.997677
@@ -979,6 +1007,7 @@ jobs:
   sleepSimulationSeconds: 15868
   startTime: '2022-01-16 02:32:44'
   submissionTime: '2022-01-16 02:32:07'
+  sum_nprocs: 8065
   waitingTimeSeconds: 37
   walltimeSeconds: 3600
   writeTimeSeconds: 15.334522999999999
@@ -1006,6 +1035,7 @@ jobs:
   sleepSimulationSeconds: 232
   startTime: '2022-01-16 08:44:07'
   submissionTime: '2022-01-16 02:35:59'
+  sum_nprocs: 10240
   waitingTimeSeconds: 22088
   walltimeSeconds: 43200
   writeTimeSeconds: 2526446.060349
@@ -1033,6 +1063,7 @@ jobs:
   sleepSimulationSeconds: 56
   startTime: '2022-01-16 23:01:40'
   submissionTime: '2022-01-16 02:36:55'
+  sum_nprocs: 10240
   waitingTimeSeconds: 73485
   walltimeSeconds: 43200
   writeTimeSeconds: 2538988.0253959997
@@ -1060,6 +1091,7 @@ jobs:
   sleepSimulationSeconds: 66
   startTime: '2022-01-18 02:29:53'
   submissionTime: '2022-01-16 02:38:01'
+  sum_nprocs: 10240
   waitingTimeSeconds: 172312
   walltimeSeconds: 43200
   writeTimeSeconds: 2503301.9302689997
@@ -1087,6 +1119,7 @@ jobs:
   sleepSimulationSeconds: 2723
   startTime: '2022-01-16 12:17:59'
   submissionTime: '2022-01-16 03:23:24'
+  sum_nprocs: 16384
   waitingTimeSeconds: 32075
   walltimeSeconds: 21600
   writeTimeSeconds: 0.000777
@@ -1106,6 +1139,7 @@ jobs:
   sleepSimulationSeconds: 3398
   startTime: '2022-01-16 04:44:39'
   submissionTime: '2022-01-16 04:20:02'
+  sum_nprocs: 8065
   waitingTimeSeconds: 1477
   walltimeSeconds: 3600
   writeTimeSeconds: 0.035401999999999996
@@ -1125,6 +1159,7 @@ jobs:
   sleepSimulationSeconds: 1269
   startTime: '2022-01-16 06:28:00'
   submissionTime: '2022-01-16 04:41:11'
+  sum_nprocs: 2048
   waitingTimeSeconds: 6409
   walltimeSeconds: 5400
   writeTimeSeconds: 0.0
@@ -1144,6 +1179,7 @@ jobs:
   sleepSimulationSeconds: 6
   startTime: '2022-01-16 06:27:47'
   submissionTime: '2022-01-16 04:41:17'
+  sum_nprocs: 2048
   waitingTimeSeconds: 6390
   walltimeSeconds: 5400
   writeTimeSeconds: 0.0
@@ -1163,6 +1199,7 @@ jobs:
   sleepSimulationSeconds: 3672
   startTime: '2022-01-16 05:42:32'
   submissionTime: '2022-01-16 05:42:29'
+  sum_nprocs: 8192
   waitingTimeSeconds: 3
   walltimeSeconds: 3600
   writeTimeSeconds: 0.030693
@@ -1190,6 +1227,7 @@ jobs:
   sleepSimulationSeconds: 632
   startTime: '2022-01-16 05:53:05'
   submissionTime: '2022-01-16 05:53:01'
+  sum_nprocs: 4097
   waitingTimeSeconds: 4
   walltimeSeconds: 3600
   writeTimeSeconds: 15.230646
@@ -1209,6 +1247,7 @@ jobs:
   sleepSimulationSeconds: 2945
   startTime: '2022-01-16 06:42:08'
   submissionTime: '2022-01-16 06:42:06'
+  sum_nprocs: 1
   waitingTimeSeconds: 2
   walltimeSeconds: 10800
   writeTimeSeconds: 0.004151
@@ -1228,6 +1267,7 @@ jobs:
   sleepSimulationSeconds: 1653
   startTime: '2022-01-16 07:09:41'
   submissionTime: '2022-01-16 07:09:39'
+  sum_nprocs: 28
   waitingTimeSeconds: 2
   walltimeSeconds: 1200
   writeTimeSeconds: 0.002219
@@ -1247,6 +1287,7 @@ jobs:
   sleepSimulationSeconds: 926
   startTime: '2022-01-16 07:25:09'
   submissionTime: '2022-01-16 07:25:05'
+  sum_nprocs: 8
   waitingTimeSeconds: 4
   walltimeSeconds: 1200
   writeTimeSeconds: 0.000875
@@ -1266,6 +1307,7 @@ jobs:
   sleepSimulationSeconds: 1283
   startTime: '2022-01-16 07:47:05'
   submissionTime: '2022-01-16 07:46:28'
+  sum_nprocs: 8192
   waitingTimeSeconds: 37
   walltimeSeconds: 10800
   writeTimeSeconds: 0.028992
@@ -1285,6 +1327,7 @@ jobs:
   sleepSimulationSeconds: 269
   startTime: '2022-01-16 07:51:29'
   submissionTime: '2022-01-16 07:50:57'
+  sum_nprocs: 2
   waitingTimeSeconds: 32
   walltimeSeconds: 300
   writeTimeSeconds: 0.0007650000000000001
@@ -1304,6 +1347,7 @@ jobs:
   sleepSimulationSeconds: 116
   startTime: '2022-01-16 07:53:56'
   submissionTime: '2022-01-16 07:52:53'
+  sum_nprocs: 4
   waitingTimeSeconds: 63
   walltimeSeconds: 1200
   writeTimeSeconds: 0.00031099999999999997
@@ -1331,6 +1375,7 @@ jobs:
   sleepSimulationSeconds: 13305
   startTime: '2022-01-16 11:35:14'
   submissionTime: '2022-01-16 11:34:38'
+  sum_nprocs: 32768
   waitingTimeSeconds: 36
   walltimeSeconds: 32400
   writeTimeSeconds: 22209360.113259003
@@ -1358,6 +1403,7 @@ jobs:
   sleepSimulationSeconds: 11979
   startTime: '2022-01-16 15:48:10'
   submissionTime: '2022-01-16 14:54:17'
+  sum_nprocs: 16384
   waitingTimeSeconds: 3233
   walltimeSeconds: 21540
   writeTimeSeconds: 21.495593
@@ -1377,6 +1423,7 @@ jobs:
   sleepSimulationSeconds: 4485
   startTime: '2022-01-16 16:12:04'
   submissionTime: '2022-01-16 16:09:02'
+  sum_nprocs: 512
   waitingTimeSeconds: 182
   walltimeSeconds: 3600
   writeTimeSeconds: 0.001394
@@ -1396,6 +1443,7 @@ jobs:
   sleepSimulationSeconds: 1021
   startTime: '2022-01-16 16:26:38'
   submissionTime: '2022-01-16 16:26:03'
+  sum_nprocs: 512
   waitingTimeSeconds: 35
   walltimeSeconds: 3600
   writeTimeSeconds: 0.001284
@@ -1415,6 +1463,7 @@ jobs:
   sleepSimulationSeconds: 16
   startTime: '2022-01-16 18:03:49'
   submissionTime: '2022-01-16 16:26:19'
+  sum_nprocs: 2048
   waitingTimeSeconds: 5850
   walltimeSeconds: 16200
   writeTimeSeconds: 0.0
@@ -1434,6 +1483,7 @@ jobs:
   sleepSimulationSeconds: 206
   startTime: '2022-01-16 16:32:09'
   submissionTime: '2022-01-16 16:29:45'
+  sum_nprocs: 512
   waitingTimeSeconds: 144
   walltimeSeconds: 3600
   writeTimeSeconds: 0.001236
@@ -1453,6 +1503,7 @@ jobs:
   sleepSimulationSeconds: 61
   startTime: '2022-01-16 18:12:24'
   submissionTime: '2022-01-16 16:30:46'
+  sum_nprocs: 2048
   waitingTimeSeconds: 6098
   walltimeSeconds: 16200
   writeTimeSeconds: 0.0
@@ -1480,6 +1531,7 @@ jobs:
   sleepSimulationSeconds: 1181
   startTime: '2022-01-21 12:41:23'
   submissionTime: '2022-01-16 16:50:27'
+  sum_nprocs: 10240
   waitingTimeSeconds: 417056
   walltimeSeconds: 43200
   writeTimeSeconds: 2524060.5298349997
@@ -1507,6 +1559,7 @@ jobs:
   sleepSimulationSeconds: 6626
   startTime: '2022-01-16 20:24:32'
   submissionTime: '2022-01-16 18:50:23'
+  sum_nprocs: 32768
   waitingTimeSeconds: 5649
   walltimeSeconds: 32400
   writeTimeSeconds: 21451559.109557
@@ -1526,6 +1579,7 @@ jobs:
   sleepSimulationSeconds: 12655
   startTime: '2022-01-16 22:21:59'
   submissionTime: '2022-01-16 22:21:18'
+  sum_nprocs: 32
   waitingTimeSeconds: 41
   walltimeSeconds: 3600
   writeTimeSeconds: 0.0
@@ -1793,6 +1847,7 @@ jobs:
   sleepSimulationSeconds: 1158
   startTime: '2022-01-17 04:28:55'
   submissionTime: '2022-01-16 22:40:36'
+  sum_nprocs: 63488
   waitingTimeSeconds: 20899
   walltimeSeconds: 7200
   writeTimeSeconds: 1368.523432
@@ -1820,6 +1875,7 @@ jobs:
   sleepSimulationSeconds: 4456
   startTime: '2022-01-17 02:28:05'
   submissionTime: '2022-01-16 23:54:52'
+  sum_nprocs: 16384
   waitingTimeSeconds: 9193
   walltimeSeconds: 21540
   writeTimeSeconds: 16920.977349
@@ -1839,6 +1895,7 @@ jobs:
   sleepSimulationSeconds: 1798
   startTime: '2022-01-17 00:25:30'
   submissionTime: '2022-01-17 00:24:50'
+  sum_nprocs: 512
   waitingTimeSeconds: 40
   walltimeSeconds: 3600
   writeTimeSeconds: 0.001971
@@ -1866,6 +1923,7 @@ jobs:
   sleepSimulationSeconds: 110
   startTime: '2022-01-17 00:27:19'
   submissionTime: '2022-01-17 00:26:40'
+  sum_nprocs: 32
   waitingTimeSeconds: 39
   walltimeSeconds: 1800
   writeTimeSeconds: 10.637168999999998
@@ -1885,6 +1943,7 @@ jobs:
   sleepSimulationSeconds: 249
   startTime: '2022-01-17 00:31:30'
   submissionTime: '2022-01-17 00:30:49'
+  sum_nprocs: 512
   waitingTimeSeconds: 41
   walltimeSeconds: 3600
   writeTimeSeconds: 0.007873
@@ -1912,6 +1971,7 @@ jobs:
   sleepSimulationSeconds: 172
   startTime: '2022-01-17 00:34:24'
   submissionTime: '2022-01-17 00:33:41'
+  sum_nprocs: 32
   waitingTimeSeconds: 43
   walltimeSeconds: 1800
   writeTimeSeconds: 9.679056
@@ -1939,6 +1999,7 @@ jobs:
   sleepSimulationSeconds: 291
   startTime: '2022-01-17 00:39:23'
   submissionTime: '2022-01-17 00:38:32'
+  sum_nprocs: 6
   waitingTimeSeconds: 51
   walltimeSeconds: 1800
   writeTimeSeconds: 7.811209
@@ -1966,6 +2027,7 @@ jobs:
   sleepSimulationSeconds: 615
   startTime: '2022-01-17 00:49:38'
   submissionTime: '2022-01-17 00:48:47'
+  sum_nprocs: 32
   waitingTimeSeconds: 51
   walltimeSeconds: 1800
   writeTimeSeconds: 10.194384000000001
@@ -1993,6 +2055,7 @@ jobs:
   sleepSimulationSeconds: 706
   startTime: '2022-01-17 01:01:16'
   submissionTime: '2022-01-17 01:00:33'
+  sum_nprocs: 32
   waitingTimeSeconds: 43
   walltimeSeconds: 1800
   writeTimeSeconds: 9.835344
@@ -2020,6 +2083,7 @@ jobs:
   sleepSimulationSeconds: 308
   startTime: '2022-01-17 01:06:18'
   submissionTime: '2022-01-17 01:05:41'
+  sum_nprocs: 32
   waitingTimeSeconds: 37
   walltimeSeconds: 1800
   writeTimeSeconds: 9.265635
@@ -2047,6 +2111,7 @@ jobs:
   sleepSimulationSeconds: 8901
   startTime: '2022-01-17 03:34:42'
   submissionTime: '2022-01-17 03:34:02'
+  sum_nprocs: 32768
   waitingTimeSeconds: 40
   walltimeSeconds: 32400
   writeTimeSeconds: 21642319.169271998
@@ -2066,6 +2131,7 @@ jobs:
   sleepSimulationSeconds: 12940
   startTime: '2022-01-17 07:09:44'
   submissionTime: '2022-01-17 07:09:42'
+  sum_nprocs: 28
   waitingTimeSeconds: 2
   walltimeSeconds: 1200
   writeTimeSeconds: 0.002208
@@ -2085,6 +2151,7 @@ jobs:
   sleepSimulationSeconds: 945
   startTime: '2022-01-17 07:25:30'
   submissionTime: '2022-01-17 07:25:27'
+  sum_nprocs: 8
   waitingTimeSeconds: 3
   walltimeSeconds: 1200
   writeTimeSeconds: 0.000782
@@ -2104,6 +2171,7 @@ jobs:
   sleepSimulationSeconds: 1606
   startTime: '2022-01-17 07:52:55'
   submissionTime: '2022-01-17 07:52:13'
+  sum_nprocs: 2
   waitingTimeSeconds: 42
   walltimeSeconds: 300
   writeTimeSeconds: 0.000789
@@ -2123,6 +2191,7 @@ jobs:
   sleepSimulationSeconds: 140
   startTime: '2022-01-17 07:55:13'
   submissionTime: '2022-01-17 07:54:33'
+  sum_nprocs: 4
   waitingTimeSeconds: 40
   walltimeSeconds: 1200
   writeTimeSeconds: 0.000312
@@ -2286,6 +2355,7 @@ jobs:
   sleepSimulationSeconds: 6509
   startTime: '2022-01-17 10:56:03'
   submissionTime: '2022-01-17 09:43:02'
+  sum_nprocs: 4608
   waitingTimeSeconds: 4381
   walltimeSeconds: 21600
   writeTimeSeconds: 6445.373849
@@ -2313,6 +2383,7 @@ jobs:
   sleepSimulationSeconds: 11255
   startTime: '2022-01-18 02:05:09'
   submissionTime: '2022-01-17 12:50:37'
+  sum_nprocs: 32768
   waitingTimeSeconds: 47672
   walltimeSeconds: 32400
   writeTimeSeconds: 21695074.280397996
@@ -2580,6 +2651,7 @@ jobs:
   sleepSimulationSeconds: 7977
   startTime: '2022-01-18 00:16:23'
   submissionTime: '2022-01-17 15:03:34'
+  sum_nprocs: 63488
   waitingTimeSeconds: 33169
   walltimeSeconds: 21600
   writeTimeSeconds: 813.935597
@@ -2607,6 +2679,7 @@ jobs:
   sleepSimulationSeconds: 225
   startTime: '2022-01-18 10:29:03'
   submissionTime: '2022-01-17 15:07:19'
+  sum_nprocs: 16384
   waitingTimeSeconds: 69704
   walltimeSeconds: 21540
   writeTimeSeconds: 16851.515281
@@ -2634,6 +2707,7 @@ jobs:
   sleepSimulationSeconds: 2329
   startTime: '2022-01-18 00:16:27'
   submissionTime: '2022-01-17 15:46:08'
+  sum_nprocs: 15482
   waitingTimeSeconds: 30619
   walltimeSeconds: 3000
   writeTimeSeconds: 3709933.236698
@@ -2661,6 +2735,7 @@ jobs:
   sleepSimulationSeconds: 1
   startTime: '2022-01-18 00:16:46'
   submissionTime: '2022-01-17 15:46:09'
+  sum_nprocs: 7376
   waitingTimeSeconds: 30637
   walltimeSeconds: 3000
   writeTimeSeconds: 805543.74458
@@ -2688,6 +2763,7 @@ jobs:
   sleepSimulationSeconds: 2042
   startTime: '2022-01-17 16:20:51'
   submissionTime: '2022-01-17 16:20:11'
+  sum_nprocs: 60
   waitingTimeSeconds: 40
   walltimeSeconds: 3480
   writeTimeSeconds: 403.187672
@@ -2715,6 +2791,7 @@ jobs:
   sleepSimulationSeconds: 5738
   startTime: '2022-01-18 05:45:30'
   submissionTime: '2022-01-17 17:55:49'
+  sum_nprocs: 6144
   waitingTimeSeconds: 42581
   walltimeSeconds: 10800
   writeTimeSeconds: 13.21674
@@ -2734,6 +2811,7 @@ jobs:
   sleepSimulationSeconds: 637
   startTime: '2022-01-17 18:15:15'
   submissionTime: '2022-01-17 18:06:26'
+  sum_nprocs: 2
   waitingTimeSeconds: 529
   walltimeSeconds: 3600
   writeTimeSeconds: 33.239068
@@ -2752,19 +2830,19 @@ preload:
   mean_interval_s: 1983
   mean_jobs_per_hour: 1.58
   mean_nodes_used: 190
-  mean_read_tbytes: 0.18184650000076738
+  mean_read_tbytes: 0.18160548760477516
   mean_runtime_s: 5086
-  mean_written_tbytes: 0.8453636726839846
+  mean_written_tbytes: 0.8442420513257997
   median_cores_used: 8192
   median_interval_s: 904
   median_nodes_used: 128
-  median_read_tbytes: 0.0008243155
+  median_read_tbytes: 0.000817204416
   median_runtime_s: 730
-  median_written_tbytes: 0.000102785646
+  median_written_tbytes: 0.000102373351
   min_interval_s: 1
   min_runtime_s: 20
   var_interval_s: 9560353
   var_nodes_used: 117181
-  var_read_tbytes: 11.353191060788243
+  var_read_tbytes: 11.338167502423794
   var_runtime_s: 84159675
-  var_written_tbytes: 78.70769824225884
+  var_written_tbytes: 78.60418888249407

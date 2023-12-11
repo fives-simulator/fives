@@ -24,6 +24,7 @@
 #include <iostream>
 #include <iterator>
 #include <random>
+#include <utility>
 #include <wrench/services/helper_services/action_execution_service/ActionExecutionService.h>
 #include <wrench/util/UnitParser.h>
 
@@ -396,6 +397,7 @@ namespace storalloc {
                     // Create and keep trace of all exec_jobs for each of the Darshan records / monitored runs of an application
                     // inside the reservation  -- DO NOT SUBMIT JOBS IN THIS LOOP
                     std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> exec_jobs;
+                    this->node_rw_count[jobID] = std::map<unsigned int, std::pair<unsigned int, unsigned int>>();
 
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
 
@@ -405,16 +407,17 @@ namespace storalloc {
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
-                        auto nprocs_nodes = run.nprocs / this->config->compute.core_count;
-                        nprocs_nodes = std::min(nprocs_nodes, this->compound_jobs[jobID].first.nodesUsed);
+                        // auto nprocs_nodes = run.nprocs/ this->config->compute.core_count;
+                        // nprocs_nodes = std::min(nprocs_nodes, this->compound_jobs[jobID].first.nodesUsed);
 
-                        unsigned int nodes_nb_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio);
-                        nodes_nb_read = std::min(std::min(nodes_nb_read, this->config->stor.max_read_node_cnt), nprocs_nodes);
-                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), run.id, nodes_nb_read);
+                        unsigned int nb_procs_read = std::ceil(run.nprocs * this->config->stor.io_read_node_ratio);
+                        nb_procs_read = std::min(std::min(nb_procs_read, this->config->stor.max_read_node_cnt), run.nprocs);
+                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_procs_read);
 
-                        unsigned int nodes_nb_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
-                        nodes_nb_write = std::min(std::min(nodes_nb_write, this->config->stor.max_write_node_cnt), nprocs_nodes);
-                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nodes_nb_write);
+                        unsigned int nb_procs_write = std::ceil(run.nprocs * this->config->stor.io_write_node_ratio);
+                        nb_procs_write = std::min(std::min(nb_procs_write, this->config->stor.max_write_node_cnt), run.nprocs);
+                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_procs_write);
+                        this->node_rw_count[jobID][run.id] = std::make_pair(nb_procs_read, nb_procs_write);
 
                         if (run.sleepDelay != 0) {
                             auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
@@ -435,7 +438,7 @@ namespace storalloc {
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
                                 // Copy job before the read
                                 auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, this->config->stor.nb_files_per_read, nodes_nb_read);
+                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, this->config->stor.nb_files_per_read, nb_procs_read);
                                 if (exec_jobs[run.id].size() != 0) {
                                     exec_jobs[run.id].back()->addChildJob(copyJob);
                                 }
@@ -448,7 +451,7 @@ namespace storalloc {
 
                             // Read job
                             auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            this->readFromTemporary(bare_metal, readJob, service_specific_args, run.readBytes, input_files, nodes_nb_read);
+                            this->readFromTemporary(bare_metal, readJob, service_specific_args, run.readBytes, input_files, nb_procs_read);
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(readJob); // Add dependencies between jobs (but inside a job, actions are //)
                             }
@@ -459,7 +462,7 @@ namespace storalloc {
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, this->config->stor.nb_files_per_write, nodes_nb_write);
+                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, this->config->stor.nb_files_per_write, nb_procs_write);
 
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(writeJob); // Add dependencies between jobs (but inside a job, actions are //)
@@ -468,7 +471,7 @@ namespace storalloc {
 
                             if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
                                 auto copyJob = internalJobManager->createCompoundJob("archiveCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nodes_nb_write);
+                                this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_procs_write);
                                 exec_jobs[run.id].back()->addChildJob(copyJob);
                                 exec_jobs[run.id].push_back(copyJob);
                             } else {
@@ -1057,7 +1060,7 @@ namespace storalloc {
         return std::make_pair(storage_service, path);
     }
 
-    void Controller::processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions, const std::set<std::shared_ptr<wrench::Action>> &actions, double &job_start_time) {
+    void Controller::processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions, const std::set<std::shared_ptr<wrench::Action>> &actions, double &job_start_time, const std::string &job_id) {
 
         for (const auto &action : actions) {
 
@@ -1077,6 +1080,19 @@ namespace storalloc {
             out_jobs << YAML::Key << "act_end_ts" << YAML::Value << action->getEndDate();
             out_jobs << YAML::Key << "act_duration" << YAML::Value << (action->getEndDate() - action->getStartDate());
 
+            auto subjob = action->getJob()->getName();
+            auto last_ = subjob.find_last_of("_");
+            int run_id = -1;
+            if (last_ != std::string::npos and act_type != "FILEDELETE" and act_type != "FILECOPY") {
+                auto run_id_str = subjob.substr(last_ + 5, subjob.size());
+                try {
+                    run_id = stoi(run_id_str);
+                } catch (const std::invalid_argument &e) {
+                    std::cout << e.what() << std::endl;
+                    std::cout << subjob << "::" << run_id_str << std::endl;
+                }
+            }
+
             job_start_time = min(job_start_time, action->getStartDate());
 
             // WRENCH_DEBUG("  - Action type : %s at ts: %f", act_type.c_str(), action->getStartDate());
@@ -1089,7 +1105,9 @@ namespace storalloc {
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
                 out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileRead->getNumBytesToRead();
-
+                if (run_id != -1) {
+                    out_jobs << YAML::Key << "nb_procs_io" << YAML::Value << this->node_rw_count[job_id][run_id].first;
+                }
             } else if (auto fileWrite = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(action)) {
                 // auto usedLocation = fileWrite->getFileLocation();
                 auto usedFile = fileWrite->getFile();
@@ -1100,6 +1118,9 @@ namespace storalloc {
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
                 out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileWrite->getWrittenSize();
+                if (run_id != -1) {
+                    out_jobs << YAML::Key << "nb_procs_io" << YAML::Value << this->node_rw_count[job_id][run_id].second;
+                }
 
                 for (const auto &trace_loc : write_trace.internal_locations) {
                     auto keys = updateIoUsageWrite(this->volume_per_storage_service_disk, trace_loc);
@@ -1118,7 +1139,6 @@ namespace storalloc {
                     out_actions << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << this->volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
                     out_actions << YAML::EndMap;
                 }
-
             } else if (auto fileCopy = std::dynamic_pointer_cast<wrench::FileCopyAction>(action)) {
 
                 std::shared_ptr<wrench::FileLocation> css;
@@ -1170,7 +1190,6 @@ namespace storalloc {
                         out_actions << YAML::EndMap;
                     }
                 }
-
             } else if (auto fileDelete = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {
                 auto usedLocation = fileDelete->getFileLocation();
                 auto usedFile = usedLocation->getFile();
@@ -1253,6 +1272,7 @@ namespace storalloc {
             out_jobs << YAML::Key << "real_cWriteTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
             out_jobs << YAML::Key << "real_cMetaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
             out_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
+            out_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
 
             // ## Processing actions for all sub jobs related to the current top-level job being processed
             out_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq;
@@ -1264,7 +1284,7 @@ namespace storalloc {
                 WRENCH_DEBUG("Actions of job %s : ", it->get()->getName().c_str());
                 auto actions = (it->get())->getActions();
                 WRENCH_DEBUG(" ->> %lu", actions.size());
-                processActions(out_jobs, out_actions, actions, earliest_action_start_time);
+                processActions(out_jobs, out_actions, actions, earliest_action_start_time, job_entry.first);
             }
 
             out_jobs << YAML::EndSeq; // actions

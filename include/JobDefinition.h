@@ -99,6 +99,7 @@ namespace storalloc {
         double metaTimeSeconds;              // Cumulative meta time from all core doing any kind of IO meta ops during the job's execution
         std::vector<DarshanRecord> runs;
         unsigned int runsCount;
+        unsigned int sum_nprocs;
     };
 
     bool operator==(const YamlJob &lhs, const YamlJob &rhs);
