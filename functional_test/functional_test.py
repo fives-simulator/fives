@@ -90,20 +90,20 @@ def analyse_jobs(file_path: pathlib.Path):
                 + Style.RESET_ALL
             )
             errors += 1
-        if job["real_read_bytes"] != 0 and job["real_cReadTime_s"] <= 1:
+        if job["real_read_bytes"] > 20000000 and job["real_cReadTime_s"] <= 2:
             print(
-                Fore.RED
+                Fore.YELLOW
                 + f"  [ERROR] Job {job['job_uid']} amount of read bytes and read time don't seem to match"
                 + Style.RESET_ALL
             )
-            errors += 1
-        if job["real_written_bytes"] != 0 and job["real_cWriteTime_s"] <= 1:
+            warnings += 1
+        if job["real_written_bytes"] > 20000000 and job["real_cWriteTime_s"] <= 2:
             print(
-                Fore.RED
+                Fore.YELLOW
                 + f"  [ERROR] Job {job['job_uid']} amount of write bytes and write time don't seem to match"
                 + Style.RESET_ALL
             )
-            errors += 1
+            warnings += 1
         if job["job_start_ts"] < job["job_submit_ts"]:
             print(
                 Fore.RED

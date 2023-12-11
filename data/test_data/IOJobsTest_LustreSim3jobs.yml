@@ -17,6 +17,7 @@ jobs:
   writeTimeSeconds: 1400  # arbitrary
   metaTimeSeconds: 458.29 # arbitrary
   runsCount: 2
+  sum_nprocs: 2560
   runs:
     - id: 1
       nprocs: 1280
@@ -52,6 +53,7 @@ jobs:
   writeTimeSeconds: 3000
   metaTimeSeconds: 256.299233
   runsCount: 3
+  sum_nprocs: 960
   runs:
     - id: 1
       nprocs: 320
@@ -95,6 +97,7 @@ jobs:
   writeTimeSeconds: 0
   metaTimeSeconds: 256.299233
   runsCount: 6
+  sum_nprocs: 768
   runs:
     - id: 1
       nprocs: 128

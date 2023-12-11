@@ -17,6 +17,7 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
+  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -52,6 +53,7 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
+  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -87,6 +89,7 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
+  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -122,6 +125,7 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
+  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -157,6 +161,7 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
+  sum_nprocs: 64
   runs: 
     - id: 1
       nprocs: 32
@@ -192,6 +197,7 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
+  sum_nprocs: 64
   runs: 
     - id: 1
       nprocs: 32
