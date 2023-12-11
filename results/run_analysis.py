@@ -86,7 +86,7 @@ def compute_runtime_diff(jobs, plotting=True):
         f"  - Mean runtime for simulation : {mean_sim_runtime}s\n"+
         f"  - Mean runtime in traces : {mean_real_runtime}s\n" +
         f"  - The mean run time difference between simulated and " +
-        "real values for all jobs is {mean_runtime_difference}s\n" +
+        f"real values for all jobs is {mean_runtime_difference}s\n" +
         f"  - The Pearson's corr is {runtime_corr} (we want a correlation as high as possible)\n"+
         f"  - The Cohen d effect size is {runtime_cohen_d} (we want an effect size as low as possible," +
         " the use of the simulator should lead to values close to real world traces)"
@@ -146,10 +146,11 @@ def compute_iotime_diff(jobs, plotting=True):
     for job in jobs:
 
         # "Real"
-        r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"] # + job["real_cMetaTime_s"]
+        print(f"job['sum_nprocs'] : {job['sum_nprocs']}")
+        r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"] 
         real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"])
-        real_write_time.append(job["real_cWriteTime_s"])
+        real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"] )
+        real_write_time.append(job["real_cWriteTime_s"]  / job["sum_nprocs"] )
 
         # Simulated
         s_io_time = 0
@@ -161,10 +162,11 @@ def compute_iotime_diff(jobs, plotting=True):
             if action["act_status"] != "COMPLETED":
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"]
-            if action["act_type"] == "CUSTOM":  # only custom action out there is our custom write action
-                s_w_time += action["act_duration"]
-            s_io_time += action["act_duration"]
+                s_r_time += (action["act_duration"] / action["nb_procs_io"])
+            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):  # only custom action out there is our custom write action
+                s_w_time += (action["act_duration"] / action["nb_procs_io"])
+            
+        s_io_time = (s_r_time + s_w_time) 
 
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
@@ -192,7 +194,9 @@ def compute_iotime_diff(jobs, plotting=True):
         "(we want a mean difference as close to 0 as possible)\n" +
         f"  - The Pearson's corr is {io_time_corr} (we want a correlation as high as possible)\n" +
         f"  - The Cohen d effect size is {io_time_cohen_d} (we want an effect size as low as possible, " +
-        "the use of the simulator should lead to values close to real world traces)")
+        "the use of the simulator should lead to values close to real world traces)\n" +
+        f"  - ztest tstat : {ztest_iotime_tstat}\n" + 
+        f"  - ztest pvalue: {ztest_iotime_pvalue}\n")
 
     if plotting:
         print("    [Plotting io time analysis]")
@@ -215,7 +219,7 @@ def compute_iotime_diff(jobs, plotting=True):
         #axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.2])
 
-        binwidth = 10000
+        binwidth = 1000
         real_hist = sns.histplot(data=real_io_time, binwidth=binwidth, ax=axs[1], color=REAL_COLOR)
         real_hist.set(xlabel=f"Real IO time - binwidth = {binwidth}s")
 
@@ -259,7 +263,9 @@ def compute_iovolume_diff(jobs, plotting=True):
         s_io_volume_gb = 0
         for action in job["actions"]:
 
-            if (action["act_type"] == "FILEREAD" or action["act_type"] == "CUSTOM") and action["act_status"] == "COMPLETED":
+            if (action["act_type"] == "FILEREAD" 
+            or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"])) 
+            and action["act_status"] == "COMPLETED"):
                 s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
 
         sim_io_volume_gb.append(s_io_volume_gb)
@@ -390,9 +396,9 @@ def analyse(trace, plotting=True):
 
     metrics.update(compute_runtime_diff(results, plotting))
 
-    metrics.update(compute_iotime_diff(results, plotting))
-
     metrics.update(compute_iovolume_diff(results))
+
+    metrics.update(compute_iotime_diff(results, plotting))
 
     trace_job_schedule(results)
 

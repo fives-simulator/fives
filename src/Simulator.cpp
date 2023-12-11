@@ -208,8 +208,13 @@ namespace storalloc {
         }
 
         // Extract traces into files tagged with dataset and config version.
-        ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
-        ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
+        try {
+            ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
+            ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
+        } catch (const std::exception &e) {
+            std::cout << "## ERROR in trace analysis : " << e.what() << std::endl;
+            return 1;
+        }
 
         const std::chrono::time_point<std::chrono::steady_clock> chrono_end = std::chrono::steady_clock::now();
 

@@ -199,7 +199,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
-    stripe_count = 4
+    stripe_count = 1
     if stripe_count in parametrization:
         stripe_count = parametrization.get("stripe_count")
     
@@ -296,11 +296,11 @@ def process_results(result_filename: str):
 
         # IO TIME
         r_io_time = (
-            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+            (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"] 
         )
         real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"])
-        real_write_time.append(job["real_cWriteTime_s"])
+        real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"])
+        real_write_time.append(job["real_cWriteTime_s"] / job["sum_nprocs"])
 
         s_io_time = 0
         s_r_time = 0
@@ -313,11 +313,9 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            if action["act_type"] == "CUSTOM":
-                s_w_time += action["act_duration"]
-                s_io_time += action["act_duration"]
+                s_r_time += (action["act_duration"] / action["nb_procs_io"])
+            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
+                s_w_time += (action["act_duration"] / action["nb_procs_io"])
             """
             if action["act_type"] == "FILECOPY" and action["copy_direction"] == "sss_to_css":
                 s_r_time += action["act_duration"]
@@ -327,6 +325,7 @@ def process_results(result_filename: str):
                 s_io_time += action["act_duration"]
             """
 
+        s_io_time = (s_r_time + s_w_time) 
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
         sim_write_time.append(s_w_time)
