@@ -17,6 +17,7 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
+  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32

@@ -146,7 +146,6 @@ def compute_iotime_diff(jobs, plotting=True):
     for job in jobs:
 
         # "Real"
-        print(f"job['sum_nprocs'] : {job['sum_nprocs']}")
         r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"] 
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"] )
