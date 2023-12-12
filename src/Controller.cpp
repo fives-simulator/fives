@@ -407,19 +407,19 @@ namespace storalloc {
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
-                        auto nprocs_nodes = static_cast<double>(run.nprocs) / this->config->compute.core_count; // How many nodes, at most, may be used?
+                        float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
 
-                        unsigned int nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
-                        auto high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
+                        float nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
+                        float high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_read = std::min(nb_nodes_read, high_read_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        nb_nodes_read = std::min(nb_nodes_read, run.nprocs / this->config->stor.nb_files_per_read);
-                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
+                        nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / this->config->stor.nb_files_per_read));
+                        WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
-                        unsigned int nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
-                        auto high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
-                        nb_nodes_read = std::min(nb_nodes_read, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        nb_nodes_read = std::min(nb_nodes_read, run.nprocs / this->config->stor.nb_files_per_write);
-                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+                        float nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
+                        float high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
+                        nb_nodes_write = std::min(nb_nodes_write, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
+                        nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / this->config->stor.nb_files_per_write));
+                        WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
                         this->node_rw_count[jobID][run.id] = std::make_pair(nb_nodes_read, nb_nodes_write);
 
