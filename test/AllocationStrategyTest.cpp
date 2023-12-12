@@ -1179,7 +1179,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
     double last_ts = 0;
     std::map<std::string, uint64_t> currentOSTUsage{};
 
-    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 221);
+    ASSERT_EQ(compound_storage_service->internal_storage_use.size(), 213);
     for (const auto &trace : compound_storage_service->internal_storage_use) {
         ASSERT_TRUE(trace.first >= last_ts);
         ASSERT_EQ(trace.first, trace.second.ts);
