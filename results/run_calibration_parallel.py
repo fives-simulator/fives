@@ -81,14 +81,14 @@ AX_PARAMS = [
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 3, 4, 8],
+        "values": [1, 2, 4],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 3, 4, 8],
+        "values": [1, 2, 4],
         "is_ordered": True,
         "value_type": "int",
     },
@@ -106,6 +106,20 @@ AX_PARAMS = [
         "digits": 1,
         "value_type": "float",
     },
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.2, 1],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "io_read_node_ratio",
+        "type": "range",
+        "bounds": [0.2, 1],
+        "digits": 1,
+        "value_type": "float",
+    },
 ]
 
 """ UNUSED PARAMS
@@ -116,20 +130,7 @@ AX_PARAMS = [
         "values": [0.1, 0.2, 0.3, 0.4],
         "value_type": "float",
     },
-    {
-        "name": "io_write_node_ratio",
-        "type": "range",
-        "bounds": [0.2, 0.5],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "io_read_node_ratio",
-        "type": "range",
-        "bounds": [0.2, 0.5],
-        "digits": 2,
-        "value_type": "float",
-    },
+
     {
         "name": "stripe_size",
         "type": "choice",
@@ -475,7 +476,8 @@ def run_trial(base_config, parameters, trial_index):
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(data)["optimization_metric"]
-    except:
+    except Exception as e:
+        print(f"{e}")
         print(f"==> Trial {trial_index} FAILED")
 
     print(f"## Results for trial {trial_index} == {results}")
