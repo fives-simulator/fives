@@ -407,17 +407,21 @@ namespace storalloc {
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
-                        // auto nprocs_nodes = run.nprocs/ this->config->compute.core_count;
-                        // nprocs_nodes = std::min(nprocs_nodes, this->compound_jobs[jobID].first.nodesUsed);
+                        auto nprocs_nodes = static_cast<double>(run.nprocs) / this->config->compute.core_count; // How many nodes, at most, may be used?
 
-                        unsigned int nb_procs_read = std::ceil(run.nprocs * this->config->stor.io_read_node_ratio);
-                        nb_procs_read = std::min(std::min(nb_procs_read, this->config->stor.max_read_node_cnt), run.nprocs);
-                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_procs_read);
+                        unsigned int nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
+                        auto high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
+                        nb_nodes_read = std::min(nb_nodes_read, high_read_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
+                        nb_nodes_read = std::min(nb_nodes_read, run.nprocs / this->config->stor.nb_files_per_read);
+                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
-                        unsigned int nb_procs_write = std::ceil(run.nprocs * this->config->stor.io_write_node_ratio);
-                        nb_procs_write = std::min(std::min(nb_procs_write, this->config->stor.max_write_node_cnt), run.nprocs);
-                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_procs_write);
-                        this->node_rw_count[jobID][run.id] = std::make_pair(nb_procs_read, nb_procs_write);
+                        unsigned int nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
+                        auto high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
+                        nb_nodes_read = std::min(nb_nodes_read, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
+                        nb_nodes_read = std::min(nb_nodes_read, run.nprocs / this->config->stor.nb_files_per_write);
+                        WRENCH_DEBUG(" - [%s-exec%u] : %u nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+
+                        this->node_rw_count[jobID][run.id] = std::make_pair(nb_nodes_read, nb_nodes_write);
 
                         if (run.sleepDelay != 0) {
                             auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
@@ -438,7 +442,7 @@ namespace storalloc {
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
                                 // Copy job before the read
                                 auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, this->config->stor.nb_files_per_read, nb_procs_read);
+                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, this->config->stor.nb_files_per_read, nb_nodes_read);
                                 if (exec_jobs[run.id].size() != 0) {
                                     exec_jobs[run.id].back()->addChildJob(copyJob);
                                 }
@@ -451,7 +455,7 @@ namespace storalloc {
 
                             // Read job
                             auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            this->readFromTemporary(bare_metal, readJob, service_specific_args, run.readBytes, input_files, nb_procs_read);
+                            this->readFromTemporary(bare_metal, readJob, service_specific_args, run.readBytes, input_files, nb_nodes_read);
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(readJob); // Add dependencies between jobs (but inside a job, actions are //)
                             }
@@ -462,7 +466,7 @@ namespace storalloc {
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, this->config->stor.nb_files_per_write, nb_procs_write);
+                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, this->config->stor.nb_files_per_write, nb_nodes_write);
 
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(writeJob); // Add dependencies between jobs (but inside a job, actions are //)
@@ -471,7 +475,7 @@ namespace storalloc {
 
                             if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
                                 auto copyJob = internalJobManager->createCompoundJob("archiveCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_procs_write);
+                                this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_nodes_write);
                                 exec_jobs[run.id].back()->addChildJob(copyJob);
                                 exec_jobs[run.id].push_back(copyJob);
                             } else {
