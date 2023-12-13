@@ -81,14 +81,14 @@ AX_PARAMS = [
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 4],
+        "values": [1, 2, 4, 8],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 4],
+        "values": [1, 2, 4, 8],
         "is_ordered": True,
         "value_type": "int",
     },
@@ -200,7 +200,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
-    stripe_count = 1
+    stripe_count = 2
     if stripe_count in parametrization:
         stripe_count = parametrization.get("stripe_count")
     
