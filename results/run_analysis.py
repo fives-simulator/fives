@@ -96,9 +96,9 @@ def compute_runtime_diff(jobs, plotting=True):
     if plotting:
         print("   [Plotting runtime analysis]")
 
-        fig, axs = plt.subplots(ncols=3)
+        fig, axs = plt.subplots(ncols=2)
         fig.set_tight_layout(tight=True)
-        fig.set_figheight(6)
+        fig.set_figheight(10)
         fig.set_figwidth(20)
 
         max_target = max(max(real_runtime), max(sim_runtime))
@@ -108,12 +108,18 @@ def compute_runtime_diff(jobs, plotting=True):
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--",  ax=axs[0])
         scatter.set(xlabel="Real runtimes", ylabel="Simulated runtimes")
 
+        hist_data = {"values": [], "Origin": []}
+        hist_data["values"].extend(real_runtime)
+        hist_data["values"].extend(sim_runtime)
+        hist_data["Origin"].extend(["real" for i in range(len(real_runtime))])
+        hist_data["Origin"].extend(["sim" for i in range(len(sim_runtime))])
+        
         binwidth = 1000
-        real_hist = sns.histplot(data=real_runtime, binwidth=binwidth, ax=axs[1], color=REAL_COLOR)
-        real_hist.set(xlabel=f"Real runtime - binwidth = {binwidth}s")
 
-        sim_hist = sns.histplot(data=sim_runtime, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
-        sim_hist.set(xlabel=f"Simulated runtime - binwidth = {binwidth}s")
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth, 
+                                 ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
+        global_hist.set(xlabel=f"Runtimes histogram (real / simulation) ; binwidth = {binwidth}s")
+
 
         plt.savefig(f"{CI_PIPELINE_ID}_runtime.pdf", dpi=300, format='pdf')
         plt.savefig(f"{CI_PIPELINE_ID}_runtime.png", dpi=300, format='png')
@@ -200,9 +206,9 @@ def compute_iotime_diff(jobs, plotting=True):
     if plotting:
         print("    [Plotting io time analysis]")
 
-        fig, axs = plt.subplots(ncols=3)
+        fig, axs = plt.subplots(ncols=2)
         fig.set_tight_layout(tight=True)
-        fig.set_figheight(6)
+        fig.set_figheight(10)
         fig.set_figwidth(20)
 
         max_target = max(max(real_io_time), max(sim_io_time))
@@ -212,18 +218,23 @@ def compute_iotime_diff(jobs, plotting=True):
         read_scatter = sns.scatterplot(x=real_read_time, y=sim_read_time, s=20, ax=axs[0], facecolors="red", marker="+", alpha=0.6)
         write_scatter = sns.scatterplot(x=real_write_time, y=sim_write_time, s=20, color=".10", ax=axs[0], facecolors="blue", marker="x", alpha=0.3)
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", ax=axs[0])
-        scatter.set(xlabel="Real jobs", ylabel="Simulated jobs")
+        scatter.set(xlabel="Real jobs (mean IO time per rank)", ylabel="Simulated jobs (mean IO time per simulated rank)")
         #axs[0].set_xscale('log')
         axs[0].set_xlim([0.0001, max_target*1.2])
         #axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.2])
 
-        binwidth = 1000
-        real_hist = sns.histplot(data=real_io_time, binwidth=binwidth, ax=axs[1], color=REAL_COLOR)
-        real_hist.set(xlabel=f"Real IO time - binwidth = {binwidth}s")
+        binwidth = 100
 
-        sim_hist = sns.histplot(data=sim_io_time, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
-        sim_hist.set(xlabel=f"Simulated IO time - binwidth = {binwidth}s")
+        hist_data = {"values": [], "Origin": []}
+        hist_data["values"].extend(real_io_time)
+        hist_data["values"].extend(sim_io_time)
+        hist_data["Origin"].extend(["real" for i in range(len(real_io_time))])
+        hist_data["Origin"].extend(["sim" for i in range(len(sim_io_time))])
+
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth, 
+                                 ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
+        global_hist.set(xlabel=f"IO times histogram (real / simulation) ; binwidth = {binwidth}s")
 
         plt.savefig(f"{CI_PIPELINE_ID}_iotime.pdf", dpi=300, format='pdf')
         plt.savefig(f"{CI_PIPELINE_ID}_iotime.png", dpi=300, format='png')
@@ -286,9 +297,9 @@ def compute_iovolume_diff(jobs, plotting=True):
     if plotting:
         print("    [Plotting io volume analysis]")
 
-        fig, axs = plt.subplots(ncols=3)
+        fig, axs = plt.subplots(ncols=2)
         fig.set_tight_layout(tight=True)
-        fig.set_figheight(6)
+        fig.set_figheight(10)
         fig.set_figwidth(20)
 
         max_target = max(max(real_io_volume_gb), max(sim_io_volume_gb))
@@ -298,12 +309,18 @@ def compute_iovolume_diff(jobs, plotting=True):
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", linewidth=0.3, ax=axs[0])
         scatter.set(xlabel="Real", ylabel="Simulated")
 
-        binwidth = 100
-        real_hist = sns.histplot(data=real_io_volume_gb, binwidth=binwidth, ax=axs[1], color=REAL_COLOR)
-        real_hist.set(xlabel=f"Real IO Volume - binwidth = {binwidth}GB")
+        hist_data = {"values": [], "Origin": []}
+        hist_data["values"].extend(real_io_volume_gb)
+        hist_data["values"].extend(sim_io_volume_gb)
+        hist_data["Origin"].extend(["real" for i in range(len(real_io_volume_gb))])
+        hist_data["Origin"].extend(["sim" for i in range(len(sim_io_volume_gb))])
 
-        sim_hist = sns.histplot(data=sim_io_volume_gb, binwidth=binwidth, ax=axs[2], color=SIM_COLOR)
-        sim_hist.set(xlabel=f"Simulated IO Volume - binwidth = {binwidth}GB")
+        binwidth = 100
+
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth, 
+                                 ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
+        global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth}s")
+
 
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.pdf", dpi=300, format='pdf')
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.png", dpi=300, format='png')
