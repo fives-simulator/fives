@@ -81,14 +81,14 @@ AX_PARAMS = [
     {
         "name": "nb_files_per_read",
         "type": "choice",
-        "values": [1, 2, 4, 8],
+        "values": [1, 2, 4, 8, 12],
         "is_ordered": True,
         "value_type": "int",
     },
     {
         "name": "nb_files_per_write",
         "type": "choice",
-        "values": [1, 2, 4, 8],
+        "values": [1, 2, 4, 8, 12],
         "is_ordered": True,
         "value_type": "int",
     },
