@@ -50,8 +50,6 @@ def plot_all_jobs(job_list):
     job_sim_end = job["job_end_ts"]  
 
     current_job_offset = Y_OFFSET * 6
-    
-    current_exec = ""
 
     for job in job_list:
 
@@ -63,32 +61,55 @@ def plot_all_jobs(job_list):
         d.append(draw.Lines(x1_job, current_job_offset, x2_job, current_job_offset, close=False, stroke="white", stroke_width=12))
         d.append(draw.Text(f"JOB::{job['job_uid']} - {job['job_start_ts']:.6}s ->  {job['job_end_ts']:.6}s", font_size=10, x=x1_job + 4, y=current_job_offset + 4, font_family='Roboto', fill='#111111ff' ))
 
-        # Actions
-        current_y = current_job_offset + 2*Y_OFFSET
-        for act_idx, action in enumerate(job["actions"]):
+        current_action_type = ""
 
-            x1 = to_sim_scale(action["act_start_ts"], 0, max_ts)
-            x2 = to_sim_scale(action["act_end_ts"], 0, max_ts) 
-
-            color = "red"
-            if action["sub_job"] == job["job_uid"] and action["act_type"] == "CUSTOM": # Custom action 
-                color = "#42f5bc" # Mint green
-
-            elif action["sub_job"] == job["job_uid"] and action["act_type"] == "SLEEP": 
-                color = "#f4d229" # Yellowish
-
+        exec_sorted_actions = {}
+        for action in job["actions"]:
+            exec_pos = action["act_name"].find("exec")
+            if exec_pos == -1:
+                if action["act_type"] == "SLEEP":
+                    exec_id = -1
+                else:
+                    exec_id = -2
             else:
-                exec_pos = action["act_name"].find("exec")
                 exec_id = action["act_name"][int(exec_pos) + 4 : action["act_name"].find("_", exec_pos)]
+            if exec_id in exec_sorted_actions:
+                exec_sorted_actions[exec_id].append(action)
+            else: 
+                exec_sorted_actions[exec_id] = [action,]
 
-                if exec_id != current_exec:
-                    current_y += Y_OFFSET * 3
-                    current_exec = exec_id
-                    d.append(draw.Text(f"R#{exec_id} - {action['act_start_ts']:.5}s", font_size=12, x=x1, y=current_y - 8, font_family='Roboto', fill='#ddddddff' ))
-                    d.append(draw.Lines(x1, current_y - 4, x1,  current_y - 4 + int(Y_OFFSET * (len(job["actions"]) - act_idx) ), close=False, stroke="white", stroke_width=1, fill="white"))
+        exec_y = current_job_offset + 2 * Y_OFFSET # First exec of the job
 
-                # Set colors by action
-                if action["act_type"] == "FILEREAD":
+        # last_exec_offset = 2* Y_OFFSET
+        # current_y = current_job_offset + last_exec_offset
+        last_exec_offset = exec_y
+        for exec_id, actions in exec_sorted_actions.items():
+
+            x1 = to_sim_scale(actions[0]["act_start_ts"], 0, max_ts)
+            if exec_id not in [-1, -2]:
+                exec_y = last_exec_offset + 2 * Y_OFFSET
+                d.append(draw.Text(f"R#{exec_id} - {action['act_start_ts']:.5}s", font_size=12, x=x1, y=exec_y - 8, font_family='Roboto', fill='#ddddddff' ))
+                d.append(draw.Lines(x1, exec_y - 4, x1,  exec_y - 4 + int(Y_OFFSET * len(actions) / 2), close=False, stroke="white", stroke_width=1, fill="white"))
+
+            exec_y += Y_OFFSET
+
+            current_y = exec_y
+            for action in actions:
+   
+                if exec_id not in [-1, -2] and current_action_type != action["act_type"]:
+                    last_exec_offset = max(last_exec_offset, current_y)
+                    current_y = exec_y
+                    current_action_type = action["act_type"]
+
+                x1 = to_sim_scale(action["act_start_ts"], 0, max_ts)
+                x2 = to_sim_scale(action["act_end_ts"], 0, max_ts) 
+
+                color = "red"
+                if action["sub_job"] == job["job_uid"] and action["act_type"] == "CUSTOM": # Custom action all sub jobs
+                    color = "#42f5bc" # Mint green
+                elif action["sub_job"] == job["job_uid"] and action["act_type"] == "SLEEP": # Sleep action for reservation
+                    color = "#f4d229" # Yellowish
+                elif action["act_type"] == "FILEREAD":
                     color = C_READ
                 elif action["act_type"] == "CUSTOM":
                     color = C_WRITE
@@ -103,22 +124,26 @@ def plot_all_jobs(job_list):
                 else:
                     print(action)
 
-            if abs(x1 - x2) < 1:
-                stroke_linecap='round'
-            else:
-                stroke_linecap='butt'
-            d.append(draw.Lines(x1,
-                                current_y, 
-                                x2, 
-                                current_y, 
-                                close=False, 
-                                stroke=color, 
-                                stroke_width=Y_OFFSET - 2, 
-                                stroke_opacity=0.8,
-                                stroke_linecap=stroke_linecap))
-            current_y += Y_OFFSET
+                    
+                if abs(x1 - x2) < 1:
+                    stroke_linecap='round'
+                else:
+                    stroke_linecap='butt'
+                d.append(draw.Lines(x1,
+                                    current_y, 
+                                    x2, 
+                                    current_y, 
+                                    close=False, 
+                                    stroke=color, 
+                                    stroke_width=Y_OFFSET - 2, 
+                                    stroke_opacity=0.8,
+                                    stroke_linecap=stroke_linecap))
+                current_y += Y_OFFSET
 
-        current_job_offset = current_y + 2* Y_OFFSET
+            if exec_id == -2:
+                last_exec_offset += 4 * Y_OFFSET
+
+        current_job_offset = last_exec_offset + 4* Y_OFFSET
 
     path = f"./full_plot.svg"
     with open(path, "w") as plot:
