@@ -1070,7 +1070,7 @@ namespace storalloc {
 
             if (action->getState() != wrench::Action::COMPLETED) {
                 WRENCH_WARN("Action %s is in state %s", action->getName().c_str(), action->getStateAsString().c_str());
-                throw std::runtime_error("Action is not in COMPLETED state");
+                // throw std::runtime_error("Action is not in COMPLETED state");
             }
 
             out_jobs << YAML::BeginMap; // action map

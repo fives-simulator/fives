@@ -342,17 +342,17 @@ def process_results(result_filename: str):
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
-    # return {
-    #     "optimization_metric": (
-    #         + abs(1 - io_time_corr)
-    #         + abs(io_time_cohen_d)
-    #     )
-    # }
     return {
         "optimization_metric": (
-            abs(ztest_iotime_tstat)
+            + abs(1 - io_time_corr)
+            + abs(io_time_cohen_d)
         )
     }
+    # return {
+    #     "optimization_metric": (
+    #         abs(ztest_iotime_tstat)
+    #     )
+    # }
 
 
 def run_simulation(

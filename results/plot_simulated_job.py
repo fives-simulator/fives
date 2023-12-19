@@ -33,13 +33,13 @@ def plot_all_jobs(job_list):
         total_rows = total_rows + len(job["actions"])
         
     full_width = 1000 * len(job_list)
-    full_height = int(total_rows * 1.5 * Y_OFFSET)
+    full_height = int((total_rows / 2) * Y_OFFSET) # Approximation...
     
     def to_sim_scale(timestamp, global_start, global_end):
         return timestamp * ((full_width - 2*PAD) / (global_end - global_start)) + PAD - ((full_width - 2*PAD) / (global_end - global_start)) * global_start
 
     d = draw.Drawing(full_width, full_height, origin=(0,0))
-    d.append(draw.Rectangle(0, 0, full_width + 2*PAD, full_height, fill="#444444ff"))
+    # d.append(draw.Rectangle(0, 0, full_width + 2*PAD, full_height, fill="#444444ff"))
 
     for i in range(0, int(max_ts), 1000):
         x_axis_marker = to_sim_scale(i, 0, max_ts)
@@ -144,6 +144,9 @@ def plot_all_jobs(job_list):
                 last_exec_offset += 4 * Y_OFFSET
 
         current_job_offset = last_exec_offset + 4* Y_OFFSET
+
+    # Draw background when we know what exact height should be used.
+    d.insert(0, draw.Rectangle(0, 0, full_width + 2*PAD, last_exec_offset + 10 * Y_OFFSET, fill="#444444ff"))
 
     path = f"./full_plot.svg"
     with open(path, "w") as plot:
