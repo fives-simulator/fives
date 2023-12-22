@@ -200,7 +200,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
-    stripe_count = 2
+    stripe_count = 1
     if stripe_count in parametrization:
         stripe_count = parametrization.get("stripe_count")
     
@@ -342,17 +342,17 @@ def process_results(result_filename: str):
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
-    return {
-        "optimization_metric": (
-            + abs(1 - io_time_corr)
-            + abs(io_time_cohen_d)
-        )
-    }
     # return {
     #     "optimization_metric": (
-    #         abs(ztest_iotime_tstat)
+    #         + abs(1 - io_time_corr)
+    #         + abs(io_time_cohen_d)
     #     )
     # }
+    return {
+        "optimization_metric": (
+            abs(ztest_iotime_tstat)
+        )
+    }
 
 
 def run_simulation(
