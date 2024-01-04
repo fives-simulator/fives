@@ -203,8 +203,10 @@ namespace storalloc {
         }
 
         auto action_results = ctrl->actionsAllCompleted();
+        int return_code = 0;
         if (not action_results) {
             WRENCH_WARN("Some actions have failed");
+            return_code = 1;
         }
 
         // Extract traces into files tagged with dataset and config version.
@@ -213,7 +215,7 @@ namespace storalloc {
             ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
         } catch (const std::exception &e) {
             std::cout << "## ERROR in trace analysis : " << e.what() << std::endl;
-            return 1;
+            return 2;
         }
 
         const std::chrono::time_point<std::chrono::steady_clock> chrono_end = std::chrono::steady_clock::now();
@@ -224,7 +226,7 @@ namespace storalloc {
         std::cout << "# Trace processing duration : " << (chrono_end - sim_end) / 1ms << "ms" << std::endl;
         std::cout << "##########################################" << std::endl;
 
-        return 0;
+        return return_code;
     }
 
 } // namespace storalloc

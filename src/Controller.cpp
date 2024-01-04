@@ -432,8 +432,8 @@ namespace storalloc {
                         }
 
                         // 2. Create copy / read / write / copy jobs
-                        bool cleanup_external_read = true;
-                        bool cleanup_external_write = true;
+                        // bool cleanup_external_read = true;
+                        // bool cleanup_external_write = true;
 
                         // 2.1 READ
                         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
@@ -450,7 +450,7 @@ namespace storalloc {
                             } else {
                                 // No need for copy jobs, files have been created already
                                 input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
-                                cleanup_external_read = false;
+                                // cleanup_external_read = false;
                             }
 
                             // Read job
@@ -478,12 +478,13 @@ namespace storalloc {
                                 this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_nodes_write);
                                 exec_jobs[run.id].back()->addChildJob(copyJob);
                                 exec_jobs[run.id].push_back(copyJob);
-                            } else {
+                            } /*else {
                                 cleanup_external_write = false;
-                            }
+                            }*/
                         }
 
                         // 2.3 CLEANUP
+                        /*
                         if (run.readBytes != 0) {
                             if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
                                 auto cleanupJob = internalJobManager->createCompoundJob("cleanupInput_id" + jobID + "_exec" + std::to_string(run.id));
@@ -500,6 +501,7 @@ namespace storalloc {
                                 exec_jobs[run.id].push_back(cleanupJob);
                             }
                         }
+                        */
 
                         // Keep trace of all jobs for later analysis
 
