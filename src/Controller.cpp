@@ -72,6 +72,8 @@ namespace storalloc {
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
         WRENCH_INFO("Controller : %s jobs to create and submit", std::to_string(jobs.size()).c_str());
 
+        this->completed_jobs << YAML::BeginSeq;
+
         // Forced seed for rand (used later on to decide whether or not to cleanup files after write / copy operations of jobs)
         std::srand(1);
 
@@ -132,6 +134,7 @@ namespace storalloc {
             processed_events += 1;
         }
 
+        this->completed_jobs << YAML::EndSeq;
         WRENCH_INFO("/// Storalloc Controller execution complete");
         return 0;
     }
@@ -979,7 +982,9 @@ namespace storalloc {
     void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
         auto job = event->job;
         WRENCH_INFO("[%s] Notified that this compound job has completed", job->getName().c_str());
+
         // Extract relevant informations from job and write them to file / send them to DB ?
+        processCompletedJob(job->getName());
     }
 
     void Controller::processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) {
@@ -998,6 +1003,8 @@ namespace storalloc {
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
         WRENCH_WARN("[%s] Notified that this compound job has failed: %s", job->getName().c_str(), cause->toString().c_str());
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
+        this->failed_jobs_count += 1;
+        this->compound_jobs.erase(job->getName());
     }
 
     std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
@@ -1066,7 +1073,7 @@ namespace storalloc {
         return std::make_pair(storage_service, path);
     }
 
-    void Controller::processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions, const std::set<std::shared_ptr<wrench::Action>> &actions, double &job_start_time, const std::string &job_id) {
+    void Controller::processActions(YAML::Emitter &out_jobs, const std::set<std::shared_ptr<wrench::Action>> &actions, double &job_start_time, const std::string &job_id) {
 
         for (const auto &action : actions) {
 
@@ -1237,6 +1244,62 @@ namespace storalloc {
         }
     }
 
+    void Controller::processCompletedJob(const std::string &job_id) {
+
+        auto job_entry = this->compound_jobs[job_id];
+
+        const auto &yaml_job = job_entry.first;
+        const auto job_list = job_entry.second;
+        const auto &parent_job = job_list[0];
+
+        // Ignore preload jobs in the output results
+        if (parent_job->getName().substr(0, 7) == "preload")
+            return;
+
+        this->completed_jobs << YAML::BeginMap; // Job map
+
+        // ## High level 'parent' job informations
+        WRENCH_INFO("[%s] Processing metrics...", parent_job->getName().c_str());
+        this->completed_jobs << YAML::Key << "job_uid" << YAML::Value << parent_job->getName();
+        this->completed_jobs << YAML::Key << "job_status" << YAML::Value << parent_job->getStateAsString();
+        this->completed_jobs << YAML::Key << "job_submit_ts" << YAML::Value << parent_job->getSubmitDate();
+        this->completed_jobs << YAML::Key << "job_end_ts" << YAML::Value << parent_job->getEndDate();
+        this->completed_jobs << YAML::Key << "real_runtime_s" << YAML::Value << yaml_job.runtimeSeconds;
+        this->completed_jobs << YAML::Key << "real_read_bytes" << YAML::Value << yaml_job.readBytes;
+        this->completed_jobs << YAML::Key << "real_written_bytes" << YAML::Value << yaml_job.writtenBytes;
+        this->completed_jobs << YAML::Key << "real_cores_used" << YAML::Value << yaml_job.coresUsed;
+        this->completed_jobs << YAML::Key << "real_waiting_time_s" << YAML::Value << yaml_job.waitingTimeSeconds;
+        this->completed_jobs << YAML::Key << "real_cReadTime_s" << YAML::Value << yaml_job.readTimeSeconds;
+        this->completed_jobs << YAML::Key << "real_cWriteTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
+        this->completed_jobs << YAML::Key << "real_cMetaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
+        this->completed_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
+        this->completed_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
+
+        // ## Processing actions for all sub jobs related to the current top-level job being processed
+        this->completed_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq;
+
+        // Actual values determined after processing all actions from different sub jobs
+        double earliest_action_start_time = UINT64_MAX;
+        // Note that we start at ++begin(), to skip the first job (parent) in vector
+        for (auto it = job_list.begin(); it < job_list.end(); it++) {
+            WRENCH_DEBUG("Actions of job %s : ", it->get()->getName().c_str());
+            auto actions = (it->get())->getActions();
+            WRENCH_DEBUG(" ->> %lu", actions.size());
+            processActions(this->completed_jobs, actions, earliest_action_start_time, job_id);
+        }
+
+        this->completed_jobs << YAML::EndSeq; // actions
+
+        // ## High level keys that can be updated only after all actions are processed.
+        this->completed_jobs << YAML::Key << "job_start_ts" << YAML::Value << earliest_action_start_time;
+        this->completed_jobs << YAML::Key << "job_waiting_time_s" << YAML::Value << earliest_action_start_time - parent_job->getSubmitDate();
+        this->completed_jobs << YAML::Key << "job_runtime_s" << YAML::Value << parent_job->getEndDate() - earliest_action_start_time;
+
+        this->completed_jobs << YAML::EndMap; // job map
+
+        this->compound_jobs.erase(job_id); // cleanup job map once the job is analysed
+    }
+
     /**
      * @brief Explore the list of completed jobs and prepare two yaml outputs for further analysis :
      *          - The first one, "simulatedJobs_*", includes the full list of jobs and the list of actions for each jobs.
@@ -1246,85 +1309,12 @@ namespace storalloc {
      */
     void Controller::processCompletedJobs(const std::string &jobsFilename, const std::string &configVersion, const std::string &tag) {
 
-        this->volume_per_storage_service_disk.clear();
-
-        YAML::Emitter out_actions, out_jobs;
-        out_actions << YAML::BeginSeq;
-        out_jobs << YAML::BeginSeq;
-
-        // Loop through top-level parent CompoundJobs / job-lists
-        for (const auto &job_entry : this->compound_jobs) {
-
-            const auto &job_pair = job_entry.second;
-            const auto &yaml_job = job_pair.first;
-            const auto job_list = job_pair.second;
-            const auto &parent_job = job_list[0];
-
-            // Ignore preload jobs in the output results
-            if (parent_job->getName().substr(0, 7) == "preload")
-                continue;
-
-            out_jobs << YAML::BeginMap; // Job map
-
-            // ## High level 'parent' job informations
-            WRENCH_INFO("[%s] Processing metrics...", parent_job->getName().c_str());
-            out_jobs << YAML::Key << "job_uid" << YAML::Value << parent_job->getName();
-            out_jobs << YAML::Key << "job_status" << YAML::Value << parent_job->getStateAsString();
-            out_jobs << YAML::Key << "job_submit_ts" << YAML::Value << parent_job->getSubmitDate();
-            out_jobs << YAML::Key << "job_end_ts" << YAML::Value << parent_job->getEndDate();
-            out_jobs << YAML::Key << "real_runtime_s" << YAML::Value << yaml_job.runtimeSeconds;
-            out_jobs << YAML::Key << "real_read_bytes" << YAML::Value << yaml_job.readBytes;
-            out_jobs << YAML::Key << "real_written_bytes" << YAML::Value << yaml_job.writtenBytes;
-            out_jobs << YAML::Key << "real_cores_used" << YAML::Value << yaml_job.coresUsed;
-            out_jobs << YAML::Key << "real_waiting_time_s" << YAML::Value << yaml_job.waitingTimeSeconds;
-            out_jobs << YAML::Key << "real_cReadTime_s" << YAML::Value << yaml_job.readTimeSeconds;
-            out_jobs << YAML::Key << "real_cWriteTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
-            out_jobs << YAML::Key << "real_cMetaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
-            out_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
-            out_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
-
-            // ## Processing actions for all sub jobs related to the current top-level job being processed
-            out_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq;
-
-            // Actual values determined after processing all actions from different sub jobs
-            double earliest_action_start_time = UINT64_MAX;
-            // Note that we start at ++begin(), to skip the first job (parent) in vector
-            for (auto it = job_list.begin(); it < job_list.end(); it++) {
-                WRENCH_DEBUG("Actions of job %s : ", it->get()->getName().c_str());
-                auto actions = (it->get())->getActions();
-                WRENCH_DEBUG(" ->> %lu", actions.size());
-                processActions(out_jobs, out_actions, actions, earliest_action_start_time, job_entry.first);
-            }
-
-            out_jobs << YAML::EndSeq; // actions
-
-            // ## High level keys that can be updated only after all actions are processed.
-            out_jobs << YAML::Key << "job_start_ts" << YAML::Value << earliest_action_start_time;
-            out_jobs << YAML::Key << "job_waiting_time_s" << YAML::Value << earliest_action_start_time - parent_job->getSubmitDate();
-            out_jobs << YAML::Key << "job_runtime_s" << YAML::Value << parent_job->getEndDate() - earliest_action_start_time;
-
-            out_jobs << YAML::EndMap; // job map
-        }
-        out_jobs << YAML::EndSeq;
-        out_actions << YAML::EndSeq;
-
-        // Write to YAML file
         ofstream simulatedJobs;
         simulatedJobs.open(this->config->out.job_filename_prefix + jobsFilename + "__" + configVersion + "_" + tag + ".yml");
         simulatedJobs << "---\n";
-        simulatedJobs << out_jobs.c_str();
+        simulatedJobs << this->completed_jobs.c_str();
         simulatedJobs << "\n...\n";
         simulatedJobs.close();
-
-        // Write to YAML file
-        /*
-        ofstream io_ss_actions;
-        io_ss_actions.open(this->config->out.io_actions_prefix + jobsFilename + "__" + configVersion + "_" + tag + ".yml");
-        io_ss_actions << "---\n";
-        io_ss_actions << out_actions.c_str();
-        io_ss_actions << "\n...\n";
-        io_ss_actions.close();
-        */
     }
 
     /**
