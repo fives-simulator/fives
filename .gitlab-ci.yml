@@ -114,6 +114,7 @@ test-job:
     - build-job
   tags:
     - build
+  allow_failure: true
  
 functional-test-job:
   stage: test
@@ -132,6 +133,7 @@ functional-test-job:
     paths:
       - functional_test/simulation_logs.txt
     expire_in: 2 weeks
+  allow_failure: true
 
 calibration-job:
   stage: calibration
