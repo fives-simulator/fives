@@ -1072,6 +1072,7 @@ namespace storalloc {
 
             if (action->getState() != wrench::Action::COMPLETED) {
                 WRENCH_WARN("Action %s is in state %s", action->getName().c_str(), action->getStateAsString().c_str());
+                continue;
                 // throw std::runtime_error("Action is not in COMPLETED state");
             }
 
@@ -1128,7 +1129,7 @@ namespace storalloc {
                     out_jobs << YAML::Key << "nb_procs_io" << YAML::Value << this->node_rw_count[job_id][run_id].second;
                 }
 
-                for (const auto &trace_loc : write_trace.internal_locations) {
+                /*for (const auto &trace_loc : write_trace.internal_locations) {
                     auto keys = updateIoUsageWrite(this->volume_per_storage_service_disk, trace_loc);
                     out_actions << YAML::BeginMap;
                     out_actions << YAML::Key << "ts" << YAML::Value << action->getEndDate(); // end_date, because we record the IO change when the write is completed
@@ -1144,7 +1145,7 @@ namespace storalloc {
                     out_actions << YAML::Key << "total_allocation_disk" << YAML::Value << this->volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
                     out_actions << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << this->volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
                     out_actions << YAML::EndMap;
-                }
+                }*/
             } else if (auto fileCopy = std::dynamic_pointer_cast<wrench::FileCopyAction>(action)) {
 
                 std::shared_ptr<wrench::FileLocation> css;
@@ -1176,6 +1177,7 @@ namespace storalloc {
                 out_jobs << YAML::Key << "css_file_size_bytes" << YAML::Value << css->getFile()->getSize();
 
                 // only record a write if it's from SSS (external permanent storage) to CSS
+                /*
                 if (fileCopy->getDestinationFileLocation()->getStorageService()->getHostname() != "permanent_storage") {
 
                     for (const auto &trace_loc : copy_trace.internal_locations) {
@@ -1195,7 +1197,7 @@ namespace storalloc {
                         out_actions << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << this->volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
                         out_actions << YAML::EndMap;
                     }
-                }
+                }*/
             } else if (auto fileDelete = std::dynamic_pointer_cast<wrench::FileDeleteAction>(action)) {
                 auto usedLocation = fileDelete->getFileLocation();
                 auto usedFile = usedLocation->getFile();
@@ -1211,6 +1213,7 @@ namespace storalloc {
                     auto delete_trace = this->compound_storage_service->delete_traces[usedFile->getID()];
                     out_jobs << YAML::Key << "parts_count" << YAML::Value << delete_trace.internal_locations.size();
 
+                    /*
                     for (const auto &trace_loc : delete_trace.internal_locations) {
                         auto keys = updateIoUsageDelete(this->volume_per_storage_service_disk, trace_loc);
                         out_actions << YAML::BeginMap;
@@ -1227,7 +1230,7 @@ namespace storalloc {
                         out_actions << YAML::Key << "total_allocation_disk" << YAML::Value << this->volume_per_storage_service_disk[keys.first].disks[keys.second].total_allocation_count;
                         out_actions << YAML::Key << "total_used_volume_bytes_disk" << YAML::Value << this->volume_per_storage_service_disk[keys.first].disks[keys.second].total_capacity_used;
                         out_actions << YAML::EndMap;
-                    }
+                    }*/
                 }
             }
             out_jobs << YAML::EndMap;
@@ -1314,12 +1317,14 @@ namespace storalloc {
         simulatedJobs.close();
 
         // Write to YAML file
+        /*
         ofstream io_ss_actions;
         io_ss_actions.open(this->config->out.io_actions_prefix + jobsFilename + "__" + configVersion + "_" + tag + ".yml");
         io_ss_actions << "---\n";
         io_ss_actions << out_actions.c_str();
         io_ss_actions << "\n...\n";
         io_ss_actions.close();
+        */
     }
 
     /**
