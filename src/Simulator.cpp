@@ -202,13 +202,15 @@ namespace storalloc {
             WRENCH_DEBUG("Task %s completed at time %f", item->getContent()->getTask()->getID().c_str(), item->getDate());
         }
 
-        auto action_results = ctrl->actionsAllCompleted();
+        // auto action_results = ctrl->actionsAllCompleted();
         int return_code = 0;
-        if (not action_results) {
-            WRENCH_WARN("Some actions have failed");
-            return_code = 1;
+        auto failed_cnt = ctrl->getFailedJobCount();
+        if (ctrl->getFailedJobCount() > 0) {
+            WRENCH_WARN("%lu jobs have failed", failed_cnt);
         }
-
+        if (ctrl->getFailedJobCount() > 5) {
+            return 1;
+        }
         // Extract traces into files tagged with dataset and config version.
         try {
             ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
@@ -226,7 +228,7 @@ namespace storalloc {
         std::cout << "# Trace processing duration : " << (chrono_end - sim_end) / 1ms << "ms" << std::endl;
         std::cout << "##########################################" << std::endl;
 
-        return return_code;
+        return 0;
     }
 
 } // namespace storalloc

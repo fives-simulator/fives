@@ -79,6 +79,8 @@ namespace storalloc {
 
         virtual bool actionsAllCompleted();
 
+        uint64_t getFailedJobCount() const { return this->failed_jobs_count; };
+
         virtual void extractSSSIO(const std::string &jobsFilename, const std::string &configVersion, const std::string &tag);
 
     protected:
@@ -134,10 +136,12 @@ namespace storalloc {
                                    std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                    bool cleanup_external = true);
 
-        void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
+        void processActions(YAML::Emitter &out_jobs,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
                             double &job_start_time,
                             const std::string &job_id);
+
+        void processCompletedJob(const std::string &job_id);
 
         void pruneIONodes(std::map<std::string, unsigned long> &resources, unsigned int max_nb_hosts) const;
 
@@ -174,6 +178,10 @@ namespace storalloc {
         std::shared_ptr<storalloc::Config> config;
 
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
+
+        YAML::Emitter completed_jobs;
+
+        uint64_t failed_jobs_count = 0;
     };
 
 } // namespace storalloc

@@ -523,8 +523,9 @@ def run_calibration():
         f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
     )
 
-    cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
-    cpu = min(cpu, 8) # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
+    cpu = 1
+    # cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
+    # cpu = min(cpu, 8) # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )
@@ -543,11 +544,6 @@ def run_calibration():
             else:
                 print("Recording trial failure")
                 ax_client.log_trial_failure(trial_index=res["trial_index"])
-
-    cpu_batch = min(multiprocessing.cpu_count() - 1, parallelism[1][1])
-    print(
-        f"### Running {cpu_batch} simulation in parallel (max Ax // is {parallelism[1][1]} for the following {parallelism[1][0]} runs)"
-    )
 
     # Run n iterations with a reduced number of parallel simulations (this is the 'sequential' part)
     for i in range(CALIBRATION_RUNS):
