@@ -45,7 +45,7 @@ AX_PARAMS = [
     {
         "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [100, 240],  
+        "bounds": [100, 240],
         "value_type": "int",
     },
     {
@@ -69,13 +69,13 @@ AX_PARAMS = [
     {
         "name": "disk_rb",
         "type": "range",
-        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
+        "bounds": [430, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "disk_wb",
         "type": "range",
-        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
+        "bounds": [300, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
@@ -154,6 +154,7 @@ AX_PARAMS = [
     },
 """
 
+
 def load_base_config(path: str):
     """Open configuration file that serves as base config, cleanup the dictionnary and return it"""
     # Start from a configuration base for the platform we experiment on
@@ -185,17 +186,19 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     # Extract parameters proposed by Ax
     bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
-    bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
+    bandwidth_backbone_perm_storage = parametrization.get(
+        "bandwidth_backbone_perm_storage"
+    )
     permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
     permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
-    
-    preload_percent = 0   
+
+    preload_percent = 0
     if "preload_percent" in parametrization:
         preload_percent = parametrization.get("preload_percent")
-        
+
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
-    
+
     stripe_size = 16777216
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
@@ -203,19 +206,18 @@ def update_base_config(parametrization, base_config, cfg_name):
     stripe_count = 1
     if stripe_count in parametrization:
         stripe_count = parametrization.get("stripe_count")
-    
+
     nb_files_per_read = parametrization.get("nb_files_per_read")
 
     io_read_node_ratio = 0.3
     if "io_read_node_ratio" in parametrization:
         io_read_node_ratio = parametrization.get("io_read_node_ratio")
-    
+
     nb_files_per_write = parametrization.get("nb_files_per_write")
 
     io_write_node_ratio = 0.3
     if "io_write_node_ratio" in parametrization:
         io_write_node_ratio = parametrization.get("io_write_node_ratio")
-        
 
     # Non-linear coefficient for altering read/write during concurrent disk access
     non_linear_coef_read = parametrization.get("non_linear_coef_read")
@@ -225,14 +227,14 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
     base_config["general"]["preload_percent"] = preload_percent
-    base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
-    base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
-    base_config["permanent_storage"][
-        "read_bw"
-    ] = f"{permanent_storage_read_bw}GBps"
-    base_config["permanent_storage"][
-        "write_bw"
-    ] = f"{permanent_storage_write_bw}GBps"
+    base_config["network"][
+        "bandwidth_backbone_storage"
+    ] = f"{bandwidth_backbone_storage}GBps"
+    base_config["network"][
+        "bandwidth_backbone_perm_storage"
+    ] = f"{bandwidth_backbone_perm_storage}GBps"
+    base_config["permanent_storage"]["read_bw"] = f"{permanent_storage_read_bw}GBps"
+    base_config["permanent_storage"]["write_bw"] = f"{permanent_storage_write_bw}GBps"
 
     base_config["storage"]["read_variability"] = 1  # deactivated
     base_config["storage"]["write_variability"] = 1  # deactivated
@@ -294,11 +296,10 @@ def process_results(result_filename: str):
     real_write_time = []
 
     for job in results:
-
         # IO TIME
         r_io_time = (
-            (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"] 
-        )
+            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+        ) / job["sum_nprocs"]
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"])
         real_write_time.append(job["real_cWriteTime_s"] / job["sum_nprocs"])
@@ -314,9 +315,9 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += (action["act_duration"] / action["nb_procs_io"])
+                s_r_time += action["act_duration"] / action["nb_procs_io"]
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += (action["act_duration"] / action["nb_procs_io"])
+                s_w_time += action["act_duration"] / action["nb_procs_io"]
             """
             if action["act_type"] == "FILECOPY" and action["copy_direction"] == "sss_to_css":
                 s_r_time += action["act_duration"]
@@ -326,18 +327,21 @@ def process_results(result_filename: str):
                 s_io_time += action["act_duration"]
             """
 
-        s_io_time = (s_r_time + s_w_time) 
+        s_io_time = s_r_time + s_w_time
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
         sim_write_time.append(s_w_time)
         io_time_diff.append(abs(s_io_time - r_io_time))
 
-        
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
-    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
+        sim_io_time, real_io_time, alternative="two-sided"
+    )
 
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
-        print("Statistically significant difference between simulated io time values and real io time values")
+        print(
+            "Statistically significant difference between simulated io time values and real io time values"
+        )
 
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
@@ -348,11 +352,7 @@ def process_results(result_filename: str):
     #         + abs(io_time_cohen_d)
     #     )
     # }
-    return {
-        "optimization_metric": (
-            abs(ztest_iotime_tstat)
-        )
-    }
+    return {"optimization_metric": (abs(ztest_iotime_tstat))}
 
 
 def run_simulation(
@@ -489,7 +489,7 @@ def run_calibration():
 
     base_config = load_base_config(CONFIGURATION_BASE)
 
-    ax_client = AxClient() # enforce_sequential_optimization=False)
+    ax_client = AxClient()  # enforce_sequential_optimization=False)
     ax_client.create_experiment(
         name="StorallocWrench_ThetaExperiment",
         parameters=AX_PARAMS,
@@ -501,7 +501,7 @@ def run_calibration():
             "permanent_storage_read_bw >= permanent_storage_write_bw",
             "non_linear_coef_read >= non_linear_coef_write",
             "permanent_storage_read_bw >= permanent_storage_write_bw",
-            "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage"
+            "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
         ],
         outcome_constraints=[],
     )
@@ -523,9 +523,10 @@ def run_calibration():
         f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
     )
 
-    cpu = 1
-    # cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
-    # cpu = min(cpu, 8) # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
+    cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
+    cpu = min(
+        cpu, 2
+    )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )
