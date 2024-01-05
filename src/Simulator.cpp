@@ -209,6 +209,7 @@ namespace storalloc {
             WRENCH_WARN("%lu jobs have failed", failed_cnt);
         }
         if (ctrl->getFailedJobCount() > 5) {
+            std::cout << "## Too many jobs have failed (> 5), returning " << std::endl;
             return 1;
         }
         // Extract traces into files tagged with dataset and config version.
