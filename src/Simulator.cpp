@@ -202,16 +202,20 @@ namespace storalloc {
             WRENCH_DEBUG("Task %s completed at time %f", item->getContent()->getTask()->getID().c_str(), item->getDate());
         }
 
-        // auto action_results = ctrl->actionsAllCompleted();
+        // ctrl->actionsAllCompleted();
         int return_code = 0;
         auto failed_cnt = ctrl->getFailedJobCount();
         if (ctrl->getFailedJobCount() > 0) {
             WRENCH_WARN("%lu jobs have failed", failed_cnt);
+            std::cout << "FAILED:" << failed_cnt << std::endl;
         }
+
+        /*
         if (ctrl->getFailedJobCount() > 5) {
             std::cout << "## Too many jobs have failed (> 5), returning " << std::endl;
             return 1;
         }
+        */
         // Extract traces into files tagged with dataset and config version.
         try {
             ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
