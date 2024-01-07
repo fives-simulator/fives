@@ -719,8 +719,26 @@ namespace storalloc {
                 WRENCH_DEBUG("[%s] readFromTemporary: Creating read action for file %s and host %s", readJob->getName().c_str(), read_file->getID().c_str(), computeResourcesIt->first.c_str());
 
                 auto action_id = "FR_" + read_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
-                auto read_byte_per_node = stripe_size * stripes_per_host;
-                WRENCH_DEBUG("[%s] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", readJob->getName().c_str(), stripes_per_host, read_byte_per_node);
+                double read_byte_per_node = 0;
+                if (stripes_per_file[read_file] == stripes_per_host) {
+                    // Only one host reading all the stripes
+                    read_byte_per_node = read_file->getSize();
+                    WRENCH_DEBUG("[%s] readFromTemporary: We'll be reading the entire file from this host.", readJob->getName().c_str());
+                } else {
+                    read_byte_per_node = stripe_size * stripes_per_host;
+                    WRENCH_DEBUG("[%s] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", readJob->getName().c_str(), stripes_per_host, read_byte_per_node);
+                }
+
+                if (read_byte_per_node > read_file->getSize()) {
+                    std::cout << "READ_BYTE_PER_NODE > READ FILE SIZE" << std::endl;
+                    std::cout << read_byte_per_node << " > " << read_file->getSize() << std::endl;
+                    std::cout << "Max nb host is " << max_nb_hosts << std::endl;
+                    std::cout << "There are  " << inputs.size() << " files " << std::endl;
+                    std::cout << "the job is " << readJob->getName() << std::endl;
+                    std::cout << "Stripe size is : " << stripe_size << std::endl;
+                    std::cout << "Number of stripes for this file " << stripes_per_file[read_file] << std::endl;
+                    std::cout << "Number of stripes to read for this host : " << stripes_per_host << std::endl;
+                }
 
                 readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), read_byte_per_node);
                 action_cnt++;
