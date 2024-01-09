@@ -876,7 +876,18 @@ namespace storalloc {
                 WRENCH_DEBUG("[%s] writeToTemporary: Creating custom write action for file %s and host %s", writeJob->getName().c_str(), write_file->getID().c_str(), computeResourcesIt->first.c_str());
 
                 auto action_id = "FW_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
-                auto write_byte_per_node = stripe_size * stripes_per_host;
+
+                double write_byte_per_node = 0;
+                if (stripes_per_file[write_file] == stripes_per_host) {
+                    // Only one host reading all the stripes
+                    write_byte_per_node = write_file->getSize();
+                    WRENCH_DEBUG("[%s] readFromTemporary: We'll be reading the entire file from this host.", writeJob->getName().c_str());
+                } else {
+                    write_byte_per_node = stripe_size * stripes_per_host;
+                    WRENCH_DEBUG("[%s] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_byte_per_node);
+                }
+
+                // auto write_byte_per_node = stripe_size * stripes_per_host;
                 WRENCH_DEBUG("[%s] writeToTemporary:   We'll be writing %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_byte_per_node);
 
                 auto customWriteAction = std::make_shared<PartialWriteCustomAction>(
