@@ -81,7 +81,7 @@ def compute_runtime_diff(jobs, plotting=True):
     runtime_cohen_d = cohend(sim_runtime, real_runtime)
 
     ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
-    
+
     print(
         f"  - Mean runtime for simulation : {mean_sim_runtime}s\n"+
         f"  - Mean runtime in traces : {mean_real_runtime}s\n" +
@@ -113,10 +113,10 @@ def compute_runtime_diff(jobs, plotting=True):
         hist_data["values"].extend(sim_runtime)
         hist_data["Origin"].extend(["real" for i in range(len(real_runtime))])
         hist_data["Origin"].extend(["sim" for i in range(len(sim_runtime))])
-        
+
         binwidth = 1000
 
-        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth, 
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth,
                                  ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
         global_hist.set(xlabel=f"Runtimes histogram (real / simulation) ; binwidth = {binwidth}s")
 
@@ -152,7 +152,7 @@ def compute_iotime_diff(jobs, plotting=True):
     for job in jobs:
 
         # "Real"
-        r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"] 
+        r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"]
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"] )
         real_write_time.append(job["real_cWriteTime_s"]  / job["sum_nprocs"] )
@@ -170,8 +170,8 @@ def compute_iotime_diff(jobs, plotting=True):
                 s_r_time += (action["act_duration"] / action["nb_procs_io"])
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):  # only custom action out there is our custom write action
                 s_w_time += (action["act_duration"] / action["nb_procs_io"])
-            
-        s_io_time = (s_r_time + s_w_time) 
+
+        s_io_time = (s_r_time + s_w_time)
 
         sim_io_time.append(s_io_time)
         sim_read_time.append(s_r_time)
@@ -200,7 +200,7 @@ def compute_iotime_diff(jobs, plotting=True):
         f"  - The Pearson's corr is {io_time_corr} (we want a correlation as high as possible)\n" +
         f"  - The Cohen d effect size is {io_time_cohen_d} (we want an effect size as low as possible, " +
         "the use of the simulator should lead to values close to real world traces)\n" +
-        f"  - ztest tstat : {ztest_iotime_tstat}\n" + 
+        f"  - ztest tstat : {ztest_iotime_tstat}\n" +
         f"  - ztest pvalue: {ztest_iotime_pvalue}\n")
 
     if plotting:
@@ -214,15 +214,16 @@ def compute_iotime_diff(jobs, plotting=True):
         max_target = max(max(real_io_time), max(sim_io_time))
         line = {"x": [0, max_target], "y": [0, max_target]}
 
-        scatter = sns.scatterplot(x=real_io_time, y=sim_io_time, s=40, color=".15", alpha=0.5, ax=axs[0])
-        read_scatter = sns.scatterplot(x=real_read_time, y=sim_read_time, s=20, ax=axs[0], facecolors="red", marker="+", alpha=0.6)
-        write_scatter = sns.scatterplot(x=real_write_time, y=sim_write_time, s=20, color=".10", ax=axs[0], facecolors="blue", marker="x", alpha=0.3)
-        target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", ax=axs[0])
+        scatter = sns.scatterplot(x=real_io_time, y=sim_io_time, s=40, color=".15", alpha=0.5, ax=axs[0], label="Read/Write")
+        read_scatter = sns.scatterplot(x=real_read_time, y=sim_read_time, s=20, ax=axs[0], facecolors="red", marker="+", alpha=0.6, label="read")
+        write_scatter = sns.scatterplot(x=real_write_time, y=sim_write_time, s=20, color=".10", ax=axs[0], facecolors="blue", marker="x", alpha=0.3, label="write")
+        target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", ax=axs[0], label="Real == Sim target")
         scatter.set(xlabel="Real jobs (mean IO time per rank)", ylabel="Simulated jobs (mean IO time per simulated rank)")
-        #axs[0].set_xscale('log')
-        axs[0].set_xlim([0.0001, max_target*1.2])
-        #axs[0].set_yscale('log')
-        axs[0].set_ylim([0.0001, max_target*1.2])
+        axs[0].legend()
+        # axs[0].set_xscale('log')
+        axs[0].set_xlim([0.0001, max_target*1.05])
+        # axs[0].set_yscale('log')
+        axs[0].set_ylim([0.0001, max_target*1.05])
 
         binwidth = 100
 
@@ -232,7 +233,7 @@ def compute_iotime_diff(jobs, plotting=True):
         hist_data["Origin"].extend(["real" for i in range(len(real_io_time))])
         hist_data["Origin"].extend(["sim" for i in range(len(sim_io_time))])
 
-        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth, 
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth,
                                  ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
         global_hist.set(xlabel=f"IO times histogram (real / simulation) ; binwidth = {binwidth}s")
 
@@ -273,8 +274,8 @@ def compute_iovolume_diff(jobs, plotting=True):
         s_io_volume_gb = 0
         for action in job["actions"]:
 
-            if (action["act_type"] == "FILEREAD" 
-            or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"])) 
+            if (action["act_type"] == "FILEREAD"
+            or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]))
             and action["act_status"] == "COMPLETED"):
                 s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
 
@@ -317,7 +318,7 @@ def compute_iovolume_diff(jobs, plotting=True):
 
         binwidth = 100
 
-        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth, 
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth,
                                  ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
         global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth}s")
 

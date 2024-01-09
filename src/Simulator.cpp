@@ -218,7 +218,7 @@ namespace storalloc {
         */
         // Extract traces into files tagged with dataset and config version.
         try {
-            ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
+            // ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
             ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
         } catch (const std::exception &e) {
             std::cout << "## ERROR in trace analysis : " << e.what() << std::endl;
