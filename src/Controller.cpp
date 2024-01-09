@@ -192,9 +192,23 @@ namespace storalloc {
             for (const auto &run : job.runs) {
                 if (run.readBytes >= this->config->stor.read_bytes_preload_thres) {
 
+                    unsigned int nb_read_files;
+
+                    if (run.readBytes >= 100'000'000'000) {
+                        nb_read_files = std::ceil(run.readBytes / 20'000'000'000);
+                        nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
+                        nb_read_files = std::max(1u, nb_read_files);
+                    } else if ((run.readBytes < 100'000'000'000) & (run.readBytes >= 1'000'000'000)) {
+                        nb_read_files = std::ceil(run.readBytes / 1'000'000'000);
+                        nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
+                        nb_read_files = std::max(1u, nb_read_files);
+                    } else {
+                        nb_read_files = 1;
+                    }
+
                     auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
                     WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
-                    auto read_files = this->createFileParts(run.readBytes, this->config->stor.nb_files_per_read, prefix);
+                    auto read_files = this->createFileParts(run.readBytes, nb_read_files, prefix);
 
                     for (const auto &read_file : read_files) {
                         auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
@@ -412,16 +426,54 @@ namespace storalloc {
                         // (depending on the size of the current MPI Communicator given by nprocs)
                         float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
 
+                        // NUMBER OF READ FILES (BASED UPON READ BYTES)
+                        unsigned int nb_read_files;
+
+                        if (run.readBytes >= 100'000'000'000) {
+                            nb_read_files = std::ceil(run.readBytes / 20'000'000'000);
+                            nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
+                            nb_read_files = std::max(1u, nb_read_files);
+                        } else if ((run.readBytes < 100'000'000'000) & (run.readBytes >= 10'000'000'000)) {
+                            nb_read_files = std::ceil(run.readBytes / 10'000'000'000);
+                            nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
+                            nb_read_files = std::max(1u, nb_read_files);
+                        } else if ((run.readBytes < 10'000'000'000) & (run.readBytes >= 1'000'000'000)) {
+                            nb_read_files = std::ceil(run.readBytes / 1'000'000'000);
+                            nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
+                            nb_read_files = std::max(1u, nb_read_files);
+                        } else {
+                            nb_read_files = 1;
+                        }
+
+                        // NUMBER OF WRITE FILES (BASED UPON READ BYTES)
+                        unsigned int nb_write_files;
+
+                        if (run.writtenBytes >= 100'000'000'000) {
+                            nb_write_files = std::ceil(run.writtenBytes / 50'000'000'000);
+                            nb_write_files = std::min(nb_write_files, this->config->stor.nb_files_per_write);
+                            nb_write_files = std::max(1u, nb_write_files);
+                        } else if ((run.writtenBytes < 100'000'000'000) & (run.readBytes >= 25'000'000'000)) {
+                            nb_write_files = std::ceil(run.writtenBytes / 10'000'000'000);
+                            nb_write_files = std::min(nb_write_files, this->config->stor.nb_files_per_write);
+                            nb_write_files = std::max(1u, nb_write_files);
+                        } else if ((run.readBytes < 10'000'000'000) & (run.readBytes >= 1'000'000'000)) {
+                            nb_write_files = std::ceil(run.readBytes / 2'000'000'000);
+                            nb_write_files = std::min(nb_write_files, this->config->stor.nb_files_per_write);
+                            nb_write_files = std::max(1u, nb_write_files);
+                        } else {
+                            nb_write_files = 1;
+                        }
+
                         float nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
                         float high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_read = std::min(nb_nodes_read, high_read_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / this->config->stor.nb_files_per_read));
+                        nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / nb_read_files));
                         WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
                         float nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
                         float high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_write = std::min(nb_nodes_write, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / this->config->stor.nb_files_per_write));
+                        nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / nb_write_files));
                         WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
                         this->node_rw_count[jobID][run.id] = std::make_pair(nb_nodes_read, nb_nodes_write);
@@ -445,7 +497,7 @@ namespace storalloc {
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
                                 // Copy job before the read
                                 auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, this->config->stor.nb_files_per_read, nb_nodes_read);
+                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, nb_read_files, nb_nodes_read);
                                 if (exec_jobs[run.id].size() != 0) {
                                     exec_jobs[run.id].back()->addChildJob(copyJob);
                                 }
@@ -469,7 +521,7 @@ namespace storalloc {
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, this->config->stor.nb_files_per_write, nb_nodes_write);
+                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
 
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(writeJob); // Add dependencies between jobs (but inside a job, actions are //)
