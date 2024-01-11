@@ -106,6 +106,8 @@ namespace storalloc {
 
         virtual void readFromTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                        std::shared_ptr<wrench::CompoundJob> readJob,
+                                       std::string jobID,
+                                       unsigned runID,
                                        std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                        uint64_t readBytes,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs,
@@ -113,6 +115,8 @@ namespace storalloc {
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                                                                 std::shared_ptr<wrench::CompoundJob> writeJob,
+                                                                                std::string jobID,
+                                                                                unsigned runID,
                                                                                 std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                                                                 uint64_t writtenBytes,
                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
@@ -147,9 +151,11 @@ namespace storalloc {
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
+        unsigned int determineFileCount(double io_volume) const;
+
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
-        std::map<std::string, std::map<unsigned int, std::pair<unsigned int, unsigned int>>> node_rw_count;
+        std::map<std::string, std::map<unsigned int, std::map<std::string, unsigned int>>> stripes_per_action; // map for to-level jobs, then runs inside jobs, then actions
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
 

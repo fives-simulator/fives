@@ -27,7 +27,6 @@ CI_PIPELINE_URL = os.getenv("CI_PIPELINE_URL", default="UNKNOWN_PIPELINE_URL")
 CI_PROJECT_URL = os.getenv("CI_PROJECT_URL", default="UNKNOWN_PROJECT_URL")
 CALIBRATION_RUNS = os.getenv("CALIBRATION_RUNS", default="UNKNOWN_CALIBRATION_ITER_COUNT")
 
-
 REAL_COLOR = (0.1, 0.4, 0.8, 0.5)
 SIM_COLOR = (1, 0.5, 0.2, 0.5)
 
@@ -151,12 +150,6 @@ def compute_iotime_diff(jobs, plotting=True):
 
     for job in jobs:
 
-        # "Real"
-        r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job["sum_nprocs"]
-        real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"] )
-        real_write_time.append(job["real_cWriteTime_s"]  / job["sum_nprocs"] )
-
         # Simulated
         s_io_time = 0
         s_r_time = 0
@@ -167,17 +160,24 @@ def compute_iotime_diff(jobs, plotting=True):
             if action["act_status"] != "COMPLETED":
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += (action["act_duration"] / action["nb_procs_io"])
-            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):  # only custom action out there is our custom write action
-                s_w_time += (action["act_duration"] / action["nb_procs_io"])
+                s_r_time += action["act_duration"] * action["nb_stripes"]
+            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
+                s_w_time += action["act_duration"] * action["nb_stripes"]
 
-        s_io_time = (s_r_time + s_w_time)
+        if len(job['actions']) != 0:
+            # "Real"
+            r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
+            real_io_time.append(r_io_time)
+            real_read_time.append(job["real_cReadTime_s"])
+            real_write_time.append(job["real_cWriteTime_s"])
 
-        sim_io_time.append(s_io_time)
-        sim_read_time.append(s_r_time)
-        sim_write_time.append(s_w_time)
+            s_io_time = (s_r_time + s_w_time) 
 
-        io_time_diff.append(abs(s_io_time - r_io_time))
+            sim_io_time.append(s_io_time)
+            sim_read_time.append(s_r_time)
+            sim_write_time.append(s_w_time)
+
+            io_time_diff.append(abs(s_io_time - r_io_time))
 
 
     mean_real_io_time = np.mean(real_io_time)
@@ -186,6 +186,8 @@ def compute_iotime_diff(jobs, plotting=True):
 
     # Pearson's correlation
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
+    read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
+    write_time_corr, _ = pearsonr(sim_write_time, real_write_time)
 
     # Cohen's D
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
@@ -193,15 +195,17 @@ def compute_iotime_diff(jobs, plotting=True):
     ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
 
     print(
-        f"  - Mean IO time for simulation : {mean_sim_iotime}s\n" +
-        f"  - Mean IO time in traces : {mean_real_io_time}s\n" +
-        f"  - The mean IO time difference between simulated and real values for all jobs is {mean_io_time_difference}s " +
+        f"  - Mean IO time for simulation >> {mean_sim_iotime} s <<\n" +
+        f"  - Mean IO time in traces : >> {mean_real_io_time} s <<\n" +
+        f"  - The mean IO time difference between simulated and real values for all jobs is  >> {mean_io_time_difference} s << " +
         "(we want a mean difference as close to 0 as possible)\n" +
-        f"  - The Pearson's corr is {io_time_corr} (we want a correlation as high as possible)\n" +
-        f"  - The Cohen d effect size is {io_time_cohen_d} (we want an effect size as low as possible, " +
+        f"  - The Pearson's corr is >> {io_time_corr} << (we want a correlation as high as possible)\n" +
+        f"    - Read corr. is >> {read_time_corr} <<\n"+
+        f"    - Write corr. is >> {write_time_corr} <<\n"+
+        f"  - The Cohen d effect size is >> {io_time_cohen_d} << (we want an effect size as low as possible, " +
         "the use of the simulator should lead to values close to real world traces)\n" +
-        f"  - ztest tstat : {ztest_iotime_tstat}\n" +
-        f"  - ztest pvalue: {ztest_iotime_pvalue}\n")
+        f"  - ztest tstat >> {ztest_iotime_tstat} <<\n" +
+        f"  - ztest pvalue >> {ztest_iotime_pvalue} <<\n")
 
     if plotting:
         print("    [Plotting io time analysis]")
@@ -225,7 +229,7 @@ def compute_iotime_diff(jobs, plotting=True):
         # axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.05])
 
-        binwidth = 100
+        binwidth = 1000
 
         hist_data = {"values": [], "Origin": []}
         hist_data["values"].extend(real_io_time)
@@ -320,7 +324,7 @@ def compute_iovolume_diff(jobs, plotting=True):
 
         global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth,
                                  ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
-        global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth}s")
+        global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth} GB")
 
 
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.pdf", dpi=300, format='pdf')

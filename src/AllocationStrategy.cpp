@@ -214,7 +214,7 @@ namespace storalloc {
      */
     striping LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t total_number_of_OSTs) const {
 
-        WRENCH_DEBUG("[lustreComputeStriping] file size : %ld bytes, number of OSTs : %lu", file_size_b, total_number_of_OSTs);
+        WRENCH_DEBUG("[lustreComputeStriping] file size : %ld bytes, number of available OSTs : %lu", file_size_b, total_number_of_OSTs);
 
         striping ret_striping = {};
         ret_striping.stripe_size_b = this->config->lustre.stripe_size;
@@ -256,8 +256,9 @@ namespace storalloc {
             ret_striping.stripe_size_b = std::ceil(static_cast<double>(file_size_b) / (ret_striping.stripes_count * config->lustre.max_chunks_per_ost));
             WRENCH_WARN("[lustreComputeStriping] Too many stripes per ost with configured stripe_size - recomputing to %lu",
                         ret_striping.stripe_size_b);
-            nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
-            ret_striping.max_stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+            // nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
+            // ret_striping.max_stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+            ret_striping.max_stripes_per_ost = this->config->lustre.max_chunks_per_ost;
         }
 
         WRENCH_DEBUG("[lustreComputeStriping] stripe_count = %lu ; stripe_size = %lu ; [stripes_per_ost = %lu]", ret_striping.stripes_count, ret_striping.stripe_size_b, ret_striping.max_stripes_per_ost);
@@ -283,6 +284,7 @@ namespace storalloc {
      */
     std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocator::lustreCreateFileParts(const std::shared_ptr<wrench::DataFile> &file, std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs, uint64_t stripeSize) const {
 
+#if 1
         WRENCH_DEBUG("[lustreCreateFileParts] Creating parts of file %s on %lu != OSTs, with stripe_size=%lu",
                      file->getID().c_str(), selectedOSTs.size(), stripeSize);
         // Actually create file_parts load-balanced on selected OSTs
@@ -306,7 +308,33 @@ namespace storalloc {
                 service++;
             }
         }
+#endif
+#if 0
+        // Actually create file_parts load-balanced on selected OSTs
+        std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
+        uint64_t file_size_b = file->getSize();
+        uint64_t allocated = 0;
+        uint64_t chunk_idx = 0;
+        auto service = selectedOSTs.begin();
 
+        auto nb_services = selectedOSTs.size();
+        auto meta_stripe_size = file_size_b / nb_services;
+
+        WRENCH_DEBUG("[lustreCreateFileParts] Creating parts of file %s on %lu != OSTs, with stripe_size=%lu",
+                     file->getID().c_str(), selectedOSTs.size(), meta_stripe_size);
+
+        for (const auto &servive : selectedOSTs) {
+            auto part = wrench::Simulation::addFile(file->getID() + "_metastripe_" + std::to_string(chunk_idx), meta_stripe_size);
+            // std::cout << "     - Creating file part " << file->getID() << "_" << std::to_string(chunk_idx) << " on " << service->get()->getName() << std::endl;
+            designated_locations.push_back(
+                wrench::FileLocation::LOCATION(
+                    std::shared_ptr<wrench::StorageService>(*service), part));
+
+            allocated += meta_stripe_size;
+            chunk_idx++;
+        }
+
+#endif
         WRENCH_DEBUG("[lustreCreateFileParts] %lu file parts have been created", designated_locations.size());
 
         return designated_locations;
