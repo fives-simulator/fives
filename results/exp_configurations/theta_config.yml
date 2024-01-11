@@ -31,8 +31,8 @@ storage:
   io_write_node_ratio: 0.3
   max_write_node_cnt: 28              # Fixed
   io_buffer_size: 268435456B
-  read_bytes_preload_thres: 1000000000  # Not doing copy *in* if job reads more than 1GB - Fixed
-  write_bytes_copy_thres:   2000000000  # Not doing copy *out* if job writes more than 2GB - Fixed
+  read_bytes_preload_thres: 0  # Not doing copy *in* if job reads more than 1GB - Fixed
+  write_bytes_copy_thres:   0  # Not doing copy *out* if job writes more than 2GB - Fixed
   cleanup_threshold: 0.45               # Threshold for adding or not cleanup action to a job - Fixed 
   disk_templates:
     - &raid_OSS
@@ -82,8 +82,8 @@ lustre:
   lq_threshold_rr: 43     # lustre default  - Fixed
   lq_prio_free: 232       # lustre default  - Fixed 
   stripe_size: 268435456  # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
-  stripe_count: 2         # Default number of OSTs used for each IO operation
-  max_chunks_per_ost: 4  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
+  stripe_count: 1         # Default number of OSTs used for each IO operation
+  max_chunks_per_ost: 56  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
 outputs:
   job_filename_prefix: simulatedJobs_
   io_actions_prefix: io_actions_ts_

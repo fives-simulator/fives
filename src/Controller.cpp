@@ -192,19 +192,7 @@ namespace storalloc {
             for (const auto &run : job.runs) {
                 if (run.readBytes >= this->config->stor.read_bytes_preload_thres) {
 
-                    unsigned int nb_read_files;
-
-                    if (run.readBytes >= 100'000'000'000) {
-                        nb_read_files = std::ceil(run.readBytes / 20'000'000'000);
-                        nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
-                        nb_read_files = std::max(1u, nb_read_files);
-                    } else if ((run.readBytes < 100'000'000'000) & (run.readBytes >= 1'000'000'000)) {
-                        nb_read_files = std::ceil(run.readBytes / 1'000'000'000);
-                        nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
-                        nb_read_files = std::max(1u, nb_read_files);
-                    } else {
-                        nb_read_files = 1;
-                    }
+                    auto nb_read_files = determineFileCount(run.readBytes);
 
                     auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
                     WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
@@ -376,6 +364,31 @@ namespace storalloc {
         return preload_jobs;
     }
 
+    unsigned int Controller::determineFileCount(double io_volume) const {
+
+        unsigned int nb_files = 1;
+
+        if (io_volume >= 1'000'000'000'000) {                 // 1 TB
+            nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB per file
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 100'000'000'000) {            // 100 GB
+            nb_files = std::ceil(io_volume / 10'000'000'000); // 10 GB per file
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 10'000'000'000) {            // 10GB
+            nb_files = std::ceil(io_volume / 5'000'000'000); // 5 GB per file
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 1'000'000'000) {
+            nb_files = std::ceil(io_volume / 500'000'000); // 500 MB per file
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        }
+
+        return nb_files;
+    }
+
     void Controller::submitJob(std::string jobID) {
 
         auto yJob = this->jobsWithPreload[jobID];
@@ -414,69 +427,34 @@ namespace storalloc {
                     // Create and keep trace of all exec_jobs for each of the Darshan records / monitored runs of an application
                     // inside the reservation  -- DO NOT SUBMIT JOBS IN THIS LOOP
                     std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> exec_jobs;
-                    this->node_rw_count[jobID] = std::map<unsigned int, std::pair<unsigned int, unsigned int>>();
+                    this->stripes_per_action[jobID] = std::map<unsigned int, std::map<std::string, unsigned int>>(); // empty map for new job
 
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
 
                         WRENCH_INFO("submitJob : bare_metal compute service for job %s :: %s", jobID.c_str(), bare_metal->getName().c_str());
+                        this->stripes_per_action[jobID][run.id] = std::map<std::string, unsigned int>();
 
                         exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
+
+                        // NUMBER OF READ FILES and WRITE FILES
+                        auto nb_read_files = this->determineFileCount(run.readBytes);
+                        auto nb_write_files = this->determineFileCount(run.writtenBytes);
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
                         float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
 
-                        // NUMBER OF READ FILES (BASED UPON READ BYTES)
-                        unsigned int nb_read_files;
-
-                        if (run.readBytes >= 100'000'000'000) {
-                            nb_read_files = std::ceil(run.readBytes / 20'000'000'000);
-                            nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
-                            nb_read_files = std::max(1u, nb_read_files);
-                        } else if ((run.readBytes < 100'000'000'000) & (run.readBytes >= 10'000'000'000)) {
-                            nb_read_files = std::ceil(run.readBytes / 10'000'000'000);
-                            nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
-                            nb_read_files = std::max(1u, nb_read_files);
-                        } else if ((run.readBytes < 10'000'000'000) & (run.readBytes >= 1'000'000'000)) {
-                            nb_read_files = std::ceil(run.readBytes / 1'000'000'000);
-                            nb_read_files = std::min(nb_read_files, this->config->stor.nb_files_per_read);
-                            nb_read_files = std::max(1u, nb_read_files);
-                        } else {
-                            nb_read_files = 1;
-                        }
-
-                        // NUMBER OF WRITE FILES (BASED UPON READ BYTES)
-                        unsigned int nb_write_files;
-
-                        if (run.writtenBytes >= 100'000'000'000) {
-                            nb_write_files = std::ceil(run.writtenBytes / 50'000'000'000);
-                            nb_write_files = std::min(nb_write_files, this->config->stor.nb_files_per_write);
-                            nb_write_files = std::max(1u, nb_write_files);
-                        } else if ((run.writtenBytes < 100'000'000'000) & (run.readBytes >= 25'000'000'000)) {
-                            nb_write_files = std::ceil(run.writtenBytes / 10'000'000'000);
-                            nb_write_files = std::min(nb_write_files, this->config->stor.nb_files_per_write);
-                            nb_write_files = std::max(1u, nb_write_files);
-                        } else if ((run.readBytes < 10'000'000'000) & (run.readBytes >= 1'000'000'000)) {
-                            nb_write_files = std::ceil(run.readBytes / 2'000'000'000);
-                            nb_write_files = std::min(nb_write_files, this->config->stor.nb_files_per_write);
-                            nb_write_files = std::max(1u, nb_write_files);
-                        } else {
-                            nb_write_files = 1;
-                        }
-
                         float nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
                         float high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_read = std::min(nb_nodes_read, high_read_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / nb_read_files));
+                        // nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / nb_read_files));
                         WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
                         float nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
                         float high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_write = std::min(nb_nodes_write, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / nb_write_files));
+                        // nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / nb_write_files));
                         WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
-
-                        this->node_rw_count[jobID][run.id] = std::make_pair(nb_nodes_read, nb_nodes_write);
 
                         if (run.sleepDelay != 0) {
                             auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
@@ -510,7 +488,7 @@ namespace storalloc {
 
                             // Read job
                             auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            this->readFromTemporary(bare_metal, readJob, service_specific_args, run.readBytes, input_files, nb_nodes_read);
+                            this->readFromTemporary(bare_metal, readJob, jobID, run.id, service_specific_args, run.readBytes, input_files, nb_nodes_read);
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(readJob); // Add dependencies between jobs (but inside a job, actions are //)
                             }
@@ -521,7 +499,7 @@ namespace storalloc {
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            output_data = this->writeToTemporary(bare_metal, writeJob, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
+                            output_data = this->writeToTemporary(bare_metal, writeJob, jobID, run.id, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
 
                             if (exec_jobs[run.id].size() != 0) {
                                 exec_jobs[run.id].back()->addChildJob(writeJob); // Add dependencies between jobs (but inside a job, actions are //)
@@ -714,6 +692,8 @@ namespace storalloc {
 
     void Controller::readFromTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                        std::shared_ptr<wrench::CompoundJob> readJob,
+                                       std::string jobID,
+                                       unsigned int runID,
                                        std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                        uint64_t readBytes,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs,
@@ -752,8 +732,8 @@ namespace storalloc {
                 for (unsigned int i = 0; i < remainder; i++) {
                     stripes_per_host_per_file[read_file][i] += 1;
                 }
-                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u or %u stripes from each host (%u hosts will read more)",
-                             readJob->getName().c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + 1, remainder);
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u +- %u stripes from each host (%u hosts will read more)",
+                             readJob->getName().c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, remainder, remainder);
             }
         }
 
@@ -781,6 +761,9 @@ namespace storalloc {
                     WRENCH_DEBUG("[%s] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", readJob->getName().c_str(), stripes_per_host, read_byte_per_node);
                 }
 
+                this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
+
+                // dirty debug
                 if (read_byte_per_node > read_file->getSize()) {
                     std::cout << "READ_BYTE_PER_NODE > READ FILE SIZE" << std::endl;
                     std::cout << read_byte_per_node << " > " << read_file->getSize() << std::endl;
@@ -804,9 +787,12 @@ namespace storalloc {
 
     std::vector<std::shared_ptr<wrench::DataFile>> Controller::writeToTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                                                                 std::shared_ptr<wrench::CompoundJob> writeJob,
+                                                                                std::string jobID,
+                                                                                unsigned int runID,
                                                                                 std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                                                                 uint64_t writtenBytes,
-                                                                                unsigned int nb_files, unsigned int max_nb_hosts) {
+                                                                                unsigned int nb_files,
+                                                                                unsigned int max_nb_hosts) {
 
         WRENCH_INFO("[%s] Creating write sub-job with size %ld bytes, on %u files and at most %u IO nodes (0 means all avail)",
                     writeJob->getName().c_str(), writtenBytes, nb_files, max_nb_hosts);
@@ -881,14 +867,11 @@ namespace storalloc {
                 if (stripes_per_file[write_file] == stripes_per_host) {
                     // Only one host reading all the stripes
                     write_byte_per_node = write_file->getSize();
-                    WRENCH_DEBUG("[%s] readFromTemporary: We'll be reading the entire file from this host.", writeJob->getName().c_str());
+                    WRENCH_DEBUG("[%s] writeToTemporary: We'll be writing the entire file from this host.", writeJob->getName().c_str());
                 } else {
                     write_byte_per_node = stripe_size * stripes_per_host;
-                    WRENCH_DEBUG("[%s] readFromTemporary:   We'll be reading %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_byte_per_node);
+                    WRENCH_DEBUG("[%s] writeToTemporary: We'll be writing %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_byte_per_node);
                 }
-
-                // auto write_byte_per_node = stripe_size * stripes_per_host;
-                WRENCH_DEBUG("[%s] writeToTemporary:   We'll be writing %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_byte_per_node);
 
                 auto customWriteAction = std::make_shared<PartialWriteCustomAction>(
                     action_id, 0, 0,
@@ -903,6 +886,8 @@ namespace storalloc {
                     },
                     write_file, write_byte_per_node);
                 writeJob->addCustomAction(customWriteAction);
+
+                this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
                 action_cnt++;
 
                 // One copy per compute node, looping over if there are more files than nodes
@@ -1201,7 +1186,7 @@ namespace storalloc {
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
                 out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileRead->getNumBytesToRead();
                 if (run_id != -1) {
-                    out_jobs << YAML::Key << "nb_procs_io" << YAML::Value << this->node_rw_count[job_id][run_id].first;
+                    out_jobs << YAML::Key << "nb_stripes" << YAML::Value << this->stripes_per_action[job_id][run_id][action->getName()];
                 }
             } else if (auto fileWrite = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(action)) {
                 // auto usedLocation = fileWrite->getFileLocation();
@@ -1214,7 +1199,7 @@ namespace storalloc {
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
                 out_jobs << YAML::Key << "io_size_bytes" << YAML::Value << fileWrite->getWrittenSize();
                 if (run_id != -1) {
-                    out_jobs << YAML::Key << "nb_procs_io" << YAML::Value << this->node_rw_count[job_id][run_id].second;
+                    out_jobs << YAML::Key << "nb_stripes" << YAML::Value << this->stripes_per_action[job_id][run_id][action->getName()];
                 }
 
                 /*for (const auto &trace_loc : write_trace.internal_locations) {

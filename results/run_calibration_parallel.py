@@ -32,7 +32,7 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week38")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week41")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=5))
@@ -45,7 +45,7 @@ AX_PARAMS = [
     {
         "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [100, 240],
+        "bounds": [120, 240],
         "value_type": "int",
     },
     {
@@ -57,13 +57,13 @@ AX_PARAMS = [
     {
         "name": "permanent_storage_read_bw",
         "type": "range",
-        "bounds": [10, 90],
+        "bounds": [30, 90],
         "value_type": "int",
     },
     {
         "name": "permanent_storage_write_bw",
         "type": "range",
-        "bounds": [10, 90],
+        "bounds": [30, 90],
         "value_type": "int",
     },
     {
@@ -76,20 +76,6 @@ AX_PARAMS = [
         "name": "disk_wb",
         "type": "range",
         "bounds": [300, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_read",
-        "type": "choice",
-        "values": [1, 2, 4, 8],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "choice",
-        "values": [1, 2, 4, 8],
-        "is_ordered": True,
         "value_type": "int",
     },
     {
@@ -109,16 +95,28 @@ AX_PARAMS = [
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0.2, 1],
+        "bounds": [0.2, 0.6],
         "digits": 1,
         "value_type": "float",
     },
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0.2, 1],
+        "bounds": [0.2, 0.6],
         "digits": 1,
         "value_type": "float",
+    },
+    {
+        "name": "stripe_count",
+        "type": "range",
+        "bounds": [1, 4],  # NOTE : never using all OSTs for any allocation so far
+        "value_type": "int",
+    },
+    {
+        "name": "max_chunks_per_ost",
+        "type": "choice",
+        "values": [28, 56], 
+        "value_type": "int",
     },
 ]
 
@@ -150,6 +148,20 @@ AX_PARAMS = [
         "name": "stripe_count",
         "type": "range",
         "bounds": [1, 4],  # NOTE : never using all OSTs for any allocation so far
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "choice",
+        "values": [1, 2, 4, 8],
+        "is_ordered": True,
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "choice",
+        "values": [1, 2, 4, 8],
+        "is_ordered": True,
         "value_type": "int",
     },
 """
@@ -199,21 +211,26 @@ def update_base_config(parametrization, base_config, cfg_name):
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
 
-    stripe_size = 16777216
+    # stripe_size = 16777216
+    stripe_size = 268435456
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
     stripe_count = 1
-    if stripe_count in parametrization:
+    if "stripe_count" in parametrization:
         stripe_count = parametrization.get("stripe_count")
 
-    nb_files_per_read = parametrization.get("nb_files_per_read")
+    nb_files_per_read = 12
+    if "nb_files_per_read" in parametrization:
+        nb_files_per_read = parametrization.get("nb_files_per_read")
 
     io_read_node_ratio = 0.3
     if "io_read_node_ratio" in parametrization:
         io_read_node_ratio = parametrization.get("io_read_node_ratio")
 
-    nb_files_per_write = parametrization.get("nb_files_per_write")
+    nb_files_per_write = 12
+    if "nb_files_per_write" in parametrization:
+        nb_files_per_write = parametrization.get("nb_files_per_write")
 
     io_write_node_ratio = 0.3
     if "io_write_node_ratio" in parametrization:
@@ -222,6 +239,10 @@ def update_base_config(parametrization, base_config, cfg_name):
     # Non-linear coefficient for altering read/write during concurrent disk access
     non_linear_coef_read = parametrization.get("non_linear_coef_read")
     non_linear_coef_write = parametrization.get("non_linear_coef_write")
+
+    max_chunks_per_ost = 28
+    if "max_chunks_per_ost" in parametrization:
+        max_chunks_per_ost = parametrization.get("max_chunks_per_ost")
 
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
@@ -256,6 +277,7 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     base_config["lustre"]["stripe_size"] = stripe_size
     base_config["lustre"]["stripe_count"] = stripe_count
+    base_config["lustre"]["max_chunks_per_ost"] = max_chunks_per_ost
 
 
 def save_exp_config(base_config, run_idx):
@@ -296,18 +318,13 @@ def process_results(result_filename: str):
     real_write_time = []
 
     for job in results:
-        # IO TIME
-        r_io_time = (
-            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
-        ) / job["sum_nprocs"]
-        real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"] / job["sum_nprocs"])
-        real_write_time.append(job["real_cWriteTime_s"] / job["sum_nprocs"])
-
+  
         s_io_time = 0
         s_r_time = 0
         s_w_time = 0
+
         for action in job["actions"]:
+
             if (
                 action["act_type"] == "COMPUTE"
                 or action["act_type"] == "SLEEP"
@@ -315,23 +332,26 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"] / action["nb_procs_io"]
+                # s_r_time += action["act_duration"] / action["nb_procs_io"]
+                s_r_time += action["act_duration"] * action["nb_stripes"]
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] / action["nb_procs_io"]
-            """
-            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "sss_to_css":
-                s_r_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "css_to_sss":
-                s_w_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            """
+                # s_w_time += action["act_duration"] / action["nb_procs_io"]
+                s_w_time += action["act_duration"] * action["nb_stripes"]
 
-        s_io_time = s_r_time + s_w_time
-        sim_io_time.append(s_io_time)
-        sim_read_time.append(s_r_time)
-        sim_write_time.append(s_w_time)
-        io_time_diff.append(abs(s_io_time - r_io_time))
+        if len(job["actions"]) != 0:
+
+            r_io_time = (
+                job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+            )
+            real_io_time.append(r_io_time)
+            real_read_time.append(job["real_cReadTime_s"])
+            real_write_time.append(job["real_cWriteTime_s"])
+
+            s_io_time = s_r_time + s_w_time
+            sim_io_time.append(s_io_time)
+            sim_read_time.append(s_r_time)
+            sim_write_time.append(s_w_time)
+            io_time_diff.append(abs(s_io_time - r_io_time))
 
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
     ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
@@ -346,13 +366,13 @@ def process_results(result_filename: str):
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
-    # return {
-    #     "optimization_metric": (
-    #         + abs(1 - io_time_corr)
-    #         + abs(io_time_cohen_d)
-    #     )
-    # }
-    return {"optimization_metric": (abs(ztest_iotime_tstat))}
+    return {
+        "optimization_metric": (
+            + abs(1 - io_time_corr)
+            + abs(io_time_cohen_d)
+        )
+    }
+    # return {"optimization_metric": (abs(ztest_iotime_tstat))}
 
 
 def run_simulation(
@@ -381,7 +401,7 @@ def run_simulation(
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
         "--wrench-default-control-message-size=0",
-        "--wrench-mailbox-pool-size=50000",
+        "--wrench-mailbox-pool-size=100000",
     ]
     if logs:
         command.extend(
@@ -525,7 +545,7 @@ def run_calibration():
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
-        cpu, 2
+        cpu, 4
     )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
