@@ -190,9 +190,9 @@ namespace storalloc {
         for (const auto &map_entry : job_map) {
             auto job = map_entry.second;
             for (const auto &run : job.runs) {
-                if (run.readBytes >= this->config->stor.read_bytes_preload_thres) {
+                if ((run.readBytes > 0) and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
 
-                    auto nb_read_files = determineFileCount(run.readBytes);
+                    auto nb_read_files = determineReadFileCount(run.readBytes);
 
                     auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
                     WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
@@ -364,24 +364,57 @@ namespace storalloc {
         return preload_jobs;
     }
 
-    unsigned int Controller::determineFileCount(double io_volume) const {
+    unsigned int Controller::determineReadFileCount(double io_volume) const {
 
         unsigned int nb_files = 1;
 
         if (io_volume >= 1'000'000'000'000) {                 // 1 TB
-            nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB per file
+            nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
             nb_files = std::max(1u, nb_files);
         } else if (io_volume >= 100'000'000'000) {            // 100 GB
-            nb_files = std::ceil(io_volume / 10'000'000'000); // 10 GB per file
+            nb_files = std::ceil(io_volume / 10'000'000'000); // 10 GB
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
             nb_files = std::max(1u, nb_files);
         } else if (io_volume >= 10'000'000'000) {            // 10GB
-            nb_files = std::ceil(io_volume / 5'000'000'000); // 5 GB per file
+            nb_files = std::ceil(io_volume / 5'000'000'000); // 5 GB
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
             nb_files = std::max(1u, nb_files);
         } else if (io_volume >= 1'000'000'000) {
-            nb_files = std::ceil(io_volume / 500'000'000); // 500 MB per file
+            nb_files = std::ceil(io_volume / 1'000'000'000); // 1000 MB
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        }
+
+        return nb_files;
+    }
+
+    unsigned int Controller::determineWriteFileCount(double io_volume) const {
+
+        unsigned int nb_files = 1;
+
+        if (io_volume >= 1'000'000'000'000) {                 // 1 TB
+            nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 100'000'000'000) {            // 100 GB
+            nb_files = std::ceil(io_volume / 10'000'000'000); // 10 GB
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 10'000'000'000) {            // 10GB
+            nb_files = std::ceil(io_volume / 5'000'000'000); // 5 GB
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 1'000'000'000) {
+            nb_files = std::ceil(io_volume / 500'000'000); // 500 MB
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 100'000'000) {
+            nb_files = std::ceil(io_volume / 50'000'000); // 50 MB
+            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
+            nb_files = std::max(1u, nb_files);
+        } else if (io_volume >= 10'000'000) {
+            nb_files = std::ceil(io_volume / 5'000'000); // 5 MB
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
             nb_files = std::max(1u, nb_files);
         }
@@ -437,8 +470,8 @@ namespace storalloc {
                         exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
 
                         // NUMBER OF READ FILES and WRITE FILES
-                        auto nb_read_files = this->determineFileCount(run.readBytes);
-                        auto nb_write_files = this->determineFileCount(run.writtenBytes);
+                        auto nb_read_files = this->determineReadFileCount(run.readBytes);
+                        auto nb_write_files = this->determineWriteFileCount(run.writtenBytes);
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
@@ -511,9 +544,9 @@ namespace storalloc {
                                 this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_nodes_write);
                                 exec_jobs[run.id].back()->addChildJob(copyJob);
                                 exec_jobs[run.id].push_back(copyJob);
-                            } /*else {
-                                cleanup_external_write = false;
-                            }*/
+                                // } else {
+                                //    cleanup_external_write = false;
+                            }
                         }
 
                         // 2.3 CLEANUP
@@ -629,6 +662,9 @@ namespace storalloc {
             }
             auto file_name = prefix_name + "_part" + std::to_string(i);
             files.push_back(wrench::Simulation::addFile(file_name, fileSize));
+            if (fileSize < 1) {
+                throw std::runtime_error("FILE SIZE is < 1 B for prefix :" + prefix_name);
+            }
             WRENCH_DEBUG("createFileParts: file %s created with size %lu and added to simulation", file_name.c_str(), fileSize);
         }
 
@@ -1339,7 +1375,7 @@ namespace storalloc {
         this->completed_jobs << YAML::Key << "real_cWriteTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
         this->completed_jobs << YAML::Key << "real_cMetaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
         this->completed_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
-        this->completed_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
+        // this->completed_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
 
         // ## Processing actions for all sub jobs related to the current top-level job being processed
         this->completed_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq;

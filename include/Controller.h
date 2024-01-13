@@ -34,9 +34,9 @@ namespace storalloc {
     class PartialWriteCustomAction : public wrench::CustomAction {
     public:
         std::shared_ptr<wrench::DataFile> writtenFile;
-        uint64_t writtenSize;
+        double writtenSize;
 
-        uint64_t getWrittenSize() const {
+        double getWrittenSize() const {
             return this->writtenSize;
         }
 
@@ -151,7 +151,9 @@ namespace storalloc {
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
-        unsigned int determineFileCount(double io_volume) const;
+        unsigned int determineReadFileCount(double io_volume) const;
+
+        unsigned int determineWriteFileCount(double io_volume) const;
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
