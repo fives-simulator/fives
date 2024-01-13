@@ -32,7 +32,7 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week41")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week41_small")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=5))
@@ -45,7 +45,7 @@ AX_PARAMS = [
     {
         "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [120, 240],
+        "bounds": [100, 240],
         "value_type": "int",
     },
     {
@@ -57,25 +57,25 @@ AX_PARAMS = [
     {
         "name": "permanent_storage_read_bw",
         "type": "range",
-        "bounds": [30, 90],
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
         "name": "permanent_storage_write_bw",
         "type": "range",
-        "bounds": [30, 90],
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
         "name": "disk_rb",
         "type": "range",
-        "bounds": [430, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
+        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "disk_wb",
         "type": "range",
-        "bounds": [300, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
@@ -95,14 +95,14 @@ AX_PARAMS = [
     {
         "name": "io_write_node_ratio",
         "type": "range",
-        "bounds": [0.2, 0.6],
+        "bounds": [0.1, 0.5],
         "digits": 1,
         "value_type": "float",
     },
     {
         "name": "io_read_node_ratio",
         "type": "range",
-        "bounds": [0.2, 0.6],
+        "bounds": [0.1, 0.5],
         "digits": 1,
         "value_type": "float",
     },
@@ -115,7 +115,21 @@ AX_PARAMS = [
     {
         "name": "max_chunks_per_ost",
         "type": "choice",
-        "values": [28, 56], 
+        "values": [12, 28, 56],
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "choice",
+        "values": [5, 10, 15, 20],
+        "is_ordered": True,
+        "value_type": "int",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "choice",
+        "values": [5, 10, 15, 20],
+        "is_ordered": True,
         "value_type": "int",
     },
 ]
@@ -141,26 +155,6 @@ AX_PARAMS = [
             1073741824,
             2147483648,
         ],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "stripe_count",
-        "type": "range",
-        "bounds": [1, 4],  # NOTE : never using all OSTs for any allocation so far
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_read",
-        "type": "choice",
-        "values": [1, 2, 4, 8],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "choice",
-        "values": [1, 2, 4, 8],
         "is_ordered": True,
         "value_type": "int",
     },
@@ -211,8 +205,8 @@ def update_base_config(parametrization, base_config, cfg_name):
     disk_rb = parametrization.get("disk_rb")
     disk_wb = parametrization.get("disk_wb")
 
-    # stripe_size = 16777216
-    stripe_size = 268435456
+    stripe_size = 16777216
+    # stripe_size = 268435456
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
@@ -318,13 +312,11 @@ def process_results(result_filename: str):
     real_write_time = []
 
     for job in results:
-  
         s_io_time = 0
         s_r_time = 0
         s_w_time = 0
 
         for action in job["actions"]:
-
             if (
                 action["act_type"] == "COMPUTE"
                 or action["act_type"] == "SLEEP"
@@ -332,16 +324,14 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                # s_r_time += action["act_duration"] / action["nb_procs_io"]
                 s_r_time += action["act_duration"] * action["nb_stripes"]
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                # s_w_time += action["act_duration"] / action["nb_procs_io"]
                 s_w_time += action["act_duration"] * action["nb_stripes"]
 
         if len(job["actions"]) != 0:
-
             r_io_time = (
-                job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+                job["real_cReadTime_s"]
+                + job["real_cWriteTime_s"]
             )
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
@@ -364,15 +354,13 @@ def process_results(result_filename: str):
         )
 
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
+    read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
+    write_time_corr, _ = pearsonr(sim_write_time, real_write_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
-    return {
-        "optimization_metric": (
-            + abs(1 - io_time_corr)
-            + abs(io_time_cohen_d)
-        )
-    }
+    # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
     # return {"optimization_metric": (abs(ztest_iotime_tstat))}
+    return {"optimization_metric": abs(ztest_iotime_tstat)}
 
 
 def run_simulation(
@@ -545,7 +533,7 @@ def run_calibration():
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
-        cpu, 4
+        cpu, 6
     )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"

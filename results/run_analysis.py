@@ -166,12 +166,13 @@ def compute_iotime_diff(jobs, plotting=True):
 
         if len(job['actions']) != 0:
             # "Real"
-            r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
+            r_io_time = ( #job["real_cReadTime_s"] 
+                        + job["real_cWriteTime_s"])
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
             real_write_time.append(job["real_cWriteTime_s"])
 
-            s_io_time = (s_r_time + s_w_time) 
+            s_io_time = (s_r_time + s_w_time)
 
             sim_io_time.append(s_io_time)
             sim_read_time.append(s_r_time)
@@ -200,7 +201,7 @@ def compute_iotime_diff(jobs, plotting=True):
         f"  - The mean IO time difference between simulated and real values for all jobs is  >> {mean_io_time_difference} s << " +
         "(we want a mean difference as close to 0 as possible)\n" +
         f"  - The Pearson's corr is >> {io_time_corr} << (we want a correlation as high as possible)\n" +
-        f"    - Read corr. is >> {read_time_corr} <<\n"+
+        # f"    - Read corr. is >> {read_time_corr} <<\n"+
         f"    - Write corr. is >> {write_time_corr} <<\n"+
         f"  - The Cohen d effect size is >> {io_time_cohen_d} << (we want an effect size as low as possible, " +
         "the use of the simulator should lead to values close to real world traces)\n" +
@@ -229,7 +230,7 @@ def compute_iotime_diff(jobs, plotting=True):
         # axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.05])
 
-        binwidth = 1000
+        binwidth = 10000
 
         hist_data = {"values": [], "Origin": []}
         hist_data["values"].extend(real_io_time)
