@@ -84,6 +84,10 @@ lustre:
   stripe_size: 268435456  # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
   stripe_count: 1         # Default number of OSTs used for each IO operation
   max_chunks_per_ost: 56  # Maximum number of file parts / allocation chunks on each OSTs (not a Lustre parameter, but used to speed up simulation at the cost of precision)
+  stripe_count_high_thresh_write: 200000000
+  stripe_count_high_write_add: 3
+  stripe_count_high_thresh_read: 200000000
+  stripe_count_high_read_add: 4
 outputs:
   job_filename_prefix: simulatedJobs_
   io_actions_prefix: io_actions_ts_

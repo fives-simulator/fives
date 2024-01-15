@@ -192,14 +192,19 @@ namespace storalloc {
             for (const auto &run : job.runs) {
                 if ((run.readBytes > 0) and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
 
-                    auto nb_read_files = determineReadFileCount(run.readBytes);
+                    auto nb_read_files = determineReadFileCount(job.cumulReadBW, run.nprocs);
 
                     auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
                     WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
                     auto read_files = this->createFileParts(run.readBytes, nb_read_files, prefix);
 
                     for (const auto &read_file : read_files) {
-                        auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+                        unsigned int local_stripe_count = 0;
+                        if (this->config->lustre.stripe_count_high_thresh_read && job.cumulReadBW >= this->config->lustre.stripe_count_high_thresh_read) {
+                            local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
+                            std::cout << "USING SPECIAL STRIPING FOR READ JOB " << job.id << std::endl;
+                        }
+                        auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), local_stripe_count);
                         for (const auto &stripe : file_stripes) {
                             wrench::StorageService::createFileAtLocation(stripe);
                         }
@@ -364,10 +369,15 @@ namespace storalloc {
         return preload_jobs;
     }
 
-    unsigned int Controller::determineReadFileCount(double io_volume) const {
+    unsigned int Controller::determineReadFileCount(double cumul_read_bw, unsigned int run_nprocs) const {
+
+        // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_read_bw * run_nprocs) / this->config->stor.nb_files_per_read), 1u);
 
         unsigned int nb_files = 1;
+        nb_files = std::max(static_cast<unsigned int>((cumul_read_bw / 1e6) / this->config->stor.nb_files_per_read), 1u);
+        nb_files = std::min(nb_files, 100u);
 
+        /*
         if (io_volume >= 1'000'000'000'000) {                 // 1 TB
             nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
@@ -385,14 +395,22 @@ namespace storalloc {
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
             nb_files = std::max(1u, nb_files);
         }
+        */
+
+        std::cout << "READ : " << nb_files << std::endl;
 
         return nb_files;
     }
 
-    unsigned int Controller::determineWriteFileCount(double io_volume) const {
+    unsigned int Controller::determineWriteFileCount(double cumul_write_bw, unsigned int run_nprocs) const {
+
+        // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_write_bw * run_nprocs) / this->config->stor.nb_files_per_write), 1u);
 
         unsigned int nb_files = 1;
+        nb_files = std::max(static_cast<unsigned int>((cumul_write_bw / 1e6) / this->config->stor.nb_files_per_write), 1u);
+        nb_files = std::min(nb_files, 100u);
 
+        /*
         if (io_volume >= 1'000'000'000'000) {                 // 1 TB
             nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
@@ -418,7 +436,8 @@ namespace storalloc {
             nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
             nb_files = std::max(1u, nb_files);
         }
-
+        */
+        std::cout << "WRITE " << nb_files << std::endl;
         return nb_files;
     }
 
@@ -470,24 +489,31 @@ namespace storalloc {
                         exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
 
                         // NUMBER OF READ FILES and WRITE FILES
-                        auto nb_read_files = this->determineReadFileCount(run.readBytes);
-                        auto nb_write_files = this->determineWriteFileCount(run.writtenBytes);
+                        auto nb_read_files = this->determineReadFileCount(this->compound_jobs[jobID].first.cumulReadBW, run.nprocs);
+                        auto nb_write_files = this->determineWriteFileCount(this->compound_jobs[jobID].first.cumulWriteBW, run.nprocs);
+
+                        std::cout << "READ FILES :: " << nb_read_files << std::endl;
+                        std::cout << "WRITE FILES :: " << nb_write_files << std::endl;
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
                         float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
+                        nprocs_nodes = max(nprocs_nodes, 1.0F);
+                        std::cout << "Max number of nodes available for run : " << nprocs_nodes << std::endl;
 
+                        /*
                         float nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
                         float high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_read = std::min(nb_nodes_read, high_read_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
                         // nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / nb_read_files));
-                        WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
+                        */
 
+                        /*
                         float nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
                         float high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
                         nb_nodes_write = std::min(nb_nodes_write, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
                         // nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / nb_write_files));
-                        WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+                        */
 
                         if (run.sleepDelay != 0) {
                             auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
@@ -504,6 +530,14 @@ namespace storalloc {
                         // 2.1 READ
                         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                         if (run.readBytes != 0) {
+
+                            float nb_nodes_read = std::ceil((this->config->lustre.stripe_count * this->config->stor.node_templates.begin()->second.disks[0].tpl.read_bw) / (this->compound_jobs[jobID].first.cumulReadBW / 1e6));
+                            std::cout << "NB nodes read after first ceil : " << nb_nodes_read << std::endl;
+                            // float nb_nodes_read = 2;
+                            nb_nodes_read = max(nb_nodes_read, 1.0F);         // Ensure nb_nodes_read >= 1
+                            nb_nodes_read = min(nb_nodes_read, nprocs_nodes); // Ensure nb_node_read <= nprocs_nodes
+                            std::cout << "Computed number of nodes used for reads " << nb_nodes_read << std::endl;
+                            WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
                                 // Copy job before the read
@@ -531,6 +565,13 @@ namespace storalloc {
                         // 2.2 WRITE
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
+
+                            float nb_nodes_write = std::ceil((this->config->lustre.stripe_count * this->config->stor.node_templates.begin()->second.disks[0].tpl.write_bw) / (this->compound_jobs[jobID].first.cumulWriteBW / 1e6));
+                            nb_nodes_write = max(nb_nodes_write, 1.0F);
+                            nb_nodes_write = min(nb_nodes_write, nprocs_nodes);
+                            std::cout << "Computed number of nodes used for writes " << nb_nodes_write << std::endl;
+                            WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
                             output_data = this->writeToTemporary(bare_metal, writeJob, jobID, run.id, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
 
@@ -853,12 +894,19 @@ namespace storalloc {
         for (auto write_file : write_files) {
             // We manually invoke this in order to know how the files will be striped before starting partial writes.
             WRENCH_DEBUG("Calling lookupOrDesignate for file %s", write_file->getID().c_str());
-            auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file));
+
+            unsigned int local_stripe_count = 0;
+            if (this->config->lustre.stripe_count_high_thresh_write && this->compound_jobs[jobID].first.cumulWriteBW >= this->config->lustre.stripe_count_high_thresh_write) {
+                local_stripe_count = this->config->lustre.stripe_count + +this->config->lustre.stripe_count_high_write_add;
+                std::cout << "USING SPECIAL STRIPING FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
+            }
+            auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file), local_stripe_count);
 
             unsigned int nb_stripes = file_stripes.size();
             stripes_per_file[write_file] = nb_stripes;
             stripes_per_host_per_file[write_file] = std::vector<unsigned int>();
 
+            // How many stripes should be written by each host in use ?
             if (nb_stripes < max_nb_hosts) {
                 for (unsigned int i = 0; i < nb_stripes; i++) {
                     stripes_per_host_per_file[write_file].push_back(1);
@@ -866,7 +914,7 @@ namespace storalloc {
                 WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts, writing 1 stripes from the first %u hosts",
                              writeJob->getName().c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
             } else {
-                unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
+                unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts); //
                 unsigned int remainder = nb_stripes % max_nb_hosts;
                 for (unsigned int i = 0; i < max_nb_hosts; i++) {
                     stripes_per_host_per_file[write_file].push_back(stripes_per_host);
@@ -899,28 +947,28 @@ namespace storalloc {
 
                 auto action_id = "FW_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
 
-                double write_byte_per_node = 0;
+                double write_bytes_per_node = 0;
                 if (stripes_per_file[write_file] == stripes_per_host) {
-                    // Only one host reading all the stripes
-                    write_byte_per_node = write_file->getSize();
+                    // Only one host reading all the stripes (stripes_per_host is actually the total number or stripes)
+                    write_bytes_per_node = write_file->getSize();
                     WRENCH_DEBUG("[%s] writeToTemporary: We'll be writing the entire file from this host.", writeJob->getName().c_str());
                 } else {
-                    write_byte_per_node = stripe_size * stripes_per_host;
-                    WRENCH_DEBUG("[%s] writeToTemporary: We'll be writing %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_byte_per_node);
+                    write_bytes_per_node = stripe_size * stripes_per_host;
+                    WRENCH_DEBUG("[%s] writeToTemporary: We'll be writing %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_bytes_per_node);
                 }
 
                 auto customWriteAction = std::make_shared<PartialWriteCustomAction>(
                     action_id, 0, 0,
-                    [this, write_file, write_byte_per_node](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
+                    [this, write_file, write_bytes_per_node](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
                         this->compound_storage_service->writeFile(S4U_Daemon::getRunningActorRecvMailbox(),
                                                                   wrench::FileLocation::LOCATION(this->compound_storage_service, write_file),
-                                                                  write_byte_per_node,
+                                                                  write_bytes_per_node,
                                                                   true);
                     },
-                    [action_id, write_byte_per_node, writeJob](std::shared_ptr<wrench::ActionExecutor> executor) {
-                        WRENCH_DEBUG("[%s] writeToTemporary: %s terminating - wrote %f", writeJob->getName().c_str(), action_id.c_str(), write_byte_per_node);
+                    [action_id, write_bytes_per_node, writeJob](std::shared_ptr<wrench::ActionExecutor> executor) {
+                        WRENCH_DEBUG("[%s] writeToTemporary: %s terminating - wrote %f", writeJob->getName().c_str(), action_id.c_str(), write_bytes_per_node);
                     },
-                    write_file, write_byte_per_node);
+                    write_file, write_bytes_per_node);
                 writeJob->addCustomAction(customWriteAction);
 
                 this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
@@ -1375,6 +1423,9 @@ namespace storalloc {
         this->completed_jobs << YAML::Key << "real_cWriteTime_s" << YAML::Value << yaml_job.writeTimeSeconds;
         this->completed_jobs << YAML::Key << "real_cMetaTime_s" << YAML::Value << yaml_job.metaTimeSeconds;
         this->completed_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
+        this->completed_jobs << YAML::Key << "cumul_read_bw" << YAML::Value << yaml_job.cumulReadBW;
+        this->completed_jobs << YAML::Key << "cumul_write_bw" << YAML::Value << yaml_job.cumulWriteBW;
+
         // this->completed_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
 
         // ## Processing actions for all sub jobs related to the current top-level job being processed

@@ -201,6 +201,26 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             } else {
                 WRENCH_INFO("Using default value for lustre.stripe_count : %lu", lustreConfig.stripe_count);
             }
+            if (ynode["lustre"]["stripe_count_high_thresh_write"].IsDefined()) {
+                lustreConfig.stripe_count_high_thresh_write = ynode["lustre"]["stripe_count_high_thresh_write"].as<uint64_t>();
+            } else {
+                WRENCH_INFO("No value set for 'stripe_count_high_thresh_write'");
+            }
+            if (ynode["lustre"]["stripe_count_high_thresh_read"].IsDefined()) {
+                lustreConfig.stripe_count_high_thresh_read = ynode["lustre"]["stripe_count_high_thresh_read"].as<uint64_t>();
+            } else {
+                WRENCH_INFO("No value set for 'stripe_count_high_thresh_read'");
+            }
+            if (ynode["lustre"]["stripe_count_high_write_add"].IsDefined()) {
+                lustreConfig.stripe_count_high_write_add = ynode["lustre"]["stripe_count_high_write_add"].as<uint64_t>();
+            } else {
+                WRENCH_INFO("Using default value for lustre.stripe_count_high_write_add : %u", lustreConfig.stripe_count_high_write_add);
+            }
+            if (ynode["lustre"]["stripe_count_high_read_add"].IsDefined()) {
+                lustreConfig.stripe_count_high_read_add = ynode["lustre"]["stripe_count_high_read_add"].as<uint64_t>();
+            } else {
+                WRENCH_INFO("Using default value for lustre.stripe_count_high_read_add : %u", lustreConfig.stripe_count_high_read_add);
+            }
             if (ynode["lustre"]["max_chunks_per_ost"].IsDefined()) {
                 lustreConfig.max_chunks_per_ost = ynode["lustre"]["max_chunks_per_ost"].as<uint64_t>();
             } else {

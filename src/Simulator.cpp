@@ -162,8 +162,9 @@ namespace storalloc {
                                                                          const std::shared_ptr<wrench::DataFile> &file,
                                                                          const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                          const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                         const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-            return allocator(file, resources, mapping, previous_allocations);
+                                                                         const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                         unsigned int stripe_count = 0) {
+            return allocator(file, resources, mapping, previous_allocations, stripe_count);
         };
 
         /* Compound storage service*/
