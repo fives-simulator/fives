@@ -88,7 +88,7 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc::YamlJob &rhs) {
 
-    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 19) {
+    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 21) {
         WRENCH_WARN("Invalid node format or incorrect number of keys in node map");
         return false;
     }
@@ -140,6 +140,9 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
         rhs.runs.push_back(node.as<storalloc::DarshanRecord>());
     }
     rhs.runsCount = node["runsCount"].as<unsigned int>();
+
+    rhs.cumulReadBW = node["cumul_read_bw"].as<double>();
+    rhs.cumulWriteBW = node["cumul_write_bw"].as<double>();
 
     // rhs.sum_nprocs = node["sum_nprocs"].as < unsigned int>();
 

@@ -166,7 +166,7 @@ def compute_iotime_diff(jobs, plotting=True):
 
         if len(job['actions']) != 0:
             # "Real"
-            r_io_time = ( #job["real_cReadTime_s"] 
+            r_io_time = ( job["real_cReadTime_s"] 
                         + job["real_cWriteTime_s"])
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
@@ -180,6 +180,14 @@ def compute_iotime_diff(jobs, plotting=True):
 
             io_time_diff.append(abs(s_io_time - r_io_time))
 
+        if s_w_time > 1.5 * job["real_cWriteTime_s"]:
+            print(f"JOB {job['job_uid']} simulated write time is way too [SLOW] -> {job['cumul_write_bw'] / 1e6} MB/s)")
+        
+        if job["real_cWriteTime_s"] > 1.5 * s_w_time:
+            print(f"JOB {job['job_uid']} simulated write time is way too (FAST) -> {job['cumul_write_bw'] / 1e6} MB/s)") 
+
+        if s_io_time > r_io_time * 7:
+            print(f"## > JOB {job['job_uid']} simulated time is > 7 times longer than real time")
 
     mean_real_io_time = np.mean(real_io_time)
     mean_sim_iotime = np.mean(sim_io_time)
@@ -201,7 +209,7 @@ def compute_iotime_diff(jobs, plotting=True):
         f"  - The mean IO time difference between simulated and real values for all jobs is  >> {mean_io_time_difference} s << " +
         "(we want a mean difference as close to 0 as possible)\n" +
         f"  - The Pearson's corr is >> {io_time_corr} << (we want a correlation as high as possible)\n" +
-        # f"    - Read corr. is >> {read_time_corr} <<\n"+
+        f"    - Read corr. is >> {read_time_corr} <<\n"+
         f"    - Write corr. is >> {write_time_corr} <<\n"+
         f"  - The Cohen d effect size is >> {io_time_cohen_d} << (we want an effect size as low as possible, " +
         "the use of the simulator should lead to values close to real world traces)\n" +
@@ -225,7 +233,7 @@ def compute_iotime_diff(jobs, plotting=True):
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", ax=axs[0], label="Real == Sim target")
         scatter.set(xlabel="Real jobs (mean IO time per rank)", ylabel="Simulated jobs (mean IO time per simulated rank)")
         axs[0].legend()
-        # axs[0].set_xscale('log')
+        #axs[0].set_xscale('log')
         axs[0].set_xlim([0.0001, max_target*1.05])
         # axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.05])
