@@ -201,9 +201,15 @@ namespace storalloc {
                     for (const auto &read_file : read_files) {
                         unsigned int local_stripe_count = 0;
                         if (this->config->lustre.stripe_count_high_thresh_read && job.cumulReadBW >= this->config->lustre.stripe_count_high_thresh_read) {
-                            local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
+                            auto ratio = job.cumulReadBW / this->config->lustre.stripe_count_high_thresh_read;
+                            local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
+                            // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
                             std::cout << "USING SPECIAL STRIPING FOR READ JOB " << job.id << std::endl;
                         }
+                        /*if (this->config->lustre.stripe_count_high_thresh_read && job.cumulReadBW >= 2 * this->config->lustre.stripe_count_high_thresh_read) {
+                            local_stripe_count = this->config->lustre.stripe_count + 2 * this->config->lustre.stripe_count_high_write_add;
+                            std::cout << "USING SPECIAL STRIPING FOR READ JOB (x2) " << job.id << " with R_BW : " << job.cumulReadBW << std::endl;
+                        }*/
                         auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), local_stripe_count);
                         for (const auto &stripe : file_stripes) {
                             wrench::StorageService::createFileAtLocation(stripe);
@@ -897,9 +903,18 @@ namespace storalloc {
 
             unsigned int local_stripe_count = 0;
             if (this->config->lustre.stripe_count_high_thresh_write && this->compound_jobs[jobID].first.cumulWriteBW >= this->config->lustre.stripe_count_high_thresh_write) {
-                local_stripe_count = this->config->lustre.stripe_count + +this->config->lustre.stripe_count_high_write_add;
+                // How far above the threshold is the BW ?
+                auto ratio = this->compound_jobs[jobID].first.cumulWriteBW / this->config->lustre.stripe_count_high_thresh_write;
+                local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
                 std::cout << "USING SPECIAL STRIPING FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
             }
+
+            /*
+            if (this->config->lustre.stripe_count_high_thresh_write && this->compound_jobs[jobID].first.cumulWriteBW >= 2 * this->config->lustre.stripe_count_high_thresh_write) {
+                local_stripe_count = this->config->lustre.stripe_count + 2 * this->config->lustre.stripe_count_high_write_add;
+                std::cout << "USING SPECIAL STRIPING (x2) FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
+            }
+            */
             auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file), local_stripe_count);
 
             unsigned int nb_stripes = file_stripes.size();

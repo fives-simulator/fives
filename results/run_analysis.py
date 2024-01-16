@@ -189,6 +189,9 @@ def compute_iotime_diff(jobs, plotting=True):
         if s_io_time > r_io_time * 7:
             print(f"## > JOB {job['job_uid']} simulated time is > 7 times longer than real time")
 
+        if s_io_time > 300000:
+            print(f"## THIS JOBBBBBB !!!!!! --->>>> {job['job_uid']}")
+
     mean_real_io_time = np.mean(real_io_time)
     mean_sim_iotime = np.mean(sim_io_time)
     mean_io_time_difference = np.mean(io_time_diff)
@@ -233,9 +236,9 @@ def compute_iotime_diff(jobs, plotting=True):
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", ax=axs[0], label="Real == Sim target")
         scatter.set(xlabel="Real jobs (mean IO time per rank)", ylabel="Simulated jobs (mean IO time per simulated rank)")
         axs[0].legend()
-        #axs[0].set_xscale('log')
+        axs[0].set_xscale('log')
         axs[0].set_xlim([0.0001, max_target*1.05])
-        # axs[0].set_yscale('log')
+        axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.05])
 
         binwidth = 10000
