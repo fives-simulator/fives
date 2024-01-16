@@ -354,8 +354,17 @@ namespace storalloc {
         // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_read_bw * run_nprocs) / this->config->stor.nb_files_per_read), 1u);
 
         unsigned int nb_files = 1;
-        nb_files = std::max(static_cast<unsigned int>((cumul_read_bw / 1e6) / this->config->stor.nb_files_per_read), 1u);
-        nb_files = std::min(nb_files, 100u);
+        // nb_files = std::max(static_cast<unsigned int>((cumul_read_bw / 1e6) / this->config->stor.nb_files_per_read), 1u);
+        // nb_files = std::min(nb_files, 50u);
+
+        unsigned int local_stripe_count = 1;
+        if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
+            auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
+            local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
+        }
+
+        nb_files = 2 * local_stripe_count;
+        nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
 
         /*
         if (io_volume >= 1'000'000'000'000) {                 // 1 TB
@@ -385,8 +394,17 @@ namespace storalloc {
         // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_write_bw * run_nprocs) / this->config->stor.nb_files_per_write), 1u);
 
         unsigned int nb_files = 1;
-        nb_files = std::max(static_cast<unsigned int>((cumul_write_bw / 1e6) / this->config->stor.nb_files_per_write), 1u);
-        nb_files = std::min(nb_files, 100u);
+        // nb_files = std::max(static_cast<unsigned int>((cumul_write_bw / 1e6) / this->config->stor.nb_files_per_write), 1u);
+        // nb_files = std::min(nb_files, 50u);
+
+        unsigned int local_stripe_count = 1;
+        if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
+            auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_read;
+            local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
+        }
+
+        nb_files = 2 * local_stripe_count;
+        nb_files = std::min(nb_files, this->config->stor.nb_files_per_write);
 
         /*
         if (io_volume >= 1'000'000'000'000) {                 // 1 TB
