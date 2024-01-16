@@ -150,6 +150,7 @@ def compute_iotime_diff(jobs, plotting=True):
 
     for job in jobs:
 
+
         # Simulated
         s_io_time = 0
         s_r_time = 0
@@ -163,6 +164,9 @@ def compute_iotime_diff(jobs, plotting=True):
                 s_r_time += action["act_duration"] * action["nb_stripes"]
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
                 s_w_time += action["act_duration"] * action["nb_stripes"]
+
+        if s_r_time + s_w_time > 1.1e6:
+            continue
 
         if len(job['actions']) != 0:
             # "Real"
@@ -236,9 +240,9 @@ def compute_iotime_diff(jobs, plotting=True):
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", ax=axs[0], label="Real == Sim target")
         scatter.set(xlabel="Real jobs (mean IO time per rank)", ylabel="Simulated jobs (mean IO time per simulated rank)")
         axs[0].legend()
-        axs[0].set_xscale('log')
+        # axs[0].set_xscale('log')
         axs[0].set_xlim([0.0001, max_target*1.05])
-        axs[0].set_yscale('log')
+        # axs[0].set_yscale('log')
         axs[0].set_ylim([0.0001, max_target*1.05])
 
         binwidth = 10000

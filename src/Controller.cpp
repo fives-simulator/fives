@@ -204,7 +204,7 @@ namespace storalloc {
                             auto ratio = job.cumulReadBW / this->config->lustre.stripe_count_high_thresh_read;
                             local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
                             // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
-                            std::cout << "USING SPECIAL STRIPING FOR READ JOB " << job.id << std::endl;
+                            std::cout << "USING SPECIAL STRIPING FOR JOB " << job.id << " with read bw " << job.cumulReadBW << std::endl;
                         }
                         /*if (this->config->lustre.stripe_count_high_thresh_read && job.cumulReadBW >= 2 * this->config->lustre.stripe_count_high_thresh_read) {
                             local_stripe_count = this->config->lustre.stripe_count + 2 * this->config->lustre.stripe_count_high_write_add;
@@ -236,11 +236,6 @@ namespace storalloc {
         std::mt19937 gen(rd());
 
         // Runtimes :
-        // std::cout << "Mean runtime (s) : " << this->preload_header->mean_runtime_s << std::endl;
-        // std::cout << "Median runtime (s) : " << this->preload_header->median_runtime_s << std::endl;
-        // std::cout << "Runtime var : " << this->preload_header->var_runtime_s << std::endl;
-        // std::cout << "Max runtime (s) : " << this->preload_header->max_runtime_s << std::endl;
-
         std::vector<int> rand_runtimes_s;
         std::lognormal_distribution<> dr(
             std::log(this->preload_header->mean_runtime_s / std::sqrt(this->preload_header->var_runtime_s / std::pow(this->preload_header->mean_runtime_s, 2) + 1)),
@@ -254,11 +249,6 @@ namespace storalloc {
         }
 
         // Interval between jobs :
-        // std::cout << "Mean interval (s) : " << this->preload_header->mean_interval_s << std::endl;
-        // std::cout << "Median interval (s) : " << this->preload_header->median_interval_s << std::endl;
-        // std::cout << "Interval var : " << this->preload_header->var_interval_s << std::endl;
-        // std::cout << "Max interval (s) : " << this->preload_header->max_interval_s << std::endl;
-
         std::vector<int> rand_intervals_s;
         std::lognormal_distribution<> di(
             std::log(this->preload_header->mean_interval_s / std::sqrt(this->preload_header->var_interval_s / std::pow(this->preload_header->mean_interval_s, 2) + 1)),
@@ -272,11 +262,6 @@ namespace storalloc {
         }
 
         // Nodes used:
-        // std::cout << "Mean nodes used : " << this->preload_header->mean_nodes_used << std::endl;
-        // std::cout << "Median nodes used : " << this->preload_header->median_nodes_used << std::endl;
-        // std::cout << "Nodes used var : " << this->preload_header->var_nodes_used << std::endl;
-        // std::cout << "Max nodes used : " << this->preload_header->max_nodes_used << std::endl;
-
         std::vector<int> rand_nodes_count;
         std::lognormal_distribution<> dn(
             std::log(this->preload_header->mean_nodes_used / std::sqrt(this->preload_header->var_nodes_used / std::pow(this->preload_header->mean_nodes_used, 2) + 1)),
@@ -290,11 +275,6 @@ namespace storalloc {
         }
 
         // Bytes READ
-        // std::cout << "Mean terabytes read : " << this->preload_header->mean_read_tbytes << std::endl;
-        // std::cout << "Median terabytes read : " << this->preload_header->median_read_tbytes << std::endl;
-        // std::cout << "Var terabytes read : " << this->preload_header->var_read_tbytes << std::endl;
-        // std::cout << "Max terabytes read : " << this->preload_header->max_read_tbytes << std::endl;
-
         std::vector<double> rand_read_tbytes;
         std::lognormal_distribution<> drb(
             std::log(this->preload_header->mean_read_tbytes / std::sqrt(this->preload_header->var_read_tbytes / std::pow(this->preload_header->mean_read_tbytes, 2) + 1)),
@@ -308,11 +288,6 @@ namespace storalloc {
         }
 
         // Bytes WRITTEN
-        // std::cout << "Mean terabytes written : " << this->preload_header->mean_written_tbytes << std::endl;
-        // std::cout << "Median terabytes written : " << this->preload_header->median_written_tbytes << std::endl;
-        // std::cout << "Var terabytes written : " << this->preload_header->var_written_tbytes << std::endl;
-        // std::cout << "Max terabytes written : " << this->preload_header->max_written_tbytes << std::endl;
-
         std::vector<double> rand_written_tbytes;
         std::lognormal_distribution<> dwb(
             std::log(this->preload_header->mean_written_tbytes / std::sqrt(this->preload_header->var_written_tbytes / std::pow(this->preload_header->mean_written_tbytes, 2) + 1)),
@@ -326,7 +301,6 @@ namespace storalloc {
         }
 
         auto cores_per_node = this->compute_service->getPerHostNumCores().begin()->second;
-        // std::cout << "Using " << cores_per_node << " cores for each reserved node" << std::endl;
         std::vector<storalloc::YamlJob> preload_jobs;
         unsigned int i = 0;
         while (i < preloadJobsCount) {
@@ -403,8 +377,6 @@ namespace storalloc {
         }
         */
 
-        std::cout << "READ : " << nb_files << std::endl;
-
         return nb_files;
     }
 
@@ -443,7 +415,6 @@ namespace storalloc {
             nb_files = std::max(1u, nb_files);
         }
         */
-        std::cout << "WRITE " << nb_files << std::endl;
         return nb_files;
     }
 
@@ -498,14 +469,14 @@ namespace storalloc {
                         auto nb_read_files = this->determineReadFileCount(this->compound_jobs[jobID].first.cumulReadBW, run.nprocs);
                         auto nb_write_files = this->determineWriteFileCount(this->compound_jobs[jobID].first.cumulWriteBW, run.nprocs);
 
-                        std::cout << "READ FILES :: " << nb_read_files << std::endl;
-                        std::cout << "WRITE FILES :: " << nb_write_files << std::endl;
+                        std::cout << "-----" << std::endl;
+                        std::cout << "JOB " << jobID << " -> READ FILES = " << nb_read_files << std::endl;
+                        std::cout << "JOB " << jobID << " -> WRITE FILES = " << nb_write_files << std::endl;
 
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
                         float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
                         nprocs_nodes = max(nprocs_nodes, 1.0F);
-                        std::cout << "Max number of nodes available for run : " << nprocs_nodes << std::endl;
 
                         /*
                         float nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
@@ -538,11 +509,11 @@ namespace storalloc {
                         if (run.readBytes != 0) {
 
                             float nb_nodes_read = std::ceil((this->config->lustre.stripe_count * this->config->stor.node_templates.begin()->second.disks[0].tpl.read_bw) / (this->compound_jobs[jobID].first.cumulReadBW / 1e6));
-                            std::cout << "NB nodes read after first ceil : " << nb_nodes_read << std::endl;
+                            // std::cout << "NB nodes read after first ceil : " << nb_nodes_read << std::endl;
                             // float nb_nodes_read = 2;
                             nb_nodes_read = max(nb_nodes_read, 1.0F);         // Ensure nb_nodes_read >= 1
                             nb_nodes_read = min(nb_nodes_read, nprocs_nodes); // Ensure nb_node_read <= nprocs_nodes
-                            std::cout << "Computed number of nodes used for reads " << nb_nodes_read << std::endl;
+                            std::cout << "JOB " << jobID << " : Computed number of nodes used for reads = " << nb_nodes_read << std::endl;
                             WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
@@ -575,7 +546,7 @@ namespace storalloc {
                             float nb_nodes_write = std::ceil((this->config->lustre.stripe_count * this->config->stor.node_templates.begin()->second.disks[0].tpl.write_bw) / (this->compound_jobs[jobID].first.cumulWriteBW / 1e6));
                             nb_nodes_write = max(nb_nodes_write, 1.0F);
                             nb_nodes_write = min(nb_nodes_write, nprocs_nodes);
-                            std::cout << "Computed number of nodes used for writes " << nb_nodes_write << std::endl;
+                            std::cout << "JOB " << jobID << " : Computed number of nodes used for writes = " << nb_nodes_write << std::endl;
                             WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
@@ -906,7 +877,7 @@ namespace storalloc {
                 // How far above the threshold is the BW ?
                 auto ratio = this->compound_jobs[jobID].first.cumulWriteBW / this->config->lustre.stripe_count_high_thresh_write;
                 local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
-                std::cout << "USING SPECIAL STRIPING FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
+                std::cout << "  # USING SPECIAL STRIPING FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
             }
 
             /*
