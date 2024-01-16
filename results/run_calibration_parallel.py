@@ -456,7 +456,7 @@ def run_simulation(
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
         "--wrench-default-control-message-size=0",
-        "--wrench-mailbox-pool-size=100000",
+        "--wrench-mailbox-pool-size=200000",
     ]
     if logs:
         command.extend(

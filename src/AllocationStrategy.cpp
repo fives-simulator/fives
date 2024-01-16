@@ -224,7 +224,6 @@ namespace storalloc {
 
         if (stripe_count != 0) {
             ret_striping.stripes_count = stripe_count;
-            std::cout << "STRIPE COUNT SPECIFIC FOR THIS ALLOCATION : " << stripe_count << std::endl;
         } else {
             ret_striping.stripes_count = this->config->lustre.stripe_count;
         }
