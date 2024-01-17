@@ -32,10 +32,10 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week41_small")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month4_cat2")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=5))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=8))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 
 
@@ -43,9 +43,210 @@ CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 # Bounds / value lists are not final
 AX_PARAMS = [
     {
-        "name": "bandwidth_backbone_storage",
+        "name": "stripe_count",
         "type": "range",
-        "bounds": [100, 240],
+        "bounds": [1, 5],  # NOTE : never using all OSTs for any allocation so far
+        "value_type": "int",
+    },
+    {
+        "name": "io_read_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    },
+    {
+        "name": "max_read_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_thresh_read",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+
+    {
+        "name": "stripe_count_high_read_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+    {
+        "name": "disk_rb",
+        "type": "range",
+        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    },
+    {
+        "name": "max_write_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_thresh_write",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_write_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+    {
+        "name": "disk_wb",
+        "type": "range",
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "max_chunks_per_ost",
+        "type": "range",
+        "bounds": [8, 64],
+        "value_type": "int",
+    },
+]
+
+AX_READ_PARAMS = [
+   
+    {
+        "name": "io_read_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    }, 
+    {
+        "name": "max_read_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_thresh_read",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_read_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+    {
+        "name": "disk_rb",
+        "type": "range",
+        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+]
+
+AX_WRITE_PARAMS = [
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    },
+    {
+        "name": "max_write_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+        {
+        "name": "stripe_count_high_thresh_write",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+        {
+        "name": "stripe_count_high_write_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+        {
+        "name": "disk_wb",
+        "type": "range",
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+
+]
+
+
+""" UNUSED PARAMS
+    {
+        "name": "permanent_storage_read_bw",
+        "type": "range",
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
@@ -55,15 +256,43 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
-        "name": "permanent_storage_read_bw",
+        "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [10, 90],
+        "bounds": [100, 240],
+        "value_type": "int",
+    },
+    {
+        "name": "preload_percent",
+        "type": "choice",
+        "is_ordered": True,
+        "values": [0.1, 0.2, 0.3, 0.4],
+        "value_type": "float",
+    },
+    {
+        "name": "stripe_count",
+        "type": "range",
+        "bounds": [1, 1],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
         "name": "permanent_storage_write_bw",
         "type": "range",
         "bounds": [10, 90],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_size",
+        "type": "choice",
+        "values": [
+            2097152,
+            4194304,
+            8388608,
+            16777216,
+            67108864,
+            1073741824,
+            2147483648,
+        ],
+        "is_ordered": True,
         "value_type": "int",
     },
     {
@@ -93,6 +322,14 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
+        "name": "max_chunks_per_ost",
+        "type": "choice",
+        "values": [28, 56],
+        "value_type": "int",
+    },
+
+
+    {
         "name": "io_write_node_ratio",
         "type": "range",
         "bounds": [0.1, 0.6],
@@ -100,34 +337,9 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
-        "name": "io_read_node_ratio",
-        "type": "range",
-        "bounds": [0.1, 0.6],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "max_chunks_per_ost",
-        "type": "choice",
-        "values": [28, 56],
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_read",
-        "type": "range",
-        "bounds": [1, 10],
-        "value_type": "int",
-    },
-    {
         "name": "nb_files_per_write",
         "type": "range",
-        "bounds": [1, 10],
-        "value_type": "int",
-    },
-    {
-        "name": "max_read_node_cnt",
-        "type": "range",
-        "bounds": [1, 28],
+        "bounds": [1, 15],
         "value_type": "int",
     },
     {
@@ -136,61 +348,30 @@ AX_PARAMS = [
         "bounds": [1, 28],
         "value_type": "int",
     },
-    {
+        {
         "name": "stripe_count_high_thresh_write",
         "type": "range",
-        "bounds": [150e6, 300e6],
+        "bounds": [10e6, 450e6],
         "value_type": "int",
     },
-    {
-        "name": "stripe_count_high_thresh_read",
-        "type": "range",
-        "bounds": [150e6, 450e6],
-        "value_type": "int",
-    },
-    {
+        {
         "name": "stripe_count_high_write_add",
-        "type": "range",
-        "bounds": [1, 6],
-        "value_type": "int",
-    },
-    {
-        "name": "stripe_count_high_read_add",
         "type": "range",
         "bounds": [1, 4],
         "value_type": "int",
     },
-
-]
-
-""" UNUSED PARAMS
-    {
-        "name": "preload_percent",
-        "type": "choice",
-        "is_ordered": True,
-        "values": [0.1, 0.2, 0.3, 0.4],
-        "value_type": "float",
-    },
-    {
-        "name": "stripe_count",
+        {
+        "name": "disk_wb",
         "type": "range",
-        "bounds": [1, 1],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
-        "name": "stripe_size",
-        "type": "choice",
-        "values": [
-            2097152,
-            4194304,
-            8388608,
-            16777216,
-            67108864,
-            1073741824,
-            2147483648,
-        ],
-        "is_ordered": True,
-        "value_type": "int",
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
     },
 """
 
@@ -225,22 +406,35 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
-    bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
-    bandwidth_backbone_perm_storage = parametrization.get(
-        "bandwidth_backbone_perm_storage"
-    )
-    permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
-    permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
+    bandwidth_backbone_storage =  200
+    if "bandwidth_backbone_storage" in parametrization:
+        bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
+
+    bandwidth_backbone_perm_storage = 80
+    if "bandwidth_backbone_perm_storage" in parametrization:
+        bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
+
+    permanent_storage_read_bw = 79
+    if "permanent_storage_read_bw" in parametrization:
+        permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
+
+    permanent_storage_write_bw = 27
+    if "permanent_storage_write_bw" in parametrization:
+        permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
 
     preload_percent = 0
     if "preload_percent" in parametrization:
         preload_percent = parametrization.get("preload_percent")
 
-    disk_rb = parametrization.get("disk_rb")
-    disk_wb = parametrization.get("disk_wb")
+    disk_rb = 3187
+    if "disk_rb" in parametrization:
+        disk_rb = parametrization.get("disk_rb")
+
+    disk_wb = 893
+    if "disk_wb" in parametrization:
+        disk_wb = parametrization.get("disk_wb")
 
     stripe_size = 16777216
-    # stripe_size = 268435456
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
@@ -248,7 +442,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_count" in parametrization:
         stripe_count = parametrization.get("stripe_count")
     
-    stripe_count_high_thresh_write = 150e6
+    stripe_count_high_thresh_write = 215034750
     if "stripe_count_high_thresh_write" in parametrization:
         stripe_count_high_thresh_write = parametrization.get("stripe_count_high_thresh_write")
 
@@ -256,7 +450,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_count_high_thresh_read" in parametrization:
         stripe_count_high_thresh_read = parametrization.get("stripe_count_high_thresh_read")
 
-    stripe_count_high_write_add = 2
+    stripe_count_high_write_add = 3
     if "stripe_count_high_write_add" in parametrization:
         stripe_count_high_write_add = parametrization.get("stripe_count_high_write_add")
 
@@ -272,27 +466,35 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "io_read_node_ratio" in parametrization:
         io_read_node_ratio = parametrization.get("io_read_node_ratio")
 
-    nb_files_per_write = 12
+    nb_files_per_write = 5
     if "nb_files_per_write" in parametrization:
         nb_files_per_write = parametrization.get("nb_files_per_write")
 
-    io_write_node_ratio = 0.3
+    io_write_node_ratio = 0.5
     if "io_write_node_ratio" in parametrization:
         io_write_node_ratio = parametrization.get("io_write_node_ratio")
 
     # Non-linear coefficient for altering read/write during concurrent disk access
-    non_linear_coef_read = parametrization.get("non_linear_coef_read")
-    non_linear_coef_write = parametrization.get("non_linear_coef_write")
+    non_linear_coef_read = 1.8
+    if "non_linear_coef_read" in parametrization:
+        non_linear_coef_read = parametrization.get("non_linear_coef_read")
 
+    non_linear_coef_write = 15.2
+    if "non_linear_coef_write" in parametrization:
+        non_linear_coef_write = parametrization.get("non_linear_coef_write")
+
+    # Maximum number of file chunks on each OST used in striping
     max_chunks_per_ost = 28
     if "max_chunks_per_ost" in parametrization:
         max_chunks_per_ost = parametrization.get("max_chunks_per_ost")
 
+    # Max. number of compute nodes used for reading
     max_read_node_cnt = 28
     if "max_read_node_cnt" in parametrization:
         max_read_node_cnt = parametrization.get("max_read_node_cnt")
 
-    max_write_node_cnt = 28
+    # Max. number of compute nodes used for writing
+    max_write_node_cnt = 11
     if "max_write_node_cnt" in parametrization:
         max_write_node_cnt = parametrization.get("max_write_node_cnt")
 
@@ -425,9 +627,14 @@ def process_results(result_filename: str):
     write_time_corr, _ = pearsonr(sim_write_time, real_write_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
+    mean_io_diff = np.array(io_time_diff).mean()
+
     # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
-    return {"optimization_metric": abs(ztest_iotime_tstat)}
+    # return {"optimization_metric": abs(ztest_iotime_tstat)}
     # return {"optimization_metric": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
+    # return {"optimization_metric": abs(1 - write_time_corr)}
+    # return {"optimization_metric": abs(1 - read_time_corr)}
+    return {"optimization_metric": abs(mean_io_diff)}
 
 
 def run_simulation(
@@ -573,10 +780,10 @@ def run_calibration():
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
-            "permanent_storage_read_bw >= permanent_storage_write_bw",
+            #"permanent_storage_read_bw >= permanent_storage_write_bw",
             "non_linear_coef_read <= non_linear_coef_write",
-            "permanent_storage_read_bw >= permanent_storage_write_bw",
-            "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
+            #"permanent_storage_read_bw >= permanent_storage_write_bw",
+            #"bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
         ],
         outcome_constraints=[],
     )

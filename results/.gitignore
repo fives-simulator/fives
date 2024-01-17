@@ -5,4 +5,5 @@ exp_results
 *.png
 exp_configurations/exp_config_*
 exp_configurations/theta_config_*
+exp_datasets/theta2022_*
 full_plot.svg

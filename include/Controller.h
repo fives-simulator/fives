@@ -151,6 +151,10 @@ namespace storalloc {
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
+        unsigned int determineReadStripeCount(double cumul_read_bw) const;
+
+        unsigned int determineWriteStripeCount(double cumul_write_bw) const;
+
         unsigned int determineReadFileCount(double io_volume, unsigned int run_nprocs) const;
 
         unsigned int determineWriteFileCount(double io_volume, unsigned int run_nprocs) const;
