@@ -199,17 +199,7 @@ namespace storalloc {
                     auto read_files = this->createFileParts(run.readBytes, nb_read_files, prefix);
 
                     for (const auto &read_file : read_files) {
-                        unsigned int local_stripe_count = 0;
-                        if (this->config->lustre.stripe_count_high_thresh_read && job.cumulReadBW >= this->config->lustre.stripe_count_high_thresh_read) {
-                            auto ratio = job.cumulReadBW / this->config->lustre.stripe_count_high_thresh_read;
-                            local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
-                            // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
-                            std::cout << "USING SPECIAL STRIPING FOR JOB " << job.id << " with read bw " << job.cumulReadBW << std::endl;
-                        }
-                        /*if (this->config->lustre.stripe_count_high_thresh_read && job.cumulReadBW >= 2 * this->config->lustre.stripe_count_high_thresh_read) {
-                            local_stripe_count = this->config->lustre.stripe_count + 2 * this->config->lustre.stripe_count_high_write_add;
-                            std::cout << "USING SPECIAL STRIPING FOR READ JOB (x2) " << job.id << " with R_BW : " << job.cumulReadBW << std::endl;
-                        }*/
+                        unsigned int local_stripe_count = this->determineReadStripeCount(job.cumulReadBW);
                         auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), local_stripe_count);
                         for (const auto &stripe : file_stripes) {
                             wrench::StorageService::createFileAtLocation(stripe);
@@ -349,42 +339,39 @@ namespace storalloc {
         return preload_jobs;
     }
 
+    unsigned int Controller::determineReadStripeCount(double cumul_read_bw) const {
+
+        unsigned int local_stripe_count = this->config->lustre.stripe_count;
+        if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
+            // auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
+            // local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
+            local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
+        }
+
+        return local_stripe_count;
+    }
+
+    unsigned int Controller::determineWriteStripeCount(double cumul_write_bw) const {
+
+        unsigned int local_stripe_count = this->config->lustre.stripe_count;
+        if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
+            // auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write;
+            // local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
+            local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_write_add;
+        }
+
+        return local_stripe_count;
+    }
+
     unsigned int Controller::determineReadFileCount(double cumul_read_bw, unsigned int run_nprocs) const {
 
         // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_read_bw * run_nprocs) / this->config->stor.nb_files_per_read), 1u);
 
         unsigned int nb_files = 1;
-        // nb_files = std::max(static_cast<unsigned int>((cumul_read_bw / 1e6) / this->config->stor.nb_files_per_read), 1u);
-        // nb_files = std::min(nb_files, 50u);
 
-        unsigned int local_stripe_count = 1;
-        if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
-            auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
-            local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
-        }
-
-        nb_files = 2 * local_stripe_count;
-        nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-
-        /*
-        if (io_volume >= 1'000'000'000'000) {                 // 1 TB
-            nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 100'000'000'000) {            // 100 GB
-            nb_files = std::ceil(io_volume / 10'000'000'000); // 10 GB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 10'000'000'000) {            // 10GB
-            nb_files = std::ceil(io_volume / 5'000'000'000); // 5 GB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 1'000'000'000) {
-            nb_files = std::ceil(io_volume / 1'000'000'000); // 1000 MB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        }
-        */
+        unsigned int local_stripe_count = this->determineReadStripeCount(cumul_read_bw);
+        nb_files = this->config->stor.nb_files_per_read * local_stripe_count;
+        nb_files = std::max(nb_files, 1u);
 
         return nb_files;
     }
@@ -394,45 +381,11 @@ namespace storalloc {
         // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_write_bw * run_nprocs) / this->config->stor.nb_files_per_write), 1u);
 
         unsigned int nb_files = 1;
-        // nb_files = std::max(static_cast<unsigned int>((cumul_write_bw / 1e6) / this->config->stor.nb_files_per_write), 1u);
-        // nb_files = std::min(nb_files, 50u);
 
-        unsigned int local_stripe_count = 1;
-        if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
-            auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_read;
-            local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
-        }
+        unsigned int local_stripe_count = this->determineWriteStripeCount(cumul_write_bw);
+        nb_files = this->config->stor.nb_files_per_write * local_stripe_count;
+        nb_files = std::max(nb_files, 1u);
 
-        nb_files = 2 * local_stripe_count;
-        nb_files = std::min(nb_files, this->config->stor.nb_files_per_write);
-
-        /*
-        if (io_volume >= 1'000'000'000'000) {                 // 1 TB
-            nb_files = std::ceil(io_volume / 50'000'000'000); // 50 GB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 100'000'000'000) {            // 100 GB
-            nb_files = std::ceil(io_volume / 10'000'000'000); // 10 GB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 10'000'000'000) {            // 10GB
-            nb_files = std::ceil(io_volume / 5'000'000'000); // 5 GB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 1'000'000'000) {
-            nb_files = std::ceil(io_volume / 500'000'000); // 500 MB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 100'000'000) {
-            nb_files = std::ceil(io_volume / 50'000'000); // 50 MB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        } else if (io_volume >= 10'000'000) {
-            nb_files = std::ceil(io_volume / 5'000'000); // 5 MB
-            nb_files = std::min(nb_files, this->config->stor.nb_files_per_read);
-            nb_files = std::max(1u, nb_files);
-        }
-        */
         return nb_files;
     }
 
@@ -526,9 +479,7 @@ namespace storalloc {
                         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                         if (run.readBytes != 0) {
 
-                            float nb_nodes_read = std::ceil((this->config->lustre.stripe_count * this->config->stor.node_templates.begin()->second.disks[0].tpl.read_bw) / (this->compound_jobs[jobID].first.cumulReadBW / 1e6));
-                            // std::cout << "NB nodes read after first ceil : " << nb_nodes_read << std::endl;
-                            // float nb_nodes_read = 2;
+                            float nb_nodes_read = std::ceil((this->determineReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW) * this->config->stor.node_templates.begin()->second.disks[0].tpl.read_bw) / (this->compound_jobs[jobID].first.cumulReadBW / 1e6));
                             nb_nodes_read = max(nb_nodes_read, 1.0F);         // Ensure nb_nodes_read >= 1
                             nb_nodes_read = min(nb_nodes_read, nprocs_nodes); // Ensure nb_node_read <= nprocs_nodes
                             std::cout << "JOB " << jobID << " : Computed number of nodes used for reads = " << nb_nodes_read << std::endl;
@@ -561,7 +512,7 @@ namespace storalloc {
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
 
-                            float nb_nodes_write = std::ceil((this->config->lustre.stripe_count * this->config->stor.node_templates.begin()->second.disks[0].tpl.write_bw) / (this->compound_jobs[jobID].first.cumulWriteBW / 1e6));
+                            float nb_nodes_write = std::ceil((this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW) * this->config->stor.node_templates.begin()->second.disks[0].tpl.write_bw) / (this->compound_jobs[jobID].first.cumulWriteBW / 1e6));
                             nb_nodes_write = max(nb_nodes_write, 1.0F);
                             nb_nodes_write = min(nb_nodes_write, nprocs_nodes);
                             std::cout << "JOB " << jobID << " : Computed number of nodes used for writes = " << nb_nodes_write << std::endl;
@@ -890,13 +841,7 @@ namespace storalloc {
             // We manually invoke this in order to know how the files will be striped before starting partial writes.
             WRENCH_DEBUG("Calling lookupOrDesignate for file %s", write_file->getID().c_str());
 
-            unsigned int local_stripe_count = 0;
-            if (this->config->lustre.stripe_count_high_thresh_write && this->compound_jobs[jobID].first.cumulWriteBW >= this->config->lustre.stripe_count_high_thresh_write) {
-                // How far above the threshold is the BW ?
-                auto ratio = this->compound_jobs[jobID].first.cumulWriteBW / this->config->lustre.stripe_count_high_thresh_write;
-                local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
-                std::cout << "  # USING SPECIAL STRIPING FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
-            }
+            unsigned int local_stripe_count = this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
 
             /*
             if (this->config->lustre.stripe_count_high_thresh_write && this->compound_jobs[jobID].first.cumulWriteBW >= 2 * this->config->lustre.stripe_count_high_thresh_write) {

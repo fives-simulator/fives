@@ -101,6 +101,7 @@ namespace storalloc {
         unsigned int runsCount;
         double cumulReadBW;
         double cumulWriteBW;
+        unsigned int category;
         // unsigned int sum_nprocs;
     };
 
