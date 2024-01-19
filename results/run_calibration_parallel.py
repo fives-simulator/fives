@@ -15,6 +15,7 @@ import subprocess
 import pathlib
 import os
 import multiprocessing
+from time import sleep
 
 import yaml
 import numpy as np
@@ -32,7 +33,7 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month4_cat2")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month9_cat2")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=8))
@@ -766,15 +767,21 @@ def run_trial(base_config, parameters, trial_index):
     return results
 
 
-def run_calibration():
+def run_calibration(params_set):
     """Main calibration loop"""
 
     base_config = load_base_config(CONFIGURATION_BASE)
 
+    print("## PARAMETERS IN USE FOR THIS CALIBRATION : ")
+    for param in params_set:
+        print(f">> {param['name']}")
+    print("############################################")
+    sleep(3)
+
     ax_client = AxClient()  # enforce_sequential_optimization=False)
     ax_client.create_experiment(
         name="StorallocWrench_ThetaExperiment",
-        parameters=AX_PARAMS,
+        parameters=params_set,
         objectives={
             "optimization_metric": ObjectiveProperties(minimize=True),
         },
@@ -862,4 +869,5 @@ def run_calibration():
 
 if __name__ == "__main__":
     # run_default_simulation()
-    run_calibration()
+    run_calibration(AX_PARAMS)
+
