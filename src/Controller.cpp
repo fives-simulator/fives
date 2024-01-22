@@ -343,9 +343,9 @@ namespace storalloc {
 
         unsigned int local_stripe_count = this->config->lustre.stripe_count;
         if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
-            // auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
-            // local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_read_add * ratio) - 1;
-            local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
+            auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
+            local_stripe_count = std::ceil(this->config->lustre.stripe_count_high_read_add * ratio);
+            // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
         }
 
         return local_stripe_count;
@@ -355,9 +355,9 @@ namespace storalloc {
 
         unsigned int local_stripe_count = this->config->lustre.stripe_count;
         if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
-            // auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write;
-            // local_stripe_count = this->config->lustre.stripe_count + std::ceil(this->config->lustre.stripe_count_high_write_add * ratio) - 1;
-            local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_write_add;
+            auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write;
+            local_stripe_count = std::ceil(this->config->lustre.stripe_count_high_write_add * ratio);
+            // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_write_add;
         }
 
         return local_stripe_count;
