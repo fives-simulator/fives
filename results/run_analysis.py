@@ -262,6 +262,12 @@ def compute_iotime_diff(jobs, plotting=True):
         plt.savefig(f"{CI_PIPELINE_ID}_iotime.pdf", dpi=300, format='pdf')
         plt.savefig(f"{CI_PIPELINE_ID}_iotime.png", dpi=300, format='png')
 
+        axs[0].set_xscale('log')
+        axs[0].set_yscale('log')
+        plt.savefig(f"{CI_PIPELINE_ID}_iotime_log.pdf", dpi=300, format='pdf')
+        plt.savefig(f"{CI_PIPELINE_ID}_iotime_log.png", dpi=300, format='png')
+
+
     return {
         "iotime_correlation": float(io_time_corr),
         "iotime_cohend_effect": float(io_time_cohen_d),
