@@ -115,6 +115,7 @@ namespace storalloc {
                     this->processEventTimer(timer_event);
                     total_events += 1; // job that was just submitted
                     nextSubmission = true;
+                    WRENCH_INFO("[During loop for %s] Timer event processed", yaml_entry.second.id.c_str());
                 } else if (auto completion_event = std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event)) {
                     WRENCH_INFO("[During loop for %s] Job completed event received ()", yaml_entry.second.id.c_str());
                     this->processEventCompoundJobCompletion(completion_event);
@@ -234,7 +235,6 @@ namespace storalloc {
             auto val = std::floor(dr(gen));
             if (val <= this->preload_header->max_runtime_s) {
                 rand_runtimes_s.push_back(val);
-                // std::cout << "Adding " << val << " to runtimes" << std::endl;
             }
         }
 
@@ -247,7 +247,6 @@ namespace storalloc {
             auto val = std::floor(di(gen));
             if (val <= this->preload_header->max_interval_s) {
                 rand_intervals_s.push_back(val);
-                // std::cout << "Adding " << val << " to intervals" << std::endl;
             }
         }
 
@@ -260,7 +259,6 @@ namespace storalloc {
             auto val = std::floor(dn(gen));
             if (val <= this->preload_header->max_nodes_used) {
                 rand_nodes_count.push_back(val);
-                // std::cout << "Adding " << val << " to nodes count" << std::endl;
             }
         }
 
@@ -273,7 +271,6 @@ namespace storalloc {
             auto val = drb(gen);
             if (val <= this->preload_header->max_read_tbytes) {
                 rand_read_tbytes.push_back(val);
-                // std::cout << "Adding " << val << " to read terabytes" << std::endl;
             }
         }
 
@@ -286,7 +283,6 @@ namespace storalloc {
             auto val = dwb(gen);
             if (val <= this->preload_header->max_written_tbytes) {
                 rand_written_tbytes.push_back(val);
-                // std::cout << "Adding " << val << " to written terabytes" << std::endl;
             }
         }
 
@@ -440,28 +436,10 @@ namespace storalloc {
                         auto nb_read_files = this->determineReadFileCount(this->compound_jobs[jobID].first.cumulReadBW, run.nprocs);
                         auto nb_write_files = this->determineWriteFileCount(this->compound_jobs[jobID].first.cumulWriteBW, run.nprocs);
 
-                        std::cout << "-----" << std::endl;
-                        std::cout << "JOB " << jobID << " -> READ FILES = " << nb_read_files << std::endl;
-                        std::cout << "JOB " << jobID << " -> WRITE FILES = " << nb_write_files << std::endl;
-
                         // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
                         // (depending on the size of the current MPI Communicator given by nprocs)
                         float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
                         nprocs_nodes = max(nprocs_nodes, 1.0F);
-
-                        /*
-                        float nb_nodes_read = std::ceil(nprocs_nodes * this->config->stor.io_read_node_ratio); // We choose to use only a percentage of all available nodes (calibration)
-                        float high_read_limit = std::min(this->config->stor.max_read_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
-                        nb_nodes_read = std::min(nb_nodes_read, high_read_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        // nb_nodes_read = std::ceil(std::min(nb_nodes_read, static_cast<float>(run.nprocs) / nb_read_files));
-                        */
-
-                        /*
-                        float nb_nodes_write = std::ceil(nprocs_nodes * this->config->stor.io_write_node_ratio);
-                        float high_write_limit = std::min(this->config->stor.max_write_node_cnt, this->compound_jobs[jobID].first.nodesUsed);
-                        nb_nodes_write = std::min(nb_nodes_write, high_write_limit); // The final node count cannot exceed a simulation limit (for performance reasons)
-                        // nb_nodes_write = std::ceil(std::min(nb_nodes_write, static_cast<float>(run.nprocs) / nb_write_files));
-                        */
 
                         if (run.sleepDelay != 0) {
                             auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
@@ -482,7 +460,6 @@ namespace storalloc {
                             float nb_nodes_read = std::ceil((this->determineReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW) * this->config->stor.node_templates.begin()->second.disks[0].tpl.read_bw) / (this->compound_jobs[jobID].first.cumulReadBW / 1e6));
                             nb_nodes_read = max(nb_nodes_read, 1.0F);         // Ensure nb_nodes_read >= 1
                             nb_nodes_read = min(nb_nodes_read, nprocs_nodes); // Ensure nb_node_read <= nprocs_nodes
-                            std::cout << "JOB " << jobID << " : Computed number of nodes used for reads = " << nb_nodes_read << std::endl;
                             WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
@@ -515,7 +492,6 @@ namespace storalloc {
                             float nb_nodes_write = std::ceil((this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW) * this->config->stor.node_templates.begin()->second.disks[0].tpl.write_bw) / (this->compound_jobs[jobID].first.cumulWriteBW / 1e6));
                             nb_nodes_write = max(nb_nodes_write, 1.0F);
                             nb_nodes_write = min(nb_nodes_write, nprocs_nodes);
-                            std::cout << "JOB " << jobID << " : Computed number of nodes used for writes = " << nb_nodes_write << std::endl;
                             WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
@@ -583,8 +559,11 @@ namespace storalloc {
 
                     for (const auto &run : exec_jobs) {
                         for (const auto &subJob : run.second) {
-                            if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
-                                throw std::runtime_error("One of the subjobs failed failed");
+                            auto event = action_executor->waitForNextEvent();
+                            if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event)) {
+                                auto failure = std::dynamic_pointer_cast<wrench::CompoundJobFailedEvent>(event);
+                                throw std::runtime_error("One of the subjobs failed -> " + failure->toString() + " // " + failure->failure_cause->toString());
+                            }
                         }
                     }
                 },
@@ -602,6 +581,7 @@ namespace storalloc {
                     parentJob->getName().c_str(),
                     yJob.nodesUsed, yJob.coresUsed / yJob.nodesUsed, yJob.walltimeSeconds);
         job_manager->submitJob(parentJob, this->compute_service, service_specific_args);
+        WRENCH_INFO("[%s] Job successfully submitted", parentJob->getName().c_str());
     }
 
     /**
@@ -843,12 +823,6 @@ namespace storalloc {
 
             unsigned int local_stripe_count = this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
 
-            /*
-            if (this->config->lustre.stripe_count_high_thresh_write && this->compound_jobs[jobID].first.cumulWriteBW >= 2 * this->config->lustre.stripe_count_high_thresh_write) {
-                local_stripe_count = this->config->lustre.stripe_count + 2 * this->config->lustre.stripe_count_high_write_add;
-                std::cout << "USING SPECIAL STRIPING (x2) FOR JOB " << writeJob->getName() << " with W_BW : " << this->compound_jobs[jobID].first.cumulWriteBW << std::endl;
-            }
-            */
             auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file), local_stripe_count);
 
             unsigned int nb_stripes = file_stripes.size();
@@ -909,7 +883,7 @@ namespace storalloc {
                 auto customWriteAction = std::make_shared<PartialWriteCustomAction>(
                     action_id, 0, 0,
                     [this, write_file, write_bytes_per_node](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
-                        this->compound_storage_service->writeFile(S4U_Daemon::getRunningActorRecvMailbox(),
+                        this->compound_storage_service->writeFile(S4U_Daemon::getRunningActorRecvCommPort(),
                                                                   wrench::FileLocation::LOCATION(this->compound_storage_service, write_file),
                                                                   write_bytes_per_node,
                                                                   true);
