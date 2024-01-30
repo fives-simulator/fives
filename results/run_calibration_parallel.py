@@ -44,12 +44,14 @@ CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 # Bounds / value lists are not final
 AX_PARAMS = [
     {
+        # Lustre parameter - number of OSTs onto which parts of a file will be allocated
         "name": "stripe_count",
         "type": "range",
         "bounds": [1, 5],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
+        # Proportion (%) of compute nodes from a job reservation which may participate in read I/Os
         "name": "io_read_node_ratio",
         "type": "range",
         "bounds": [0.1, 0.6],
@@ -57,37 +59,44 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
+        # In how many files should the read volume of a job be split into? 
+        # (eventually multiplied by the stripe count during simulation)
         "name": "nb_files_per_read",
         "type": "range",
         "bounds": [1, 15],
         "value_type": "int",
     },
     {
+        # Maximum number of compute node participating in read I/Os
+        # (upper bound for io_read_node_ratio)
         "name": "max_read_node_cnt",
         "type": "range",
         "bounds": [1, 28],
         "value_type": "int",
     },
     {
+        # BW threshold above which a different "stripe_count" parameter should be used for a job
         "name": "stripe_count_high_thresh_read",
         "type": "range",
         "bounds": [10e6, 450e6],
         "value_type": "int",
     },
-
     {
+        # Special stripe_count coefficient used when a job exceeds "stripe_count_high_thresh_read"
         "name": "stripe_count_high_read_add",
         "type": "range",
         "bounds": [1, 4],
         "value_type": "int",
     },
     {
+        # Read bandwidth (without interferences) for disks
         "name": "disk_rb",
         "type": "range",
         "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
+        # Interference model coefficient applied to the read bandwidth
         "name": "non_linear_coef_read",
         "type": "range",
         "bounds": [1.5, 20],
@@ -139,6 +148,8 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
+        # Max. number of file parts on each OSTs, from a single file
+        # (May lead to a dynamic update of the stripe_size if the default stripe_size is too small for a given file size)
         "name": "max_chunks_per_ost",
         "type": "range",
         "bounds": [8, 64],

@@ -90,20 +90,13 @@ namespace storalloc {
                                         const std::vector<unsigned long> & /*coord*/,
                                         unsigned long id) {
             std::string hostname = "compute" + std::to_string(id);
-            auto *host_zone = sg4::create_star_zone(hostname);
-            host_zone->set_parent(zone);
 
             auto compute_host =
-                host_zone->create_host(hostname, flops);
+                zone->create_host(hostname, flops);
             compute_host->set_core_count(core_count);
             compute_host->set_property("ram", std::to_string(ram) + "GB");
 
-            auto link = host_zone->create_link("loopback_compute" + std::to_string(id), LOOPBACK)->set_latency("0");
-            host_zone->add_route(compute_host->get_netpoint(), compute_host->get_netpoint(), nullptr, nullptr, {{link, sg4::LinkInRoute::Direction::UP}, {link, sg4::LinkInRoute::Direction::DOWN}});
-
-            host_zone->seal();
-
-            return std::make_pair(host_zone->get_netpoint(), compute_host->get_netpoint());
+            return compute_host;
         };
     }
 
@@ -127,6 +120,7 @@ namespace storalloc {
         control_hosts.push_back(ctrl_zone->create_host(USER, cfg->compute.flops)); // cfg->compute.flops));
         control_hosts.push_back(ctrl_zone->create_host(BATCH, cfg->compute.flops));
         auto control_router = ctrl_zone->create_router("ctrl_zone_router");
+        sg4::LinkInRoute ctrl_backbone(backbone_link_ctrl);
 
         for (auto &ctrl_host : control_hosts) {
             ctrl_host->set_core_count(64);
@@ -139,16 +133,14 @@ namespace storalloc {
                                 ->set_latency(cfg->net.link_latency)
                                 ->seal();
 
-            sg4::LinkInRoute ctrl_backbone(backbone_link_ctrl);
             sg4::LinkInRoute link_up{uplink};
             sg4::LinkInRoute link_down{downlink};
+            ctrl_zone->add_route(ctrl_host, nullptr, {{link_up, ctrl_backbone}}, false);
             ctrl_zone->add_route(
-                ctrl_host->get_netpoint(), nullptr, nullptr, nullptr,
-                {{link_up, ctrl_backbone}}, false);
-            ctrl_zone->add_route(
-                nullptr, ctrl_host->get_netpoint(), nullptr, nullptr,
+                nullptr, ctrl_host,
                 {{ctrl_backbone, link_down}}, false);
         }
+        ctrl_zone->set_gateway(control_router);
         ctrl_zone->seal();
 
         // DRAGONFLY ZONE (COMPUTE)
@@ -162,6 +154,7 @@ namespace storalloc {
                                                        10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX);
         // Add a global router for zone-zone routes
         auto compute_router = compute_zone->create_router("compute_router");
+        compute_zone->set_gateway(compute_router);
         compute_zone->seal();
 
         // --- STORAGE ZONE (PFS) ---
@@ -193,10 +186,10 @@ namespace storalloc {
                 sg4::LinkInRoute link_up{uplink};
                 sg4::LinkInRoute link_down{downlink};
                 storage_zone->add_route(
-                    storage_host->get_netpoint(), nullptr, nullptr, nullptr,
+                    storage_host, nullptr,
                     {{link_up, storage_backbone}}, false);
                 storage_zone->add_route(
-                    nullptr, storage_host->get_netpoint(), nullptr, nullptr,
+                    nullptr, storage_host,
                     {{storage_backbone, link_down}}, false);
 
                 // Adding disk(s) to the current storage node
@@ -213,7 +206,7 @@ namespace storalloc {
 
                         // Input for contention and variability on HDDs
                         if ((config->stor.non_linear_coef_read != 1) or (config->stor.non_linear_coef_write != 1)) {
-                            WRENCH_INFO("[PlatformFactory:create_platform] Adding non linear sharing policy to disk %s%i on %s", disk.tpl.id.c_str(), j, hostname.c_str());
+                            WRENCH_DEBUG("[PlatformFactory:create_platform] Adding non linear sharing policy to disk %s%i on %s", disk.tpl.id.c_str(), j, hostname.c_str());
                             new_disk->set_sharing_policy(sg4::Disk::Operation::READ,
                                                          sg4::Disk::SharingPolicy::NONLINEAR,
                                                          non_linear_disk_bw_factory(new_disk, cfg->stor.non_linear_coef_read));
@@ -249,11 +242,12 @@ namespace storalloc {
         sg4::LinkInRoute css_link_up{css_uplink};
         sg4::LinkInRoute css_link_down{css_downlink};
         storage_zone->add_route(
-            cmpd_storage->get_netpoint(), nullptr, nullptr, nullptr,
+            cmpd_storage, nullptr,
             {{css_link_up, storage_backbone}}, false);
         storage_zone->add_route(
-            nullptr, cmpd_storage->get_netpoint(), nullptr, nullptr,
+            nullptr, cmpd_storage,
             {{storage_backbone, css_link_down}}, false);
+        storage_zone->set_gateway(storage_router);
 
         storage_zone->seal();
 
@@ -286,22 +280,19 @@ namespace storalloc {
             ->set_property("mount", cfg->pstor.mount_prefix);
 
         pstorage_zone->add_route(
-            permanent_storage->get_netpoint(), nullptr, nullptr, nullptr,
+            permanent_storage, nullptr,
             {{link_up, pstorage_backbone}}, false);
         pstorage_zone->add_route(
-            nullptr, permanent_storage->get_netpoint(), nullptr, nullptr,
+            nullptr, permanent_storage,
             {{pstorage_backbone, link_down}}, false);
+        pstorage_zone->set_gateway(pstorage_router);
         pstorage_zone->seal();
 
         // ROUTES FROM MAIN BACKBONE TO SUB ZONES
-        main_zone->add_route(storage_zone->get_netpoint(), nullptr, storage_router,
-                             nullptr, {main_backbone}, true);
-        main_zone->add_route(ctrl_zone->get_netpoint(), nullptr, control_router,
-                             nullptr, {main_backbone}, true);
-        main_zone->add_route(compute_zone->get_netpoint(), nullptr, compute_router,
-                             nullptr, {main_backbone}, true);
-        main_zone->add_route(pstorage_zone->get_netpoint(), nullptr, pstorage_router,
-                             nullptr, {main_backbone}, true);
+        main_zone->add_route(storage_zone, nullptr, {main_backbone}, true);
+        main_zone->add_route(ctrl_zone, nullptr, {main_backbone}, true);
+        main_zone->add_route(compute_zone, nullptr, {main_backbone}, true);
+        main_zone->add_route(pstorage_zone, nullptr, {main_backbone}, true);
 
         main_zone->seal();
     }
