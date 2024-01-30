@@ -1348,8 +1348,7 @@ namespace storalloc {
         this->completed_jobs << YAML::Key << "sim_sleep_time" << YAML::Value << yaml_job.sleepSimulationSeconds;
         this->completed_jobs << YAML::Key << "cumul_read_bw" << YAML::Value << yaml_job.cumulReadBW;
         this->completed_jobs << YAML::Key << "cumul_write_bw" << YAML::Value << yaml_job.cumulWriteBW;
-
-        // this->completed_jobs << YAML::Key << "sum_nprocs" << YAML::Value << yaml_job.sum_nprocs;
+        this->completed_jobs << YAML::Key << "category" << YAML::Value << yaml_job.category;
 
         // ## Processing actions for all sub jobs related to the current top-level job being processed
         this->completed_jobs << YAML::Key << "actions" << YAML::Value << YAML::BeginSeq;

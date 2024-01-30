@@ -46,7 +46,6 @@ namespace storalloc {
             for (unsigned int i = 0; i < node.qtt; i++) { // qtt of each type
                 auto disk_count = 0;
                 for (const auto &mnt_pt : mount_points) {
-                    // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
                     sstorageservices.insert(
                         simulation->add(
                             wrench::SimpleStorageService::createSimpleStorageService(
@@ -193,17 +192,20 @@ namespace storalloc {
         auto ctrl = simulation->add(
             new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, USER, header, jobs, config));
 
+        /* Start Wrench simulation */
         WRENCH_INFO("Starting simulation...");
         const std::chrono::time_point<std::chrono::steady_clock> sim_start = std::chrono::steady_clock::now();
         simulation->launch();
         const std::chrono::time_point<std::chrono::steady_clock> sim_end = std::chrono::steady_clock::now();
 
+        /* Get task completion traces (debug only) */
         auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
         for (auto const &item : trace) {
             WRENCH_DEBUG("Task %s completed at time %f", item->getContent()->getTask()->getID().c_str(), item->getDate());
         }
 
-        // ctrl->actionsAllCompleted();
+        /* Job failure assessment (it might be a good idea to condition the return code of
+           the simulation to a max. number of failed jobs when running calibration) */
         int return_code = 0;
         auto failed_cnt = ctrl->getFailedJobCount();
         if (ctrl->getFailedJobCount() > 0) {
@@ -211,15 +213,11 @@ namespace storalloc {
             std::cout << "FAILED:" << failed_cnt << std::endl;
         }
 
-        /*
-        if (ctrl->getFailedJobCount() > 5) {
-            std::cout << "## Too many jobs have failed (> 5), returning " << std::endl;
-            return 1;
-        }
-        */
-        // Extract traces into files tagged with dataset and config version.
+        /* Extract traces into files tagged with dataset and config version. */
         try {
+            /* Storage system traces (currently unavailable): */
             // ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
+            /* Job execution traces: */
             ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
         } catch (const std::exception &e) {
             std::cout << "## ERROR in trace analysis : " << e.what() << std::endl;

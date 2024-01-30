@@ -59,7 +59,7 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
-        # In how many files should the read volume of a job be split into? 
+        # In how many files should the read volume of a job be split into?
         # (eventually multiplied by the stripe count during simulation)
         "name": "nb_files_per_read",
         "type": "range",
@@ -155,10 +155,15 @@ AX_PARAMS = [
         "bounds": [8, 64],
         "value_type": "int",
     },
+    {
+        "name": "bandwidth_backbone_storage",
+        "type": "range",
+        "bounds": [100, 240],
+        "value_type": "int",
+    },
 ]
 
 AX_READ_PARAMS = [
-   
     {
         "name": "io_read_node_ratio",
         "type": "range",
@@ -171,7 +176,7 @@ AX_READ_PARAMS = [
         "type": "range",
         "bounds": [1, 15],
         "value_type": "int",
-    }, 
+    },
     {
         "name": "max_read_node_cnt",
         "type": "range",
@@ -225,19 +230,19 @@ AX_WRITE_PARAMS = [
         "bounds": [1, 28],
         "value_type": "int",
     },
-        {
+    {
         "name": "stripe_count_high_thresh_write",
         "type": "range",
         "bounds": [10e6, 450e6],
         "value_type": "int",
     },
-        {
+    {
         "name": "stripe_count_high_write_add",
         "type": "range",
         "bounds": [1, 4],
         "value_type": "int",
     },
-        {
+    {
         "name": "disk_wb",
         "type": "range",
         "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
@@ -250,7 +255,6 @@ AX_WRITE_PARAMS = [
         "digits": 1,
         "value_type": "float",
     },
-
 ]
 
 
@@ -418,13 +422,15 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
-    bandwidth_backbone_storage =  200
+    bandwidth_backbone_storage = 200
     if "bandwidth_backbone_storage" in parametrization:
         bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
 
     bandwidth_backbone_perm_storage = 80
     if "bandwidth_backbone_perm_storage" in parametrization:
-        bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
+        bandwidth_backbone_perm_storage = parametrization.get(
+            "bandwidth_backbone_perm_storage"
+        )
 
     permanent_storage_read_bw = 79
     if "permanent_storage_read_bw" in parametrization:
@@ -453,20 +459,24 @@ def update_base_config(parametrization, base_config, cfg_name):
     stripe_count = 1
     if "stripe_count" in parametrization:
         stripe_count = parametrization.get("stripe_count")
-    
+
     stripe_count_high_thresh_write = 215034750
     if "stripe_count_high_thresh_write" in parametrization:
-        stripe_count_high_thresh_write = parametrization.get("stripe_count_high_thresh_write")
+        stripe_count_high_thresh_write = parametrization.get(
+            "stripe_count_high_thresh_write"
+        )
 
     stripe_count_high_thresh_read = 150e6
     if "stripe_count_high_thresh_read" in parametrization:
-        stripe_count_high_thresh_read = parametrization.get("stripe_count_high_thresh_read")
+        stripe_count_high_thresh_read = parametrization.get(
+            "stripe_count_high_thresh_read"
+        )
 
     stripe_count_high_write_add = 3
     if "stripe_count_high_write_add" in parametrization:
         stripe_count_high_write_add = parametrization.get("stripe_count_high_write_add")
 
-    stripe_count_high_read_add = 4   
+    stripe_count_high_read_add = 4
     if "stripe_count_high_read_add" in parametrization:
         stripe_count_high_read_add = parametrization.get("stripe_count_high_read_add")
 
@@ -537,7 +547,6 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["storage"]["max_read_node_cnt"] = max_read_node_cnt
     base_config["storage"]["max_write_node_cnt"] = max_write_node_cnt
 
-
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
     for storage_node in base_config["storage"]["nodes"]:
@@ -547,8 +556,12 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     base_config["lustre"]["stripe_size"] = stripe_size
     base_config["lustre"]["stripe_count"] = stripe_count
-    base_config["lustre"]["stripe_count_high_thresh_write"] = stripe_count_high_thresh_write
-    base_config["lustre"]["stripe_count_high_thresh_read"] = stripe_count_high_thresh_read
+    base_config["lustre"][
+        "stripe_count_high_thresh_write"
+    ] = stripe_count_high_thresh_write
+    base_config["lustre"][
+        "stripe_count_high_thresh_read"
+    ] = stripe_count_high_thresh_read
     base_config["lustre"]["stripe_count_high_write_add"] = stripe_count_high_write_add
     base_config["lustre"]["stripe_count_high_read_add"] = stripe_count_high_read_add
 
@@ -610,10 +623,7 @@ def process_results(result_filename: str):
                 s_w_time += action["act_duration"] * action["nb_stripes"]
 
         if len(job["actions"]) != 0:
-            r_io_time = (
-                job["real_cReadTime_s"]
-                + job["real_cWriteTime_s"]
-            )
+            r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
             real_write_time.append(job["real_cWriteTime_s"])
@@ -675,7 +685,7 @@ def run_simulation(
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
         "--wrench-default-control-message-size=0",
-        "--wrench-mailbox-pool-size=200000",
+        "--wrench-commport-pool-size=200000",
     ]
     if logs:
         command.extend(
@@ -798,10 +808,10 @@ def run_calibration(params_set):
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
-            #"permanent_storage_read_bw >= permanent_storage_write_bw",
+            # "permanent_storage_read_bw >= permanent_storage_write_bw",
             "non_linear_coef_read <= non_linear_coef_write",
-            #"permanent_storage_read_bw >= permanent_storage_write_bw",
-            #"bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
+            # "permanent_storage_read_bw >= permanent_storage_write_bw",
+            # "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
         ],
         outcome_constraints=[],
     )
@@ -881,4 +891,3 @@ def run_calibration(params_set):
 if __name__ == "__main__":
     # run_default_simulation()
     run_calibration(AX_PARAMS)
-
