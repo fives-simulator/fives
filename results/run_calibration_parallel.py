@@ -33,10 +33,10 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month9_cat2")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month8_cat1")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=8))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=10))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 
 
@@ -47,7 +47,7 @@ AX_PARAMS = [
         # Lustre parameter - number of OSTs onto which parts of a file will be allocated
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 5],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 3],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
@@ -63,7 +63,7 @@ AX_PARAMS = [
         # (eventually multiplied by the stripe count during simulation)
         "name": "nb_files_per_read",
         "type": "range",
-        "bounds": [1, 15],
+        "bounds": [1, 10],
         "value_type": "int",
     },
     {
@@ -85,7 +85,7 @@ AX_PARAMS = [
         # Special stripe_count coefficient used when a job exceeds "stripe_count_high_thresh_read"
         "name": "stripe_count_high_read_add",
         "type": "range",
-        "bounds": [1, 4],
+        "bounds": [1, 3],
         "value_type": "int",
     },
     {
@@ -113,7 +113,7 @@ AX_PARAMS = [
     {
         "name": "nb_files_per_write",
         "type": "range",
-        "bounds": [1, 15],
+        "bounds": [1, 10],
         "value_type": "int",
     },
     {
@@ -131,7 +131,7 @@ AX_PARAMS = [
     {
         "name": "stripe_count_high_write_add",
         "type": "range",
-        "bounds": [1, 4],
+        "bounds": [1, 3],
         "value_type": "int",
     },
     {
@@ -254,6 +254,12 @@ AX_WRITE_PARAMS = [
         "bounds": [1.5, 20],
         "digits": 1,
         "value_type": "float",
+    },
+    {
+        "name": "bandwidth_backbone_storage",
+        "type": "range",
+        "bounds": [100, 240],
+        "value_type": "int",
     },
 ]
 
@@ -684,7 +690,6 @@ def run_simulation(
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
-        "--wrench-default-control-message-size=0",
         "--wrench-commport-pool-size=200000",
     ]
     if logs:
