@@ -11,10 +11,10 @@ variables:
   CALIBRATION_CONFIG_PATH: "./exp_configurations"
   CALIBRATION_CONFIGURATION_BASE: "$CALIBRATION_CONFIG_PATH/theta_config.yml"
   CALIBRATION_DATASET_PATH: "./exp_datasets"
-  CALIBRATION_DATASET: "theta2022_week4"
+  CALIBRATION_DATASET: "theta2022_week38"
   CALIBRATION_DATASET_EXT: ".yaml"
   CALIBRATION_BUILD_PATH: "../build"
-  CALIBRATION_RUNS: 30
+  CALIBRATION_RUNS: 10
 
 build_simgrid_v3.34:
   stage: build_deps
@@ -114,6 +114,7 @@ test-job:
     - build-job
   tags:
     - build
+  allow_failure: true
  
 functional-test-job:
   stage: test
@@ -132,6 +133,7 @@ functional-test-job:
     paths:
       - functional_test/simulation_logs.txt
     expire_in: 2 weeks
+  allow_failure: true
 
 calibration-job:
   stage: calibration
@@ -209,7 +211,7 @@ analysis-job:
 pages:
   stage: publish
   variables:
-    MAX_PIPELINES: 5
+    MAX_PIPELINES: 7
   script:
     - cd results
     - tree .

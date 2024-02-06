@@ -5,3 +5,5 @@ results/*.yml
 results/*.yaml
 results/*.pdf
 results/.python-version
+results/sim_time_plots
+profiling_temp/

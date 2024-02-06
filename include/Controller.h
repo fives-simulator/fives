@@ -34,9 +34,9 @@ namespace storalloc {
     class PartialWriteCustomAction : public wrench::CustomAction {
     public:
         std::shared_ptr<wrench::DataFile> writtenFile;
-        uint64_t writtenSize;
+        double writtenSize;
 
-        uint64_t getWrittenSize() const {
+        double getWrittenSize() const {
             return this->writtenSize;
         }
 
@@ -79,6 +79,8 @@ namespace storalloc {
 
         virtual bool actionsAllCompleted();
 
+        uint64_t getFailedJobCount() const { return this->failed_jobs_count; };
+
         virtual void extractSSSIO(const std::string &jobsFilename, const std::string &configVersion, const std::string &tag);
 
     protected:
@@ -96,53 +98,70 @@ namespace storalloc {
 
         virtual void submitJob(std::string jobID);
 
-        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::ActionExecutor> action_executor,
-                                                                                 std::shared_ptr<wrench::JobManager> internalJobManager,
-                                                                                 std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
-                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+                                                                                 std::shared_ptr<wrench::CompoundJob> copyJob,
+                                                                                 std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
+                                                                                 uint64_t readBytes,
+                                                                                 unsigned int nb_files, unsigned int max_nb_hosts);
 
-        virtual void readFromTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                                       const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                       std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+        virtual void readFromTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+                                       std::shared_ptr<wrench::CompoundJob> readJob,
+                                       std::string jobID,
+                                       unsigned runID,
+                                       std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
+                                       uint64_t readBytes,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs,
                                        unsigned int max_nb_hosts = 1);
 
-        virtual void compute(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                             const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                             std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair);
-
-        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                                                                                const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                                                                std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+                                                                                std::shared_ptr<wrench::CompoundJob> writeJob,
+                                                                                std::string jobID,
+                                                                                unsigned runID,
+                                                                                std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
+                                                                                uint64_t writtenBytes,
                                                                                 unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
 
-        virtual void copyToPermanent(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                                     const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                     std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+        virtual void copyToPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+                                     std::shared_ptr<wrench::CompoundJob> copyJob,
+                                     std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
+                                     uint64_t writtenBytes,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                      unsigned int max_nb_hosts = 1);
 
-        virtual void cleanupInput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                                  const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                  std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+        virtual void cleanupInput(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+                                  std::shared_ptr<wrench::CompoundJob> cleanupJob,
+                                  std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                   std::vector<std::shared_ptr<wrench::DataFile>> inputs,
                                   bool cleanup_external = true);
 
-        virtual void cleanupOutput(const std::shared_ptr<wrench::ActionExecutor> &action_executor,
-                                   const std::shared_ptr<wrench::JobManager> &internalJobManager,
-                                   std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>> &jobPair,
+        virtual void cleanupOutput(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+                                   std::shared_ptr<wrench::CompoundJob> cleanupJob,
+                                   std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                    std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                    bool cleanup_external = true);
 
-        void processActions(YAML::Emitter &out_jobs, YAML::Emitter &out_actions,
+        void processActions(YAML::Emitter &out_jobs,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
-                            double &job_start_time);
+                            double &job_start_time,
+                            const std::string &job_id);
+
+        void processCompletedJob(const std::string &job_id);
 
         void pruneIONodes(std::map<std::string, unsigned long> &resources, unsigned int max_nb_hosts) const;
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
+        unsigned int determineReadStripeCount(double cumul_read_bw) const;
+
+        unsigned int determineWriteStripeCount(double cumul_write_bw) const;
+
+        unsigned int determineReadFileCount(double io_volume, unsigned int run_nprocs) const;
+
+        unsigned int determineWriteFileCount(double io_volume, unsigned int run_nprocs) const;
+
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
+
+        std::map<std::string, std::map<unsigned int, std::map<std::string, unsigned int>>> stripes_per_action; // map for to-level jobs, then runs inside jobs, then actions
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
 
@@ -171,6 +190,10 @@ namespace storalloc {
         std::shared_ptr<storalloc::Config> config;
 
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
+
+        YAML::Emitter completed_jobs;
+
+        uint64_t failed_jobs_count = 0;
     };
 
 } // namespace storalloc

@@ -9,7 +9,6 @@ jobs:
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 7000
   runtimeSeconds: 6000 # seconds
-  approxComputeTimeSeconds: 2700
   sleepSimulationSeconds: 0
   waitingTimeSeconds: 10
   startTime: '2023-01-01 00:08:10'
@@ -18,7 +17,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs:
+    - id: 1
+      nprocs: 32
+      readBytes: 3000000000
+      writtenBytes: 1500000000
+      sleepDelay: 40
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 1
+      nprocs: 32
+      readBytes: 3000000000
+      writtenBytes: 1500000000
+      sleepDelay: 80
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
 preload:
   duration: 6000
   first_ts: 1672528090

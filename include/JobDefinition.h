@@ -64,6 +64,17 @@ namespace storalloc {
 
     bool operator==(const JobsStats &lhs, const JobsStats &rhs);
 
+    struct DarshanRecord {
+        unsigned int id;
+        unsigned int nprocs;
+        uint64_t readBytes;
+        uint64_t writtenBytes;
+        uint64_t runtime;
+        uint64_t dStartTime;
+        uint64_t dEndTime;
+        uint64_t sleepDelay;
+    };
+
     /**
      * @brief Structure representing a single job
      *
@@ -86,8 +97,12 @@ namespace storalloc {
         double readTimeSeconds;              // Cumulative read time from all core doing any kind of IO reads during the job's execution
         double writeTimeSeconds;             // Cumulative write time from all core doing any kind of IO writes during the job's execution
         double metaTimeSeconds;              // Cumulative meta time from all core doing any kind of IO meta ops during the job's execution
-        double approxComputeTimeSeconds;     // Approximated compute time of job.
-        JobType model;                       // Compute vs IO model of job (high-level)
+        std::vector<DarshanRecord> runs;
+        unsigned int runsCount;
+        double cumulReadBW;
+        double cumulWriteBW;
+        unsigned int category;
+        // unsigned int sum_nprocs;
     };
 
     bool operator==(const YamlJob &lhs, const YamlJob &rhs);
@@ -105,6 +120,12 @@ namespace YAML {
     struct convert<storalloc::JobsStats> {
         static Node encode(const storalloc::JobsStats &rhs);
         static bool decode(const Node &node, storalloc::JobsStats &rhs);
+    };
+
+    template <>
+    struct convert<storalloc::DarshanRecord> {
+        static Node encode(const storalloc::DarshanRecord &rhs);
+        static bool decode(const Node &node, storalloc::DarshanRecord &rhs);
     };
 
 } // namespace YAML

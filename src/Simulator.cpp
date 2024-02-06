@@ -46,7 +46,6 @@ namespace storalloc {
             for (unsigned int i = 0; i < node.qtt; i++) { // qtt of each type
                 auto disk_count = 0;
                 for (const auto &mnt_pt : mount_points) {
-                    // std::cout << "Inserting a new SimpleStorageService on node " << node.tpl.id << std::to_string(i) << " for disk " << mnt_pt << std::endl;
                     sstorageservices.insert(
                         simulation->add(
                             wrench::SimpleStorageService::createSimpleStorageService(
@@ -162,8 +161,9 @@ namespace storalloc {
                                                                          const std::shared_ptr<wrench::DataFile> &file,
                                                                          const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                          const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                         const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-            return allocator(file, resources, mapping, previous_allocations);
+                                                                         const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                         unsigned int stripe_count = 0) {
+            return allocator(file, resources, mapping, previous_allocations, stripe_count);
         };
 
         /* Compound storage service*/
@@ -192,24 +192,37 @@ namespace storalloc {
         auto ctrl = simulation->add(
             new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, USER, header, jobs, config));
 
+        /* Start Wrench simulation */
         WRENCH_INFO("Starting simulation...");
         const std::chrono::time_point<std::chrono::steady_clock> sim_start = std::chrono::steady_clock::now();
         simulation->launch();
         const std::chrono::time_point<std::chrono::steady_clock> sim_end = std::chrono::steady_clock::now();
 
+        /* Get task completion traces (debug only) */
         auto trace = simulation->getOutput().getTrace<wrench::SimulationTimestampTaskCompletion>();
         for (auto const &item : trace) {
             WRENCH_DEBUG("Task %s completed at time %f", item->getContent()->getTask()->getID().c_str(), item->getDate());
         }
 
-        auto action_results = ctrl->actionsAllCompleted();
-        if (not action_results) {
-            WRENCH_WARN("Some actions have failed");
+        /* Job failure assessment (it might be a good idea to condition the return code of
+           the simulation to a max. number of failed jobs when running calibration) */
+        int return_code = 0;
+        auto failed_cnt = ctrl->getFailedJobCount();
+        if (ctrl->getFailedJobCount() > 0) {
+            WRENCH_WARN("%lu jobs have failed", failed_cnt);
+            std::cout << "FAILED:" << failed_cnt << std::endl;
         }
 
-        // Extract traces into files tagged with dataset and config version.
-        ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
-        ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
+        /* Extract traces into files tagged with dataset and config version. */
+        try {
+            /* Storage system traces (currently unavailable): */
+            // ctrl->extractSSSIO(jobFilename, config->config_name + "_" + config->config_version, tag);
+            /* Job execution traces: */
+            ctrl->processCompletedJobs(jobFilename, config->config_name + "_" + config->config_version, tag);
+        } catch (const std::exception &e) {
+            std::cout << "## ERROR in trace analysis : " << e.what() << std::endl;
+            return 2;
+        }
 
         const std::chrono::time_point<std::chrono::steady_clock> chrono_end = std::chrono::steady_clock::now();
 

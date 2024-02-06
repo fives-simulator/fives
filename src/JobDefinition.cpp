@@ -7,6 +7,35 @@
 
 WRENCH_LOG_CATEGORY(storalloc_jobs, "Log category for storalloc config");
 
+YAML::Node YAML::convert<storalloc::DarshanRecord>::encode(const storalloc::DarshanRecord &rhs) {
+    YAML::Node node;
+
+    node.push_back(rhs.id);
+    node.push_back(rhs.readBytes);
+    node.push_back(rhs.writtenBytes);
+    node.push_back(rhs.nprocs);
+    node.push_back(rhs.runtime);
+    node.push_back(rhs.sleepDelay);
+    node.push_back(rhs.dStartTime);
+    node.push_back(rhs.dEndTime);
+
+    return node;
+}
+
+bool YAML::convert<storalloc::DarshanRecord>::decode(const Node &node, storalloc::DarshanRecord &rhs) {
+
+    rhs.id = node["id"].as<unsigned int>();
+    rhs.nprocs = node["nprocs"].as<unsigned int>();
+    rhs.readBytes = node["readBytes"].as<double>();
+    rhs.writtenBytes = node["writtenBytes"].as<double>();
+    rhs.runtime = node["runtime"].as<uint64_t>();
+    rhs.dStartTime = node["dStartTime"].as<uint64_t>();
+    rhs.dEndTime = node["dEndTime"].as<uint64_t>();
+    rhs.sleepDelay = node["sleepDelay"].as<uint64_t>();
+
+    return true;
+}
+
 bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJob &rhs) {
     // Note : not all fields are used.. but this should be way enough
     return (
@@ -21,14 +50,12 @@ bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJ
         lhs.writeTimeSeconds == rhs.writeTimeSeconds &&
         lhs.metaTimeSeconds == rhs.metaTimeSeconds &&
         lhs.runtimeSeconds == rhs.runtimeSeconds &&
-        lhs.approxComputeTimeSeconds == rhs.approxComputeTimeSeconds &&
         lhs.walltimeSeconds == rhs.walltimeSeconds &&
         lhs.waitingTimeSeconds == rhs.waitingTimeSeconds &&
         lhs.sleepSimulationSeconds == rhs.sleepSimulationSeconds &&
         lhs.startTime == rhs.startTime &&
         lhs.endTime == rhs.endTime &&
-        lhs.submissionTime == rhs.submissionTime &&
-        lhs.model == rhs.model);
+        lhs.submissionTime == rhs.submissionTime);
 }
 
 YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &rhs) {
@@ -48,7 +75,6 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
     node.push_back(rhs.metaTimeSeconds);
 
     node.push_back(rhs.runtimeSeconds);
-    node.push_back(rhs.approxComputeTimeSeconds);
     node.push_back(rhs.waitingTimeSeconds);
     node.push_back(rhs.walltimeSeconds);
     node.push_back(rhs.sleepSimulationSeconds);
@@ -57,14 +83,12 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
     node.push_back(rhs.startTime);
     node.push_back(rhs.endTime);
 
-    node.push_back(storalloc::JobTypeTranslations[rhs.model]);
-
     return node;
 }
 
 bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc::YamlJob &rhs) {
 
-    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 19) {
+    if (!(node.Type() == YAML::NodeType::Map) || node.size() != 22) {
         WRENCH_WARN("Invalid node format or incorrect number of keys in node map");
         return false;
     }
@@ -101,13 +125,6 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
         return false;
     }
 
-    // Computed approximate compute time (based on runtime - Darshan traced IO time)
-    rhs.approxComputeTimeSeconds = node["approxComputeTimeSeconds"].as<double>();
-    if (rhs.approxComputeTimeSeconds > rhs.runtimeSeconds) {
-        WRENCH_WARN("approxComputeTimeSeconds is > runtimeSeconds for job %s", rhs.id.c_str());
-        return false;
-    }
-
     // Waiting time between this job submission and start
     rhs.waitingTimeSeconds = node["waitingTimeSeconds"].as<unsigned int>();
     // Waiting time before submitting this job after the previous one was submitted
@@ -119,22 +136,17 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     rhs.startTime = node["startTime"].as<std::string>();
     rhs.endTime = node["endTime"].as<std::string>();
 
-    auto model_str = node["model"].as<std::string>();
-
-    if (model_str == "RCW") {
-        rhs.model = storalloc::JobType::ReadComputeWrite;
-    } else if (model_str == "RC") {
-        rhs.model = storalloc::JobType::ReadCompute;
-    } else if (model_str == "CW") {
-        rhs.model = storalloc::JobType::ComputeWrite;
-    } else if (model_str == "C") {
-        rhs.model = storalloc::JobType::Compute;
-    } else if (model_str == "RW") {
-        rhs.model = storalloc::JobType::ReadWrite;
-    } else {
-        WRENCH_WARN("Invalid job model for job %s", rhs.id.c_str());
-        return false;
+    for (const auto &node : node["runs"]) {
+        rhs.runs.push_back(node.as<storalloc::DarshanRecord>());
     }
+    rhs.runsCount = node["runsCount"].as<unsigned int>();
+
+    rhs.cumulReadBW = node["cumul_read_bw"].as<double>();
+    rhs.cumulWriteBW = node["cumul_write_bw"].as<double>();
+
+    rhs.category = node["category"].as<unsigned int>();
+
+    // rhs.sum_nprocs = node["sum_nprocs"].as < unsigned int>();
 
     return true;
 }

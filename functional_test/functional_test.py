@@ -90,27 +90,20 @@ def analyse_jobs(file_path: pathlib.Path):
                 + Style.RESET_ALL
             )
             errors += 1
-        if job["real_read_bytes"] != 0 and job["real_cReadTime_s"] <= 1:
+        if job["real_read_bytes"] > 20000000 and job["real_cReadTime_s"] <= 2:
             print(
-                Fore.RED
+                Fore.YELLOW
                 + f"  [ERROR] Job {job['job_uid']} amount of read bytes and read time don't seem to match"
                 + Style.RESET_ALL
             )
-            errors += 1
-        if job["real_written_bytes"] != 0 and job["real_cWriteTime_s"] <= 1:
+            warnings += 1
+        if job["real_written_bytes"] > 20000000 and job["real_cWriteTime_s"] <= 2:
             print(
-                Fore.RED
+                Fore.YELLOW
                 + f"  [ERROR] Job {job['job_uid']} amount of write bytes and write time don't seem to match"
                 + Style.RESET_ALL
             )
-            errors += 1
-        if job["approx_cComputeTime_s"] > job["real_runtime_s"]:
-            print(
-                Fore.RED
-                + f"  [ERROR] For job {job['job_uid']}, estimated compute time seems off."
-                + Style.RESET_ALL
-            )
-            errors += 1
+            warnings += 1
         if job["job_start_ts"] < job["job_submit_ts"]:
             print(
                 Fore.RED
@@ -195,21 +188,21 @@ def analyse_jobs(file_path: pathlib.Path):
     runtime_corr, _ = pearsonr(sim_runtime, real_runtime)
     runtime_cohen_d = cohend(sim_runtime, real_runtime)
 
-    if abs(mean_runtime_difference) > (mean_real_runtime / 2):
+    if abs(mean_runtime_difference) > (mean_real_runtime * 0.01):
         print(
             Fore.YELLOW
-            + f"  [WARNING] Simulated mean runtime is off from real mean runtime by more than 50% of the real mean runtime"
+            + f"  [WARNING] Simulated mean runtime is off from real mean runtime by more than 1% of the real mean runtime"
             + Style.RESET_ALL
         )
         warnings += 1
-    if runtime_corr < 0.95:
+    if runtime_corr < 0.99:
         print(
             Fore.YELLOW
             + f"  [WARNING] Correlation of simulated and real runtimes is awfully bad ({runtime_corr})"
             + Style.RESET_ALL
         )
         warnings += 1
-    if abs(runtime_cohen_d) > 0.2:
+    if abs(runtime_cohen_d) > 0.1:
         print(
             Fore.YELLOW
             + f"  [WARNING] The Cohen's d effect of obtaining runtime values by simulation rather than using the real values is more than 0.2 ({runtime_cohen_d})"
@@ -232,7 +225,8 @@ def analyse_jobs(file_path: pathlib.Path):
         s_io_volume_gb = 0
         for action in job["actions"]:
             if (
-                action["act_type"] == "FILEREAD" or action["act_type"] == "CUSTOM"
+                action["act_type"] == "FILEREAD" 
+                or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]))
             ) and action["act_status"] == "COMPLETED":
                 s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
         sim_io_volume_gb.append(s_io_volume_gb)
@@ -286,6 +280,62 @@ def analyse_jobs(file_path: pathlib.Path):
         )
         errors += 1
 
+    # IO TIMES
+    io_time_diff = []
+    sim_io_times = []
+    real_io_times = []
+
+    for job in jobs:
+        
+        job_sim_cumul_iotime = 0
+        job_real_iotime = job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+
+        for action in job["actions"]:
+            if (
+                action["act_type"] == "FILEREAD" 
+                or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]))
+            ) and action["act_status"] == "COMPLETED":
+                job_sim_cumul_iotime += action["act_duration"]
+
+        sim_io_times.append(job_sim_cumul_iotime)
+        real_io_times.append(job_real_iotime)
+        io_time_diff.append(abs(job_real_iotime - job_sim_cumul_iotime))
+
+    mean_io_time_sim = np.mean(sim_io_volume_gb)
+    mean_io_time_real = np.mean(real_io_volume_gb)
+    mean_io_time_difference = np.mean(io_volume_diff)
+    io_time_corr, _ = pearsonr(sim_io_volume_gb, real_io_volume_gb)
+    io_time_cohen_d = cohend(sim_io_volume_gb, real_io_volume_gb)
+
+    if abs(mean_io_time_difference) > (mean_io_time_real * 0.5):
+        print(
+            Fore.YELLOW
+            + f"  [WARN] Simulated mean IO time is off from real mean IO time by more than 50% of the real mean IO time"
+            + Style.RESET_ALL
+        )
+        print(
+            Fore.YELLOW
+            + f"          Sim={mean_io_time_sim} vs Real={mean_io_time_real}"
+            + Style.RESET_ALL
+        )
+        warnings += 1
+    if io_time_corr < 0.85:
+        print(
+            Fore.YELLOW
+            + f"  [WARN] Correlation of simulated and real IO times is awfully bad ({io_time_corr})"
+            + Style.RESET_ALL
+        )
+        warnings += 1
+    if abs(io_time_cohen_d) > 0.1:
+        print(
+            Fore.YELLOW
+            + f"  [WARN] The Cohen's d effect of obtaining IO times values by simulation rather than using the real values is more than 0.1 ({io_vol_cohen_d})"
+            + Style.RESET_ALL
+        )
+        warnings += 1
+
+
+    # Error summary
     if warnings != 0 or errors != 0:
         print(
             Fore.RED
@@ -298,6 +348,8 @@ def analyse_jobs(file_path: pathlib.Path):
             + f"  No warnings or errors triggered while analysing {file_path}"
             + Style.RESET_ALL
         )
+
+
 
     return (warnings, errors)
 

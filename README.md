@@ -12,7 +12,9 @@ For instance, we use traces from [Theta@ANL](https://reports.alcf.anl.gov/data/i
 StorAlloc replays the execution of jobs from the input dataset on a high-level abstraction of an HPC machine. It has options to customize many aspects of the HPC platform (thanks to the programmatic platforms offered by [Simgrid](https://simgrid.org/doc/latest/Platform_cpp.html)), but the main interest is directed towards representing storage resources. In that regard, the configuration file allows to easily describe multple kinds of disks and multiple kinds of storage nodes which use one or many different disks.
 
 The result of a simulation is a set of timestamped execution traces, with emphasis on either the jobs execution (and their different IO or compute actions), or on the storage resources (number of allocations on each disk, used capacity, etc). Scripts (wip) for the analysis of these traces are available in the `./results` and `.bokeh_server` directories.
- 
+
+CI/CD builds a static webpage with accumulated results from latests calibration runs : [Pages](https://jmonniot.gitlabpages.inria.fr/storalloc_wrench/) 
+
 ## Build
 
 ### Dependencies 
@@ -34,13 +36,13 @@ make -j 8
 
 Building the project generate a `storalloc_wrench` binary. Usage is :
 
-`./storalloc_wrench <configuration> <job dataset> [<tag included in the result files name>]`
+`./storalloc_wrench <configuration> <job dataset> <tag included in the result files name>`
 
 For instance
 
 ```bash
 cd build
-./storalloc_wrench ../configs/lustre_config_hdd.yml ../data/IOJobsTest_6_LustreSim.yml"
+./storalloc_wrench ../configs/lustre_config_hdd.yml ../data/IOJobsTest_6_LustreSim.yml test_lustre
 ```
 
 ## Tests
