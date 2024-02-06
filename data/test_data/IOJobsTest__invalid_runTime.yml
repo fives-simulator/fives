@@ -1,11 +1,14 @@
 ---
 jobs:
 - id: 1
+  category: 1
   coresUsed: 64
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   endTime: '2023-01-01 00:09:00'
   nodesUsed: 2
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   readBytes: 2000000000  # 2GB
   walltimeSeconds: 7000
   runtimeSeconds: 0 # seconds
@@ -18,7 +21,6 @@ jobs:
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -28,6 +30,7 @@ jobs:
       dStartTime: 1672528245
       dEndTime: 1672529245
       runtime: 1000
+      nprocs: 256
     - id: 1
       nprocs: 32
       readBytes: 3000000000
@@ -36,6 +39,7 @@ jobs:
       dStartTime: 1672528285
       dEndTime: 1672529285
       runtime: 1000
+      nprocs: 256
 preload:
   duration: 6000
   first_ts: 1672528090

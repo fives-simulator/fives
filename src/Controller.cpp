@@ -152,6 +152,7 @@ namespace storalloc {
 
         auto job_pair = this->compound_jobs.find(id);
         if (job_pair == this->compound_jobs.end()) {
+            WRENCH_WARN("Controller::getCompletedJobsById: Job ID %s not found", id.c_str());
             return {};
         }
 
@@ -341,7 +342,6 @@ namespace storalloc {
         if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
             auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
             local_stripe_count = std::ceil(this->config->lustre.stripe_count_high_read_add * ratio);
-            // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_read_add;
         }
 
         return local_stripe_count;
@@ -353,7 +353,6 @@ namespace storalloc {
         if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
             auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write;
             local_stripe_count = std::ceil(this->config->lustre.stripe_count_high_write_add * ratio);
-            // local_stripe_count = this->config->lustre.stripe_count + this->config->lustre.stripe_count_high_write_add;
         }
 
         return local_stripe_count;
@@ -394,8 +393,9 @@ namespace storalloc {
         this->compound_jobs[yJob.id].second.push_back(parentJob);
         WRENCH_INFO("[%s] Preparing parent job for submission", yJob.id.c_str());
 
-        this->gen = std::mt19937(this->rd());
-        this->uni_dis = std::uniform_real_distribution<float>(0.0, 1.0);
+        /* Used by cleanup part */
+        // this->gen = std::mt19937(this->rd());
+        // this->uni_dis = std::uniform_real_distribution<float>(0.0, 1.0);
 
         /* Make sure the reservation lasts for as long as the real one, no matter what happens inside.
          * This is because some jobs have internal scripts or interactive behaviours that make the
@@ -1372,7 +1372,11 @@ namespace storalloc {
 
         this->completed_jobs << YAML::EndMap; // job map
 
-        this->compound_jobs.erase(job_id); // cleanup job map once the job is analysed
+        if (not config->testing) {
+            this->compound_jobs.erase(job_id); // cleanup job map once the job is analysed
+        }
+
+        WRENCH_INFO("Controller::processCompletedJob: Job %s processed and removed from job map", job_id.c_str());
     }
 
     /**

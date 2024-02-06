@@ -29,8 +29,8 @@ namespace storalloc {
         uint64_t stripe_size = 2097152;     // 2MiB by default
         uint64_t stripe_count = 1;          // One OST by default
         uint64_t max_chunks_per_ost = 10;   // Maximum number of chunks per OST for each allocation (for simulation speed-up purpose)
-        uint16_t stripe_count_high_write_add = 6;
-        uint16_t stripe_count_high_read_add = 6;
+        uint16_t stripe_count_high_write_add = 2;
+        uint16_t stripe_count_high_read_add = 2;
         uint64_t stripe_count_high_thresh_write = 0;
         uint64_t stripe_count_high_thresh_read = 0;
     };
@@ -108,9 +108,9 @@ namespace storalloc {
         unsigned int nb_files_per_read;  // How many files should be used to represent the read amount of each job
         unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
 
-        float io_read_node_ratio; // From ]0,1], how many nodes should be involved in read IOs (+1 after rounding with ceil)
+        // float io_read_node_ratio; // From ]0,1], how many nodes should be involved in read IOs (+1 after rounding with ceil)
         unsigned int max_read_node_cnt;
-        float io_write_node_ratio; // From ]0,1], how many nodes should be involved in write IOs (+1 after rounding with ceil)
+        // float io_write_node_ratio; // From ]0,1], how many nodes should be involved in write IOs (+1 after rounding with ceil)
         unsigned int max_write_node_cnt;
 
         std::string io_buffer_size;
@@ -170,7 +170,8 @@ namespace storalloc {
         std::string config_version;
         unsigned int max_stripe_size; // Maximum stripe size in bytes (when files are stripped by the CSS, and not inside a specifid allocator)
         float preload_percent;        // Number of preload jobs to create from job dataset, as a percentage of the number of jobs in the dataset
-        float amdahl;                 // Compute task parallelism degree (0 - sequential to 1 - fully parallel)
+        bool testing = false;         // Whether the simulation should run in testing mode or not (used in unit tests)
+        bool debug = false;           // Whether to run the simulation in debug mode (NOT IMPLEMENTED YET)
         float walltime_extension;     // Coefficient to increase or decrease the original walltime of jobs - eg. 1.2
 
         ComputeCfg compute;

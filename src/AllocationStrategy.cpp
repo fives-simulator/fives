@@ -245,9 +245,9 @@ namespace storalloc {
             return ret_striping;
         }
 
-        if (this->config->lustre.stripe_count > total_number_of_OSTs) {
+        if (ret_striping.stripes_count > total_number_of_OSTs) {
             WRENCH_WARN("[lustreComputeStriping] Configuration lustre.stripe_count (%lu) is superior to the actual number of OSTs accessible by the allocator (%lu)",
-                        this->config->lustre.stripe_count, total_number_of_OSTs);
+                        ret_striping.stripes_count, total_number_of_OSTs);
             throw std::runtime_error("The configured 'stripe_count' is higher than the actual number of available OSTs");
         }
 

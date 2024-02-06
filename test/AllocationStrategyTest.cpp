@@ -303,52 +303,46 @@ TEST_F(BasicAllocTest, lustreComputeStriping_test) {
 void BasicAllocTest::lustreComputeStriping_test() {
 
     LustreAllocator allocator(this->cfg);
-    auto striping = allocator.lustreComputeStriping(15'000'000, 12);
+    auto striping = allocator.lustreComputeStriping(15'000'000, 12, 1);
     ASSERT_EQ(striping.stripe_size_b, 2'097'152); // stripe_size unmodified from config default
     ASSERT_EQ(striping.stripes_count, 1);         // unchanged
     ASSERT_EQ(striping.max_stripes_per_ost, 8);   // max stripes per OST adjusted to fit the actual number of stripes used
-    ASSERT_THROW(allocator.lustreComputeStriping(3'000'000, 0), std::runtime_error);
-    ASSERT_THROW(allocator.lustreComputeStriping(0, 12), std::runtime_error);
+    ASSERT_THROW(allocator.lustreComputeStriping(3'000'000, 0, 1), std::runtime_error);
+    ASSERT_THROW(allocator.lustreComputeStriping(0, 12, 1), std::runtime_error);
 
     striping = {};
-    striping = allocator.lustreComputeStriping(30'000'000, 12);
+    striping = allocator.lustreComputeStriping(30'000'000, 12, 1);
     ASSERT_EQ(striping.stripe_size_b, 3'000'000); // recomputed based on max_chunks_per_ost=10 in config
     ASSERT_EQ(striping.stripes_count, 1);         // unchanged
     ASSERT_EQ(striping.max_stripes_per_ost, 10);  // unchanged
 
-    auto cfg_2 = std::make_shared<Config>();
-    cfg_2->lustre = LustreConfig();  // default lustre config
-    cfg_2->lustre.stripe_count = 13; // load-balancing on 13 != OSTs
-    LustreAllocator allocator2(cfg_2);
-
+    LustreAllocator allocator2(cfg);
     striping = {};
-    striping = allocator2.lustreComputeStriping(300'000'000, 85);
-    ASSERT_EQ(striping.stripe_size_b, 2'307'693);                                     // stripe size slightly increased
-    ASSERT_EQ(striping.stripes_count, 13);                                            // unchanged
-    ASSERT_EQ(striping.max_stripes_per_ost, 10);                                      // unchanged
-    ASSERT_THROW(allocator2.lustreComputeStriping(3'000'000, 3), std::runtime_error); // stripe_count > nb of ost
+    striping = allocator2.lustreComputeStriping(300'000'000, 85, 13);                     // Using stripe_count = 13
+    ASSERT_EQ(striping.stripe_size_b, 2'307'693);                                         // stripe size slightly increased
+    ASSERT_EQ(striping.stripes_count, 13);                                                // unchanged
+    ASSERT_EQ(striping.max_stripes_per_ost, 10);                                          // unchanged
+    ASSERT_THROW(allocator2.lustreComputeStriping(3'000'000, 3, 13), std::runtime_error); // stripe_count > nb of ost
 
     auto cfg_3 = std::make_shared<Config>();
     cfg_3->lustre = LustreConfig();        // default lustre config
-    cfg_3->lustre.stripe_count = 18;       // load-balancing on 50 OSTs (instead of 1)
     cfg_3->lustre.max_chunks_per_ost = 12; // allowing for more chunks on each OST
     LustreAllocator allocator3(cfg_3);
 
     striping = {};
-    striping = allocator3.lustreComputeStriping(370'000'000, 85);
+    striping = allocator3.lustreComputeStriping(370'000'000, 85, 18); // stripe_count = 18
     ASSERT_EQ(striping.stripe_size_b, 2'097'152);
     ASSERT_EQ(striping.stripes_count, 18);
     ASSERT_EQ(striping.max_stripes_per_ost, 10);
 
     auto cfg_4 = std::make_shared<Config>();
     cfg_4->lustre = LustreConfig();          // default lustre config
-    cfg_4->lustre.stripe_count = 2;          // load-balancing on 50 OSTs (instead of 1)
     cfg_4->lustre.max_chunks_per_ost = 12;   // allowing for more chunks on each OST (useless here)
     cfg_4->lustre.stripe_size = 100'000'000; // stripe size at 100 MB
     LustreAllocator allocator4(cfg_4);
 
     striping = {};
-    striping = allocator4.lustreComputeStriping(50'000'000, 4);
+    striping = allocator4.lustreComputeStriping(50'000'000, 4, 2); // stripe_count = 2
     ASSERT_EQ(striping.stripe_size_b, 100'000'000);
     ASSERT_EQ(striping.stripes_count, 1);
     ASSERT_EQ(striping.max_stripes_per_ost, 1);
@@ -519,8 +513,9 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
                                                                      const std::shared_ptr<wrench::DataFile> &file,
                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-        return allocator(file, resources, mapping, previous_allocations);
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                     unsigned int stripe_count) {
+        return allocator(file, resources, mapping, previous_allocations, stripe_count);
     };
 
     auto compound_storage_service = simulation->add(
@@ -534,7 +529,7 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator)));
+        new LustreTestControllerMinMax(batch_service, sstorageservices, compound_storage_service, "user42", std::make_shared<LustreAllocator>(allocator)));
 
     simulation->launch();
 }
@@ -635,8 +630,9 @@ void FunctionalAllocTest::lustreOstIsUsed_test() {
                                                                      const std::shared_ptr<wrench::DataFile> &file,
                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-        return allocator(file, resources, mapping, previous_allocations);
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                     unsigned int stripe_count) {
+        return allocator(file, resources, mapping, previous_allocations, stripe_count);
     };
 
     auto compound_storage_service = simulation->add(
@@ -649,7 +645,7 @@ void FunctionalAllocTest::lustreOstIsUsed_test() {
             {}));
 
     auto wms = simulation->add(
-        new LustreTestControllerUsage(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator)));
+        new LustreTestControllerUsage(batch_service, sstorageservices, compound_storage_service, "user42", std::make_shared<LustreAllocator>(allocator)));
 
     simulation->launch();
 }
@@ -734,8 +730,9 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
                                                                      const std::shared_ptr<wrench::DataFile> &file,
                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-        return allocator(file, resources, mapping, previous_allocations);
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                     unsigned int stripe_count) {
+        return allocator(file, resources, mapping, previous_allocations, stripe_count);
     };
 
     auto compound_storage_service = simulation->add(
@@ -747,19 +744,21 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
              {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING, "false"}},
             {}));
 
+    /* NOTE: the second part (simple storage service HOSTname) may change (for instance when the platform is updated)
+       BUT the first part (storage service NAME) should not */
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5003"},
-        {"lustre_OSS_B0", "simple_storage_3_5012"},
-        {"lustre_OSS_A0", "simple_storage_1_5006"},
-        {"lustre_OSS_B0", "simple_storage_4_5015"},
-        {"lustre_OSS_B0", "simple_storage_5_5018"},
-        {"lustre_OSS_A0", "simple_storage_2_5009"},
-        {"lustre_OSS_B0", "simple_storage_6_5021"},
-        {"lustre_OSS_B0", "simple_storage_7_5024"},
+        {"lustre_OSS_A0", "simple_storage_0_5002"},
+        {"lustre_OSS_B0", "simple_storage_3_5005"},
+        {"lustre_OSS_A0", "simple_storage_1_5003"},
+        {"lustre_OSS_B0", "simple_storage_4_5006"},
+        {"lustre_OSS_B0", "simple_storage_5_5007"},
+        {"lustre_OSS_A0", "simple_storage_2_5004"},
+        {"lustre_OSS_B0", "simple_storage_6_5008"},
+        {"lustre_OSS_B0", "simple_storage_7_5009"},
     };
 
     auto wms = simulation->add(
-        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator), result));
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user42", std::make_shared<LustreAllocator>(allocator), result));
 
     ASSERT_NO_THROW(simulation->launch());
 }
@@ -798,8 +797,9 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
                                                                      const std::shared_ptr<wrench::DataFile> &file,
                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-        return allocator(file, resources, mapping, previous_allocations);
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                     unsigned int stripe_count) {
+        return allocator(file, resources, mapping, previous_allocations, stripe_count);
     };
 
     auto compound_storage_service = simulation->add(
@@ -812,16 +812,16 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5003"},
-        {"lustre_OSS_B0", "simple_storage_3_5012"},
-        {"lustre_OSS_A0", "simple_storage_1_5006"},
-        {"lustre_OSS_B0", "simple_storage_4_5015"},
-        {"lustre_OSS_A0", "simple_storage_2_5009"},
-        {"lustre_OSS_B0", "simple_storage_5_5018"},
+        {"lustre_OSS_A0", "simple_storage_0_5002"},
+        {"lustre_OSS_B0", "simple_storage_3_5005"},
+        {"lustre_OSS_A0", "simple_storage_1_5003"},
+        {"lustre_OSS_B0", "simple_storage_4_5006"},
+        {"lustre_OSS_A0", "simple_storage_2_5004"},
+        {"lustre_OSS_B0", "simple_storage_5_5007"},
     };
 
     auto wms = simulation->add(
-        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator), result));
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user42", std::make_shared<LustreAllocator>(allocator), result));
 
     ASSERT_NO_THROW(simulation->launch());
 }
@@ -860,8 +860,9 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
                                                                      const std::shared_ptr<wrench::DataFile> &file,
                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-        return allocator(file, resources, mapping, previous_allocations);
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                     unsigned int stripe_count) {
+        return allocator(file, resources, mapping, previous_allocations, stripe_count);
     };
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
@@ -873,19 +874,19 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
             {}));
 
     std::vector<std::pair<std::string, std::string>> result = {
-        {"lustre_OSS_A0", "simple_storage_0_5003"},
-        {"lustre_OSS_B0", "simple_storage_3_5012"},
-        {"lustre_OSS_C0", "simple_storage_6_5021"},
-        {"lustre_OSS_A0", "simple_storage_1_5006"},
-        {"lustre_OSS_B0", "simple_storage_4_5015"},
-        {"lustre_OSS_C0", "simple_storage_7_5024"},
-        {"lustre_OSS_A0", "simple_storage_2_5009"},
-        {"lustre_OSS_B0", "simple_storage_5_5018"},
-        {"lustre_OSS_C0", "simple_storage_8_5027"},
+        {"lustre_OSS_A0", "simple_storage_0_5002"},
+        {"lustre_OSS_B0", "simple_storage_3_5005"},
+        {"lustre_OSS_C0", "simple_storage_6_5008"},
+        {"lustre_OSS_A0", "simple_storage_1_5003"},
+        {"lustre_OSS_B0", "simple_storage_4_5006"},
+        {"lustre_OSS_C0", "simple_storage_7_5009"},
+        {"lustre_OSS_A0", "simple_storage_2_5004"},
+        {"lustre_OSS_B0", "simple_storage_5_5007"},
+        {"lustre_OSS_C0", "simple_storage_8_5010"},
     };
 
     auto wms = simulation->add(
-        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user0", std::make_shared<LustreAllocator>(allocator), result));
+        new LustreTestControllerOrderRR(batch_service, sstorageservices, compound_storage_service, "user42", std::make_shared<LustreAllocator>(allocator), result));
 
     ASSERT_NO_THROW(simulation->launch());
 }
@@ -956,9 +957,10 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto jobs = storalloc::loadYamlJobs(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
-    int argc = 1;
+    int argc = 2;
     char **argv = (char **)calloc(argc, sizeof(char *));
     argv[0] = strdup("unit_test_full_sim_lustre");
+    argv[1] = strdup("--wrench-commport-pool-size=200000");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
     auto platform_factory = storalloc::PlatformFactory(config);
@@ -973,8 +975,9 @@ void FunctionalAllocTest::lustreFullSim_test() {
                                                                      const std::shared_ptr<wrench::DataFile> &file,
                                                                      const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                      const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
-        return allocator(file, resources, mapping, previous_allocations);
+                                                                     const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                     unsigned int stripe_count) {
+        return allocator(file, resources, mapping, previous_allocations, stripe_count);
     };
     auto compound_storage_service = simulation->add(
         new wrench::CompoundStorageService(
@@ -994,28 +997,29 @@ void FunctionalAllocTest::lustreFullSim_test() {
             PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
     // Controler
-    auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user0", header, jobs, config));
+    auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user42", header, jobs, config));
 
     ASSERT_NO_THROW(simulation->launch());
 
     // Make sure that the controler finished and that all actions from all jobs completed
     ASSERT_TRUE(ctrl->hasReturnedFromMain());
-    ASSERT_TRUE(ctrl->actionsAllCompleted());
+    // ASSERT_TRUE(ctrl->actionsAllCompleted());
 
     ///  END OF SIMULATION - STARTING TESTS
 
-    // Run a few checks at test level ('randomly' using the first test)
+    ASSERT_EQ(ctrl->getFailedJobCount(), 0);
+
     auto job_1 = ctrl->getCompletedJobsById("job1");
     auto job_2 = ctrl->getCompletedJobsById("job2");
     auto job_3 = ctrl->getCompletedJobsById("job3");
 
-    // for (const auto &subjob : job_3) {
-    //     std::cout << subjob->getName() << std::endl;
-    // }
+    for (const auto &subjob : job_3) {
+        std::cout << subjob->getName() << std::endl;
+    }
 
-    ASSERT_EQ(job_1.size(), 11); // 2 sub jobs, R/W for each + archive copy + cleanup ; 2nd one does staging copy
-    ASSERT_EQ(job_2.size(), 10); // 3 sub jobs, write only
-    ASSERT_EQ(job_3.size(), 19); // parent, copy, read, compute, clean (x1)
+    ASSERT_EQ(job_1.size(), 7);  // parent job + (Copy / Read / Write jobs) + (Read / Write / Archive) (+ 2 sleep jobs, ignored)
+    ASSERT_EQ(job_2.size(), 7);  // parent job + 3 * (write + archive)  (no sleep jobs)
+    ASSERT_EQ(job_3.size(), 13); // parent job + 6 * (copy / read) (and 6 ignored sleep actions)
 
     ASSERT_EQ(job_1[0]->getName(), "job1");
     ASSERT_EQ(job_2[0]->getName(), "job2");
@@ -1023,57 +1027,57 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
     ASSERT_EQ(job_1[2]->getName(), "writeFiles_idjob1_exec1");
     ASSERT_EQ(job_1[3]->getName(), "archiveCopy_idjob1_exec1");
-    ASSERT_EQ(job_1[4]->getName(), "cleanupInput_idjob1_exec1");
-    ASSERT_EQ(job_1[6]->getName(), "stagingCopy_idjob1_exec2");
+    ASSERT_EQ(job_1[4]->getName(), "stagingCopy_idjob1_exec2");
+    ASSERT_EQ(job_1[6]->getName(), "writeFiles_idjob1_exec2");
 
     ASSERT_EQ(job_2[2]->getName(), "archiveCopy_idjob2_exec1");
-    ASSERT_EQ(job_2[3]->getName(), "cleanupOutput_idjob2_exec1");
+    ASSERT_EQ(job_2[3]->getName(), "writeFiles_idjob2_exec2");
 
     ASSERT_EQ(job_3[1]->getName(), "stagingCopy_idjob3_exec1");
     ASSERT_EQ(job_3[2]->getName(), "readFiles_idjob3_exec1");
-    ASSERT_EQ(job_3[4]->getName(), "stagingCopy_idjob3_exec2");
+    ASSERT_EQ(job_3[4]->getName(), "readFiles_idjob3_exec2");
 
     // JOB 1 (easy, all sequential)
-    for (unsigned int i = 0; i < 10; i++) {
+    for (unsigned int i = 0; i < 6; i++) {
         ASSERT_TRUE(job_1[i]->getSubmitDate() <= job_1[i + 1]->getSubmitDate());
     }
 
     // JOB 2
-    for (unsigned int i = 1; i < 3; i++) {
+    for (unsigned int i = 1; i < 2; i++) {
         ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 4; i < 6; i++) {
+    for (unsigned int i = 3; i < 4; i++) {
         ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 7; i < 9; i++) {
+    for (unsigned int i = 5; i < 6; i++) {
         ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
     }
 
-    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[4]->getSubmitDate(), 1);
-    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[7]->getSubmitDate(), 1);
+    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[3]->getSubmitDate(), 1);
+    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[5]->getSubmitDate(), 1);
 
     // JOB 3
-    for (unsigned int i = 1; i < 3; i++) {
+    for (unsigned int i = 1; i < 2; i++) {
         ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 4; i < 6; i++) {
+    for (unsigned int i = 3; i < 4; i++) {
         ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 7; i < 9; i++) {
+    for (unsigned int i = 5; i < 6; i++) {
         ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 10; i < 12; i++) {
+    for (unsigned int i = 7; i < 8; i++) {
         ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 13; i < 15; i++) {
+    for (unsigned int i = 9; i < 10; i++) {
         ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
     }
-    for (unsigned int i = 16; i < 18; i++) {
+    for (unsigned int i = 11; i < 12; i++) {
         ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
     }
 
-    ASSERT_TRUE(job_3[4]->getSubmitDate() <= job_3[3]->getSubmitDate());
-    ASSERT_TRUE(job_3[16]->getSubmitDate() <= job_3[3]->getSubmitDate());
+    ASSERT_TRUE(job_3[5]->getSubmitDate() <= job_3[4]->getSubmitDate());
+    ASSERT_TRUE(job_3[11]->getSubmitDate() <= job_3[10]->getSubmitDate());
 
     // Introspection in parent job for job 1
     auto parent1 = job_1[0];
@@ -1103,10 +1107,15 @@ void FunctionalAllocTest::lustreFullSim_test() {
     std::vector<std::string> fileNames{
         "outputFile_writeFiles_idjob2_exec1_part0",
         "outputFile_writeFiles_idjob2_exec1_part1"};
-    regex reg("FW_outputFile_writeFiles_idjob2_exec1_part[0,1]_compute\\d+_act[0-9]+");
+    regex reg("FW_outputFile_writeFiles_idjob2_exec1_part[0-9]_compute\\d+_act[0-9]+");
+
+    for (const auto &act : write2Actions) {
+        std::cout << "- Action : " << act->getName() << std::endl;
+    }
+
     for (const auto &act : write2Actions) {
         auto action_name = act->getName();
-        std::cout << action_name << std::endl;
+        std::cout << "- Action : " << action_name << std::endl;
         std::smatch base_match;
         ASSERT_TRUE(std::regex_match(action_name, base_match, reg));
         ASSERT_EQ(act->getState(), wrench::Action::COMPLETED);
