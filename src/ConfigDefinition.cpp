@@ -38,16 +38,11 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         rhs.config_version = ynode["general"]["config_version"].as<std::string>();
         rhs.max_stripe_size = ynode["general"]["max_stripe_size"].as<unsigned int>();
         rhs.preload_percent = ynode["general"]["preload_percent"].as<float>();
-        if (ynode["general"]["amdahl"].IsDefined()) {
-            auto amdhal = ynode["general"]["amdahl"].as<float>();
-            if ((amdhal > 1) or (amdhal < 0)) {
-                WRENCH_WARN("amdhal parameter should be bounded in [0, 1]");
-                return false;
-            }
-            rhs.amdahl = ynode["general"]["amdahl"].as<float>();
-        } else {
-            WRENCH_INFO("Using default value for amdahl config (0.7)");
-            rhs.amdahl = 0.7; // "sensible" default value ?
+        if (ynode["general"]["testing"].IsDefined()) {
+            rhs.testing = ynode["general"]["testing"].as<bool>();
+        }
+        if (ynode["general"]["debug"].IsDefined()) {
+            rhs.debug = ynode["general"]["debug"].as<bool>();
         }
         if (ynode["general"]["walltime_extension"].IsDefined()) {
             rhs.walltime_extension = ynode["general"]["walltime_extension"].as<float>();
@@ -104,17 +99,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         }
         rhs.stor.nb_files_per_read = ynode["storage"]["nb_files_per_read"].as<unsigned int>();
         rhs.stor.nb_files_per_write = ynode["storage"]["nb_files_per_write"].as<unsigned int>();
-        rhs.stor.io_read_node_ratio = ynode["storage"]["io_read_node_ratio"].as<float>();
-        if (rhs.stor.io_read_node_ratio < 0 || rhs.stor.io_read_node_ratio > 1) {
-            WRENCH_WARN("io_read_node_ratio should be bounded in [0, 1]");
-            return false;
-        }
         rhs.stor.max_read_node_cnt = ynode["storage"]["max_read_node_cnt"].as<unsigned int>();
-        rhs.stor.io_write_node_ratio = ynode["storage"]["io_write_node_ratio"].as<float>();
-        if (rhs.stor.io_write_node_ratio < 0 || rhs.stor.io_write_node_ratio > 1) {
-            WRENCH_WARN("io_write_node_ratio should be bounded in [0, 1]");
-            return false;
-        }
         rhs.stor.max_write_node_cnt = ynode["storage"]["max_write_node_cnt"].as<unsigned int>();
         rhs.stor.io_buffer_size = ynode["storage"]["io_buffer_size"].as<std::string>();
 
@@ -201,25 +186,34 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             } else {
                 WRENCH_INFO("Using default value for lustre.stripe_count : %lu", lustreConfig.stripe_count);
             }
+
+            // STRIPE_COUNT FOR HIGH BW (WRITES)
             if (ynode["lustre"]["stripe_count_high_thresh_write"].IsDefined()) {
+
                 lustreConfig.stripe_count_high_thresh_write = ynode["lustre"]["stripe_count_high_thresh_write"].as<uint64_t>();
+
+                if (ynode["lustre"]["stripe_count_high_write_add"].IsDefined()) {
+                    lustreConfig.stripe_count_high_write_add = ynode["lustre"]["stripe_count_high_write_add"].as<uint64_t>();
+                } else {
+                    WRENCH_INFO("Using default value for lustre.stripe_count_high_write_add : %u", lustreConfig.stripe_count_high_write_add);
+                }
             } else {
-                WRENCH_INFO("No value set for 'stripe_count_high_thresh_write'");
+                WRENCH_INFO("No value set for 'stripe_count_high_thresh_write' (ignoring setting and alt. stripe_count)");
             }
+
+            // STRIPE_COUNT FOR HIGH BW (READS)
             if (ynode["lustre"]["stripe_count_high_thresh_read"].IsDefined()) {
+
                 lustreConfig.stripe_count_high_thresh_read = ynode["lustre"]["stripe_count_high_thresh_read"].as<uint64_t>();
+
+                if (ynode["lustre"]["stripe_count_high_read_add"].IsDefined()) {
+                    lustreConfig.stripe_count_high_read_add = ynode["lustre"]["stripe_count_high_read_add"].as<uint64_t>();
+                } else {
+                    WRENCH_INFO("Using default value for lustre.stripe_count_high_read_add : %u", lustreConfig.stripe_count_high_read_add);
+                }
+
             } else {
-                WRENCH_INFO("No value set for 'stripe_count_high_thresh_read'");
-            }
-            if (ynode["lustre"]["stripe_count_high_write_add"].IsDefined()) {
-                lustreConfig.stripe_count_high_write_add = ynode["lustre"]["stripe_count_high_write_add"].as<uint64_t>();
-            } else {
-                WRENCH_INFO("Using default value for lustre.stripe_count_high_write_add : %u", lustreConfig.stripe_count_high_write_add);
-            }
-            if (ynode["lustre"]["stripe_count_high_read_add"].IsDefined()) {
-                lustreConfig.stripe_count_high_read_add = ynode["lustre"]["stripe_count_high_read_add"].as<uint64_t>();
-            } else {
-                WRENCH_INFO("Using default value for lustre.stripe_count_high_read_add : %u", lustreConfig.stripe_count_high_read_add);
+                WRENCH_INFO("No value set for 'stripe_count_high_thresh_read' (ignoring setting and alt. stripe_count)");
             }
             if (ynode["lustre"]["max_chunks_per_ost"].IsDefined()) {
                 lustreConfig.max_chunks_per_ost = ynode["lustre"]["max_chunks_per_ost"].as<uint64_t>();

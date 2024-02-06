@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
 message(STATUS "Cmake version ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 
-project(storalloc_wrench)
-set(STORALLOC_VERSION_MAJOR "0")
-set(STORALLOC_VERSION_MINOR "0")
-set(STORALLOC_VERSION_PATCH "2")
-set(STORALLOC_VERSION_EXTRA "dev")
+project(fives)
+set(FIVES_VERSION_MAJOR "0")
+set(FIVES_VERSION_MINOR "0")
+set(FIVES_VERSION_PATCH "2")
+set(FIVES_VERSION_EXTRA "dev")
 
 add_definitions("-Wall -Wno-unused-variable -Wno-unused-private-field")
 
@@ -51,25 +51,25 @@ find_library(ZMQ_LIBRARY NAMES zmq)
 
 # generating the executable
 set(CMAKE_CXX_STANDARD 17)
-add_executable(storalloc_wrench src/main.cpp ${SOURCE_FILES})
+add_executable(fives src/main.cpp ${SOURCE_FILES})
 
 if (ENABLE_BATSCHED)
-    target_link_libraries(storalloc_wrench
+    target_link_libraries(fives
             ${WRENCH_LIBRARY}
             ${SimGrid_LIBRARY}
             ${ZMQ_LIBRARY}
             ${YAML_CPP_LIBRARY}
     )
 else()
-    target_link_libraries(storalloc_wrench
+    target_link_libraries(fives
             ${WRENCH_LIBRARY}
             ${SimGrid_LIBRARY}
             ${YAML_CPP_LIBRARY}
     )
 endif()
 
-set_target_properties(storalloc_wrench PROPERTIES COMPILE_FLAGS "-pg -O3")
-install(TARGETS storalloc_wrench DESTINATION bin)
+set_target_properties(fives PROPERTIES COMPILE_FLAGS "-O3")
+install(TARGETS fives DESTINATION bin)
 
 
 find_library(GTEST_LIBRARY NAMES gtest)

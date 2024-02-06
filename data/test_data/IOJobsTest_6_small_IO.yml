@@ -1,7 +1,10 @@
 jobs:
-- coresUsed: 32
+- category: 1
+  coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   endTime: '2023-01-01 00:09:00'
   id: 1
   nodesUsed: 2
@@ -13,11 +16,10 @@ jobs:
   startTime: '2023-01-01 00:08:10'
   submissionTime: '2023-01-01 00:08:00'
   writtenBytes: 25000000000 # 25 GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  readTimeSeconds: 685.859
+  writeTimeSeconds: 362.970
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -37,7 +39,10 @@ jobs:
       runtime: 1000
 - coresUsed: 32
   coreHoursReq: 3.0
+  category: 1
   coreHoursUsed: 2.5
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   endTime: '2023-01-01 00:11:00'
   id: 2
   nodesUsed: 2
@@ -49,11 +54,10 @@ jobs:
   startTime: '2023-01-01 00:10:05'
   submissionTime: '2023-01-01 00:10:00'
   writtenBytes: 3000000000 # 3 GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  readTimeSeconds: 659.859
+  writeTimeSeconds: 362.970
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -74,6 +78,9 @@ jobs:
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
+  category: 1
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   endTime: '2023-01-01 00:15:45'
   id: 3
   nodesUsed: 2
@@ -85,11 +92,10 @@ jobs:
   startTime: '2023-01-01 00:15:00'
   submissionTime: '2023-01-01 00:14:00'
   writtenBytes: 2500000000 # 2.5 GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  readTimeSeconds: 685.859
+  writeTimeSeconds: 762.970
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -109,6 +115,9 @@ jobs:
       runtime: 1000
 - coresUsed: 32
   coreHoursReq: 3.0
+  category: 1
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   coreHoursUsed: 2.5
   endTime: '2023-01-02 00:09:00'
   id: 4
@@ -121,11 +130,10 @@ jobs:
   startTime: '2023-01-02 00:08:10'
   submissionTime: '2023-01-02 00:08:00'
   writtenBytes: 2500000000 # 2.5 GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  readTimeSeconds: 659.859
+  writeTimeSeconds: 842.970454
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs:
     - id: 1
       nprocs: 32
@@ -146,6 +154,9 @@ jobs:
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
+  category: 1
   endTime: '2023-01-02 00:11:00'
   id: 5
   nodesUsed: 2
@@ -157,11 +168,10 @@ jobs:
   startTime: '2023-01-02 00:10:05'
   submissionTime: '2023-01-02 00:10:00'
   writtenBytes: 2500000000 # 2.5 GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  readTimeSeconds: 340.859
+  writeTimeSeconds: 732.970
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs: 
     - id: 1
       nprocs: 32
@@ -182,6 +192,9 @@ jobs:
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
+  category: 1
   endTime: '2023-01-02 00:15:45'
   id: 6
   nodesUsed: 2
@@ -193,11 +206,10 @@ jobs:
   startTime: '2023-01-02 00:15:00'
   submissionTime: '2023-01-02 00:14:00'
   writtenBytes: 2500000000 # 2.5 GB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
+  readTimeSeconds: 681.859
+  writeTimeSeconds: 2153.17
   metaTimeSeconds: 256.299233
   runsCount: 2
-  sum_nprocs: 64
   runs: 
     - id: 1
       nprocs: 32

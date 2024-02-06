@@ -17,7 +17,9 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  sum_nprocs: 64
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
+  category: 1
   runs:
     - id: 1
       nprocs: 32
@@ -43,6 +45,8 @@ jobs:
   nodesUsed: 2
   readBytes: 20000000  # 20 MB
   walltimeSeconds: 4000
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   runtimeSeconds: 3000 # seconds
   sleepSimulationSeconds: 6000
   waitingTimeSeconds: 10

@@ -2,12 +2,15 @@ jobs:
 - coresUsed: 1280
   coreHoursReq: 1280
   coreHoursUsed: 984.5
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
+  category: 1
   endTime: '2023-01-01 14:54:34'
   id: job1
   nodesUsed: 20       # With a config using offering 32 nodes
   readBytes: 20000000000  # 20GB
-  walltimeSeconds: 3600   # 1 h
-  runtimeSeconds: 2769 # seconds
+  walltimeSeconds: 10800   # 3 h
+  runtimeSeconds: 7200
   sleepSimulationSeconds: 60      # Start the first job after 1 min in simulation time
   waitingTimeSeconds: 10
   startTime: '2023-01-01 14:08:10'
@@ -17,27 +20,29 @@ jobs:
   writeTimeSeconds: 1400  # arbitrary
   metaTimeSeconds: 458.29 # arbitrary
   runsCount: 2
-  sum_nprocs: 2560
   runs:
     - id: 1
       nprocs: 1280
       readBytes: 15000000000      # Read 3/4 of the total read bytes
       writtenBytes: 8000000000    #  Write 8GB out of 25
-      sleepDelay: 450             # Start this execution 450s in the reservation
+      sleepDelay: 45              # Start this execution 45s in the reservation
       dStartTime: 1672528245      # fake
-      dEndTime: 1672529245        # Fake
-      runtime: 1000
+      dEndTime: 1672529245        # fake
+      runtime: 2400
     - id: 2
       nprocs: 1280
       readBytes: 5000000000       # Read the remaining 1/4
       writtenBytes: 17000000000   # Write 17GB (remainer)
-      sleepDelay: 1550             # Start this execution 1550s in the reservation 
+      sleepDelay: 2550             # Start this execution 550s in the reservation 
       dStartTime: 1672528285      # fake
       dEndTime: 1672529285        # fake
-      runtime: 1000
+      runtime: 2000
 - coresUsed: 960
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
+  category: 1
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   endTime: '2023-01-01 17:15:47'
   id: job2
   nodesUsed: 15
@@ -53,7 +58,6 @@ jobs:
   writeTimeSeconds: 3000
   metaTimeSeconds: 256.299233
   runsCount: 3
-  sum_nprocs: 960
   runs:
     - id: 1
       nprocs: 320
@@ -82,8 +86,11 @@ jobs:
 - coresUsed: 768
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
+  category: 1
   endTime: '2023-01-01 18:15:45'
   id: job3
+  cumul_read_bw: 3795358.854753721
+  cumul_write_bw: 28679025.769959778
   nodesUsed: 12
   readBytes: 24000000000  # 20GB
   walltimeSeconds: 10800
@@ -97,7 +104,6 @@ jobs:
   writeTimeSeconds: 0
   metaTimeSeconds: 256.299233
   runsCount: 6
-  sum_nprocs: 768
   runs:
     - id: 1
       nprocs: 128
