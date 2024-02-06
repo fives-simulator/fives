@@ -17,7 +17,8 @@ namespace storalloc {
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+            unsigned int stripe_count);
     };
 
     struct ba_min_max {
@@ -46,25 +47,28 @@ namespace storalloc {
         std::vector<std::shared_ptr<wrench::FileLocation>> operator()(const std::shared_ptr<wrench::DataFile> &file,
                                                                       const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                       const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                      const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
+                                                                      const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                      unsigned int stripe_count);
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreRRAllocator(
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations);
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+            unsigned int stripe_count);
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreWeightedAllocator(
             const std::shared_ptr<wrench::DataFile> &file,
             const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
             const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const;
+            const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+            unsigned int stripe_count) const;
 
         /**
          *  HELPER FUNCTION FOR LUSTRE STRATEGIES
          */
 
-        striping lustreComputeStriping(uint64_t file_size_b, size_t number_of_OSTs) const;
+        striping lustreComputeStriping(uint64_t file_size_b, size_t number_of_OSTs, unsigned int stripe_count) const;
 
         std::vector<std::shared_ptr<wrench::FileLocation>> lustreCreateFileParts(const std::shared_ptr<wrench::DataFile> &file,
                                                                                  std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs,

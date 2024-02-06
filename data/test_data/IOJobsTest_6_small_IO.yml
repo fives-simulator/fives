@@ -8,7 +8,6 @@ jobs:
   readBytes: 20000000000  # 20GB
   walltimeSeconds: 3600
   runtimeSeconds: 3000 # seconds
-  approxComputeTimeSeconds: 2750
   sleepSimulationSeconds: 0
   waitingTimeSeconds: 10
   startTime: '2023-01-01 00:08:10'
@@ -17,7 +16,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs:
+    - id: 1
+      nprocs: 32
+      readBytes: 10000000000
+      writtenBytes: 12500000000
+      sleepDelay: 150
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
+    - id: 2
+      nprocs: 32
+      readBytes: 10000000000
+      writtenBytes: 12500000000
+      sleepDelay: 150
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -27,7 +44,6 @@ jobs:
   readBytes: 6000000000  # 6GB
   walltimeSeconds: 3600
   runtimeSeconds: 3300
-  approxComputeTimeSeconds: 2750
   sleepSimulationSeconds: 7500 # seconds
   waitingTimeSeconds: 5
   startTime: '2023-01-01 00:10:05'
@@ -36,7 +52,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs:
+    - id: 1
+      nprocs: 32
+      readBytes: 3000000000
+      writtenBytes: 1500000000
+      sleepDelay: 40
+      dStartTime: 1672528245
+      dEndTime: 1672529245
+      runtime: 1000
+    - id: 2
+      nprocs: 32
+      readBytes: 3000000000
+      writtenBytes: 1500000000
+      sleepDelay: 80
+      dStartTime: 1672528285
+      dEndTime: 1672529285
+      runtime: 1000
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -46,7 +80,6 @@ jobs:
   readBytes: 4000000000  # 4GB
   walltimeSeconds: 3600
   runtimeSeconds: 2700
-  approxComputeTimeSeconds: 2500
   sleepSimulationSeconds: 14100 # seconds
   waitingTimeSeconds: 60
   startTime: '2023-01-01 00:15:00'
@@ -55,7 +88,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs:
+    - id: 1
+      nprocs: 32
+      readBytes: 2000000000
+      writtenBytes: 1250000000
+      sleepDelay: 150
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
+    - id: 2
+      nprocs: 32
+      readBytes: 2000000000
+      writtenBytes: 1250000000
+      sleepDelay: 450
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -65,7 +116,6 @@ jobs:
   readBytes: 15000000000  # 15GB
   walltimeSeconds: 3600
   runtimeSeconds: 3000 # seconds
-  approxComputeTimeSeconds: 2500
   sleepSimulationSeconds: 61800
   waitingTimeSeconds: 10
   startTime: '2023-01-02 00:08:10'
@@ -74,7 +124,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs:
+    - id: 1
+      nprocs: 32
+      readBytes: 7500000000
+      writtenBytes: 1250000000
+      sleepDelay: 150
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
+    - id: 2
+      nprocs: 32
+      readBytes: 7500000000
+      writtenBytes: 1250000000
+      sleepDelay: 150
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -84,7 +152,6 @@ jobs:
   readBytes: 4000000000  # 4GB
   walltimeSeconds: 3600
   runtimeSeconds: 3300
-  approxComputeTimeSeconds: 2500
   sleepSimulationSeconds: 7500 # seconds
   waitingTimeSeconds: 5
   startTime: '2023-01-02 00:10:05'
@@ -93,7 +160,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs: 
+    - id: 1
+      nprocs: 32
+      readBytes: 2000000000
+      writtenBytes: 1250000000
+      sleepDelay: 150
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
+    - id: 2
+      nprocs: 32
+      readBytes: 2000000000
+      writtenBytes: 1250000000
+      sleepDelay: 600
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000 
 - coresUsed: 32
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
@@ -103,7 +188,6 @@ jobs:
   readBytes: 40000000000  # 40GB
   walltimeSeconds: 3600
   runtimeSeconds: 2700
-  approxComputeTimeSeconds: 2500
   sleepSimulationSeconds: 1000 # seconds
   waitingTimeSeconds: 60
   startTime: '2023-01-02 00:15:00'
@@ -112,7 +196,25 @@ jobs:
   readTimeSeconds: 6859.859
   writeTimeSeconds: 0.215317
   metaTimeSeconds: 256.299233
-  model: RCW
+  runsCount: 2
+  sum_nprocs: 64
+  runs: 
+    - id: 1
+      nprocs: 32
+      readBytes: 20000000000
+      writtenBytes: 1250000000
+      sleepDelay: 0
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
+    - id: 2
+      nprocs: 32
+      readBytes: 20000000000
+      writtenBytes: 1250000000
+      sleepDelay: 500
+      dStartTime: 1672528240
+      dEndTime: 1672529240
+      runtime: 1000
 preload:        # Note : fake values unrelated to the jobs in this dataset
   duration: 603971
   first_ts: 1646440956

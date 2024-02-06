@@ -49,8 +49,13 @@ void BasicUtilsTest::loadYamlJobs_test() {
     ASSERT_EQ(job_2.submissionTime, "2023-01-01 00:10:00");
     ASSERT_EQ(job_2.writtenBytes, 3000000000);
 
+    auto run_2 = job_2.runs[1];
+    ASSERT_EQ(run_2.id, 2);
+    ASSERT_EQ(run_2.readBytes, 3000000000);
+    ASSERT_EQ(run_2.writtenBytes, 1500000000);
+    ASSERT_EQ(run_2.sleepDelay, 80);
+
     ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_coresUsed.yml"), std::runtime_error);
-    ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_computeTime.yml"), std::runtime_error);
     ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_nodesUsed.yml"), std::runtime_error);
     ASSERT_THROW(loadYamlJobs(test::DATA_PATH + "IOJobsTest__invalid_runTime.yml"), std::runtime_error);
 }

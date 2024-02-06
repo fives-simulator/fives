@@ -29,6 +29,10 @@ namespace storalloc {
         uint64_t stripe_size = 2097152;     // 2MiB by default
         uint64_t stripe_count = 1;          // One OST by default
         uint64_t max_chunks_per_ost = 10;   // Maximum number of chunks per OST for each allocation (for simulation speed-up purpose)
+        uint16_t stripe_count_high_write_add = 6;
+        uint16_t stripe_count_high_read_add = 6;
+        uint64_t stripe_count_high_thresh_write = 0;
+        uint64_t stripe_count_high_thresh_read = 0;
     };
 
     /**

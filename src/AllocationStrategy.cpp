@@ -1,6 +1,7 @@
 #include "AllocationStrategy.h"
 
 #include <cstdint>
+#include <iostream>
 #include <random>
 
 WRENCH_LOG_CATEGORY(storalloc_allocator, "Log category for StorAlloc allocators");
@@ -11,7 +12,8 @@ namespace storalloc {
         const std::shared_ptr<wrench::DataFile> &file,
         const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
         const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+        unsigned int stripe_count) {
 
         // Init round-robin
         static auto last_selected_server = resources.begin()->first;
@@ -64,7 +66,8 @@ namespace storalloc {
     std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::operator()(const std::shared_ptr<wrench::DataFile> &file,
                                                                                               const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
                                                                                               const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                                              const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+                                                                                              const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                                              unsigned int stripe_count) {
 
         // Check for inbalance in the storage services utilization
         auto ba_min_max = this->lustreComputeMinMaxUtilization(resources);
@@ -72,11 +75,11 @@ namespace storalloc {
         if (this->lustreUseRR(ba_min_max)) {
             // Consider that every target has roughly the same free space, and use RR allocator
             WRENCH_DEBUG("[LustreAllocator] Using RR allocator");
-            return this->lustreRRAllocator(file, resources, mapping, previous_allocations);
+            return this->lustreRRAllocator(file, resources, mapping, previous_allocations, stripe_count);
         } else {
             // Consider that targets free space use is too much imbalanced and go for the weighted allocator
             WRENCH_DEBUG("[LustreAllocator] Using WEIGHTED allocator");
-            return this->lustreWeightedAllocator(file, resources, mapping, previous_allocations);
+            return this->lustreWeightedAllocator(file, resources, mapping, previous_allocations, stripe_count);
         }
     }
 
@@ -212,13 +215,18 @@ namespace storalloc {
      * @param total_number_of_osts Total number of OSTs (StorageServices) available in our storage system
      * @return Final validated striping parameters
      */
-    striping LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t total_number_of_OSTs) const {
+    striping LustreAllocator::lustreComputeStriping(uint64_t file_size_b, size_t total_number_of_OSTs, unsigned int stripe_count) const {
 
-        WRENCH_DEBUG("[lustreComputeStriping] file size : %ld bytes, number of OSTs : %lu", file_size_b, total_number_of_OSTs);
+        WRENCH_DEBUG("[lustreComputeStriping] file size : %ld bytes, number of available OSTs : %lu", file_size_b, total_number_of_OSTs);
 
         striping ret_striping = {};
         ret_striping.stripe_size_b = this->config->lustre.stripe_size;
-        ret_striping.stripes_count = this->config->lustre.stripe_count;
+
+        if (stripe_count != 0) {
+            ret_striping.stripes_count = stripe_count;
+        } else {
+            ret_striping.stripes_count = this->config->lustre.stripe_count;
+        }
 
         if (file_size_b < 1) {
             WRENCH_WARN("[lustreComputeStriping] File size can't be < 1B");
@@ -256,8 +264,9 @@ namespace storalloc {
             ret_striping.stripe_size_b = std::ceil(static_cast<double>(file_size_b) / (ret_striping.stripes_count * config->lustre.max_chunks_per_ost));
             WRENCH_WARN("[lustreComputeStriping] Too many stripes per ost with configured stripe_size - recomputing to %lu",
                         ret_striping.stripe_size_b);
-            nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
-            ret_striping.max_stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+            // nb_chunks = std::ceil(static_cast<double>(file_size_b) / ret_striping.stripe_size_b);
+            // ret_striping.max_stripes_per_ost = std::ceil(nb_chunks / ret_striping.stripes_count);
+            ret_striping.max_stripes_per_ost = this->config->lustre.max_chunks_per_ost;
         }
 
         WRENCH_DEBUG("[lustreComputeStriping] stripe_count = %lu ; stripe_size = %lu ; [stripes_per_ost = %lu]", ret_striping.stripes_count, ret_striping.stripe_size_b, ret_striping.max_stripes_per_ost);
@@ -283,6 +292,7 @@ namespace storalloc {
      */
     std::vector<std::shared_ptr<wrench::FileLocation>> LustreAllocator::lustreCreateFileParts(const std::shared_ptr<wrench::DataFile> &file, std::vector<std::shared_ptr<wrench::StorageService>> selectedOSTs, uint64_t stripeSize) const {
 
+#if 1
         WRENCH_DEBUG("[lustreCreateFileParts] Creating parts of file %s on %lu != OSTs, with stripe_size=%lu",
                      file->getID().c_str(), selectedOSTs.size(), stripeSize);
         // Actually create file_parts load-balanced on selected OSTs
@@ -306,7 +316,33 @@ namespace storalloc {
                 service++;
             }
         }
+#endif
+#if 0
+        // Actually create file_parts load-balanced on selected OSTs
+        std::vector<std::shared_ptr<wrench::FileLocation>> designated_locations = {};
+        uint64_t file_size_b = file->getSize();
+        uint64_t allocated = 0;
+        uint64_t chunk_idx = 0;
+        auto service = selectedOSTs.begin();
 
+        auto nb_services = selectedOSTs.size();
+        auto meta_stripe_size = file_size_b / nb_services;
+
+        WRENCH_DEBUG("[lustreCreateFileParts] Creating parts of file %s on %lu != OSTs, with stripe_size=%lu",
+                     file->getID().c_str(), selectedOSTs.size(), meta_stripe_size);
+
+        for (const auto &servive : selectedOSTs) {
+            auto part = wrench::Simulation::addFile(file->getID() + "_metastripe_" + std::to_string(chunk_idx), meta_stripe_size);
+            // std::cout << "     - Creating file part " << file->getID() << "_" << std::to_string(chunk_idx) << " on " << service->get()->getName() << std::endl;
+            designated_locations.push_back(
+                wrench::FileLocation::LOCATION(
+                    std::shared_ptr<wrench::StorageService>(*service), part));
+
+            allocated += meta_stripe_size;
+            chunk_idx++;
+        }
+
+#endif
         WRENCH_DEBUG("[lustreCreateFileParts] %lu file parts have been created", designated_locations.size());
 
         return designated_locations;
@@ -326,7 +362,8 @@ namespace storalloc {
         const std::shared_ptr<wrench::DataFile> &file,
         const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
         const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) {
+        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+        unsigned int stripe_count) {
 
         /** 1. Prepare an ordered list of disk-level services (~OST) from all resources (~OSS)
          *  In Lustre, this operation is systematically triggered because the number of available
@@ -352,7 +389,7 @@ namespace storalloc {
          *  a single allocation is probably not expected to fill up a whole OST very often, but who knows)
          */
         WRENCH_DEBUG("[lustreAllocator] Computing striping for file %s", file->getID().c_str());
-        auto current_striping = lustreComputeStriping(file->getSize(), rr_service_count);
+        auto current_striping = lustreComputeStriping(file->getSize(), rr_service_count, stripe_count);
         uint32_t conservativeFreeSpaceRequirement = current_striping.stripe_size_b * current_striping.max_stripes_per_ost;
 
         /** 2. Use the rr ordered list of services to allocation stripes for the given file.
@@ -497,7 +534,8 @@ namespace storalloc {
         const std::shared_ptr<wrench::DataFile> &file,
         const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
         const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations) const {
+        const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+        unsigned int stripe_count) const {
 
         // 1. For all services we need to calculate their weight.
 
@@ -580,7 +618,7 @@ namespace storalloc {
         // std::cout << "We need to find storage a file of size " << file_size_b << " bytes" << std::endl;
         // auto stripe_count = std::ceil(file_size_b / this->config->lustre.stripe_size); // Here we potentially ask for more storage than needed due to the rounding
 
-        auto striping = lustreComputeStriping(file_size_b, active_ost_count);
+        auto striping = lustreComputeStriping(file_size_b, active_ost_count, stripe_count);
 
         // std::cout << "Stripe size " << striping.stripe_size_b << std::endl;
         // std::cout << "Stripe count " << striping.stripes_count << std::endl;

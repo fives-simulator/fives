@@ -15,6 +15,7 @@ import subprocess
 import pathlib
 import os
 import multiprocessing
+from time import sleep
 
 import yaml
 import numpy as np
@@ -32,10 +33,10 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4_tiny")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month8_cat1")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=5))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=10))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 
 
@@ -43,9 +44,231 @@ CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 # Bounds / value lists are not final
 AX_PARAMS = [
     {
+        # Lustre parameter - number of OSTs onto which parts of a file will be allocated
+        "name": "stripe_count",
+        "type": "range",
+        "bounds": [1, 3],  # NOTE : never using all OSTs for any allocation so far
+        "value_type": "int",
+    },
+    {
+        # Proportion (%) of compute nodes from a job reservation which may participate in read I/Os
+        "name": "io_read_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        # In how many files should the read volume of a job be split into?
+        # (eventually multiplied by the stripe count during simulation)
+        "name": "nb_files_per_read",
+        "type": "range",
+        "bounds": [1, 10],
+        "value_type": "int",
+    },
+    {
+        # Maximum number of compute node participating in read I/Os
+        # (upper bound for io_read_node_ratio)
+        "name": "max_read_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        # BW threshold above which a different "stripe_count" parameter should be used for a job
+        "name": "stripe_count_high_thresh_read",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
+        # Special stripe_count coefficient used when a job exceeds "stripe_count_high_thresh_read"
+        "name": "stripe_count_high_read_add",
+        "type": "range",
+        "bounds": [1, 3],
+        "value_type": "int",
+    },
+    {
+        # Read bandwidth (without interferences) for disks
+        "name": "disk_rb",
+        "type": "range",
+        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        # Interference model coefficient applied to the read bandwidth
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "range",
+        "bounds": [1, 10],
+        "value_type": "int",
+    },
+    {
+        "name": "max_write_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_thresh_write",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_write_add",
+        "type": "range",
+        "bounds": [1, 3],
+        "value_type": "int",
+    },
+    {
+        "name": "disk_wb",
+        "type": "range",
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        # Max. number of file parts on each OSTs, from a single file
+        # (May lead to a dynamic update of the stripe_size if the default stripe_size is too small for a given file size)
+        "name": "max_chunks_per_ost",
+        "type": "range",
+        "bounds": [8, 64],
+        "value_type": "int",
+    },
+    {
         "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [100, 240],  
+        "bounds": [100, 240],
+        "value_type": "int",
+    },
+]
+
+AX_READ_PARAMS = [
+    {
+        "name": "io_read_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_read",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    },
+    {
+        "name": "max_read_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_thresh_read",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_read_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+    {
+        "name": "disk_rb",
+        "type": "range",
+        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_read",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+]
+
+AX_WRITE_PARAMS = [
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    },
+    {
+        "name": "max_write_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_thresh_write",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
+        "name": "stripe_count_high_write_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+    {
+        "name": "disk_wb",
+        "type": "range",
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "bandwidth_backbone_storage",
+        "type": "range",
+        "bounds": [100, 240],
+        "value_type": "int",
+    },
+]
+
+
+""" UNUSED PARAMS
+    {
+        "name": "permanent_storage_read_bw",
+        "type": "range",
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
@@ -55,15 +278,9 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
-        "name": "permanent_storage_read_bw",
+        "name": "bandwidth_backbone_storage",
         "type": "range",
-        "bounds": [10, 90],
-        "value_type": "int",
-    },
-    {
-        "name": "permanent_storage_write_bw",
-        "type": "range",
-        "bounds": [10, 90],
+        "bounds": [100, 240],
         "value_type": "int",
     },
     {
@@ -74,29 +291,15 @@ AX_PARAMS = [
         "value_type": "float",
     },
     {
-        "name": "amdahl",
+        "name": "stripe_count",
         "type": "range",
-        "bounds": [0.1, 0.9],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "flops",
-        "type": "range",
-        "bounds": [1, 2.6],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "disk_rb",
-        "type": "range",
-        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
+        "bounds": [1, 1],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
-        "name": "disk_wb",
+        "name": "permanent_storage_write_bw",
         "type": "range",
-        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
+        "bounds": [10, 90],
         "value_type": "int",
     },
     {
@@ -115,118 +318,15 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
-        "name": "stripe_count",
-        "type": "range",
-        "bounds": [1, 10],  # NOTE : never using all OSTs for any allocation so far
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_read",
-        "type": "choice",
-        "values": [1, 2, 3, 4, 8, 12],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "io_read_node_ratio",
-        "type": "range",
-        "bounds": [0.05, 0.5],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "choice",
-        "values": [1, 2, 3, 4, 8, 12],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "io_write_node_ratio",
-        "type": "range",
-        "bounds": [0.05, 0.5],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "non_linear_coef_read",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "non_linear_coef_write",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-]
-
-AX_PARAMS_REDUCED = [
-    {
-        "name": "bandwidth_backbone_storage",
-        "type": "range",
-        "bounds": [100, 240],  
-        "value_type": "int",
-    },
-    {
-        "name": "bandwidth_backbone_perm_storage",
-        "type": "range",
-        "bounds": [50, 100],
-        "value_type": "int",
-    },
-    {
-        "name": "permanent_storage_read_bw",
-        "type": "range",
-        "bounds": [10, 90],
-        "value_type": "int",
-    },
-    {
-        "name": "permanent_storage_write_bw",
-        "type": "range",
-        "bounds": [10, 90],
-        "value_type": "int",
-    },
-    {
-        "name": "amdahl",
-        "type": "range",
-        "bounds": [0.1, 0.8],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
-        "name": "flops",
-        "type": "range",
-        "bounds": [0.5, 2.6],
-        "digits": 2,
-        "value_type": "float",
-    },
-    {
         "name": "disk_rb",
         "type": "range",
-        "bounds": [430, 4300],      # Aggregated read bw is 240 GBps for 56 OSSs
+        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "disk_wb",
         "type": "range",
-        "bounds": [300, 3000],      # Aggregated write bw is 172 GBps for 56 OSSs
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_read",
-        "type": "choice",
-        "values": [1, 2, 10],
-        "is_ordered": True,
-        "value_type": "int",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "choice",
-        "values": [1, 2, 10],
-        "is_ordered": True,
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
@@ -242,8 +342,60 @@ AX_PARAMS_REDUCED = [
         "bounds": [1.5, 20],
         "digits": 1,
         "value_type": "float",
-    }
-]
+    },
+    {
+        "name": "max_chunks_per_ost",
+        "type": "choice",
+        "values": [28, 56],
+        "value_type": "int",
+    },
+
+
+    {
+        "name": "io_write_node_ratio",
+        "type": "range",
+        "bounds": [0.1, 0.6],
+        "digits": 1,
+        "value_type": "float",
+    },
+    {
+        "name": "nb_files_per_write",
+        "type": "range",
+        "bounds": [1, 15],
+        "value_type": "int",
+    },
+    {
+        "name": "max_write_node_cnt",
+        "type": "range",
+        "bounds": [1, 28],
+        "value_type": "int",
+    },
+        {
+        "name": "stripe_count_high_thresh_write",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+        {
+        "name": "stripe_count_high_write_add",
+        "type": "range",
+        "bounds": [1, 4],
+        "value_type": "int",
+    },
+        {
+        "name": "disk_wb",
+        "type": "range",
+        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "value_type": "int",
+    },
+    {
+        "name": "non_linear_coef_write",
+        "type": "range",
+        "bounds": [1.5, 20],
+        "digits": 1,
+        "value_type": "float",
+    },
+"""
 
 
 def load_base_config(path: str):
@@ -276,59 +428,116 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Extract parameters proposed by Ax
-    bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
-    bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
-    permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
-    permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
-    
-    preload_percent = 0.1   
+    bandwidth_backbone_storage = 200
+    if "bandwidth_backbone_storage" in parametrization:
+        bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
+
+    bandwidth_backbone_perm_storage = 80
+    if "bandwidth_backbone_perm_storage" in parametrization:
+        bandwidth_backbone_perm_storage = parametrization.get(
+            "bandwidth_backbone_perm_storage"
+        )
+
+    permanent_storage_read_bw = 79
+    if "permanent_storage_read_bw" in parametrization:
+        permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
+
+    permanent_storage_write_bw = 27
+    if "permanent_storage_write_bw" in parametrization:
+        permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
+
+    preload_percent = 0
     if "preload_percent" in parametrization:
         preload_percent = parametrization.get("preload_percent")
-        
-    amdahl = parametrization.get("amdahl")
-    flops = parametrization.get("flops")
-    disk_rb = parametrization.get("disk_rb")
-    disk_wb = parametrization.get("disk_wb")
-    
+
+    disk_rb = 3187
+    if "disk_rb" in parametrization:
+        disk_rb = parametrization.get("disk_rb")
+
+    disk_wb = 893
+    if "disk_wb" in parametrization:
+        disk_wb = parametrization.get("disk_wb")
+
     stripe_size = 16777216
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
 
-    stripe_count = 8
-    if stripe_count in parametrization:
+    stripe_count = 1
+    if "stripe_count" in parametrization:
         stripe_count = parametrization.get("stripe_count")
-    
-    nb_files_per_read = parametrization.get("nb_files_per_read")
 
-    io_read_node_ratio = 0.2
+    stripe_count_high_thresh_write = 215034750
+    if "stripe_count_high_thresh_write" in parametrization:
+        stripe_count_high_thresh_write = parametrization.get(
+            "stripe_count_high_thresh_write"
+        )
+
+    stripe_count_high_thresh_read = 150e6
+    if "stripe_count_high_thresh_read" in parametrization:
+        stripe_count_high_thresh_read = parametrization.get(
+            "stripe_count_high_thresh_read"
+        )
+
+    stripe_count_high_write_add = 3
+    if "stripe_count_high_write_add" in parametrization:
+        stripe_count_high_write_add = parametrization.get("stripe_count_high_write_add")
+
+    stripe_count_high_read_add = 4
+    if "stripe_count_high_read_add" in parametrization:
+        stripe_count_high_read_add = parametrization.get("stripe_count_high_read_add")
+
+    nb_files_per_read = 12
+    if "nb_files_per_read" in parametrization:
+        nb_files_per_read = parametrization.get("nb_files_per_read")
+
+    io_read_node_ratio = 0.3
     if "io_read_node_ratio" in parametrization:
         io_read_node_ratio = parametrization.get("io_read_node_ratio")
-    
-    nb_files_per_write = parametrization.get("nb_files_per_write")
 
-    io_write_node_ratio = 0.2
+    nb_files_per_write = 5
+    if "nb_files_per_write" in parametrization:
+        nb_files_per_write = parametrization.get("nb_files_per_write")
+
+    io_write_node_ratio = 0.5
     if "io_write_node_ratio" in parametrization:
         io_write_node_ratio = parametrization.get("io_write_node_ratio")
-        
 
     # Non-linear coefficient for altering read/write during concurrent disk access
-    non_linear_coef_read = parametrization.get("non_linear_coef_read")
-    non_linear_coef_write = parametrization.get("non_linear_coef_write")
+    non_linear_coef_read = 1.8
+    if "non_linear_coef_read" in parametrization:
+        non_linear_coef_read = parametrization.get("non_linear_coef_read")
+
+    non_linear_coef_write = 15.2
+    if "non_linear_coef_write" in parametrization:
+        non_linear_coef_write = parametrization.get("non_linear_coef_write")
+
+    # Maximum number of file chunks on each OST used in striping
+    max_chunks_per_ost = 28
+    if "max_chunks_per_ost" in parametrization:
+        max_chunks_per_ost = parametrization.get("max_chunks_per_ost")
+
+    # Max. number of compute nodes used for reading
+    max_read_node_cnt = 28
+    if "max_read_node_cnt" in parametrization:
+        max_read_node_cnt = parametrization.get("max_read_node_cnt")
+
+    # Max. number of compute nodes used for writing
+    max_write_node_cnt = 11
+    if "max_write_node_cnt" in parametrization:
+        max_write_node_cnt = parametrization.get("max_write_node_cnt")
 
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
     base_config["general"]["preload_percent"] = preload_percent
-    base_config["general"]["amdahl"] = amdahl
-    base_config["dragonfly"]["flops"] = f"{flops}Tf"
-    base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
-    base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
-    base_config["permanent_storage"][
-        "read_bw"
-    ] = f"{permanent_storage_read_bw}GBps"
-    base_config["permanent_storage"][
-        "write_bw"
-    ] = f"{permanent_storage_write_bw}GBps"
+    base_config["network"][
+        "bandwidth_backbone_storage"
+    ] = f"{bandwidth_backbone_storage}GBps"
+    base_config["network"][
+        "bandwidth_backbone_perm_storage"
+    ] = f"{bandwidth_backbone_perm_storage}GBps"
+    base_config["permanent_storage"]["read_bw"] = f"{permanent_storage_read_bw}GBps"
+    base_config["permanent_storage"]["write_bw"] = f"{permanent_storage_write_bw}GBps"
 
     base_config["storage"]["read_variability"] = 1  # deactivated
     base_config["storage"]["write_variability"] = 1  # deactivated
@@ -341,6 +550,9 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
     base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
 
+    base_config["storage"]["max_read_node_cnt"] = max_read_node_cnt
+    base_config["storage"]["max_write_node_cnt"] = max_write_node_cnt
+
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
     for storage_node in base_config["storage"]["nodes"]:
@@ -350,6 +562,16 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     base_config["lustre"]["stripe_size"] = stripe_size
     base_config["lustre"]["stripe_count"] = stripe_count
+    base_config["lustre"][
+        "stripe_count_high_thresh_write"
+    ] = stripe_count_high_thresh_write
+    base_config["lustre"][
+        "stripe_count_high_thresh_read"
+    ] = stripe_count_high_thresh_read
+    base_config["lustre"]["stripe_count_high_write_add"] = stripe_count_high_write_add
+    base_config["lustre"]["stripe_count_high_read_add"] = stripe_count_high_read_add
+
+    base_config["lustre"]["max_chunks_per_ost"] = max_chunks_per_ost
 
 
 def save_exp_config(base_config, run_idx):
@@ -380,11 +602,6 @@ def process_results(result_filename: str):
     with open(f"./exp_results/{result_filename}", "r", encoding="utf-8") as job_results:
         results = yaml.load(job_results, Loader=yaml.CLoader)
 
-    # RUNTIME
-    runtime_diffs = []
-    sim_runtime = []
-    real_runtime = []
-
     # IO TIME
     io_time_diff = []
     sim_io_time = []
@@ -395,22 +612,10 @@ def process_results(result_filename: str):
     real_write_time = []
 
     for job in results:
-        # RUNTIME
-        runtime_diffs.append(abs(job["job_runtime_s"] - job["real_runtime_s"]))
-        sim_runtime.append(job["job_runtime_s"])
-        real_runtime.append(job["real_runtime_s"])
-
-        # IO TIME
-        r_io_time = (
-            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
-        ) / job["real_cores_used"]
-        real_io_time.append(r_io_time)
-        real_read_time.append(job["real_cReadTime_s"] / job["real_cores_used"])
-        real_write_time.append(job["real_cWriteTime_s"] / job["real_cores_used"])
-
         s_io_time = 0
         s_r_time = 0
         s_w_time = 0
+
         for action in job["actions"]:
             if (
                 action["act_type"] == "COMPUTE"
@@ -419,55 +624,45 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            if action["act_type"] == "CUSTOM":
-                s_w_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            """
-            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "sss_to_css":
-                s_r_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            if action["act_type"] == "FILECOPY" and action["copy_direction"] == "css_to_sss":
-                s_w_time += action["act_duration"]
-                s_io_time += action["act_duration"]
-            """
+                s_r_time += action["act_duration"] * action["nb_stripes"]
+            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
+                s_w_time += action["act_duration"] * action["nb_stripes"]
 
-        sim_io_time.append(s_io_time)
-        sim_read_time.append(s_r_time)
-        sim_write_time.append(s_w_time)
-        io_time_diff.append(abs(s_io_time - r_io_time))
+        if len(job["actions"]) != 0:
+            r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
+            real_io_time.append(r_io_time)
+            real_read_time.append(job["real_cReadTime_s"])
+            real_write_time.append(job["real_cWriteTime_s"])
 
-        
+            s_io_time = s_r_time + s_w_time
+            sim_io_time.append(s_io_time)
+            sim_read_time.append(s_r_time)
+            sim_write_time.append(s_w_time)
+            io_time_diff.append(abs(s_io_time - r_io_time))
+
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
-    ztest_runtime_tstat, ztest_runtime_pvalue = sm.stats.ztest(sim_runtime, real_runtime, alternative="two-sided")
-    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
-
-    if abs(ztest_runtime_tstat) > 1.96 and ztest_runtime_pvalue < 0.01:
-        print("Statistically significant difference between simulated runtime values and real runtime values")
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
+        sim_io_time, real_io_time, alternative="two-sided"
+    )
 
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
-        print("Statistically significant difference between simulated io time values and real io time values")
+        print(
+            "Statistically significant difference between simulated io time values and real io time values"
+        )
 
-    runtime_corr, _ = pearsonr(sim_runtime, real_runtime)
-    runtime_cohen_d = cohend(sim_runtime, real_runtime)
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
+    read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
+    write_time_corr, _ = pearsonr(sim_write_time, real_write_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
-    # return {
-    #     "optimization_metric": (
-    #         abs(1 - runtime_corr)
-    #         + abs(1 - io_time_corr)
-    #         + abs(runtime_cohen_d)
-    #         + abs(io_time_cohen_d)
-    #     )
-    # }
-    return {
-        "optimization_metric": (
-            abs(ztest_runtime_tstat) + 
-            abs(ztest_iotime_tstat)
-        )
-    }
+    mean_io_diff = np.array(io_time_diff).mean()
+
+    # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
+    # return {"optimization_metric": abs(ztest_iotime_tstat)}
+    # return {"optimization_metric": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
+    # return {"optimization_metric": abs(1 - write_time_corr)}
+    # return {"optimization_metric": abs(1 - read_time_corr)}
+    return {"optimization_metric": abs(mean_io_diff)}
 
 
 def run_simulation(
@@ -495,8 +690,7 @@ def run_simulation(
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
-        "--wrench-default-control-message-size=0",
-        "--wrench-mailbox-pool-size=50000",
+        "--wrench-commport-pool-size=200000",
     ]
     if logs:
         command.extend(
@@ -591,31 +785,38 @@ def run_trial(base_config, parameters, trial_index):
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(data)["optimization_metric"]
-    except:
+    except Exception as e:
+        print(f"{e}")
         print(f"==> Trial {trial_index} FAILED")
 
     print(f"## Results for trial {trial_index} == {results}")
     return results
 
 
-def run_calibration():
+def run_calibration(params_set):
     """Main calibration loop"""
 
     base_config = load_base_config(CONFIGURATION_BASE)
 
-    ax_client = AxClient(enforce_sequential_optimization=False)
+    print("## PARAMETERS IN USE FOR THIS CALIBRATION : ")
+    for param in params_set:
+        print(f">> {param['name']}")
+    print("############################################")
+    sleep(3)
+
+    ax_client = AxClient()  # enforce_sequential_optimization=False)
     ax_client.create_experiment(
         name="StorallocWrench_ThetaExperiment",
-        parameters=AX_PARAMS_REDUCED,
+        parameters=params_set,
         objectives={
-            "optimization_metric": ObjectiveProperties(minimize=True, threshold=0.05),
+            "optimization_metric": ObjectiveProperties(minimize=True),
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
-            "permanent_storage_read_bw >= permanent_storage_write_bw",
-            "non_linear_coef_read >= non_linear_coef_write",
-            "permanent_storage_read_bw >= permanent_storage_write_bw",
-            "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage"
+            # "permanent_storage_read_bw >= permanent_storage_write_bw",
+            "non_linear_coef_read <= non_linear_coef_write",
+            # "permanent_storage_read_bw >= permanent_storage_write_bw",
+            # "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
         ],
         outcome_constraints=[],
     )
@@ -638,6 +839,9 @@ def run_calibration():
     )
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
+    cpu = min(
+        cpu, 6
+    )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )
@@ -656,11 +860,6 @@ def run_calibration():
             else:
                 print("Recording trial failure")
                 ax_client.log_trial_failure(trial_index=res["trial_index"])
-
-    cpu_batch = min(multiprocessing.cpu_count() - 1, parallelism[1][1])
-    print(
-        f"### Running {cpu_batch} simulation in parallel (max Ax // is {parallelism[1][1]} for the following {parallelism[1][0]} runs)"
-    )
 
     # Run n iterations with a reduced number of parallel simulations (this is the 'sequential' part)
     for i in range(CALIBRATION_RUNS):
@@ -682,7 +881,7 @@ def run_calibration():
     print(values)
 
     # Output calibrated config file
-    update_base_config(best_parameters, base_config, "Storalloc_Calibrated_ThetaCfg")
+    update_base_config(best_parameters, base_config, f"Fives_C_{DATASET}")
     print("Calibrated config :")
     print(json.dumps(base_config, indent=4))
     output_configuration = f"{CONFIGURATION_PATH}/calibrated_config.yaml"
@@ -696,4 +895,4 @@ def run_calibration():
 
 if __name__ == "__main__":
     # run_default_simulation()
-    run_calibration()
+    run_calibration(AX_PARAMS)
