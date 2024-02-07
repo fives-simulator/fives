@@ -4,9 +4,9 @@
 #include <iostream>
 #include <random>
 
-WRENCH_LOG_CATEGORY(storalloc_allocator, "Log category for StorAlloc allocators");
+WRENCH_LOG_CATEGORY(fives_allocator, "Log category for Fives Allocators");
 
-namespace storalloc {
+namespace fives {
 
     std::vector<std::shared_ptr<wrench::FileLocation>> GenericRRAllocator::operator()(
         const std::shared_ptr<wrench::DataFile> &file,
@@ -63,11 +63,11 @@ namespace storalloc {
 
     // --------------------------- LUSTRE
 
-    std::vector<std::shared_ptr<wrench::FileLocation>> storalloc::LustreAllocator::operator()(const std::shared_ptr<wrench::DataFile> &file,
-                                                                                              const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
-                                                                                              const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                                                                                              const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
-                                                                                              unsigned int stripe_count) {
+    std::vector<std::shared_ptr<wrench::FileLocation>> fives::LustreAllocator::operator()(const std::shared_ptr<wrench::DataFile> &file,
+                                                                                          const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                                                                                          const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                                                                                          const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                                                                                          unsigned int stripe_count) {
 
         // Check for inbalance in the storage services utilization
         auto ba_min_max = this->lustreComputeMinMaxUtilization(resources);
@@ -665,4 +665,4 @@ namespace storalloc {
 
         return lustreCreateFileParts(file, selectedOSTs, striping.stripe_size_b);
     }
-} // namespace storalloc
+} // namespace fives

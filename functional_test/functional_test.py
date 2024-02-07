@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-    Storalloc-Wrench
+    Fives
     Functional testing
 
-    This script expects to find the `storalloc_wrench` binary in
+    This script expects to find the `fives` binary in
     <repository_root>/build/, data file in <repository_root>/data
     and config files in <repository_root>/configs. It should be run
     from the functionnal_test directory
@@ -22,7 +22,7 @@ from colorama import Fore, Back, Style
 
 BASE_PATH = ".."
 
-STORALLOC = f"{BASE_PATH}/build/storalloc_wrench"
+FIVES = f"{BASE_PATH}/build/fives"
 CONFIG = "theta_config.yml"
 CONFIG_PATH = f"{BASE_PATH}/configs/{CONFIG}"
 DATA = "theta2022_week4_trunc"
@@ -225,8 +225,10 @@ def analyse_jobs(file_path: pathlib.Path):
         s_io_volume_gb = 0
         for action in job["actions"]:
             if (
-                action["act_type"] == "FILEREAD" 
-                or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]))
+                action["act_type"] == "FILEREAD"
+                or (
+                    action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"])
+                )
             ) and action["act_status"] == "COMPLETED":
                 s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
         sim_io_volume_gb.append(s_io_volume_gb)
@@ -286,14 +288,17 @@ def analyse_jobs(file_path: pathlib.Path):
     real_io_times = []
 
     for job in jobs:
-        
         job_sim_cumul_iotime = 0
-        job_real_iotime = job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+        job_real_iotime = (
+            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
+        )
 
         for action in job["actions"]:
             if (
-                action["act_type"] == "FILEREAD" 
-                or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]))
+                action["act_type"] == "FILEREAD"
+                or (
+                    action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"])
+                )
             ) and action["act_status"] == "COMPLETED":
                 job_sim_cumul_iotime += action["act_duration"]
 
@@ -334,7 +339,6 @@ def analyse_jobs(file_path: pathlib.Path):
         )
         warnings += 1
 
-
     # Error summary
     if warnings != 0 or errors != 0:
         print(
@@ -348,8 +352,6 @@ def analyse_jobs(file_path: pathlib.Path):
             + f"  No warnings or errors triggered while analysing {file_path}"
             + Style.RESET_ALL
         )
-
-
 
     return (warnings, errors)
 
@@ -499,18 +501,18 @@ def run():
     )
 
     print(
-        f"# Running storalloc simulation with data '{DATA_PATH}' and config '{CONFIG_PATH}'..."
+        f"# Running Fives simulation with data '{DATA_PATH}' and config '{CONFIG_PATH}'..."
     )
     with open(SIMULATION_LOGS, "w", encoding="utf-8") as output_file:
         completed = subprocess.run(
             [
-                STORALLOC,
+                FIVES,
                 CONFIG_PATH,
                 DATA_PATH,
                 rand_part,
-                "--log=storalloc_main.threshold=debug",
-                "--log=storalloc_controller.threshold=debug",
-                "--log=storalloc_allocator.threshold=debug",
+                "--log=fives_main.threshold=debug",
+                "--log=fives_controller.threshold=debug",
+                "--log=fives_allocator.threshold=debug",
                 "--log=wrench_core_compound_storage_system.threshold=debug",
             ],
             stdout=output_file,

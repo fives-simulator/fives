@@ -9,7 +9,7 @@
 #include "yaml-cpp/yaml.h"
 #include <string>
 
-namespace storalloc {
+namespace fives {
 
     /**
      * @brief High-level job types (in terms of IO vs compute behaviour). Loosely based on job characteristics.
@@ -106,26 +106,26 @@ namespace storalloc {
     };
 
     bool operator==(const YamlJob &lhs, const YamlJob &rhs);
-} // namespace storalloc
+} // namespace fives
 
 namespace YAML {
 
     template <>
-    struct convert<storalloc::YamlJob> {
-        static Node encode(const storalloc::YamlJob &rhs);
-        static bool decode(const Node &node, storalloc::YamlJob &rhs);
+    struct convert<fives::YamlJob> {
+        static Node encode(const fives::YamlJob &rhs);
+        static bool decode(const Node &node, fives::YamlJob &rhs);
     };
 
     template <>
-    struct convert<storalloc::JobsStats> {
-        static Node encode(const storalloc::JobsStats &rhs);
-        static bool decode(const Node &node, storalloc::JobsStats &rhs);
+    struct convert<fives::JobsStats> {
+        static Node encode(const fives::JobsStats &rhs);
+        static bool decode(const Node &node, fives::JobsStats &rhs);
     };
 
     template <>
-    struct convert<storalloc::DarshanRecord> {
-        static Node encode(const storalloc::DarshanRecord &rhs);
-        static bool decode(const Node &node, storalloc::DarshanRecord &rhs);
+    struct convert<fives::DarshanRecord> {
+        static Node encode(const fives::DarshanRecord &rhs);
+        static bool decode(const Node &node, fives::DarshanRecord &rhs);
     };
 
 } // namespace YAML

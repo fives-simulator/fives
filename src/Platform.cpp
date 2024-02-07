@@ -6,9 +6,9 @@
 #include <cmath>
 #include <random>
 
-WRENCH_LOG_CATEGORY(storalloc_platform, "Log category for StorAlloc platform factory");
+WRENCH_LOG_CATEGORY(fives_platform, "Log category for Fives Platform factory");
 
-namespace storalloc {
+namespace fives {
 
     /**
      * @brief Factory for the disk_dynamic_sharing callback used on the Simgrid Disk objects
@@ -100,7 +100,7 @@ namespace storalloc {
         };
     }
 
-    void PlatformFactory::create_platform(const std::shared_ptr<storalloc::Config> cfg) const {
+    void PlatformFactory::create_platform(const std::shared_ptr<fives::Config> cfg) const {
 
         // --- TOP LEVEL ZONE AND MAIN BACKBONE ---
         auto main_zone = sg4::create_star_zone("AS_Root");
@@ -297,4 +297,4 @@ namespace storalloc {
         main_zone->seal();
     }
 
-} // namespace storalloc
+} // namespace fives

@@ -27,7 +27,7 @@ build_simgrid_v3.34:
     - sudo make -j 4
     - sudo make install
   tags:
-    - storalloc
+    - fives
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[sg3.34\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[stable\]$/
@@ -43,7 +43,7 @@ build_wrench_master:
     - sudo make -j 4
     - sudo make install
   tags:
-    - storalloc
+    - fives
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[wrenchmaster\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[stable\]$/
@@ -60,7 +60,7 @@ build_simgrid_master:
     - sudo make -j 4
     - sudo make install
   tags:
-    - storalloc
+    - fives
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[sg_master\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[exp\]$/
@@ -77,7 +77,7 @@ build_wrench_simgrid_master:
     - sudo make -j 4
     - sudo make install
   tags:
-    - storalloc
+    - fives
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /\[wrench_sgmaster\]$/
     - if: $CI_COMMIT_MESSAGE =~ /\[exp\]$/
@@ -99,7 +99,7 @@ build-job:
     - build
   artifacts:
     paths:
-      - "build/storalloc_wrench"
+      - "build/fives_wrench"
       - "build/unit_tests"  
     expire_in: 2 days
 
@@ -166,7 +166,7 @@ calibrated-simulation-job:
     - cat ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
     - pwd
     - ls -lah .
-    - ./storalloc_wrench ../results/$CALIBRATION_CONFIG_PATH/calibrated_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
+    - ./fives_wrench ../results/$CALIBRATION_CONFIG_PATH/calibrated_config.yaml ../results/$CALIBRATION_DATASET_PATH/$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT calibration
     - mv ./simulatedJobs_* ./calibrated_simulatedJobs_$CALIBRATION_DATASET$CALIBRATION_DATASET_EXT
   tags:
     - simulation

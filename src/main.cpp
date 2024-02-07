@@ -1,6 +1,5 @@
 #include "Simulator.h"
 
-
 /**
  * @brief The Simulator's main function
  *
@@ -10,6 +9,5 @@
  */
 int main(int argc, char **argv) {
 
-    return storalloc::run_simulation(argc, argv);
-        
+    return fives::run_simulation(argc, argv);
 }

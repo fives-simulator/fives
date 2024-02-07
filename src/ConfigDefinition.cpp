@@ -6,31 +6,31 @@
 #include <string>
 #include <wrench-dev.h>
 
-WRENCH_LOG_CATEGORY(storalloc_config, "Log category for storalloc config");
+WRENCH_LOG_CATEGORY(fives_config, "Log category for Fives Config parser");
 
-std::string storalloc::DiskTemplate::to_string() const {
+std::string fives::DiskTemplate::to_string() const {
     return "Disk " + this->id + " - " + std::to_string(this->capacity) + " GB with mount prefix " + this->mount_prefix;
 }
 
-std::string storalloc::DiskEntry::to_string() const {
+std::string fives::DiskEntry::to_string() const {
     return "Set of  " + std::to_string(this->qtt) + " disks using template " + this->tpl.id;
 }
 
-std::string storalloc::NodeTemplate::to_string() const {
+std::string fives::NodeTemplate::to_string() const {
     return "Node " + this->id + " - with " + std::to_string(this->disks.size()) + " disks";
 }
 
-std::string storalloc::NodeEntry::to_string() const {
+std::string fives::NodeEntry::to_string() const {
     return "Set of  " + std::to_string(this->qtt) + " nodes using template " + this->tpl.id;
 }
 
-bool operator==(const storalloc::Config &lhs, const storalloc::Config &rhs) {
+bool operator==(const fives::Config &lhs, const fives::Config &rhs) {
     return (
         lhs.config_name == rhs.config_name &&
         lhs.config_version == rhs.config_version);
 }
 
-bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc::Config &rhs) {
+bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config &rhs) {
 
     try {
         // General
@@ -99,8 +99,8 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         }
         rhs.stor.nb_files_per_read = ynode["storage"]["nb_files_per_read"].as<unsigned int>();
         rhs.stor.nb_files_per_write = ynode["storage"]["nb_files_per_write"].as<unsigned int>();
-        rhs.stor.max_read_node_cnt = ynode["storage"]["max_read_node_cnt"].as<unsigned int>();
-        rhs.stor.max_write_node_cnt = ynode["storage"]["max_write_node_cnt"].as<unsigned int>();
+        // rhs.stor.max_read_node_cnt = ynode["storage"]["max_read_node_cnt"].as<unsigned int>();
+        // rhs.stor.max_write_node_cnt = ynode["storage"]["max_write_node_cnt"].as<unsigned int>();
         rhs.stor.io_buffer_size = ynode["storage"]["io_buffer_size"].as<std::string>();
 
         rhs.stor.read_bytes_preload_thres = ynode["storage"]["read_bytes_preload_thres"].as<uint64_t>();
@@ -110,7 +110,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
 
         for (const auto node : ynode["storage"]["nodes"]) {
 
-            storalloc::NodeEntry node_entry = {};
+            fives::NodeEntry node_entry = {};
             node_entry.qtt = node["quantity"].as<unsigned int>();
 
             auto yaml_node_template = node["template"];
@@ -119,7 +119,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             // Loop through disk entries in node template
             for (const auto &yaml_disk_entry : yaml_node_template["disks"]) {
 
-                storalloc::DiskEntry disk_entry = {};
+                fives::DiskEntry disk_entry = {};
                 disk_entry.qtt = yaml_disk_entry["quantity"].as<unsigned int>();
                 disk_entry.tpl.id = yaml_disk_entry["template"]["id"].as<std::string>();
                 disk_entry.tpl.capacity = yaml_disk_entry["template"]["capacity"].as<unsigned int>();
@@ -151,9 +151,9 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
         // Allocator callback
         auto alloc = ynode["allocator"].as<std::string>();
         if (alloc == "lustre") {
-            rhs.allocator = storalloc::AllocatorType::Lustre;
+            rhs.allocator = fives::AllocatorType::Lustre;
 
-            auto lustreConfig = storalloc::LustreConfig();
+            auto lustreConfig = fives::LustreConfig();
 
             // Load specific config or default values.
             if (ynode["lustre"]["lq_threshold_rr"].IsDefined()) {
@@ -224,7 +224,7 @@ bool YAML::convert<storalloc::Config>::decode(const YAML::Node &ynode, storalloc
             rhs.lustre = lustreConfig;
 
         } else if (alloc == "rr") {
-            rhs.allocator = storalloc::AllocatorType::GenericRR;
+            rhs.allocator = fives::AllocatorType::GenericRR;
         }
 
         // Output (for metric files)

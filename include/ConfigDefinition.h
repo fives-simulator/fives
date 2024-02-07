@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <string>
 
-namespace storalloc {
+namespace fives {
 
     /**
      * @brief Configuration specific to the Lustre Allocator
@@ -109,9 +109,9 @@ namespace storalloc {
         unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
 
         // float io_read_node_ratio; // From ]0,1], how many nodes should be involved in read IOs (+1 after rounding with ceil)
-        unsigned int max_read_node_cnt;
+        // unsigned int max_read_node_cnt;
         // float io_write_node_ratio; // From ]0,1], how many nodes should be involved in write IOs (+1 after rounding with ceil)
-        unsigned int max_write_node_cnt;
+        // unsigned int max_write_node_cnt;
 
         std::string io_buffer_size;
 
@@ -185,13 +185,13 @@ namespace storalloc {
     };
 
     bool operator==(const Config &lhs, const Config &rhs);
-} // namespace storalloc
+} // namespace fives
 
 namespace YAML {
 
     template <>
-    struct convert<storalloc::Config> {
-        static bool decode(const Node &node, storalloc::Config &rhs);
+    struct convert<fives::Config> {
+        static bool decode(const Node &node, fives::Config &rhs);
     };
 
 } // namespace YAML

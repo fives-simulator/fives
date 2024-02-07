@@ -16,7 +16,7 @@
 
 #include <wrench-dev.h>
 
-namespace storalloc {
+namespace fives {
 
     struct DiskIOCounters {
         double total_capacity;
@@ -69,9 +69,9 @@ namespace storalloc {
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
-            const std::shared_ptr<storalloc::JobsStats> &header,
+            const std::shared_ptr<fives::JobsStats> &header,
             const std::vector<YamlJob> &jobs,
-            const std::shared_ptr<storalloc::Config> &storalloc_config);
+            const std::shared_ptr<fives::Config> &fives_config);
 
         std::vector<std::shared_ptr<wrench::CompoundJob>> getCompletedJobsById(std::string id);
 
@@ -92,9 +92,9 @@ namespace storalloc {
 
         virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
 
-        virtual std::vector<storalloc::YamlJob> createPreloadJobs() const;
+        virtual std::vector<fives::YamlJob> createPreloadJobs() const;
 
-        virtual void preloadData(const std::map<std::string, storalloc::YamlJob> &job_map);
+        virtual void preloadData(const std::map<std::string, fives::YamlJob> &job_map);
 
         virtual void submitJob(std::string jobID);
 
@@ -151,13 +151,17 @@ namespace storalloc {
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
+        unsigned int determineReadNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
+
+        unsigned int determineWriteNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
+
         unsigned int determineReadStripeCount(double cumul_read_bw) const;
 
         unsigned int determineWriteStripeCount(double cumul_write_bw) const;
 
-        unsigned int determineReadFileCount(double io_volume, unsigned int run_nprocs) const;
+        unsigned int determineReadFileCount(unsigned int stripe_count) const;
 
-        unsigned int determineWriteFileCount(double io_volume, unsigned int run_nprocs) const;
+        unsigned int determineWriteFileCount(unsigned int stripe_count) const;
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
@@ -169,11 +173,11 @@ namespace storalloc {
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
 
-        std::shared_ptr<storalloc::JobsStats> preload_header;
+        std::shared_ptr<fives::JobsStats> preload_header;
 
-        const std::vector<storalloc::YamlJob> &jobs;
+        const std::vector<fives::YamlJob> &jobs;
 
-        std::map<std::string, storalloc::YamlJob> jobsWithPreload{}; // jobId, YamlJob
+        std::map<std::string, fives::YamlJob> jobsWithPreload{}; // jobId, YamlJob
 
         std::map<std::string, std::vector<std::shared_ptr<wrench::DataFile>>> preloadedData;
 
@@ -187,7 +191,7 @@ namespace storalloc {
 
         double flopRate;
 
-        std::shared_ptr<storalloc::Config> config;
+        std::shared_ptr<fives::Config> config;
 
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
 
@@ -196,6 +200,6 @@ namespace storalloc {
         uint64_t failed_jobs_count = 0;
     };
 
-} // namespace storalloc
+} // namespace fives
 
 #endif // CONTROLLER_H

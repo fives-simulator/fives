@@ -7,7 +7,7 @@
 
 #include "ConfigDefinition.h"
 
-namespace storalloc {
+namespace fives {
 
     /**
      * @brief Helper function to instatiate all required StorageServices from the main config
@@ -16,7 +16,7 @@ namespace storalloc {
      * @return Set of instantiated storage services
      */
     std::set<std::shared_ptr<wrench::StorageService>> instantiateStorageServices(std::shared_ptr<wrench::Simulation> simulation,
-                                                                                 std::shared_ptr<storalloc::Config> config);
+                                                                                 std::shared_ptr<fives::Config> config);
 
     /**
      * @brief Helper function to instatiate all required ComputeServices from the main config
@@ -25,7 +25,7 @@ namespace storalloc {
      * @return Resulting wrench BatchComputeService
      */
     std::shared_ptr<wrench::BatchComputeService> instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
-                                                                            std::shared_ptr<storalloc::Config> config);
+                                                                            std::shared_ptr<fives::Config> config);
 
     /**
      * @brief The Simulator's main function
@@ -36,6 +36,6 @@ namespace storalloc {
      */
     int run_simulation(int argc, char **argv);
 
-} // namespace storalloc
+} // namespace fives
 
 #endif // SIMULATOR_H

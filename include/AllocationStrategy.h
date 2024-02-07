@@ -8,7 +8,7 @@
 
 #include "ConfigDefinition.h"
 
-namespace storalloc {
+namespace fives {
 
     class GenericRRAllocator {
 
@@ -35,7 +35,7 @@ namespace storalloc {
     class LustreAllocator {
 
     public:
-        LustreAllocator(std::shared_ptr<storalloc::Config> config) : config(config), prio_wide(256 - config->lustre.lq_prio_free) {}
+        LustreAllocator(std::shared_ptr<fives::Config> config) : config(config), prio_wide(256 - config->lustre.lq_prio_free) {}
 
         /** @brief  Main entry point for the implementation of Lustre allocation strategy
          *          which redirects either to the Round-Robin allocator (lustreRRStrategy)
@@ -89,7 +89,7 @@ namespace storalloc {
 
         uint64_t lustreComputeOssPenalty(uint64_t free_space_b, uint64_t free_inode_count, size_t ost_count, size_t oss_count) const;
 
-        std::shared_ptr<storalloc::Config> config;
+        std::shared_ptr<fives::Config> config;
 
         std::vector<std::shared_ptr<wrench::StorageService>> static_rr_ordered_services;
 
@@ -100,6 +100,6 @@ namespace storalloc {
         uint64_t prio_wide;
     };
 
-}; // namespace storalloc
+}; // namespace fives
 
 #endif // ALLOCATION_STRATEGY_H

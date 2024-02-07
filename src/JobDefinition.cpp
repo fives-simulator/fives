@@ -5,9 +5,9 @@
 #include <string>
 #include <wrench-dev.h>
 
-WRENCH_LOG_CATEGORY(storalloc_jobs, "Log category for storalloc config");
+WRENCH_LOG_CATEGORY(Fives_jobs, "Log category for Fives Job parser");
 
-YAML::Node YAML::convert<storalloc::DarshanRecord>::encode(const storalloc::DarshanRecord &rhs) {
+YAML::Node YAML::convert<fives::DarshanRecord>::encode(const fives::DarshanRecord &rhs) {
     YAML::Node node;
 
     node.push_back(rhs.id);
@@ -22,7 +22,7 @@ YAML::Node YAML::convert<storalloc::DarshanRecord>::encode(const storalloc::Dars
     return node;
 }
 
-bool YAML::convert<storalloc::DarshanRecord>::decode(const Node &node, storalloc::DarshanRecord &rhs) {
+bool YAML::convert<fives::DarshanRecord>::decode(const Node &node, fives::DarshanRecord &rhs) {
 
     rhs.id = node["id"].as<unsigned int>();
     rhs.nprocs = node["nprocs"].as<unsigned int>();
@@ -36,7 +36,7 @@ bool YAML::convert<storalloc::DarshanRecord>::decode(const Node &node, storalloc
     return true;
 }
 
-bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJob &rhs) {
+bool fives::operator==(const fives::YamlJob &lhs, const fives::YamlJob &rhs) {
     // Note : not all fields are used.. but this should be way enough
     return (
         lhs.id == rhs.id &&
@@ -58,7 +58,7 @@ bool storalloc::operator==(const storalloc::YamlJob &lhs, const storalloc::YamlJ
         lhs.submissionTime == rhs.submissionTime);
 }
 
-YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &rhs) {
+YAML::Node YAML::convert<fives::YamlJob>::encode(const fives::YamlJob &rhs) {
 
     YAML::Node node;
     node.push_back(rhs.id);
@@ -86,7 +86,7 @@ YAML::Node YAML::convert<storalloc::YamlJob>::encode(const storalloc::YamlJob &r
     return node;
 }
 
-bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc::YamlJob &rhs) {
+bool YAML::convert<fives::YamlJob>::decode(const YAML::Node &node, fives::YamlJob &rhs) {
 
     if (!(node.Type() == YAML::NodeType::Map) || node.size() != 22) {
         WRENCH_WARN("Invalid node format or incorrect number of keys in node map");
@@ -137,7 +137,7 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     rhs.endTime = node["endTime"].as<std::string>();
 
     for (const auto &node : node["runs"]) {
-        rhs.runs.push_back(node.as<storalloc::DarshanRecord>());
+        rhs.runs.push_back(node.as<fives::DarshanRecord>());
     }
     rhs.runsCount = node["runsCount"].as<unsigned int>();
 
@@ -151,7 +151,7 @@ bool YAML::convert<storalloc::YamlJob>::decode(const YAML::Node &node, storalloc
     return true;
 }
 
-bool storalloc::operator==(const storalloc::JobsStats &lhs, const storalloc::JobsStats &rhs) {
+bool fives::operator==(const fives::JobsStats &lhs, const fives::JobsStats &rhs) {
     // Note: once again we're not using every field here, because it seems overkill..
     return (
         lhs.job_count == rhs.job_count &&
@@ -167,7 +167,7 @@ bool storalloc::operator==(const storalloc::JobsStats &lhs, const storalloc::Job
         lhs.median_written_tbytes == rhs.median_written_tbytes);
 }
 
-YAML::Node YAML::convert<storalloc::JobsStats>::encode(const storalloc::JobsStats &rhs) {
+YAML::Node YAML::convert<fives::JobsStats>::encode(const fives::JobsStats &rhs) {
 
     YAML::Node node;
     node.push_back(rhs.first_ts);
@@ -203,7 +203,7 @@ YAML::Node YAML::convert<storalloc::JobsStats>::encode(const storalloc::JobsStat
     return node;
 }
 
-bool YAML::convert<storalloc::JobsStats>::decode(const YAML::Node &node, storalloc::JobsStats &rhs) {
+bool YAML::convert<fives::JobsStats>::decode(const YAML::Node &node, fives::JobsStats &rhs) {
 
     if (!(node.Type() == YAML::NodeType::Map)) {
         WRENCH_WARN("Invalid node format for dataset (Header)");
