@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" Analyse results from a simulation run with storalloc-wrench
+""" Analyse results from a simulation run with fives-wrench
     (using simulatedJobs result file)
 """
 

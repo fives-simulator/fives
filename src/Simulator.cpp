@@ -18,9 +18,9 @@
 #include "Platform.h"
 #include "Utils.h"
 
-WRENCH_LOG_CATEGORY(storalloc_main, "Log category for StorAlloc main simulation process");
+WRENCH_LOG_CATEGORY(fives_main, "Log category for Fives main simulation process");
 
-namespace storalloc {
+namespace fives {
 
     std::set<std::shared_ptr<wrench::StorageService>> instantiateStorageServices(std::shared_ptr<wrench::Simulation> simulation,
                                                                                  std::shared_ptr<Config> config) {
@@ -91,8 +91,8 @@ namespace storalloc {
         const std::chrono::time_point<std::chrono::steady_clock> chrono_start = std::chrono::steady_clock::now();
 
         // Default log settings for a few components
-        xbt_log_control_set("storalloc_jobs.thres:warning");
-        xbt_log_control_set("storalloc_config.thres:info");
+        xbt_log_control_set("fives_jobs.thres:warning");
+        xbt_log_control_set("fives_config.thres:info");
 
         if (argc < 4) {
             std::cout << "##########################################################################" << std::endl;
@@ -119,7 +119,7 @@ namespace storalloc {
         std::shared_ptr<Config> config;
         try {
             config = std::make_shared<Config>(loadConfig(configFilename));
-        } catch (const YAML::TypedBadConversion<storalloc::Config> &e) {
+        } catch (const YAML::TypedBadConversion<fives::Config> &e) {
             WRENCH_WARN("ERROR : Unable to load config due to bad type conversion : %s", e.what());
             return 1;
         } catch (const YAML::InvalidNode &e) {
@@ -131,7 +131,7 @@ namespace storalloc {
 
         std::string jobFilename = argv[2];
         auto header = std::make_shared<JobsStats>(loadYamlHeader(jobFilename));
-        auto jobs = storalloc::loadYamlJobs(jobFilename);
+        auto jobs = fives::loadYamlJobs(jobFilename);
         start = jobFilename.find_last_of("/") + 1;
         jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
 
@@ -145,7 +145,7 @@ namespace storalloc {
         simulation->getOutput().enableDiskTimestamps(true);
 
         /* Simple storage services and compound storage service */
-        auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+        auto sstorageservices = fives::instantiateStorageServices(simulation, config);
 
         /**
          * What is this useless sorcery you say? Well it was either that or template + type traits + shared_ptr --'
@@ -186,11 +186,11 @@ namespace storalloc {
                 PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
         /* Batch compute service */
-        auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+        auto batch_service = fives::instantiateComputeServices(simulation, config);
 
         /* Execution controller */
         auto ctrl = simulation->add(
-            new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, USER, header, jobs, config));
+            new fives::Controller(batch_service, permanent_storage, compound_storage_service, USER, header, jobs, config));
 
         /* Start Wrench simulation */
         WRENCH_INFO("Starting simulation...");
@@ -235,4 +235,4 @@ namespace storalloc {
         return 0;
     }
 
-} // namespace storalloc
+} // namespace fives

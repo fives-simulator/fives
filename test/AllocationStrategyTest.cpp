@@ -13,7 +13,7 @@
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
 
-using namespace storalloc;
+using namespace fives;
 
 class BasicAllocTest : public ::testing::Test {
 
@@ -53,7 +53,7 @@ void BasicAllocTest::lustreUseRR_test() {
     const uint64_t GB = 1000 * 1000 * 1000;
 
     // min and max free space in bytes
-    struct storalloc::ba_min_max test_min_max;
+    struct fives::ba_min_max test_min_max;
 
     LustreAllocator allocator(this->cfg);
 
@@ -397,7 +397,7 @@ public:
     std::set<std::shared_ptr<wrench::StorageService>> storage_services;
     std::shared_ptr<wrench::CompoundStorageService> compound;
     std::shared_ptr<wrench::ComputeService> compute_svc;
-    std::shared_ptr<storalloc::LustreAllocator> alloc;
+    std::shared_ptr<fives::LustreAllocator> alloc;
 };
 
 /**
@@ -490,7 +490,7 @@ TEST_F(FunctionalAllocTest, lustreComputeMinMaxUtilization_test) {
  */
 void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -503,11 +503,11 @@ void FunctionalAllocTest::lustreComputeMinMaxUtilization_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
     LustreAllocator allocator(config);
     wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
                                                                      const std::shared_ptr<wrench::DataFile> &file,
@@ -603,7 +603,7 @@ TEST_F(FunctionalAllocTest, lustreOstIsUsed_test) {
  */
 void FunctionalAllocTest::lustreOstIsUsed_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -616,14 +616,14 @@ void FunctionalAllocTest::lustreOstIsUsed_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     /* Batch compute Service*/
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
 
     /* Simple storage services */
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
 
     LustreAllocator allocator(config);
     wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
@@ -707,7 +707,7 @@ TEST_F(FunctionalAllocTest, lustreRROrderServices_test) {
  */
 void FunctionalAllocTest::lustreRROrderServices_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_het_oss.yml"));
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_het_oss.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -720,11 +720,11 @@ void FunctionalAllocTest::lustreRROrderServices_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
     LustreAllocator allocator(config);
     wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
                                                                      const std::shared_ptr<wrench::DataFile> &file,
@@ -773,7 +773,7 @@ TEST_F(FunctionalAllocTest, lustreRROrderServices2_test) {
  */
 void FunctionalAllocTest::lustreRROrderServices2_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_2OSS_3OST.yml"));
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_2OSS_3OST.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -786,12 +786,12 @@ void FunctionalAllocTest::lustreRROrderServices2_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     /* Batch compute Service*/
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
     LustreAllocator allocator(config);
     wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
                                                                      const std::shared_ptr<wrench::DataFile> &file,
@@ -836,7 +836,7 @@ TEST_F(FunctionalAllocTest, lustreRROrderServices3_test) {
  */
 void FunctionalAllocTest::lustreRROrderServices3_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_3OSS_3OST.yml"));
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_3OSS_3OST.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -849,12 +849,12 @@ void FunctionalAllocTest::lustreRROrderServices3_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     /* Batch compute Service*/
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
     LustreAllocator allocator(config);
     wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
                                                                      const std::shared_ptr<wrench::DataFile> &file,
@@ -901,7 +901,7 @@ TEST_F(FunctionalAllocTest, lustreCreateFileParts_test) {
  */
 void FunctionalAllocTest::lustreCreateFileParts_test() {
 
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_base.yml"));
 
     // Check that the default value for max_inodes was not overriden during config load
     ASSERT_EQ(config->lustre.max_inodes, (1ULL << 32));
@@ -914,12 +914,12 @@ void FunctionalAllocTest::lustreCreateFileParts_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     /* Batch compute Service*/
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
     auto allocator = std::make_shared<LustreAllocator>(config);
 
     std::vector<std::shared_ptr<wrench::StorageService>> alloc_map;
@@ -952,9 +952,9 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test) {
  */
 void FunctionalAllocTest::lustreFullSim_test() {
     // # Start a simulation with all components as they would be in a real case
-    auto config = std::make_shared<storalloc::Config>(storalloc::loadConfig(test::CONFIG_PATH + "lustre_config_hdd.yml"));
-    auto header = std::make_shared<storalloc::JobsStats>(storalloc::loadYamlHeader(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml"));
-    auto jobs = storalloc::loadYamlJobs(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml");
+    auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_hdd.yml"));
+    auto header = std::make_shared<fives::JobsStats>(fives::loadYamlHeader(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml"));
+    auto jobs = fives::loadYamlJobs(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
     int argc = 2;
@@ -963,12 +963,12 @@ void FunctionalAllocTest::lustreFullSim_test() {
     argv[1] = strdup("--wrench-commport-pool-size=200000");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
     // Services
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
-    auto sstorageservices = storalloc::instantiateStorageServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
+    auto sstorageservices = fives::instantiateStorageServices(simulation, config);
     ASSERT_EQ(sstorageservices.size(), 16);
     LustreAllocator allocator(config);
     wrench::StorageSelectionStrategyCallback allocatorCallback = [&allocator](
@@ -997,7 +997,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
     // Controler
-    auto ctrl = simulation->add(new storalloc::Controller(batch_service, permanent_storage, compound_storage_service, "user42", header, jobs, config));
+    auto ctrl = simulation->add(new fives::Controller(batch_service, permanent_storage, compound_storage_service, "user42", header, jobs, config));
 
     ASSERT_NO_THROW(simulation->launch());
 
@@ -1013,9 +1013,9 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto job_2 = ctrl->getCompletedJobsById("job2");
     auto job_3 = ctrl->getCompletedJobsById("job3");
 
-    for (const auto &subjob : job_3) {
-        std::cout << subjob->getName() << std::endl;
-    }
+    /*     for (const auto &subjob : job_3) {
+            std::cout << subjob->getName() << std::endl;
+        } */
 
     ASSERT_EQ(job_1.size(), 7);  // parent job + (Copy / Read / Write jobs) + (Read / Write / Archive) (+ 2 sleep jobs, ignored)
     ASSERT_EQ(job_2.size(), 7);  // parent job + 3 * (write + archive)  (no sleep jobs)
@@ -1103,26 +1103,28 @@ void FunctionalAllocTest::lustreFullSim_test() {
     ASSERT_EQ(write2->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(write2->hasSuccessfullyCompleted());
     auto write2Actions = write2->getActions();
-    ASSERT_EQ(write2Actions.size(), 4); // Configuration using 2 nodes / 2 files = 4 write actions in the job
+    ASSERT_EQ(write2Actions.size(), 8); // Configuration using 2 nodes / 4 files = 8 writes actions in the job
     std::vector<std::string> fileNames{
         "outputFile_writeFiles_idjob2_exec1_part0",
-        "outputFile_writeFiles_idjob2_exec1_part1"};
-    regex reg("FW_outputFile_writeFiles_idjob2_exec1_part[0-9]_compute\\d+_act[0-9]+");
+        "outputFile_writeFiles_idjob2_exec1_part1",
+        "outputFile_writeFiles_idjob2_exec1_part2",
+        "outputFile_writeFiles_idjob2_exec1_part3"};
+    regex reg("FW_outputFile_writeFiles_idjob2_exec1_part[0-7]_compute\\d+_act[0-9]+");
 
-    for (const auto &act : write2Actions) {
-        std::cout << "- Action : " << act->getName() << std::endl;
-    }
+    /*     for (const auto &act : write2Actions) {
+            std::cout << "- Action : " << act->getName() << std::endl;
+        } */
 
     for (const auto &act : write2Actions) {
         auto action_name = act->getName();
-        std::cout << "- Action : " << action_name << std::endl;
+        // std::cout << "- Action : " << action_name << std::endl;
         std::smatch base_match;
         ASSERT_TRUE(std::regex_match(action_name, base_match, reg));
         ASSERT_EQ(act->getState(), wrench::Action::COMPLETED);
-        auto customWriteAcion = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(act);
+        auto customWriteAcion = std::dynamic_pointer_cast<fives::PartialWriteCustomAction>(act);
         auto file = customWriteAcion->getFile();
         ASSERT_NE(std::find(fileNames.begin(), fileNames.end(), file->getID()), fileNames.end());
-        ASSERT_EQ(file->getSize(), 7500000000);
+        ASSERT_EQ(file->getSize(), 3750000000);
 
         // Each for each action, each 2 nodes involved writes to half of each part (in this case it works
         // neatly, but sometimes the last host will write a few more stripes)
@@ -1154,7 +1156,8 @@ void FunctionalAllocTest::lustreFullSim_test() {
         }
     }
 
-    std::map<wrench::IOAction, std::string> IOActionStrings = {
+    /* CURRENTLY COMMENTED OUT IN THE CSS FOR PERFORMANCE REASONS */
+    /* std::map<wrench::IOAction, std::string> IOActionStrings = {
         {wrench::IOAction::ReadStart, "ReadStart"},
         {wrench::IOAction::ReadEnd, "ReadEnd"},
         {wrench::IOAction::WriteStart, "WriteStart"},
@@ -1244,5 +1247,5 @@ void FunctionalAllocTest::lustreFullSim_test() {
                 // ASSERT_EQ(du.free_space, initialFreeSpace);
             }
         }
-    }
+    } */
 }

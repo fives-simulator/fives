@@ -1,14 +1,14 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include <wrench-dev.h>
 #include "ConfigDefinition.h"
+#include <wrench-dev.h>
 
 namespace sg4 = simgrid::s4u;
 
-namespace storalloc {
+namespace fives {
 
-    constexpr unsigned int MBPS (1000 * 1000);
+    constexpr unsigned int MBPS(1000 * 1000);
 
     /**
      * @brief Function to instantiate a simulated platform, instead of
@@ -20,21 +20,18 @@ namespace storalloc {
     class PlatformFactory {
 
     public:
-
-        PlatformFactory(const std::shared_ptr<storalloc::Config> cfg) : config(cfg){}
+        PlatformFactory(const std::shared_ptr<fives::Config> cfg) : config(cfg) {}
 
         void operator()() const {
             create_platform(this->config);
         }
 
     private:
+        std::shared_ptr<fives::Config> config;
 
-        std::shared_ptr<storalloc::Config> config;
-
-        void create_platform(const std::shared_ptr<storalloc::Config>) const;
-
+        void create_platform(const std::shared_ptr<fives::Config>) const;
     };
 
-}; // namespace storalloc
+}; // namespace fives
 
 #endif // PLATFORM_H

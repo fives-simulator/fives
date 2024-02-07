@@ -2,7 +2,7 @@
 
 """
     Run a calibration process using the Ax framework.
-    This script expects to find the compiled storalloc_wrench bin inside <repo_root>/build
+    This script expects to find the compiled fives_wrench bin inside <repo_root>/build
     and a base configuration in <repo_root>/results/exp_configurations/
 
     It might take a very long time to run...
@@ -686,7 +686,7 @@ def run_simulation(
 
     # Now run simulatin with the current configuration file
     command = [
-        f"{BUILD_PATH}/storalloc_wrench",
+        f"{BUILD_PATH}/fives_wrench",
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
@@ -696,7 +696,7 @@ def run_simulation(
         command.extend(
             [
                 "--wrench-full-log",
-                "--log=storalloc_controller.threshold=debug",
+                "--log=fives_controller.threshold=debug",
                 "--log=wrench_core_compound_storage_system.threshold=debug",
                 "--log=wrench_core_logical_file_system.threshold=warning",
             ]

@@ -6,9 +6,9 @@
 #include <simgrid/kernel/routing/NetPoint.hpp>
 #include <wrench-dev.h>
 
-WRENCH_LOG_CATEGORY(storalloc_utils, "Log category for StorAlloc util functions");
+WRENCH_LOG_CATEGORY(fives_utils, "Log category for Fives Utils");
 
-namespace storalloc {
+namespace fives {
 
     /**
      * @brief [WIP] Describe topology of zones, hosts and links, printed to stdout.
@@ -113,7 +113,7 @@ namespace storalloc {
 
         for (const auto &job : dataset["jobs"]) {
             try {
-                auto parsed_job = job.as<storalloc::YamlJob>();
+                auto parsed_job = job.as<fives::YamlJob>();
 
                 // Here we have a dirty way of checking that jobs in our dataset are ordered by submission date.
                 std::istringstream ss(parsed_job.submissionTime);
@@ -160,4 +160,4 @@ namespace storalloc {
         return parsed_header;
     }
 
-} // namespace storalloc
+} // namespace fives

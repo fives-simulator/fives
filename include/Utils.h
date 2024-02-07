@@ -6,7 +6,7 @@
 #include "ConfigDefinition.h"
 #include "JobDefinition.h"
 
-namespace storalloc {
+namespace fives {
 
     void describe_platform();
 
@@ -16,6 +16,6 @@ namespace storalloc {
 
     JobsStats loadYamlHeader(const std::string &yaml_file_name);
 
-} // namespace storalloc
+} // namespace fives
 
 #endif // Utils.h

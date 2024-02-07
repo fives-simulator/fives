@@ -1,5 +1,5 @@
 jobs:
-- coresUsed: 1280
+- coresUsed: 256
   coreHoursReq: 1280
   coreHoursUsed: 984.5
   cumul_read_bw: 3795358.854753721
@@ -7,7 +7,7 @@ jobs:
   category: 1
   endTime: '2023-01-01 14:54:34'
   id: job1
-  nodesUsed: 20       # With a config using offering 32 nodes
+  nodesUsed: 4
   readBytes: 20000000000  # 20GB
   walltimeSeconds: 10800   # 3 h
   runtimeSeconds: 7200
@@ -22,7 +22,7 @@ jobs:
   runsCount: 2
   runs:
     - id: 1
-      nprocs: 1280
+      nprocs: 256
       readBytes: 15000000000      # Read 3/4 of the total read bytes
       writtenBytes: 8000000000    #  Write 8GB out of 25
       sleepDelay: 45              # Start this execution 45s in the reservation
@@ -30,14 +30,14 @@ jobs:
       dEndTime: 1672529245        # fake
       runtime: 2400
     - id: 2
-      nprocs: 1280
+      nprocs: 256
       readBytes: 5000000000       # Read the remaining 1/4
       writtenBytes: 17000000000   # Write 17GB (remainer)
       sleepDelay: 2550             # Start this execution 550s in the reservation 
       dStartTime: 1672528285      # fake
       dEndTime: 1672529285        # fake
       runtime: 2000
-- coresUsed: 960
+- coresUsed: 1024
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   category: 1
@@ -45,10 +45,10 @@ jobs:
   cumul_write_bw: 28679025.769959778
   endTime: '2023-01-01 17:15:47'
   id: job2
-  nodesUsed: 15
+  nodesUsed: 16
   readBytes: 0  
-  walltimeSeconds: 7200
-  runtimeSeconds: 7100
+  walltimeSeconds: 10200
+  runtimeSeconds: 10000
   sleepSimulationSeconds: 3800 # seconds
   waitingTimeSeconds: 1157
   startTime: '2023-01-01 15:30:47'
@@ -60,29 +60,29 @@ jobs:
   runsCount: 3
   runs:
     - id: 1
-      nprocs: 320
+      nprocs: 64
       readBytes: 0
       writtenBytes: 15000000000
       sleepDelay: 0
       dStartTime: 1672583447
       dEndTime: 1672584447
-      runtime: 1000
+      runtime: 10000
     - id: 2
-      nprocs: 320
+      nprocs: 64
       readBytes: 0
       writtenBytes: 15000000000
       sleepDelay: 0
       dStartTime: 1672583447
       dEndTime: 1672584447
-      runtime: 1000
+      runtime: 10000
     - id: 3
-      nprocs: 320
+      nprocs: 64
       readBytes: 0
       writtenBytes: 15000000000
       sleepDelay: 0
       dStartTime: 1672583447
       dEndTime: 1672584447
-      runtime: 1000
+      runtime: 10000
 - coresUsed: 768
   coreHoursReq: 3.0
   coreHoursUsed: 2.5

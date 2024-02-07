@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace storalloc {
+namespace fives {
 
     static const std::string PERMANENT_STORAGE = "permanent_storage";
     static const std::string COMPOUND_STORAGE = "compound_storage";
@@ -18,6 +18,6 @@ namespace storalloc {
     static const std::string SLOWLINK = "1.25GBps";
     static const std::string LOOPBACK = "1000GBps";
 
-}; // namespace storalloc
+}; // namespace fives
 
 #endif // CONSTANTS_H

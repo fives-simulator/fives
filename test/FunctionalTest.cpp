@@ -7,7 +7,7 @@
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
 
-using namespace storalloc;
+using namespace fives;
 
 class BasicFunctionalTest : public ::testing::Test {
 
@@ -174,10 +174,10 @@ void BasicFunctionalTest::instantiate_storage_services_test() {
     argv[0] = strdup("unit_test");
     ASSERT_NO_THROW(simulation->init(&argc, argv));
 
-    auto platform_factory = storalloc::PlatformFactory(config);
+    auto platform_factory = fives::PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
-    auto ss_storages = storalloc::instantiateStorageServices(simulation, config);
+    auto ss_storages = fives::instantiateStorageServices(simulation, config);
 
     ASSERT_EQ(ss_storages.size(), 12); // Four storage nodes * 3 disks = 12 storage services
 
@@ -244,7 +244,7 @@ void BasicFunctionalTest::instantiate_compute_services_test() {
     auto platform_factory = PlatformFactory(config);
     simulation->instantiatePlatform(platform_factory);
 
-    auto batch_service = storalloc::instantiateComputeServices(simulation, config);
+    auto batch_service = fives::instantiateComputeServices(simulation, config);
 
     auto wms = simulation->add(
         new TestController(batch_service, "user42"));

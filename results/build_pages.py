@@ -17,7 +17,7 @@ PROJECT_URL = f"{BASE_URL}/projects/{PROJECT_ID}"
 ARTEFACTS_DIR = "./public/static"
 MAX_PIPELINES = int(os.getenv("MAX_PIPELINES", default=1))
 PUBLIC_PROJECT_URL = os.getenv(
-    "CI_PROJECT_URL", default="https://gitlab.inria.fr/jmonniot/storalloc_wrench"
+    "CI_PROJECT_URL", default="https://gitlab.inria.fr/jmonniot/fives_wrench"
 )
 
 

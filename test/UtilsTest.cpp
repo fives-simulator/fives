@@ -10,7 +10,7 @@
 #include "../include/Simulator.h"
 #include "../include/Utils.h"
 
-using namespace storalloc;
+using namespace fives;
 
 class BasicUtilsTest : public ::testing::Test {
 

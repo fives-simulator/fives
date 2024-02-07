@@ -30,9 +30,9 @@
 
 #include "yaml-cpp/yaml.h"
 
-WRENCH_LOG_CATEGORY(storalloc_controller, "Log category for storalloc controller");
+WRENCH_LOG_CATEGORY(fives_controller, "Log category for Fives Controller");
 
-namespace storalloc {
+namespace fives {
 
     struct StripeParams {
         uint64_t partial_io_size;
@@ -50,15 +50,15 @@ namespace storalloc {
                            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
-                           const std::shared_ptr<storalloc::JobsStats> &header,
-                           const std::vector<storalloc::YamlJob> &jobs,
-                           const std::shared_ptr<storalloc::Config> &storalloc_config) : ExecutionController(hostname, "controller"),
-                                                                                         compute_service(compute_service),
-                                                                                         storage_service(storage_service),
-                                                                                         compound_storage_service(compound_storage_service),
-                                                                                         preload_header(header),
-                                                                                         jobs(jobs),
-                                                                                         config(storalloc_config) {}
+                           const std::shared_ptr<fives::JobsStats> &header,
+                           const std::vector<fives::YamlJob> &jobs,
+                           const std::shared_ptr<fives::Config> &fives_config) : ExecutionController(hostname, "controller"),
+                                                                                 compute_service(compute_service),
+                                                                                 storage_service(storage_service),
+                                                                                 compound_storage_service(compound_storage_service),
+                                                                                 preload_header(header),
+                                                                                 jobs(jobs),
+                                                                                 config(fives_config) {}
 
     /**
      * @brief main method of the Controller
@@ -187,21 +187,21 @@ namespace storalloc {
         return success;
     }
 
-    void Controller::preloadData(const std::map<std::string, storalloc::YamlJob> &job_map) {
+    void Controller::preloadData(const std::map<std::string, fives::YamlJob> &job_map) {
 
         for (const auto &map_entry : job_map) {
             auto job = map_entry.second;
             for (const auto &run : job.runs) {
                 if ((run.readBytes > 0) and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
 
-                    auto nb_read_files = determineReadFileCount(job.cumulReadBW, run.nprocs);
+                    unsigned int local_stripe_count = this->determineReadStripeCount(job.cumulReadBW);
+                    auto nb_read_files = determineReadFileCount(local_stripe_count);
 
                     auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
                     WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
                     auto read_files = this->createFileParts(run.readBytes, nb_read_files, prefix);
 
                     for (const auto &read_file : read_files) {
-                        unsigned int local_stripe_count = this->determineReadStripeCount(job.cumulReadBW);
                         auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), local_stripe_count);
                         for (const auto &stripe : file_stripes) {
                             wrench::StorageService::createFileAtLocation(stripe);
@@ -214,7 +214,7 @@ namespace storalloc {
         }
     }
 
-    std::vector<storalloc::YamlJob> Controller::createPreloadJobs() const {
+    std::vector<fives::YamlJob> Controller::createPreloadJobs() const {
 
         // How many preload jobs to create (20% of the total number of jobs):
         unsigned int preloadJobsCount = std::ceil(this->preload_header->job_count * this->config->preload_percent);
@@ -288,10 +288,10 @@ namespace storalloc {
         }
 
         auto cores_per_node = this->compute_service->getPerHostNumCores().begin()->second;
-        std::vector<storalloc::YamlJob> preload_jobs;
+        std::vector<fives::YamlJob> preload_jobs;
         unsigned int i = 0;
         while (i < preloadJobsCount) {
-            storalloc::YamlJob job = {};
+            fives::YamlJob job = {};
 
             uint64_t read_bytes = rand_read_tbytes[i] * 1'000'000'000'000;
             uint64_t written_bytes = rand_written_tbytes[i] * 1'000'000'000'000;
@@ -314,7 +314,7 @@ namespace storalloc {
             job.writtenBytes = written_bytes; // converting back to bytes from terabytes
             job.coresUsed = rand_nodes_count[i] * cores_per_node;
 
-            job.runs = std::vector<storalloc::DarshanRecord>();
+            job.runs = std::vector<fives::DarshanRecord>();
             DarshanRecord rec = {
                 .id = 1,
                 .nprocs = job.coresUsed,
@@ -336,12 +336,32 @@ namespace storalloc {
         return preload_jobs;
     }
 
+    unsigned int Controller::determineReadNodeCount(unsigned int max_nodes, double cumul_read_bw,
+                                                    unsigned int stripe_count) const {
+        /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
+        is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
+        model will probably be required */
+        unsigned int node_count = std::ceil(max_nodes * ((cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw)));
+        node_count = std::max(1u, node_count);
+        return node_count;
+    }
+
+    unsigned int Controller::determineWriteNodeCount(unsigned int max_nodes, double cumul_write_bw,
+                                                     unsigned int stripe_count) const {
+        /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
+        is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
+        model will probably be required */
+        unsigned int node_count = std::ceil(max_nodes * ((cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw)));
+        node_count = std::max(1u, node_count);
+        return node_count;
+    }
+
     unsigned int Controller::determineReadStripeCount(double cumul_read_bw) const {
 
         unsigned int local_stripe_count = this->config->lustre.stripe_count;
         if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
-            auto ratio = cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read;
-            local_stripe_count = std::ceil(this->config->lustre.stripe_count_high_read_add * ratio);
+            auto ratio = std::ceil(cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read);
+            local_stripe_count = this->config->lustre.stripe_count_high_read_add * ratio;
         }
 
         return local_stripe_count;
@@ -351,36 +371,27 @@ namespace storalloc {
 
         unsigned int local_stripe_count = this->config->lustre.stripe_count;
         if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
-            auto ratio = cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write;
-            local_stripe_count = std::ceil(this->config->lustre.stripe_count_high_write_add * ratio);
+            auto ratio = std::ceil(cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write);
+            local_stripe_count = this->config->lustre.stripe_count_high_write_add * ratio;
         }
 
         return local_stripe_count;
     }
 
-    unsigned int Controller::determineReadFileCount(double cumul_read_bw, unsigned int run_nprocs) const {
-
-        // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_read_bw * run_nprocs) / this->config->stor.nb_files_per_read), 1u);
+    unsigned int Controller::determineReadFileCount(unsigned int stripe_count) const {
 
         unsigned int nb_files = 1;
-
-        unsigned int local_stripe_count = this->determineReadStripeCount(cumul_read_bw);
-        nb_files = this->config->stor.nb_files_per_read * local_stripe_count;
+        nb_files = this->config->stor.nb_files_per_read * stripe_count;
         nb_files = std::max(nb_files, 1u);
 
         return nb_files;
     }
 
-    unsigned int Controller::determineWriteFileCount(double cumul_write_bw, unsigned int run_nprocs) const {
-
-        // unsigned int nb_files = std::max(static_cast<unsigned int>((cumul_write_bw * run_nprocs) / this->config->stor.nb_files_per_write), 1u);
+    unsigned int Controller::determineWriteFileCount(unsigned int stripe_count) const {
 
         unsigned int nb_files = 1;
-
-        unsigned int local_stripe_count = this->determineWriteStripeCount(cumul_write_bw);
-        nb_files = this->config->stor.nb_files_per_write * local_stripe_count;
+        nb_files = this->config->stor.nb_files_per_write * stripe_count;
         nb_files = std::max(nb_files, 1u);
-
         return nb_files;
     }
 
@@ -427,20 +438,11 @@ namespace storalloc {
 
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
 
-                        WRENCH_INFO("submitJob : bare_metal compute service for job %s :: %s", jobID.c_str(), bare_metal->getName().c_str());
                         this->stripes_per_action[jobID][run.id] = std::map<std::string, unsigned int>();
-
                         exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
 
-                        // NUMBER OF READ FILES and WRITE FILES
-                        auto nb_read_files = this->determineReadFileCount(this->compound_jobs[jobID].first.cumulReadBW, run.nprocs);
-                        auto nb_write_files = this->determineWriteFileCount(this->compound_jobs[jobID].first.cumulWriteBW, run.nprocs);
-
-                        // 1. Determine how many nodes (at most) may be used for the IO operations of this exec job
-                        // (depending on the size of the current MPI Communicator given by nprocs)
-                        float nprocs_nodes = std::ceil(static_cast<double>(run.nprocs) / this->config->compute.core_count); // How many nodes, at most, may be used? (and at least one)
-                        nprocs_nodes = max(nprocs_nodes, 1.0F);
-
+                        /* 1. Create a sleep action if the sub jobs for this run need to wait before they start (depends on when the application(s)
+                              starts running during the reservation) */
                         if (run.sleepDelay != 0) {
                             auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
                             sleepJob->addSleepAction("sleep", run.sleepDelay);
@@ -448,22 +450,25 @@ namespace storalloc {
                             service_specific_args[sleepJob->getName()] = std::map<std::string, std::string>();
                             service_specific_args[sleepJob->getName()]["sleep"] = {};
                         }
-
                         // 2. Create copy / read / write / copy jobs
+
                         // bool cleanup_external_read = true;
                         // bool cleanup_external_write = true;
 
-                        // 2.1 READ
+                        // Determine how many nodes (at most) may be used for the IO operations of this exec job (based on MPI communicator)
+                        unsigned int nprocs_nodes = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+
+                        // 2.1 READ job
                         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                         if (run.readBytes != 0) {
+                            auto read_stripe_count = this->determineReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW);
+                            auto nb_nodes_read = this->determineReadNodeCount(nprocs_nodes, this->compound_jobs[jobID].first.cumulReadBW, read_stripe_count);
+                            WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
-                            float nb_nodes_read = std::ceil((this->determineReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW) * this->config->stor.node_templates.begin()->second.disks[0].tpl.read_bw) / (this->compound_jobs[jobID].first.cumulReadBW / 1e6));
-                            nb_nodes_read = max(nb_nodes_read, 1.0F);         // Ensure nb_nodes_read >= 1
-                            nb_nodes_read = min(nb_nodes_read, nprocs_nodes); // Ensure nb_node_read <= nprocs_nodes
-                            WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
-
+                            // Getting files ready
                             if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
                                 // Copy job before the read
+                                auto nb_read_files = this->determineReadFileCount(read_stripe_count);
                                 auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
                                 input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, nb_read_files, nb_nodes_read);
                                 if (exec_jobs[run.id].size() != 0) {
@@ -476,7 +481,7 @@ namespace storalloc {
                                 // cleanup_external_read = false;
                             }
 
-                            // Read job
+                            // Read job creation
                             auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobID + "_exec" + std::to_string(run.id));
                             this->readFromTemporary(bare_metal, readJob, jobID, run.id, service_specific_args, run.readBytes, input_files, nb_nodes_read);
                             if (exec_jobs[run.id].size() != 0) {
@@ -488,11 +493,10 @@ namespace storalloc {
                         // 2.2 WRITE
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
-
-                            float nb_nodes_write = std::ceil((this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW) * this->config->stor.node_templates.begin()->second.disks[0].tpl.write_bw) / (this->compound_jobs[jobID].first.cumulWriteBW / 1e6));
-                            nb_nodes_write = max(nb_nodes_write, 1.0F);
-                            nb_nodes_write = min(nb_nodes_write, nprocs_nodes);
-                            WRENCH_DEBUG(" - [%s-exec%u] : %f nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+                            auto write_stripe_count = this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
+                            auto nb_nodes_write = this->determineReadNodeCount(nprocs_nodes, this->compound_jobs[jobID].first.cumulWriteBW, write_stripe_count);
+                            auto nb_write_files = this->determineWriteFileCount(write_stripe_count);
+                            WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
                             auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
                             output_data = this->writeToTemporary(bare_metal, writeJob, jobID, run.id, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
@@ -543,7 +547,6 @@ namespace storalloc {
                     }
 
                     for (const auto &run : this->compound_jobs[jobID].first.runs) {
-                        // wrench::S4U_Simulation::sleep(run.sleepDelay);
                         for (const auto &subJob : exec_jobs[run.id]) {
                             WRENCH_DEBUG("Submitting job %s with %lu actions", subJob->getName().c_str(), subJob->getActions().size());
                             if (bare_metal->hasReturnedFromMain()) {
@@ -1195,7 +1198,7 @@ namespace storalloc {
                 if (run_id != -1) {
                     out_jobs << YAML::Key << "nb_stripes" << YAML::Value << this->stripes_per_action[job_id][run_id][action->getName()];
                 }
-            } else if (auto fileWrite = std::dynamic_pointer_cast<storalloc::PartialWriteCustomAction>(action)) {
+            } else if (auto fileWrite = std::dynamic_pointer_cast<fives::PartialWriteCustomAction>(action)) {
                 // auto usedLocation = fileWrite->getFileLocation();
                 auto usedFile = fileWrite->getFile();
 
@@ -1442,4 +1445,4 @@ namespace storalloc {
         io_ops.close();
     }
 
-} // namespace storalloc
+} // namespace fives
