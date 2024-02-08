@@ -341,9 +341,13 @@ namespace fives {
         /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
         is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
         model will probably be required */
-        unsigned int node_count = std::ceil(max_nodes * ((cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw)));
-        node_count = std::max(1u, node_count);
-        return node_count;
+        if (cumul_read_bw <= this->config->stor.read_node_thres) {
+            return 1;
+        } else {
+            auto ratio = (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
+            unsigned int node_count = std::ceil(max_nodes * ratio);
+            return std::max(1u, node_count);
+        }
     }
 
     unsigned int Controller::determineWriteNodeCount(unsigned int max_nodes, double cumul_write_bw,
@@ -351,9 +355,13 @@ namespace fives {
         /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
         is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
         model will probably be required */
-        unsigned int node_count = std::ceil(max_nodes * ((cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw)));
-        node_count = std::max(1u, node_count);
-        return node_count;
+        if (cumul_write_bw <= this->config->stor.write_node_thres) {
+            return 1;
+        } else {
+            auto ratio = (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
+            unsigned int node_count = std::ceil(max_nodes * ratio);
+            return std::max(1u, node_count);
+        }
     }
 
     unsigned int Controller::determineReadStripeCount(double cumul_read_bw) const {

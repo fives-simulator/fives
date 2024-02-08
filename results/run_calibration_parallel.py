@@ -66,6 +66,13 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
+        # BW threshold above which we'll be possibly using more than one node for I/O actions (computed based on cumul read bw, stripe_count, and disk read bw)
+        "name": "read_node_thres",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
         # Special stripe_count coefficient used when a job exceeds "stripe_count_high_thresh_read"
         "name": "stripe_count_high_read_add",
         "type": "range",
@@ -106,6 +113,12 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
+        "name": "write_node_thres",
+        "type": "range",
+        "bounds": [10e6, 450e6],
+        "value_type": "int",
+    },
+    {
         "name": "disk_wb",
         "type": "range",
         "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
@@ -125,92 +138,6 @@ AX_PARAMS = [
         "type": "range",
         "bounds": [8, 64],
         "value_type": "int",
-    },
-    {
-        "name": "bandwidth_backbone_storage",
-        "type": "range",
-        "bounds": [100, 240],
-        "value_type": "int",
-    },
-]
-
-AX_READ_PARAMS = [
-    {
-        "name": "nb_files_per_read",
-        "type": "range",
-        "bounds": [1, 15],
-        "value_type": "int",
-    },
-    {
-        "name": "max_read_node_cnt",
-        "type": "range",
-        "bounds": [1, 28],
-        "value_type": "int",
-    },
-    {
-        "name": "stripe_count_high_thresh_read",
-        "type": "range",
-        "bounds": [10e6, 450e6],
-        "value_type": "int",
-    },
-    {
-        "name": "stripe_count_high_read_add",
-        "type": "range",
-        "bounds": [1, 4],
-        "value_type": "int",
-    },
-    {
-        "name": "disk_rb",
-        "type": "range",
-        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
-        "value_type": "int",
-    },
-    {
-        "name": "non_linear_coef_read",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-]
-
-AX_WRITE_PARAMS = [
-    {
-        "name": "nb_files_per_write",
-        "type": "range",
-        "bounds": [1, 15],
-        "value_type": "int",
-    },
-    {
-        "name": "max_write_node_cnt",
-        "type": "range",
-        "bounds": [1, 28],
-        "value_type": "int",
-    },
-    {
-        "name": "stripe_count_high_thresh_write",
-        "type": "range",
-        "bounds": [10e6, 450e6],
-        "value_type": "int",
-    },
-    {
-        "name": "stripe_count_high_write_add",
-        "type": "range",
-        "bounds": [1, 4],
-        "value_type": "int",
-    },
-    {
-        "name": "disk_wb",
-        "type": "range",
-        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
-        "value_type": "int",
-    },
-    {
-        "name": "non_linear_coef_write",
-        "type": "range",
-        "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
     },
     {
         "name": "bandwidth_backbone_storage",
@@ -444,6 +371,15 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "max_chunks_per_ost" in parametrization:
         max_chunks_per_ost = parametrization.get("max_chunks_per_ost")
 
+    read_node_thres = 50e6
+    if "read_node_thres" in parametrization:
+        read_node_thres = parametrization.get("read_node_thres")
+
+    write_node_thres = 50e6
+    if "write_node_thres" in parametrization:
+        write_node_thres = parametrization.get("write_node_thres")
+
+
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
@@ -465,6 +401,9 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
     base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
+
+    base_config["storage"]["read_node_thres"] = read_node_thres
+    base_config["storage"]["write_node_thres"] = write_node_thres
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
