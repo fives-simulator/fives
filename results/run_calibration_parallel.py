@@ -2,7 +2,7 @@
 
 """
     Run a calibration process using the Ax framework.
-    This script expects to find the compiled fives_wrench bin inside <repo_root>/build
+    This script expects to find the compiled fives bin inside <repo_root>/build
     and a base configuration in <repo_root>/results/exp_configurations/
 
     It might take a very long time to run...
@@ -59,14 +59,6 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
-        # Maximum number of compute node participating in read I/Os
-        # (upper bound for io_read_node_ratio)
-        "name": "max_read_node_cnt",
-        "type": "range",
-        "bounds": [1, 28],
-        "value_type": "int",
-    },
-    {
         # BW threshold above which a different "stripe_count" parameter should be used for a job
         "name": "stripe_count_high_thresh_read",
         "type": "range",
@@ -99,12 +91,6 @@ AX_PARAMS = [
         "name": "nb_files_per_write",
         "type": "range",
         "bounds": [1, 10],
-        "value_type": "int",
-    },
-    {
-        "name": "max_write_node_cnt",
-        "type": "range",
-        "bounds": [1, 28],
         "value_type": "int",
     },
     {
@@ -613,11 +599,11 @@ def run_simulation(
 
     # Now run simulatin with the current configuration file
     command = [
-        f"{BUILD_PATH}/fives_wrench",
+        f"{BUILD_PATH}/fives",
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
-        "--wrench-commport-pool-size=200000",
+        "--wrench-commport-pool-size=400000",
     ]
     if logs:
         command.extend(
