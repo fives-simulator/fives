@@ -25,7 +25,7 @@ BASE_PATH = ".."
 FIVES = f"{BASE_PATH}/build/fives"
 CONFIG = "theta_config.yml"
 CONFIG_PATH = f"{BASE_PATH}/configs/{CONFIG}"
-DATA = "theta2022_week4_trunc"
+DATA = "theta2022_week4"
 DATA_PATH = f"{BASE_PATH}/data/test_data/{DATA}.yaml"
 SIMULATION_LOGS = "./simulation_logs.txt"
 
@@ -52,7 +52,7 @@ def analyse_jobs(file_path: pathlib.Path):
 
     errors = 0
     warnings = 0
-    last_submit_ts = 0
+    last_end_ts = 0
     for job in jobs:
         if job["job_status"] != "COMPLETED":
             print(
@@ -61,14 +61,14 @@ def analyse_jobs(file_path: pathlib.Path):
                 + Style.RESET_ALL
             )
             errors += 1
-        if job["job_submit_ts"] < last_submit_ts:
+        if job["job_end_ts"] < last_end_ts:
             print(
                 Fore.RED
-                + f"  [ERROR] Job {job['job_uid']} has a submit TS lower than previous job"
+                + f"  [ERROR] Job {job['job_uid']} has an end TS lower than previous job"
                 + Style.RESET_ALL
             )
             errors += 1
-        last_submit_ts = job["job_submit_ts"]
+        last_end_ts = job["job_end_ts"]
         if job["job_end_ts"] <= job["job_submit_ts"]:
             print(
                 Fore.RED
@@ -90,14 +90,14 @@ def analyse_jobs(file_path: pathlib.Path):
                 + Style.RESET_ALL
             )
             errors += 1
-        if job["real_read_bytes"] > 20000000 and job["real_cReadTime_s"] <= 2:
+        if job["real_read_bytes"] > 100000000 and job["real_cReadTime_s"] <= 0.1:
             print(
                 Fore.YELLOW
                 + f"  [ERROR] Job {job['job_uid']} amount of read bytes and read time don't seem to match"
                 + Style.RESET_ALL
             )
             warnings += 1
-        if job["real_written_bytes"] > 20000000 and job["real_cWriteTime_s"] <= 2:
+        if job["real_written_bytes"] > 100000000 and job["real_cWriteTime_s"] <= 0.1:
             print(
                 Fore.YELLOW
                 + f"  [ERROR] Job {job['job_uid']} amount of write bytes and write time don't seem to match"
