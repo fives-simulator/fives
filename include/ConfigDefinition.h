@@ -108,10 +108,8 @@ namespace fives {
         unsigned int nb_files_per_read;  // How many files should be used to represent the read amount of each job
         unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
 
-        // float io_read_node_ratio; // From ]0,1], how many nodes should be involved in read IOs (+1 after rounding with ceil)
-        // unsigned int max_read_node_cnt;
-        // float io_write_node_ratio; // From ]0,1], how many nodes should be involved in write IOs (+1 after rounding with ceil)
-        // unsigned int max_write_node_cnt;
+        uint64_t read_node_thres;
+        uint64_t write_node_thres;
 
         std::string io_buffer_size;
 
