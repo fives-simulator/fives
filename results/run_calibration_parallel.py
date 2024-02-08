@@ -51,14 +51,6 @@ AX_PARAMS = [
         "value_type": "int",
     },
     {
-        # Proportion (%) of compute nodes from a job reservation which may participate in read I/Os
-        "name": "io_read_node_ratio",
-        "type": "range",
-        "bounds": [0.1, 0.6],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
         # In how many files should the read volume of a job be split into?
         # (eventually multiplied by the stripe count during simulation)
         "name": "nb_files_per_read",
@@ -100,13 +92,6 @@ AX_PARAMS = [
         "name": "non_linear_coef_read",
         "type": "range",
         "bounds": [1.5, 20],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "io_write_node_ratio",
-        "type": "range",
-        "bounds": [0.1, 0.6],
         "digits": 1,
         "value_type": "float",
     },
@@ -165,13 +150,6 @@ AX_PARAMS = [
 
 AX_READ_PARAMS = [
     {
-        "name": "io_read_node_ratio",
-        "type": "range",
-        "bounds": [0.1, 0.6],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
         "name": "nb_files_per_read",
         "type": "range",
         "bounds": [1, 15],
@@ -211,13 +189,6 @@ AX_READ_PARAMS = [
 ]
 
 AX_WRITE_PARAMS = [
-    {
-        "name": "io_write_node_ratio",
-        "type": "range",
-        "bounds": [0.1, 0.6],
-        "digits": 1,
-        "value_type": "float",
-    },
     {
         "name": "nb_files_per_write",
         "type": "range",
@@ -349,28 +320,7 @@ AX_WRITE_PARAMS = [
         "values": [28, 56],
         "value_type": "int",
     },
-
-
     {
-        "name": "io_write_node_ratio",
-        "type": "range",
-        "bounds": [0.1, 0.6],
-        "digits": 1,
-        "value_type": "float",
-    },
-    {
-        "name": "nb_files_per_write",
-        "type": "range",
-        "bounds": [1, 15],
-        "value_type": "int",
-    },
-    {
-        "name": "max_write_node_cnt",
-        "type": "range",
-        "bounds": [1, 28],
-        "value_type": "int",
-    },
-        {
         "name": "stripe_count_high_thresh_write",
         "type": "range",
         "bounds": [10e6, 450e6],
@@ -490,17 +440,9 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "nb_files_per_read" in parametrization:
         nb_files_per_read = parametrization.get("nb_files_per_read")
 
-    io_read_node_ratio = 0.3
-    if "io_read_node_ratio" in parametrization:
-        io_read_node_ratio = parametrization.get("io_read_node_ratio")
-
     nb_files_per_write = 5
     if "nb_files_per_write" in parametrization:
         nb_files_per_write = parametrization.get("nb_files_per_write")
-
-    io_write_node_ratio = 0.5
-    if "io_write_node_ratio" in parametrization:
-        io_write_node_ratio = parametrization.get("io_write_node_ratio")
 
     # Non-linear coefficient for altering read/write during concurrent disk access
     non_linear_coef_read = 1.8
@@ -515,16 +457,6 @@ def update_base_config(parametrization, base_config, cfg_name):
     max_chunks_per_ost = 28
     if "max_chunks_per_ost" in parametrization:
         max_chunks_per_ost = parametrization.get("max_chunks_per_ost")
-
-    # Max. number of compute nodes used for reading
-    max_read_node_cnt = 28
-    if "max_read_node_cnt" in parametrization:
-        max_read_node_cnt = parametrization.get("max_read_node_cnt")
-
-    # Max. number of compute nodes used for writing
-    max_write_node_cnt = 11
-    if "max_write_node_cnt" in parametrization:
-        max_write_node_cnt = parametrization.get("max_write_node_cnt")
 
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
@@ -543,15 +475,10 @@ def update_base_config(parametrization, base_config, cfg_name):
     base_config["storage"]["write_variability"] = 1  # deactivated
 
     base_config["storage"]["nb_files_per_read"] = nb_files_per_read
-    base_config["storage"]["io_read_node_ratio"] = io_read_node_ratio
     base_config["storage"]["nb_files_per_write"] = nb_files_per_write
-    base_config["storage"]["io_write_node_ratio"] = io_write_node_ratio
 
     base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
     base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
-
-    base_config["storage"]["max_read_node_cnt"] = max_read_node_cnt
-    base_config["storage"]["max_write_node_cnt"] = max_write_node_cnt
 
     # WARINING : HERE WE SET THE SAME READ/WRITE BANDWIDTH FOR ALL DISKS
     # THIS WILL NOT ALWAYS BE THE CASE.
