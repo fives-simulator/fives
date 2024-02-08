@@ -2,7 +2,7 @@
 
 """
     Run a calibration process using the Ax framework.
-    This script expects to find the compiled fives_wrench bin inside <repo_root>/build
+    This script expects to find the compiled fives bin inside <repo_root>/build
     and a base configuration in <repo_root>/results/exp_configurations/
 
     It might take a very long time to run...
@@ -303,7 +303,7 @@ def run_simulation(parametrization: dict, base_config: dict, run_idx: int, captu
 
     # Now run simulatin with the current configuration file
     command = [
-        f"{BUILD_PATH}/fives_wrench",
+        f"{BUILD_PATH}/fives",
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
