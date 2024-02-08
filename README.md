@@ -1,44 +1,41 @@
 # Fives
 
-This is the updated, C++, version of StorAlloc, now backed by the [WRENCH library](https://wrench-project.org/). If you are looking for the original Python version, it is available [here](https://github.com/hephtaicie/fives).
+Fives is a WRENCH-based HPC storage system simulator, with a focus on studying storage allocations for HPC jobs on homogeneous or heterogeneous resources.
 
-## TL;DR
+This is the updated, C++, version of StorAlloc, now backed by the [WRENCH](https://wrench-project.org/) and [Simgrid](https://framagit.org/simgrid/simgrid) libraries. 
+If you are looking for the original Python version, it is available [here](https://github.com/hephtaicie/storalloc).
 
-Fives is a simulator with a focus on studying storage allocations for HPC jobs on heterogenous resources.
+## Summary
 
-The usual input data is [Darshan](https://www.mcs.anl.gov/research/projects/darshan/) traces, enriched with some standard informations extracted from related resource manager traces.
-For instance, we use traces from [Theta@ANL](https://reports.alcf.anl.gov/data/index.html) traces (Darshan + Cobalt) or [Bluewaters@NCSA](https://bluewaters.ncsa.illinois.edu/data-sets) (Darshan + Torque).
+Fives schedules the execution of jobs from a dataset of I/O traces onto a high-level abstraction of an HPC machine. The modelled platform consists of a compute partition and a storage partition. Fives may be configured in order to customize many aspects the simulation, from the HPC platform to the jobs' I/O models and the simulated parallel file system (PFS) allocation model.
 
-Fives replays the execution of jobs from the input dataset on a high-level abstraction of an HPC machine. It has options to customize many aspects of the HPC platform (thanks to the programmatic platforms offered by [Simgrid](https://simgrid.org/doc/latest/Platform_cpp.html)), but the main interest is directed towards representing storage resources. In that regard, the configuration file allows to easily describe multple kinds of disks and multiple kinds of storage nodes which use one or many different disks.
+The usual input data comes from a composition of HPC Resource Manager and I/O traces (typically [Darshan](https://www.mcs.anl.gov/research/projects/darshan/) traces).
+Commonly used traces include datasets from [Theta@ANL](https://reports.alcf.anl.gov/data/index.html) and [Bluewaters@NCSA](https://bluewaters.ncsa.illinois.edu/data-sets) (Darshan + Torque).
 
-The result of a simulation is a set of timestamped execution traces, with emphasis on either the jobs execution (and their different IO or compute actions), or on the storage resources (number of allocations on each disk, used capacity, etc). Scripts (wip) for the analysis of these traces are available in the `./results` and `.bokeh_server` directories.
+The result of a simulation is a set of timestamped execution traces, with emphasis on either the jobs execution (and their different IO or compute actions), or on the storage resources (number of allocations on each disk, used capacity, etc). Scripts for the analysis of these traces are available in the `./results` and `.bokeh_server` directories.
 
-CI/CD builds a static webpage with accumulated results from latests calibration runs : [Pages](https://jmonniot.gitlabpages.inria.fr/fives/) 
-
-## Build
+## Building Fives
 
 ### Dependencies 
 
-- WRENCH (07/02/24: at the moment you need to use the `fives` branch, but changes are periodically merged to `master`)
+- WRENCH (07/02/24: at the moment you need to use the `storalloc` branch, but changes are periodically merged to `master`)
 - yaml-cpp (https://github.com/jbeder/yaml-cpp)
 
 ### Build
 
-Nothing fancy.
-
 ```bash
 mkdir build && cd build
 cmake ..
-make -j 8
+make
 ```
 
-## Run
+## Running Fives
 
 Building the project generate a `fives` binary. Usage is :
 
-`./fives <configuration> <job dataset> <tag included in the result files name>`
+`./fives <configuration file> <job dataset> <experiment tag> [wrench / simgrid CLI options]`
 
-For instance
+E.g.:
 
 ```bash
 cd build
@@ -49,9 +46,9 @@ cd build
 
 ### Building the tests
 
-Inside the build directory
+Still inside the build directory
 
-`make -j8 unit_tests`
+`make unit_tests`
 
 ### Running 
 
