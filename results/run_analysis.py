@@ -270,6 +270,8 @@ def compute_iotime_diff(jobs, plotting=True):
 
     return {
         "iotime_correlation": float(io_time_corr),
+        "iotime_read_correlation": float(read_time_corr),
+        "iotime_write_correlation": float(write_time_corr),
         "iotime_cohend_effect": float(io_time_cohen_d),
         "mean_real_iotime": float(mean_real_io_time),
         "mean_sim_iotime": float(mean_sim_iotime),
@@ -437,7 +439,7 @@ def analyse(trace, plotting=True):
 
     results = load_job_trace(trace)
 
-    metrics = {}
+    metrics = {"job_count": len(results)}
 
     metrics.update(compute_runtime_diff(results, plotting))
 
@@ -445,7 +447,7 @@ def analyse(trace, plotting=True):
 
     metrics.update(compute_iotime_diff(results, plotting))
 
-    trace_job_schedule(results)
+    #trace_job_schedule(results)
 
     save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
 
