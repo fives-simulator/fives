@@ -198,6 +198,8 @@ namespace fives {
         YAML::Emitter completed_jobs;
 
         uint64_t failed_jobs_count = 0;
+
+        unsigned int ost_count;
     };
 
 } // namespace fives
