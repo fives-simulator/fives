@@ -78,6 +78,7 @@ namespace fives {
         std::srand(1);
 
         this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
+        this->ost_count = this->compound_storage_service->getAllServices().size();
 
         this->job_manager = this->createJobManager();
 
@@ -345,6 +346,7 @@ namespace fives {
             return 1;
         } else {
             auto ratio = (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
+            ratio = std::min(ratio, 1.0);
             unsigned int node_count = std::ceil(max_nodes * ratio);
             return std::max(1u, node_count);
         }
@@ -359,6 +361,7 @@ namespace fives {
             return 1;
         } else {
             auto ratio = (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
+            ratio = std::min(ratio, 1.0);
             unsigned int node_count = std::ceil(max_nodes * ratio);
             return std::max(1u, node_count);
         }
@@ -372,6 +375,8 @@ namespace fives {
             local_stripe_count = this->config->lustre.stripe_count_high_read_add * ratio;
         }
 
+        local_stripe_count = std::max(local_stripe_count, this->ost_count);
+
         return local_stripe_count;
     }
 
@@ -382,6 +387,8 @@ namespace fives {
             auto ratio = std::ceil(cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write);
             local_stripe_count = this->config->lustre.stripe_count_high_write_add * ratio;
         }
+
+        local_stripe_count = std::max(local_stripe_count, this->ost_count);
 
         return local_stripe_count;
     }
