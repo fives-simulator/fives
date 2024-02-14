@@ -33,10 +33,10 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_month8_cat1")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=10))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=2))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 
 
@@ -83,14 +83,14 @@ AX_PARAMS = [
         # Read bandwidth (without interferences) for disks
         "name": "disk_rb",
         "type": "range",
-        "bounds": [10, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
+        "bounds": [1000, 4300],  # Aggregated read bw is 240 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         # Interference model coefficient applied to the read bandwidth
         "name": "non_linear_coef_read",
         "type": "range",
-        "bounds": [1.5, 20],
+        "bounds": [1, 25],
         "digits": 1,
         "value_type": "float",
     },
@@ -121,13 +121,13 @@ AX_PARAMS = [
     {
         "name": "disk_wb",
         "type": "range",
-        "bounds": [10, 3000],  # Aggregated write bw is 172 GBps for 56 OSSs
+        "bounds": [500, 3500],  # Aggregated write bw is 172 GBps for 56 OSSs
         "value_type": "int",
     },
     {
         "name": "non_linear_coef_write",
         "type": "range",
-        "bounds": [1.5, 20],
+        "bounds": [1, 25],
         "digits": 1,
         "value_type": "float",
     },
@@ -542,7 +542,7 @@ def run_simulation(
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         random_part,
-        "--wrench-commport-pool-size=400000",
+        "--wrench-commport-pool-size=1000000",
     ]
     if logs:
         command.extend(
@@ -590,45 +590,6 @@ def run_simulation(
     )
 
     return result_filename
-
-
-def run_default_simulation():
-    default_params = {
-        "backbone_bw": 240,
-        "permanent_storage_read_bw": 90,
-        "permanent_storage_write_bw": 90,
-        "preload_percent": 0,
-        "amdahl": 0.8,
-        "disk_rb": 6000,
-        "disk_wb": 3000,
-        "stripe_size": 2097152,
-        "stripe_count": 4,
-        "nb_files_per_read": 2,
-        "io_read_node_ratio": 0.1,
-        "nb_files_per_write": 2,
-        "io_write_node_ratio": 0.1,
-    }
-
-    # buggy run
-    default_params = {
-        "backbone_bw": 215,
-        "permanent_storage_read_bw": 88,
-        "permanent_storage_write_bw": 70,
-        "preload_percent": 0,
-        "amdahl": 0.42,
-        "disk_rb": 2617,
-        "disk_wb": 539,
-        "stripe_size": 67108864,
-        "stripe_count": 8,
-        "nb_files_per_read": 1,
-        "io_read_node_ratio": 0.59,
-        "nb_files_per_write": 1,
-        "io_write_node_ratio": 0.75,
-    }
-
-    base_config = load_base_config(CONFIGURATION_BASE)
-
-    run_simulation(default_params, base_config, 0, False, True)
 
 
 def run_trial(base_config, parameters, trial_index):
@@ -692,12 +653,13 @@ def run_calibration(params_set):
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
-        cpu, 6
+        cpu, 1
     )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )
 
+    failed_attempts = 0
     # Full-parallel pool and loop
     with multiprocessing.Pool(cpu) as p:
         print("## Starting the first parallel pool")
@@ -712,6 +674,7 @@ def run_calibration(params_set):
             else:
                 print("Recording trial failure")
                 ax_client.log_trial_failure(trial_index=res["trial_index"])
+                failed_attempts += 1
 
     # Run n iterations with a reduced number of parallel simulations (this is the 'sequential' part)
     for i in range(CALIBRATION_RUNS):
@@ -741,10 +704,20 @@ def run_calibration(params_set):
         print("Dumping configuration to " + output_configuration)
         yaml.dump(base_config, calibration_result)
 
+    # Keep trace of the calibration env.
+    calib_settings = {
+        "params": params_set, 
+        "iterations": CALIBRATION_RUNS, 
+        "calibration_dataset": DATASET, 
+        "base_config": load_base_config(CONFIGURATION_BASE),
+        "failed_calibration_runs": failed_attempts,
+    }
+    with open("last_calibration_settings.yaml", "w", encoding="utf-8") as calibration_out:
+        yaml.dump(calib_settings, calibration_out)
+
     print("CALIBRATION DONE")
     return 0
 
 
 if __name__ == "__main__":
-    # run_default_simulation()
     run_calibration(AX_PARAMS)
