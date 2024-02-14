@@ -19,7 +19,7 @@ dragonfly:
   routers: 16
 general:
   amdahl: 0.5
-  config_name: Fives_C_theta2022_month4_cat2
+  config_name: Fives_C_theta2022_week4
   config_version: 0.0.1
   max_stripe_size: 100048576
   preload_percent: 0
@@ -27,18 +27,18 @@ general:
 lustre:
   lq_prio_free: 232
   lq_threshold_rr: 43
-  max_chunks_per_ost: 35
-  stripe_count: 2
-  stripe_count_high_read_add: 3
-  stripe_count_high_thresh_read: 180121241
-  stripe_count_high_thresh_write: 230014222
-  stripe_count_high_write_add: 4
+  max_chunks_per_ost: 23
+  stripe_count: 1
+  stripe_count_high_read_add: 2
+  stripe_count_high_thresh_read: 255769628
+  stripe_count_high_thresh_write: 288247510
+  stripe_count_high_write_add: 2
   stripe_size: 16777216
 network:
   bandwidth_backbone: 9TBps
   bandwidth_backbone_ctrl: 12.5GBps
   bandwidth_backbone_perm_storage: 80GBps
-  bandwidth_backbone_storage: 200GBps
+  bandwidth_backbone_storage: 149GBps
   link_latency: 24us
 outputs:
   io_actions_prefix: io_actions_ts_
@@ -56,12 +56,8 @@ permanent_storage:
 storage:
   cleanup_threshold: 0.45
   io_buffer_size: 268435456B
-  io_read_node_ratio: 0.3
-  io_write_node_ratio: 0.4
-  max_read_node_cnt: 18
-  max_write_node_cnt: 17
-  nb_files_per_read: 4
-  nb_files_per_write: 6
+  nb_files_per_read: 8
+  nb_files_per_write: 3
   nodes:
   - quantity: 56
     template:
@@ -71,12 +67,16 @@ storage:
           capacity: 164000
           id: raid_OSS
           mount_prefix: /dev/hdd
-          read_bw: 3482
-          write_bw: 1622
+          read_bw: 3778
+          write_bw: 1563
       id: lustre_OSS
-  non_linear_coef_read: 8.5
-  non_linear_coef_write: 15.8
+  non_linear_coef_read: 13.4
+  non_linear_coef_write: 18.0
   read_bytes_preload_thres: 0
+  read_node_thres: 238538637
+  read_node_threshold: 200000000
   read_variability: 1
   write_bytes_copy_thres: 0
+  write_node_thres: 337486605
+  write_node_threshold: 180000000
   write_variability: 1
