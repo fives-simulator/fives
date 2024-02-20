@@ -10,3 +10,4 @@ ax-platform>=0.3.4
 Jinja2>=3.1.2
 statsmodels>=0.14.0
 drawsvg>=2.3.0
+scikit-optimize

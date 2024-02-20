@@ -33,10 +33,10 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4")
+DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_aggMonth11_cat1")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=2))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=25))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 
 
@@ -47,7 +47,7 @@ AX_PARAMS = [
         # Lustre parameter - number of OSTs onto which parts of a file will be allocated
         "name": "stripe_count",
         "type": "range",
-        "bounds": [1, 3],  # NOTE : never using all OSTs for any allocation so far
+        "bounds": [1, 4],  # NOTE : never using all OSTs for any allocation so far
         "value_type": "int",
     },
     {
@@ -76,7 +76,7 @@ AX_PARAMS = [
         # Special stripe_count coefficient used when a job exceeds "stripe_count_high_thresh_read"
         "name": "stripe_count_high_read_add",
         "type": "range",
-        "bounds": [1, 3],
+        "bounds": [1, 4],
         "value_type": "int",
     },
     {
@@ -109,7 +109,7 @@ AX_PARAMS = [
     {
         "name": "stripe_count_high_write_add",
         "type": "range",
-        "bounds": [1, 3],
+        "bounds": [1, 4],
         "value_type": "int",
     },
     {
@@ -440,7 +440,7 @@ def save_exp_config(base_config, run_idx):
     output_configuration = f"{CONFIGURATION_PATH}/exp_config_{run_idx}_{random_part}"
 
     with open(output_configuration, "w", encoding="utf-8") as exp_config:
-        # print("Dumping configuration to " + output_configuration)
+        print("  Dumping configuration to " + output_configuration)
         yaml.dump(base_config, exp_config)
 
     return (output_configuration, random_part)
@@ -456,6 +456,7 @@ def process_results(result_filename: str):
 
     # IO TIME
     io_time_diff = []
+    io_time_diff_pct = []
     sim_io_time = []
     sim_read_time = []
     sim_write_time = []
@@ -491,6 +492,7 @@ def process_results(result_filename: str):
             sim_read_time.append(s_r_time)
             sim_write_time.append(s_w_time)
             io_time_diff.append(abs(s_io_time - r_io_time))
+            io_time_diff_pct.append((abs(r_io_time - s_io_time) / r_io_time))
 
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
     ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
@@ -508,13 +510,15 @@ def process_results(result_filename: str):
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
 
     mean_io_diff = np.array(io_time_diff).mean()
+    mean_io_diff_pct = np.array(io_time_diff_pct).mean()
 
     # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
     # return {"optimization_metric": abs(ztest_iotime_tstat)}
     # return {"optimization_metric": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
     # return {"optimization_metric": abs(1 - write_time_corr)}
     # return {"optimization_metric": abs(1 - read_time_corr)}
-    return {"optimization_metric": abs(mean_io_diff)}
+    return {"optimization_metric": abs(mean_io_diff_pct)}
+    # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
 
 
 def run_simulation(
