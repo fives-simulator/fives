@@ -373,9 +373,8 @@ namespace fives {
         if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
             auto ratio = std::ceil(cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read);
             local_stripe_count = this->config->lustre.stripe_count_high_read_add * ratio;
+            local_stripe_count = std::min(local_stripe_count, this->ost_count);
         }
-
-        local_stripe_count = std::max(local_stripe_count, this->ost_count);
 
         return local_stripe_count;
     }
@@ -386,9 +385,8 @@ namespace fives {
         if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
             auto ratio = std::ceil(cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write);
             local_stripe_count = this->config->lustre.stripe_count_high_write_add * ratio;
+            local_stripe_count = std::min(local_stripe_count, this->ost_count);
         }
-
-        local_stripe_count = std::max(local_stripe_count, this->ost_count);
 
         return local_stripe_count;
     }
@@ -471,13 +469,13 @@ namespace fives {
                         // bool cleanup_external_write = true;
 
                         // Determine how many nodes (at most) may be used for the IO operations of this exec job (based on MPI communicator)
-                        unsigned int nprocs_nodes = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+                        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
 
                         // 2.1 READ job
                         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
                         if (run.readBytes != 0) {
                             auto read_stripe_count = this->determineReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW);
-                            auto nb_nodes_read = this->determineReadNodeCount(nprocs_nodes, this->compound_jobs[jobID].first.cumulReadBW, read_stripe_count);
+                            auto nb_nodes_read = this->determineReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulReadBW, read_stripe_count);
                             WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
                             // Getting files ready
@@ -509,7 +507,7 @@ namespace fives {
                         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
                         if (run.writtenBytes != 0) {
                             auto write_stripe_count = this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
-                            auto nb_nodes_write = this->determineReadNodeCount(nprocs_nodes, this->compound_jobs[jobID].first.cumulWriteBW, write_stripe_count);
+                            auto nb_nodes_write = this->determineReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulWriteBW, write_stripe_count);
                             auto nb_write_files = this->determineWriteFileCount(write_stripe_count);
                             WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
