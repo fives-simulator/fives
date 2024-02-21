@@ -65,13 +65,13 @@ AX_PARAMS = [
         "bounds": [10e6, 450e6],
         "value_type": "int",
     },
-    {
-        # BW threshold above which we'll be possibly using more than one node for I/O actions (computed based on cumul read bw, stripe_count, and disk read bw)
-        "name": "read_node_thres",
-        "type": "range",
-        "bounds": [10e6, 450e6],
-        "value_type": "int",
-    },
+    # {
+    #     # BW threshold above which we'll be possibly using more than one node for I/O actions (computed based on cumul read bw, stripe_count, and disk read bw)
+    #     "name": "read_node_thres",
+    #     "type": "range",
+    #     "bounds": [10e6, 450e6],
+    #     "value_type": "int",
+    # },
     {
         # Special stripe_count coefficient used when a job exceeds "stripe_count_high_thresh_read"
         "name": "stripe_count_high_read_add",
@@ -112,12 +112,12 @@ AX_PARAMS = [
         "bounds": [1, 4],
         "value_type": "int",
     },
-    {
-        "name": "write_node_thres",
-        "type": "range",
-        "bounds": [10e6, 450e6],
-        "value_type": "int",
-    },
+    # {
+    #     "name": "write_node_thres",
+    #     "type": "range",
+    #     "bounds": [10e6, 450e6],
+    #     "value_type": "int",
+    # },
     {
         "name": "disk_wb",
         "type": "range",
