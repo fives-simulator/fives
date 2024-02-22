@@ -6,7 +6,7 @@ pandas>=2.0.1
 PyYAML>=6.0
 scipy>=1.11.1
 seaborn>=0.12.2
-ax-platform>=0.3.4
+ax-platform
 Jinja2>=3.1.2
 statsmodels>=0.14.0
 drawsvg>=2.3.0
