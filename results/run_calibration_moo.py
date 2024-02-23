@@ -312,7 +312,7 @@ def process_results(result_filename: str):
     mae = np.array(io_time_abs_error).mean()
     mae_pct = np.array(io_time_abs_pct_error).mean()
 
-    return {"error": abs(mae_pct), "corr": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
+    return {"error": abs(mae), "corr": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
 
 
 def run_simulation(
@@ -467,10 +467,18 @@ def run_calibration(params_set):
             print("Dumping pareto configuration to " + output_configuration)
             yaml.dump(base_config, calibration_result)
 
-    print(frontier.means)
+
+
+    with open(f"{CALIBRATION_UID}_pareto_results.yaml", "w", encoding="utf-8") as pareto_metrics:
+        yaml.dump({
+            "means_primary": [float(mean) for mean in frontier.means[frontier.primary_metric]], 
+            "means_secondary": [float(mean) for mean in frontier.means[frontier.secondary_metric]], 
+            "primary_metric": frontier.primary_metric, 
+            "secondary_metric": frontier.secondary_metric}, pareto_metrics)
 
     # Plot the pareto frontier:
-    g = sns.scatterplot(data=frontier.means, x="error", y="corr")
+    idx=[i for i in range(CALIBRATION_RUNS)]
+    g = sns.scatterplot(data=frontier.means, x="error", y="corr", hue=idx, palette=sns.color_palette("husl", 5))
     g.set(xlabel=frontier.primary_metric, ylabel=frontier.secondary_metric)
     g.set(title=f"Pareto frontier (calibration {CALIBRATION_UID})")
     plt.savefig(f"{CALIBRATION_UID}_pareto_frontier.png", dpi=300)
