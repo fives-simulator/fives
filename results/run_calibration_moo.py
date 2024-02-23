@@ -15,6 +15,7 @@ import subprocess
 import pathlib
 import os
 import multiprocessing
+import datetime as dt
 from time import sleep
 
 import yaml
@@ -48,6 +49,10 @@ CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
 COMMPORT_POOL_SIZE = 1000000
 RESULTS_DIR = "exp_results"
 
+now = dt.datetime.now()
+today = f"{now.year}-{now.month}-{now.day}"
+min_in_day = ((now.timestamp() % 86400) / 60)
+CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 # Parameters (which need to be converted to dict representation when used with AxClient)
 PARAMETERS = [
@@ -307,7 +312,7 @@ def process_results(result_filename: str):
     mae = np.array(io_time_abs_error).mean()
     mae_pct = np.array(io_time_abs_pct_error).mean()
 
-    return {"a": abs(mae_pct), "b": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
+    return {"error": abs(mae_pct), "corr": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
 
 
 def run_simulation(
@@ -327,7 +332,7 @@ def run_simulation(
     update_base_config(
         parametrization, 
         base_config, 
-        f"Fives_Calibration_{run_idx}"
+        f"Fives_Calibration_{CALIBRATION_UID}_{run_idx}"
     )
     output_configuration, random_part = save_exp_config(base_config, run_idx)
 
@@ -405,6 +410,8 @@ def run_trial(parameters, trial_index):
 def run_calibration(params_set):
     """Main calibration loop"""
 
+    print(f"#### > STARTING CALIBRATION {CALIBRATION_UID}")
+
     print("## PARAMETERS IN USE FOR THIS CALIBRATION : ")
     for param in params_set:
         print(f">> {param['name']}")
@@ -416,8 +423,8 @@ def run_calibration(params_set):
         name="FivesCalibration",
         parameters=params_set,
         objectives={
-            "a": ObjectiveProperties(minimize=True),
-            "b": ObjectiveProperties(minimize=True),
+            "error": ObjectiveProperties(minimize=True),
+            "corr": ObjectiveProperties(minimize=True),
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
@@ -440,13 +447,14 @@ def run_calibration(params_set):
             failed_attempts += 1
 
     objectives = ax_client.experiment.optimization_config.objective.objectives
+    print(objectives)
     frontier = compute_posterior_pareto_frontier(
         experiment=ax_client.experiment,
         data=ax_client.experiment.fetch_data(),
         primary_objective=objectives[0].metric,
         secondary_objective=objectives[1].metric,
-        absolute_metrics=["a", "b"],
-        num_points=5,
+        absolute_metrics=["error", "corr"],
+        num_points=CALIBRATION_RUNS,
     )
 
     for idx, param_dict in enumerate(frontier.param_dicts):
@@ -454,7 +462,7 @@ def run_calibration(params_set):
         update_base_config(param_dict, base_config, f"Fives_C_{DATASET}")
         print(f" [Pareto{idx}] Pareto config:")
         print(json.dumps(base_config, indent=4))
-        output_configuration = f"{CONFIGURATION_PATH}/calibrated_config_par{idx}.yaml"
+        output_configuration = f"{CONFIGURATION_PATH}/{CALIBRATION_UID}_calibrated_par{idx}.yaml"
         with open(output_configuration, "w", encoding="utf-8") as calibration_result:
             print("Dumping pareto configuration to " + output_configuration)
             yaml.dump(base_config, calibration_result)
@@ -462,10 +470,10 @@ def run_calibration(params_set):
     print(frontier.means)
 
     # Plot the pareto frontier:
-    g = sns.scatterplot(data=frontier.means, x="a", y="b")
+    g = sns.scatterplot(data=frontier.means, x="error", y="corr")
     g.set(xlabel=frontier.primary_metric, ylabel=frontier.secondary_metric)
-    g.set(title="Pareto frontier")
-    plt.savefig("pareto_frontier.png", dpi=300)
+    g.set(title=f"Pareto frontier (calibration {CALIBRATION_UID})")
+    plt.savefig(f"{CALIBRATION_UID}_pareto_frontier.png", dpi=300)
 
     # Keep trace of the calibration env.
     calib_settings = {
@@ -475,7 +483,7 @@ def run_calibration(params_set):
         "base_config": load_base_config(CONFIGURATION_BASE),
         "failed_calibration_runs": failed_attempts,
     }
-    with open("last_calibration_settings.yaml", "w", encoding="utf-8") as calibration_out:
+    with open(f"{CALIBRATION_UID}_calibration_settings.yaml", "w", encoding="utf-8") as calibration_out:
         yaml.dump(calib_settings, calibration_out)
 
     print(">>> CALIBRATION DONE <<<")
