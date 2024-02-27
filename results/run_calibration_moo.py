@@ -20,7 +20,7 @@ from time import sleep
 
 import yaml
 import numpy as np
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, ttest_rel
 import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
@@ -53,6 +53,10 @@ now = dt.datetime.now()
 today = f"{now.year}-{now.month}-{now.day}"
 min_in_day = ((now.timestamp() % 86400) / 60)
 CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
+
+PRIMARY_METRIC = "error"
+SECONDARY_METRIC = "corr"
+NUM_POINTS = 15
 
 # Parameters (which need to be converted to dict representation when used with AxClient)
 PARAMETERS = [
@@ -247,6 +251,8 @@ def process_results(result_filename: str):
         raise RuntimeError(f"Result file {result_filename} seems to be empty")
 
     io_time_error = []
+    io_time_gt0_error = []
+    io_time_lt0_error = []
     io_time_squared_error = []
     io_time_abs_error = []
     io_time_abs_pct_error = []
@@ -286,10 +292,15 @@ def process_results(result_filename: str):
             sim_read_time.append(s_r_time)
             sim_write_time.append(s_w_time)
 
+            error = r_io_time - s_io_time
             io_time_error.append(r_io_time - s_io_time)
-            io_time_squared_error.append(pow(r_io_time - s_io_time, 2))
-            io_time_abs_error.append(abs(r_io_time - s_io_time))
-            io_time_abs_pct_error.append((abs(r_io_time - s_io_time) / r_io_time))
+            if error >= 0:
+                io_time_gt0_error.append(error)
+            else:
+                io_time_lt0_error.append(error)
+            io_time_squared_error.append(pow(error, 2))
+            io_time_abs_error.append(abs(error))
+            io_time_abs_pct_error.append((abs(error) / r_io_time))
         else:
             raise RuntimeError(f"Job {job['job_uid']} has 0 read or write action. This should not happen.")
 
@@ -306,13 +317,16 @@ def process_results(result_filename: str):
     read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
     write_time_corr, _ = pearsonr(sim_write_time, real_write_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
+    ttest_io_time = ttest_rel(real_io_time, sim_io_time, alternative="two-sided")
 
-    mean_error = np.array(io_time_error).mean()
+    me = np.array(io_time_error).mean()
+    mgt0e = np.array(io_time_gt0_error).mean()
+    mlt0e = abs(np.array(io_time_lt0_error).mean())
     mse = np.array(io_time_squared_error).mean()
     mae = np.array(io_time_abs_error).mean()
     mae_pct = np.array(io_time_abs_pct_error).mean()
 
-    return {"error": abs(mae), "corr": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
+    return {PRIMARY_METRIC: mae, SECONDARY_METRIC: write_time_corr + read_time_corr}
 
 
 def run_simulation(
@@ -389,7 +403,7 @@ def run_simulation(
     return result_filename
 
 
-def run_trial(parameters, trial_index):
+def evaluate(parameters, trial_index):
     """ Run a simulation as part of the calibration process, and return cost function metric
         from processed results.
     """
@@ -423,8 +437,8 @@ def run_calibration(params_set):
         name="FivesCalibration",
         parameters=params_set,
         objectives={
-            "error": ObjectiveProperties(minimize=True),
-            "corr": ObjectiveProperties(minimize=True),
+            PRIMARY_METRIC: ObjectiveProperties(minimize=True),         # Don't forget to update minimize depending on metrics
+            SECONDARY_METRIC: ObjectiveProperties(minimize=False),
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
@@ -437,7 +451,7 @@ def run_calibration(params_set):
     for i in range(CALIBRATION_RUNS):
 
         parameters, trial_index = ax_client.get_next_trial()
-        cost = run_trial(parameters, trial_index)
+        cost = evaluate(parameters, trial_index)
         if cost:
             print(f"# Recording trial success for trial {trial_index}")
             ax_client.complete_trial(trial_index=trial_index, raw_data=cost)
@@ -447,14 +461,13 @@ def run_calibration(params_set):
             failed_attempts += 1
 
     objectives = ax_client.experiment.optimization_config.objective.objectives
-    print(objectives)
     frontier = compute_posterior_pareto_frontier(
         experiment=ax_client.experiment,
         data=ax_client.experiment.fetch_data(),
         primary_objective=objectives[0].metric,
         secondary_objective=objectives[1].metric,
-        absolute_metrics=["error", "corr"],
-        num_points=CALIBRATION_RUNS,
+        absolute_metrics=[PRIMARY_METRIC, SECONDARY_METRIC],
+        num_points=NUM_POINTS
     )
 
     for idx, param_dict in enumerate(frontier.param_dicts):
@@ -477,11 +490,11 @@ def run_calibration(params_set):
             "secondary_metric": frontier.secondary_metric}, pareto_metrics)
 
     # Plot the pareto frontier:
-    idx=[i for i in range(CALIBRATION_RUNS)]
-    g = sns.scatterplot(data=frontier.means, x="error", y="corr", hue=idx, palette=sns.color_palette("husl", 5))
+    idx=[i for i in range(NUM_POINTS)]
+    g = sns.scatterplot(data=frontier.means, x=PRIMARY_METRIC, y=SECONDARY_METRIC, hue=idx, palette=sns.color_palette("husl", NUM_POINTS))
     g.set(xlabel=frontier.primary_metric, ylabel=frontier.secondary_metric)
     g.set(title=f"Pareto frontier (calibration {CALIBRATION_UID})")
-    plt.savefig(f"{CALIBRATION_UID}_pareto_frontier.png", dpi=300)
+    plt.savefig(f"{CALIBRATION_UID}_pareto_frontier_{PRIMARY_METRIC}_{SECONDARY_METRIC}.png", dpi=300)
 
     # Keep trace of the calibration env.
     calib_settings = {
