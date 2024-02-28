@@ -10,12 +10,12 @@
 """
 
 import json
-import random
 import subprocess
 import pathlib
 import os
 import multiprocessing
 from time import sleep
+import datetime as dt
 
 import yaml
 import numpy as np
@@ -38,7 +38,12 @@ DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=25))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
+MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=1)
 
+now = dt.datetime.now()
+today = f"{now.year}-{now.month}-{now.day}"
+min_in_day = ((now.timestamp() % 86400) / 60)
+CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 PARAMETERS = [
         # Read params
@@ -98,7 +103,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Update config file according to parameters provided by Ax
-    base_config["general"]["config_name"] = cfg_name
+    base_config["general"]["config_name"] = cfg_name 
     base_config["general"]["config_version"] = CFG_VERSION
 
     # Network bandwidths    
@@ -204,21 +209,16 @@ def update_base_config(parametrization, base_config, cfg_name):
 def save_exp_config(base_config, run_idx):
     """Save base_config to file"""
 
-    # Save config as file with a unique name for each parameter set
-    random_part = "".join(
-        random.choices("A,B,C,D,E,F,0,1,2,3,4,5,6,7,8,9".split(","), k=5)
-    )
-
     # print(f"Updated configuration : ")
     # print(json.dumps(base_config, indent=4))
 
-    output_configuration = f"{CONFIGURATION_PATH}/exp_config_{run_idx}_{random_part}"
+    output_configuration = f"{CONFIGURATION_PATH}/exp_config_{CALIBRATION_UID}_{run_idx}"
 
     with open(output_configuration, "w", encoding="utf-8") as exp_config:
         print("  Dumping configuration to " + output_configuration)
         yaml.dump(base_config, exp_config)
 
-    return (output_configuration, random_part)
+    return output_configuration
 
 
 def process_results(result_filename: str):
@@ -311,6 +311,7 @@ def process_results(result_filename: str):
     # return {"optimization_metric": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
     # return {"optimization_metric": abs(1 - write_time_corr)}
     # return {"optimization_metric": abs(1 - read_time_corr)}
+    # return {"optimization_metric": abs(ttest_io_time.statistic)}
     return {"optimization_metric": mae_pct}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
 
@@ -330,16 +331,17 @@ def run_simulation(
 
     # Config
     update_base_config(
-        parametrization, base_config, f"Storalloc_CalibrationCfg__{run_idx}"
+        parametrization, base_config, f"Storalloc_ParaCalib{CALIBRATION_UID}__{run_idx}"
     )
-    output_configuration, random_part = save_exp_config(base_config, run_idx)
+    output_configuration = save_exp_config(base_config, run_idx)
+    tag = f"{CALIBRATION_RUNS}_{run_idx}"
 
     # Now run simulatin with the current configuration file
     command = [
         f"{BUILD_PATH}/fives",
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
-        random_part,
+        tag,
         "--wrench-commport-pool-size=1000000",
     ]
     if logs:
@@ -359,7 +361,7 @@ def run_simulation(
     )
 
     print(
-        f"Simulation with tag {random_part} has completed with status : {completed.returncode}"
+        f"Simulation with tag {tag} has completed with status : {completed.returncode}"
     )
     if completed.returncode != 0:
         print(f"############## FAILED RUN {run_idx} OUTPUT ###########")
@@ -390,8 +392,10 @@ def run_simulation(
     return result_filename
 
 
-def run_trial(base_config, parameters, trial_index):
+def evaluate(parameters, trial_index):
+    """Run a simulation with the parameter set provided by Ax and return results."""
     print(f"Starting run #{trial_index}")
+    base_config = load_base_config(CONFIGURATION_BASE)
     results = {"trial_index": trial_index, "optimization_metric": None}
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
@@ -424,10 +428,7 @@ def run_calibration(params_set):
         },
         parameter_constraints=[
             "disk_rb >= disk_wb",
-            # "permanent_storage_read_bw >= permanent_storage_write_bw",
             "non_linear_coef_read <= non_linear_coef_write",
-            # "permanent_storage_read_bw >= permanent_storage_write_bw",
-            # "bandwidth_backbone_storage >= bandwidth_backbone_perm_storage",
         ],
         outcome_constraints=[],
     )
@@ -443,7 +444,7 @@ def run_calibration(params_set):
         trials_parameters.append(ax_client.get_next_trial())
 
     parallel_pool_params = [
-        (base_config, trial[0], trial[1]) for trial in trials_parameters
+        (trial[0], trial[1]) for trial in trials_parameters
     ]
     print(
         f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
@@ -451,7 +452,7 @@ def run_calibration(params_set):
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
-        cpu, 1
+        cpu, MAX_PARALLELISM
     )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
@@ -461,7 +462,7 @@ def run_calibration(params_set):
     # Full-parallel pool and loop
     with multiprocessing.Pool(cpu) as p:
         print("## Starting the first parallel pool")
-        results = p.starmap(run_trial, parallel_pool_params)
+        results = p.starmap(evaluate, parallel_pool_params)
 
         for res in results:
             if res["optimization_metric"] is not None:
@@ -477,7 +478,7 @@ def run_calibration(params_set):
     # Run n iterations with a reduced number of parallel simulations (this is the 'sequential' part)
     for i in range(CALIBRATION_RUNS):
         parameters, trial_index = ax_client.get_next_trial()
-        res = run_trial(load_base_config(CONFIGURATION_BASE), parameters, trial_index)
+        res = evaluate(parameters, trial_index)
         if res["optimization_metric"]:
             print(f"Recording trial success for trial {res['trial_index']}")
             ax_client.complete_trial(
@@ -497,7 +498,7 @@ def run_calibration(params_set):
     update_base_config(best_parameters, base_config, f"Fives_C_{DATASET}")
     print("Calibrated config :")
     print(json.dumps(base_config, indent=4))
-    output_configuration = f"{CONFIGURATION_PATH}/calibrated_config.yaml"
+    output_configuration = f"{CONFIGURATION_PATH}/calibrated_config_p{CALIBRATION_UID}.yaml"
     with open(output_configuration, "w", encoding="utf-8") as calibration_result:
         print("Dumping configuration to " + output_configuration)
         yaml.dump(base_config, calibration_result)
@@ -510,7 +511,7 @@ def run_calibration(params_set):
         "base_config": load_base_config(CONFIGURATION_BASE),
         "failed_calibration_runs": failed_attempts,
     }
-    with open("last_calibration_settings.yaml", "w", encoding="utf-8") as calibration_out:
+    with open(f"parallel_calibration{CALIBRATION_UID}_settings.yaml", "w", encoding="utf-8") as calibration_out:
         yaml.dump(calib_settings, calibration_out)
 
     print("CALIBRATION DONE")
