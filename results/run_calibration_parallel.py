@@ -47,21 +47,21 @@ CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 PARAMETERS = [
         # Read params
-        { "name": "nb_files_per_read", "type": "range", "bounds": [1, 10], "value_type": "int" },
+        { "name": "nb_files_per_read", "type": "range", "bounds": [1, 20], "value_type": "int" },
         { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [10e6, 100e6], "value_type": "int" },
         { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
         { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
         { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
-        { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 50], "value_type": "int" },
+        { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
         # Write params
-        { "name": "nb_files_per_write", "type": "range", "bounds": [1, 10], "value_type": "int" },
+        { "name": "nb_files_per_write", "type": "range", "bounds": [1, 20], "value_type": "int" },
         { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [10e6, 100e6], "value_type": "int" },
         { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
         { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
         { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
-        { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 50], "value_type": "int" },
+        { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
         # Misc
         { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
         { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 64], "value_type": "int" },
