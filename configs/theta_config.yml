@@ -27,6 +27,8 @@ storage:
   nb_files_per_write: 2
   read_node_thres: 50000000
   write_node_thres: 40000000
+  static_read_overhead_seconds: 0
+  static_write_overhead_seconds: 0
   io_buffer_size: 536870912B
   read_bytes_preload_thres: 1000000000 # Not doing copy *in* if job reads more than 1GB
   write_bytes_copy_thres:   2000000000 # Not doing copy *out* if job writes more than 2GB

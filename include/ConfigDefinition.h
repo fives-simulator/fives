@@ -116,6 +116,9 @@ namespace fives {
         uint64_t read_bytes_preload_thres;
         uint64_t write_bytes_copy_thres;
 
+        unsigned int static_read_overhead_seconds;
+        unsigned int static_write_overhead_seconds;
+
         float cleanup_threshold;
 
         std::map<std::string, DiskTemplate> disk_templates;
