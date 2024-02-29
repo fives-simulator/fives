@@ -101,6 +101,10 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
         rhs.stor.nb_files_per_write = ynode["storage"]["nb_files_per_write"].as<unsigned int>();
         rhs.stor.read_node_thres = ynode["storage"]["read_node_thres"].as<uint64_t>();   // currently threshold on the cumul BW (r/w)
         rhs.stor.write_node_thres = ynode["storage"]["write_node_thres"].as<uint64_t>(); // currently threshold on the cumul BW (r/w)
+
+        rhs.stor.static_read_overhead_seconds = ynode["storage"]["static_read_overhead_seconds"].as<unsigned int>();
+        rhs.stor.static_write_overhead_seconds = ynode["storage"]["static_write_overhead_seconds"].as<unsigned int>();
+
         rhs.stor.io_buffer_size = ynode["storage"]["io_buffer_size"].as<std::string>();
 
         rhs.stor.read_bytes_preload_thres = ynode["storage"]["read_bytes_preload_thres"].as<uint64_t>();

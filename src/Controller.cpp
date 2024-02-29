@@ -794,7 +794,9 @@ namespace fives {
                     std::cout << "Number of stripes to read for this host : " << stripes_per_host << std::endl;
                 }
 
-                readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), read_byte_per_node);
+                auto overhead = readJob->addSleepAction("read_overhead_" + action_id, this->config->stor.static_read_overhead_seconds);
+                auto file_read = readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), read_byte_per_node);
+                readJob->addActionDependency(overhead, file_read);
                 action_cnt++;
 
                 service_specific_args[readJob->getName()][action_id] = computeResourcesIt->first;
@@ -908,7 +910,10 @@ namespace fives {
                         WRENCH_DEBUG("[%s] writeToTemporary: %s terminating - wrote %f", writeJob->getName().c_str(), action_id.c_str(), write_bytes_per_node);
                     },
                     write_file, write_bytes_per_node);
-                writeJob->addCustomAction(customWriteAction);
+
+                auto overhead = writeJob->addSleepAction("write_overhead_" + action_id, this->config->stor.static_write_overhead_seconds);
+                auto write_file = writeJob->addCustomAction(customWriteAction);
+                writeJob->addActionDependency(overhead, write_file);
 
                 this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
                 action_cnt++;

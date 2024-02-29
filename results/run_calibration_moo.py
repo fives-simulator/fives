@@ -67,6 +67,7 @@ PARAMETERS = [
         { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
         { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
+        { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 50], "value_type": "int" },
         # Write params
         { "name": "nb_files_per_write", "type": "range", "bounds": [1, 10], "value_type": "int" },
         { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [10e6, 100e6], "value_type": "int" },
@@ -74,6 +75,7 @@ PARAMETERS = [
         { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
         { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
+        { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 50], "value_type": "int" },
         # Misc
         { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
         { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 64], "value_type": "int" },
@@ -226,6 +228,14 @@ def update_base_config(parametrization, base_config: dict, cfg_name: str):
         write_node_thres = parametrization.get("write_node_thres")
         base_config["storage"]["write_node_thres"] = write_node_thres
 
+    if "static_read_overhead_seconds" in parametrization:
+        static_read_overhead_seconds = parametrization.get("static_read_overhead_seconds")
+        base_config["storage"]["static_read_overhead_seconds"] = static_read_overhead_seconds
+
+    if "static_write_overhead_seconds" in parametrization:
+        static_write_overhead_seconds = parametrization.get("static_write_overhead_seconds")
+        base_config["storage"]["static_write_overhead_seconds"] = static_write_overhead_seconds
+
     
 def save_exp_config(base_config, run_idx):
     """Save base_config to file"""
@@ -240,7 +250,7 @@ def save_exp_config(base_config, run_idx):
     return (output_configuration, random_part)
 
 
-def process_results(result_filename: str):
+def process_results(result_filename: str, read_overhead, write_overhead):
     """Process results from experiment (simulatedJobs result file)"""
 
     results = None
@@ -277,9 +287,9 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"] * action["nb_stripes"]
+                s_r_time += action["act_duration"] * action["nb_stripes"] + read_overhead
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] * action["nb_stripes"]
+                s_w_time += action["act_duration"] * action["nb_stripes"] + write_overhead
 
         if len(job["actions"]) != 0:
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
@@ -412,7 +422,7 @@ def evaluate(parameters, trial_index):
     cost_results = {}
     try:
         data = run_simulation(parameters, trial_index, True)
-        cost_results = process_results(data)
+        cost_results = process_results(data, parameters.get("static_read_overhead_seconds"), parameters.get("static_write_overhead_seconds"))
     except Exception as e:
         print(f"==> Trial {trial_index} FAILED")
         print(f"{e}")

@@ -19,7 +19,7 @@ import datetime as dt
 
 import yaml
 import numpy as np
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, ttest_rel, wilcoxon
 import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
@@ -53,6 +53,7 @@ PARAMETERS = [
         { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
         { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
+        { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 50], "value_type": "int" },
         # Write params
         { "name": "nb_files_per_write", "type": "range", "bounds": [1, 10], "value_type": "int" },
         { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [10e6, 100e6], "value_type": "int" },
@@ -60,6 +61,7 @@ PARAMETERS = [
         { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
         { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
+        { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 50], "value_type": "int" },
         # Misc
         { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
         { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 64], "value_type": "int" },
@@ -205,6 +207,14 @@ def update_base_config(parametrization, base_config, cfg_name):
         write_node_thres = parametrization.get("write_node_thres")
         base_config["storage"]["write_node_thres"] = write_node_thres
 
+    if "static_read_overhead_seconds" in parametrization:
+        static_read_overhead_seconds = parametrization.get("static_read_overhead_seconds")
+        base_config["storage"]["static_read_overhead_seconds"] = static_read_overhead_seconds
+
+    if "static_write_overhead_seconds" in parametrization:
+        static_write_overhead_seconds = parametrization.get("static_write_overhead_seconds")
+        base_config["storage"]["static_write_overhead_seconds"] = static_write_overhead_seconds
+
 
 def save_exp_config(base_config, run_idx):
     """Save base_config to file"""
@@ -298,6 +308,7 @@ def process_results(result_filename: str):
     write_time_corr, _ = pearsonr(sim_write_time, real_write_time)
     io_time_cohen_d = cohend(sim_io_time, real_io_time)
     ttest_io_time = ttest_rel(real_io_time, sim_io_time, alternative="two-sided")
+    wilcoxon_io_time = wilcoxon(io_time_error, alternative="two-sided")
 
     me = np.array(io_time_error).mean()
     mgt0e = np.array(io_time_gt0_error).mean()
@@ -312,6 +323,7 @@ def process_results(result_filename: str):
     # return {"optimization_metric": abs(1 - write_time_corr)}
     # return {"optimization_metric": abs(1 - read_time_corr)}
     # return {"optimization_metric": abs(ttest_io_time.statistic)}
+    # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
     return {"optimization_metric": mae_pct}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
 
@@ -374,7 +386,7 @@ def run_simulation(
         f"simulatedJobs_{DATASET}__"
         + f"{base_config['general']['config_name']}"
         + f"_{base_config['general']['config_version']}"
-        + f"_{random_part}.yml"
+        + f"_{tag}.yml"
     )
     print(f"Now looking for result file : {result_filename}")
 
