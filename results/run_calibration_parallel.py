@@ -231,7 +231,7 @@ def save_exp_config(base_config, run_idx):
     return output_configuration
 
 
-def process_results(result_filename: str):
+def process_results(result_filename: str, read_overhead: int, write_overhead: int):
     """Process results from experiment"""
 
     # Now exploit results
@@ -267,9 +267,9 @@ def process_results(result_filename: str):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"] * action["nb_stripes"]
+                s_r_time += action["act_duration"] * action["nb_stripes"] + read_overhead
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] * action["nb_stripes"]
+                s_w_time += action["act_duration"] * action["nb_stripes"] + write_overhead
 
         if len(job["actions"]) != 0:
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
@@ -411,7 +411,11 @@ def evaluate(parameters, trial_index):
     results = {"trial_index": trial_index, "optimization_metric": None}
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
-        results["optimization_metric"] = process_results(data)["optimization_metric"]
+        results["optimization_metric"] = process_results(
+            data,
+            parameters.get("static_read_overhead_seconds"), 
+            parameters.get("static_write_overhead_seconds")
+        )["optimization_metric"]
     except Exception as e:
         print(f"{e}")
         print(f"==> Trial {trial_index} FAILED")

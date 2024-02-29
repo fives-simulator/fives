@@ -782,19 +782,7 @@ namespace fives {
 
                 this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
 
-                // dirty debug
-                if (read_byte_per_node > read_file->getSize()) {
-                    std::cout << "READ_BYTE_PER_NODE > READ FILE SIZE" << std::endl;
-                    std::cout << read_byte_per_node << " > " << read_file->getSize() << std::endl;
-                    std::cout << "Max nb host is " << max_nb_hosts << std::endl;
-                    std::cout << "There are  " << inputs.size() << " files " << std::endl;
-                    std::cout << "the job is " << readJob->getName() << std::endl;
-                    std::cout << "Stripe size is : " << stripe_size << std::endl;
-                    std::cout << "Number of stripes for this file " << stripes_per_file[read_file] << std::endl;
-                    std::cout << "Number of stripes to read for this host : " << stripes_per_host << std::endl;
-                }
-
-                auto overhead = readJob->addSleepAction("read_overhead_" + action_id, this->config->stor.static_read_overhead_seconds);
+                auto overhead = readJob->addSleepAction("read_overhead_" + action_id, this->config->stor.static_read_overhead_seconds * stripes_per_host);
                 auto file_read = readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), read_byte_per_node);
                 readJob->addActionDependency(overhead, file_read);
                 action_cnt++;
@@ -911,7 +899,7 @@ namespace fives {
                     },
                     write_file, write_bytes_per_node);
 
-                auto overhead = writeJob->addSleepAction("write_overhead_" + action_id, this->config->stor.static_write_overhead_seconds);
+                auto overhead = writeJob->addSleepAction("write_overhead_" + action_id, this->config->stor.static_write_overhead_seconds * stripes_per_host);
                 auto write_file = writeJob->addCustomAction(customWriteAction);
                 writeJob->addActionDependency(overhead, write_file);
 
