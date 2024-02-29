@@ -782,7 +782,7 @@ namespace fives {
 
                 this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
 
-                auto overhead = readJob->addSleepAction("read_overhead_" + action_id, this->config->stor.static_read_overhead_seconds * stripes_per_host);
+                auto overhead = readJob->addSleepAction("read_overhead_" + action_id, this->config->stor.static_read_overhead_seconds);
                 auto file_read = readJob->addFileReadAction(action_id, wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), read_byte_per_node);
                 readJob->addActionDependency(overhead, file_read);
                 action_cnt++;
@@ -899,7 +899,7 @@ namespace fives {
                     },
                     write_file, write_bytes_per_node);
 
-                auto overhead = writeJob->addSleepAction("write_overhead_" + action_id, this->config->stor.static_write_overhead_seconds * stripes_per_host);
+                auto overhead = writeJob->addSleepAction("write_overhead_" + action_id, this->config->stor.static_write_overhead_seconds);
                 auto write_file = writeJob->addCustomAction(customWriteAction);
                 writeJob->addActionDependency(overhead, write_file);
 
