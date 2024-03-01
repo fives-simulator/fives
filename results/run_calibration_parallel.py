@@ -36,9 +36,9 @@ DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
 DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_aggMonth11_cat1")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=25))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=35))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
-MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=1)
+MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=12)
 
 now = dt.datetime.now()
 today = f"{now.year}-{now.month}-{now.day}"
@@ -47,24 +47,24 @@ CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 PARAMETERS = [
         # Read params
-        { "name": "nb_files_per_read", "type": "range", "bounds": [1, 20], "value_type": "int" },
-        { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [10e6, 100e6], "value_type": "int" },
+        { "name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int" },
+        { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
         { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
         { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
-        { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
+        { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
         { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
         # Write params
-        { "name": "nb_files_per_write", "type": "range", "bounds": [1, 20], "value_type": "int" },
-        { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [10e6, 100e6], "value_type": "int" },
+        { "name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int" },
+        { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
         { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
         { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
         { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
-        { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 50], "value_type": "float", "digits": 1 },
+        { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
         { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
         # Misc
         { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
-        { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 64], "value_type": "int" },
+        { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 128], "value_type": "int" },
         { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
         # # Unused
         # RangeParameter(name="permanent_storage_read_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
@@ -267,9 +267,9 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"] * action["nb_stripes"] + read_overhead
+                s_r_time += (action["act_duration"] + read_overhead) * action["nb_stripes"]
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] * action["nb_stripes"] + write_overhead
+                s_w_time += (action["act_duration"] +  write_overhead) * action["nb_stripes"]
 
         if len(job["actions"]) != 0:
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
