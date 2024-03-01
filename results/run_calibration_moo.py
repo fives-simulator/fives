@@ -287,9 +287,9 @@ def process_results(result_filename: str, read_overhead, write_overhead):
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += (action["act_duration"] + read_overhead) * action["nb_stripes"]
+                s_r_time += action["act_duration"]  * action["nb_stripes"] + read_overhead
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += (action["act_duration"] +  write_overhead) * action["nb_stripes"]
+                s_w_time += action["act_duration"] * action["nb_stripes"] +  write_overhead
 
         if len(job["actions"]) != 0:
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
