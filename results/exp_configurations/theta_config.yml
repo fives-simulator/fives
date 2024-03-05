@@ -12,6 +12,7 @@ general:
   max_stripe_size: 100048576          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here) - Fixed
   preload_percent: 0                  # 
   walltime_extension: 1.0             # The final walltime passed to the batch sched will be walltime * walltime_extension - Fixed
+  allowed_failure_percent: 0.1
 network:
   bandwidth_backbone: 9TBps
   bandwidth_backbone_storage: 200GBps     # 240Gbps theoretical
@@ -75,7 +76,7 @@ dragonfly:          # See https://simgrid.org/doc/latest/Platform_examples.html 
     nb_disks: 1     
     capacity: 128 # GB
     read_bw: 2500 # MBps      # https://docs.alcf.anl.gov/data-management/filesystem-and-storage/file-systems/
-    write_bw: 2000 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
+    write_bw: 2500 # MBps      # https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshop_May2022_IOopt_mcpheeters.pdf
 allocator: lustre
 lustre:
   lq_threshold_rr: 43     # lustre default  - Fixed

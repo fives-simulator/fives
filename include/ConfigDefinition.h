@@ -174,6 +174,7 @@ namespace fives {
         bool testing = false;         // Whether the simulation should run in testing mode or not (used in unit tests)
         bool debug = false;           // Whether to run the simulation in debug mode (NOT IMPLEMENTED YET)
         float walltime_extension;     // Coefficient to increase or decrease the original walltime of jobs - eg. 1.2
+        float allowed_failure_percent = 0.1;
 
         ComputeCfg compute;
         NetworkCfg net;

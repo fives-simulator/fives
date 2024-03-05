@@ -208,9 +208,14 @@ namespace fives {
            the simulation to a max. number of failed jobs when running calibration) */
         int return_code = 0;
         auto failed_cnt = ctrl->getFailedJobCount();
-        if (ctrl->getFailedJobCount() > 0) {
+        if (failed_cnt > 0) {
             WRENCH_WARN("%lu jobs have failed", failed_cnt);
-            std::cout << "FAILED:" << failed_cnt << std::endl;
+            std::cerr << "FAILED:" << failed_cnt << std::endl;
+        }
+        if (failed_cnt > jobs.size() * config->allowed_failure_percent) {
+            WRENCH_WARN("More than %f of jobs have failed - Simulation fail", config->allowed_failure_percent * 100);
+            std::cerr << "More than " << failed_cnt << " of jobs have failed - Simulation fail" << std::endl;
+            return failed_cnt;
         }
 
         /* Extract traces into files tagged with dataset and config version. */

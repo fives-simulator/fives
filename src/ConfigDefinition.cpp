@@ -38,6 +38,11 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
         rhs.config_version = ynode["general"]["config_version"].as<std::string>();
         rhs.max_stripe_size = ynode["general"]["max_stripe_size"].as<unsigned int>();
         rhs.preload_percent = ynode["general"]["preload_percent"].as<float>();
+
+        if (ynode["general"]["allowed_failure_percent"].IsDefined()) {
+            rhs.allowed_failure_percent = ynode["general"]["allowed_failure_percent"].as<float>();
+        }
+
         if (ynode["general"]["testing"].IsDefined()) {
             rhs.testing = ynode["general"]["testing"].as<bool>();
         }
