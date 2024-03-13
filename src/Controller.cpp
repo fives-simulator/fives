@@ -348,7 +348,7 @@ namespace fives {
             auto ratio = (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
             ratio = std::min(ratio, 1.0);
             unsigned int node_count = std::ceil(max_nodes * ratio);
-            return std::max(1u, node_count);
+            return std::max(2u, node_count);
         }
     }
 
@@ -363,7 +363,7 @@ namespace fives {
             auto ratio = (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
             ratio = std::min(ratio, 1.0);
             unsigned int node_count = std::ceil(max_nodes * ratio);
-            return std::max(1u, node_count);
+            return std::max(2u, node_count);
         }
     }
 
