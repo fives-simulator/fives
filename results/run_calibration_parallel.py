@@ -317,6 +317,7 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     mae = np.array(io_time_abs_error).mean()
     mae_pct = np.array(io_time_abs_pct_error).mean()
 
+    # != options for loss function out
     # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
     # return {"optimization_metric": abs(ztest_iotime_tstat)}
     # return {"optimization_metric": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
@@ -324,10 +325,9 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     # return {"optimization_metric": abs(1 - read_time_corr)}
     # return {"optimization_metric": abs(ttest_io_time.statistic)}
     # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
-    return {"optimization_metric": mae_pct}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
-
-
+    return {"optimization_metric": mae_pct}
+    
 def run_simulation(
     parametrization: dict,
     base_config: dict,
