@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 """
-    Run a calibration process using the Ax framework.
-    This script expects to find the compiled fives bin inside <repo_root>/build
-    and a base configuration in <repo_root>/results/exp_configurations/
-
-    It might take a very long time to run...
-
+    Run a calibration process using the Ax framework (Bayesian Optimization).
+    This script expects to find the compiled 'fives' bin inside '<repo_root>/build/',
+    a base configuration in '<repo_root>/results/exp_configurations/' and a dataset in 
+    '<repo_root>/results/exp_datasets/'
 """
 
 import json
@@ -24,8 +22,6 @@ import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
-# from ax.utils.measurement.synthetic_functions import hartmann6
-
 CONFIGURATION_PATH = os.getenv(
     "CALIBRATION_CONFIG_PATH", default="./exp_configurations"
 )
@@ -36,43 +32,40 @@ DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
 DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_aggMonth11_cat1")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=35))
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=50))
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
-MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=12)
+MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=16)
 
+# Create a UID for this experiment
 now = dt.datetime.now()
 today = f"{now.year}-{now.month}-{now.day}"
 min_in_day = ((now.timestamp() % 86400) / 60)
 CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 PARAMETERS = [
-        # Read params
-        { "name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int" },
-        { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-        { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
-        { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
-        { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
-        { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-        { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
-        # Write params
-        { "name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int" },
-        { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-        { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
-        { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
-        { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
-        { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-        { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
-        # Misc
-        { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
-        { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 128], "value_type": "int" },
-        { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
-        # # Unused
-        # RangeParameter(name="permanent_storage_read_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
-        # RangeParameter(name="permanent_storage_write_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
-        # RangeParameter(name="bandwidth_backbone_perm_storage", lower=50, upper=100, parameter_type=ParameterType.INT),
-        # ChoiceParameter(name="stripe_size", values=[
-        #     2097152, 4194304, 8388608, 16777216, 67108864, 1073741824, 2147483648,
-        # ], parameter_type=ParameterType.INT),
+    # Read params
+    { "name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int" },
+    { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
+    { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
+    { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
+    { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
+    { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
+    # Write params
+    { "name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int" },
+    { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
+    { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
+    { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
+    { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
+    { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
+    # R/W
+    { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
+]
+
+PLATFORM_PARAMETERS = [
+    { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
+    { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
+    { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 128], "value_type": "int" },
+    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
 ]
 
 def load_base_config(path: str):
@@ -218,9 +211,6 @@ def update_base_config(parametrization, base_config, cfg_name):
 
 def save_exp_config(base_config, run_idx):
     """Save base_config to file"""
-
-    # print(f"Updated configuration : ")
-    # print(json.dumps(base_config, indent=4))
 
     output_configuration = f"{CONFIGURATION_PATH}/exp_config_{CALIBRATION_UID}_{run_idx}"
 
@@ -424,7 +414,7 @@ def evaluate(parameters, trial_index):
     return results
 
 
-def run_calibration(params_set):
+def run_calibration(params_set, contraints: bool = True):
     """Main calibration loop"""
 
     base_config = load_base_config(CONFIGURATION_BASE)
@@ -445,7 +435,7 @@ def run_calibration(params_set):
         parameter_constraints=[
             "disk_rb >= disk_wb",
             "non_linear_coef_read <= non_linear_coef_write",
-        ],
+        ] if contraints else [],
         outcome_constraints=[],
     )
 
@@ -535,4 +525,9 @@ def run_calibration(params_set):
 
 
 if __name__ == "__main__":
-    run_calibration(PARAMETERS)
+
+    if sys.argc > 1:
+        if sys.argv[1] == "stage2":
+            run_calibration(PARAMETERS, contraints=False)
+    else:
+        run_calibration(PARAMETERS.update(PLATFORM_PARAMETERS))
