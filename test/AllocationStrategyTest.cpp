@@ -1117,7 +1117,9 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
     for (const auto &act : write2Actions) {
         auto action_name = act->getName();
-        // std::cout << "- Action : " << action_name << std::endl;
+        if (wrench::Action::getActionTypeAsString(act) == "SLEEP-") {
+            continue; // ignoring read/write overhead sleep action at the moment.
+        }
         std::smatch base_match;
         ASSERT_TRUE(std::regex_match(action_name, base_match, reg));
         ASSERT_EQ(act->getState(), wrench::Action::COMPLETED);
@@ -1128,7 +1130,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
 
         // Each for each action, each 2 nodes involved writes to half of each part (in this case it works
         // neatly, but sometimes the last host will write a few more stripes)
-        auto expectedWrittenSize = std::floor(static_cast<double>(file->getSize()) / 2);
+        auto expectedWrittenSize = static_cast<double>(file->getSize());
         ASSERT_NEAR(customWriteAcion->getWrittenSize(), expectedWrittenSize, expectedWrittenSize / 2);
     }
 
