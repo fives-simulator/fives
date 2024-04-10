@@ -69,7 +69,6 @@ namespace fives {
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
-            const std::shared_ptr<fives::JobsStats> &header,
             const std::vector<YamlJob> &jobs,
             const std::shared_ptr<fives::Config> &fives_config);
 
@@ -91,8 +90,6 @@ namespace fives {
         virtual void processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent>) override;
 
         virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
-
-        virtual std::vector<fives::YamlJob> createPreloadJobs() const;
 
         virtual void preloadData(const std::map<std::string, fives::YamlJob> &job_map);
 
@@ -172,8 +169,6 @@ namespace fives {
         const std::shared_ptr<wrench::SimpleStorageService> storage_service;
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
-
-        std::shared_ptr<fives::JobsStats> preload_header;
 
         const std::vector<fives::YamlJob> &jobs;
 
