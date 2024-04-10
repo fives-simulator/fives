@@ -31,10 +31,10 @@ CONFIGURATION_PATH = os.getenv(
     "CALIBRATION_CONFIG_PATH", default="./exp_configurations"
 )
 CONFIGURATION_BASE = os.getenv(
-    "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
+    "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/bluewaters_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_aggMonth11_cat1")
+DATASET = os.getenv("CALIBRATION_DATASET", default="bluewaters_iocluster_2019-09-09_2019-09-23")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=50)) # Not including the ~30 runs for initialization.
@@ -51,15 +51,15 @@ CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 PARAMETERS = [
     # Read params
     { "name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int" },
-    { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-    { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
+    { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 150e6], "value_type": "int" },
+    { "name": "read_node_thres", "type": "range", "bounds": [1e6, 150e6], "value_type": "int" },
     { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
     { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
     { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
     # Write params
     { "name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int" },
-    { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-    { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
+    { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 150e6], "value_type": "int" },
+    { "name": "write_node_thres", "type": "range", "bounds": [1e6, 150e6], "value_type": "int" },
     { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
     { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
     { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
@@ -68,10 +68,10 @@ PARAMETERS = [
 ]
 
 PLATFORM_PARAMETERS = [
-    { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
-    { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
+    { "name": "disk_rb", "type": "range", "bounds": [1000, 6500], "value_type": "int" },
+    { "name": "disk_wb", "type": "range", "bounds": [500, 6500], "value_type": "int" },
     { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 128], "value_type": "int" },
-    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
+    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 400], "value_type": "int" },
 ]
 
 def load_base_config(path: str):
