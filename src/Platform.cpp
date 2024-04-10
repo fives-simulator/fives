@@ -82,7 +82,7 @@ namespace fives {
      * inside it)
      * @param coord Coordinates in the cluster
      * @param id Internal identifier in the torus (for information)
-     * @return netpoint, gateway: the netpoint to the Dragonfly zone
+     * @return netpoint, gateway: the created host / gateway / netzone
      */
     static auto create_hostzone_factory(const std::string &flops, unsigned int core_count, unsigned int ram) {
 
@@ -143,15 +143,17 @@ namespace fives {
         ctrl_zone->set_gateway(control_router);
         ctrl_zone->seal();
 
-        // DRAGONFLY ZONE (COMPUTE)
+        // TORUS ZONE (COMPUTE)
         auto create_hostzone = create_hostzone_factory(cfg->compute.flops, cfg->compute.core_count, cfg->compute.ram);
-        auto compute_zone = sg4::create_dragonfly_zone("AS_DragonflyCompute", main_zone,
-                                                       {{cfg->compute.d_groups, cfg->compute.d_group_links},
-                                                        {cfg->compute.d_chassis, cfg->compute.d_chassis_links},
-                                                        {cfg->compute.d_routers, cfg->compute.d_router_links},
-                                                        cfg->compute.d_nodes},
-                                                       {create_hostzone, {}, create_limiter}, 10e9,
-                                                       10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX);
+        auto compute_zone = sg4::create_torus_zone(
+            "AS_TorusCompute",
+            main_zone,
+            {24, 24, 24}, // X, Y, Z dims of Torus
+            {create_hostzone, {}, create_limiter},
+            10e9,
+            10e-6,
+            sg4::Link::SharingPolicy::SPLITDUPLEX);
+
         // Add a global router for zone-zone routes
         auto compute_router = compute_zone->create_router("compute_router");
         compute_zone->set_gateway(compute_router);
