@@ -14,8 +14,6 @@ namespace fives {
 
     std::vector<YamlJob> loadYamlJobs(const std::string &yaml_file_name);
 
-    JobsStats loadYamlHeader(const std::string &yaml_file_name);
-
 } // namespace fives
 
 #endif // Utils.h

@@ -142,22 +142,4 @@ namespace fives {
         return job_list;
     }
 
-    /**
-     * @brief Load header from job dataset (containing general statistics about the dataset)
-     * @param yaml_file_path Path to the data file
-     * @return Parsed header inside JobStats structure
-     */
-    JobsStats loadYamlHeader(const std::string &yaml_file_path) {
-
-        YAML::Node dataset = YAML::LoadFile(yaml_file_path);
-        if (!dataset["preload"]) {
-            WRENCH_WARN("# Missing preload header in job file");
-            throw std::invalid_argument("Missing preload header in job file");
-        }
-
-        auto parsed_header = dataset["preload"].as<JobsStats>();
-        WRENCH_INFO("Dataset header loaded from file %s", yaml_file_path.c_str());
-        return parsed_header;
-    }
-
 } // namespace fives
