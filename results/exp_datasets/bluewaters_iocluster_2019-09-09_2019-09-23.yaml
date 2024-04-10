@@ -1,8 +1,8 @@
 ---
 jobs:
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 25601230.331978958
   cumul_write_bw: 7581582.7975060865
@@ -31,8 +31,8 @@ jobs:
   writeTimeSeconds: 12005.678885936737
   writtenBytes: 91022048514
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 188914072.88929725
   cumul_write_bw: 4175760.5706029166
@@ -61,8 +61,8 @@ jobs:
   writeTimeSeconds: 1286713.1060316563
   writtenBytes: 5373005853845
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 228575198.63422042
   cumul_write_bw: 4158105.4214546485
@@ -91,8 +91,8 @@ jobs:
   writeTimeSeconds: 961024.2645692825
   writtenBytes: 3996040204655
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 189008249.78491703
   cumul_write_bw: 4104432.3694412303
@@ -121,8 +121,8 @@ jobs:
   writeTimeSeconds: 2224070.135773182
   writtenBytes: 9128545457175
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 212439277.70448628
   cumul_write_bw: 4117665.5581569388
@@ -151,8 +151,8 @@ jobs:
   writeTimeSeconds: 2063237.79079175
   writtenBytes: 8495723189431
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 168476694.64687368
   cumul_write_bw: 4184913.317869914
@@ -181,8 +181,8 @@ jobs:
   writeTimeSeconds: 3472033.243414879
   writtenBytes: 14530158160454
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 176468570.4866658
   cumul_write_bw: 4167287.968557134
@@ -211,8 +211,8 @@ jobs:
   writeTimeSeconds: 3380298.1058535576
   writtenBytes: 14086675626660
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 198462906.82555428
   cumul_write_bw: 4154558.186273883
@@ -241,8 +241,8 @@ jobs:
   writeTimeSeconds: 2867745.238565922
   writtenBytes: 11914214457032
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 196019787.43681452
   cumul_write_bw: 4215606.049611664
@@ -271,8 +271,8 @@ jobs:
   writeTimeSeconds: 3037454.4261960983
   writtenBytes: 12804711254492
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 169833701.1552047
   cumul_write_bw: 4063497.7290374544
@@ -301,8 +301,8 @@ jobs:
   writeTimeSeconds: 415114.2697856426
   writtenBytes: 1686815892565
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 49782.38211369092
   cumul_write_bw: 14048874.014943523
@@ -331,8 +331,8 @@ jobs:
   writeTimeSeconds: 1555.0623841285706
   writtenBytes: 21846875520
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 178144354.3863706
   cumul_write_bw: 3955742.7039538017
@@ -361,8 +361,8 @@ jobs:
   writeTimeSeconds: 685.0883848667145
   writtenBytes: 2710033380
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 182395622.2829743
   cumul_write_bw: 427198.33296464646
@@ -391,8 +391,8 @@ jobs:
   writeTimeSeconds: 139094.59860396385
   writtenBytes: 59420980648
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 30684363.74543518
   cumul_write_bw: 72348971.0963449
@@ -421,8 +421,8 @@ jobs:
   writeTimeSeconds: 839.7247216701508
   writtenBytes: 60753219617
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 444526.0018420382
   cumul_write_bw: 4049.7104905125952
@@ -451,8 +451,8 @@ jobs:
   writeTimeSeconds: 6720036.883810759
   writtenBytes: 27214203865
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 186679.6539128551
   cumul_write_bw: 13721074.479494814
@@ -481,8 +481,8 @@ jobs:
   writeTimeSeconds: 1982.6350276470184
   writtenBytes: 27203882880
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23020380.216548845
   cumul_write_bw: 18172079.04304243
@@ -511,8 +511,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 137718.6063657387
   cumul_write_bw: 12421576.193925422
@@ -541,8 +541,8 @@ jobs:
   writeTimeSeconds: 1758.7844874858856
   writtenBytes: 21846875520
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 171627.07576533305
   cumul_write_bw: 13976671.328046743
@@ -571,8 +571,8 @@ jobs:
   writeTimeSeconds: 1563.0957477092743
   writtenBytes: 21846875520
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 136501417.6234361
   cumul_write_bw: 4501935.332558071
@@ -601,8 +601,8 @@ jobs:
   writeTimeSeconds: 2971.8974442481995
   writtenBytes: 13379290109
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 238860769.5763476
   cumul_write_bw: 4451899.018878101
@@ -631,8 +631,8 @@ jobs:
   writeTimeSeconds: 979638.654353857
   writtenBytes: 4361252364173
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 269175922.5539935
   cumul_write_bw: 4425193.350892288
@@ -661,8 +661,8 @@ jobs:
   writeTimeSeconds: 1113357.3085443974
   writtenBytes: 4926821358938
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 22746561.361190736
   cumul_write_bw: 17937521.10669888
@@ -691,8 +691,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23310064.50099758
   cumul_write_bw: 16352052.854316877
@@ -721,8 +721,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23517478.875032708
   cumul_write_bw: 22410182.186147064
@@ -751,8 +751,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 23378201.130400073
   cumul_write_bw: 16632946.217526594
@@ -781,8 +781,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23407278.3484026
   cumul_write_bw: 16227108.22110423
@@ -811,8 +811,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 240675894.19267368
   cumul_write_bw: 4438792.630358709
@@ -841,8 +841,8 @@ jobs:
   writeTimeSeconds: 933745.9839382172
   writtenBytes: 4144704792132
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23456883.209698275
   cumul_write_bw: 16419845.765715264
@@ -871,8 +871,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 154383030.8784719
   cumul_write_bw: 4473016.361807371
@@ -901,8 +901,8 @@ jobs:
   writeTimeSeconds: 693250.9673845768
   writtenBytes: 3100922919950
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 231245411.1243512
   cumul_write_bw: 4437031.350481339
@@ -931,8 +931,8 @@ jobs:
   writeTimeSeconds: 1038102.9285299778
   writtenBytes: 4606095238914
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 41985354.81682971
   cumul_write_bw: 122579983.47087985
@@ -961,8 +961,8 @@ jobs:
   writeTimeSeconds: 1.4587795734405518
   writtenBytes: 178817176
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 269509205.51170385
   cumul_write_bw: 4399448.066252609
@@ -991,8 +991,8 @@ jobs:
   writeTimeSeconds: 1132557.3413169384
   writtenBytes: 4982627205177
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23214371.064667907
   cumul_write_bw: 16761907.706645785
@@ -1021,8 +1021,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23402302.385526564
   cumul_write_bw: 22570989.29157229
@@ -1051,8 +1051,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23875610.570092086
   cumul_write_bw: 16835285.89194132
@@ -1081,8 +1081,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 53469108.362847544
   cumul_write_bw: 108922789.43349339
@@ -1111,8 +1111,8 @@ jobs:
   writeTimeSeconds: 328.33762407302856
   writtenBytes: 35763449890
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23335676.335963175
   cumul_write_bw: 18608902.22006566
@@ -1141,8 +1141,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23850140.73852498
   cumul_write_bw: 19604935.508260686
@@ -1171,8 +1171,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 22844279.667241897
   cumul_write_bw: 20049369.988039043
@@ -1201,8 +1201,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 23375940.362597223
   cumul_write_bw: 19589833.19409117
@@ -1231,8 +1231,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1600
   cumul_read_bw: 179349481.6030505
   cumul_write_bw: 377766.9464754277
@@ -1261,8 +1261,8 @@ jobs:
   writeTimeSeconds: 92117.86543178558
   writtenBytes: 34799084740
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 4
   cumul_read_bw: 11334328.699517459
   cumul_write_bw: 133805094.0393047
@@ -1291,8 +1291,8 @@ jobs:
   writeTimeSeconds: 6.155620336532593
   writtenBytes: 823653358
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 236356482.75042766
   cumul_write_bw: 34616934.92337098
@@ -1321,8 +1321,8 @@ jobs:
   writeTimeSeconds: 971.4943594932556
   writtenBytes: 33630157021
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 12071826.892383102
   cumul_write_bw: 1485.114724690595
@@ -1351,8 +1351,8 @@ jobs:
   writeTimeSeconds: 82492.83100032806
   writtenBytes: 122511318
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 29847365.216455348
   cumul_write_bw: 76674251.66907436
@@ -1381,8 +1381,8 @@ jobs:
   writeTimeSeconds: 793.638463973999
   writtenBytes: 60851635321
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54918058.03410558
   cumul_write_bw: 98485820.56082287
@@ -1411,8 +1411,8 @@ jobs:
   writeTimeSeconds: 363.1329073905945
   writtenBytes: 35763442357
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 16849569.236914214
   cumul_write_bw: 0.0
@@ -1441,8 +1441,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 25728926.678900965
   cumul_write_bw: 0.0
@@ -1471,8 +1471,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 19471674.290196877
   cumul_write_bw: 0.0
@@ -1501,8 +1501,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 8841612.578932354
   cumul_write_bw: 0.0
@@ -1531,8 +1531,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 8583836.920439348
   cumul_write_bw: 0.0
@@ -1561,8 +1561,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 2045035.0157947757
   cumul_write_bw: 1302120.6851662707
@@ -1591,8 +1591,8 @@ jobs:
   writeTimeSeconds: 18519.592122077942
   writtenBytes: 24114743983
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 19994539.415926594
   cumul_write_bw: 0.0
@@ -1621,8 +1621,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 1829515.720495983
   cumul_write_bw: 1062833.341704212
@@ -1651,8 +1651,8 @@ jobs:
   writeTimeSeconds: 6657.480859279633
   writtenBytes: 7075792629
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54434795.265481636
   cumul_write_bw: 96340783.95378363
@@ -1681,8 +1681,8 @@ jobs:
   writeTimeSeconds: 370.77441239356995
   writtenBytes: 35720697560
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54281853.3246292
   cumul_write_bw: 87469647.38718243
@@ -1711,8 +1711,8 @@ jobs:
   writeTimeSeconds: 405.6234042644501
   writtenBytes: 35479736143
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 22950307.704428717
   cumul_write_bw: 19874429.591325827
@@ -1741,8 +1741,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2048
   cumul_read_bw: 23581511.50830568
   cumul_write_bw: 19216505.577129286
@@ -1771,8 +1771,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 4096
   cumul_read_bw: 22689361.46023868
   cumul_write_bw: 19916308.187080324
@@ -1801,8 +1801,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 23702967.712209925
   cumul_write_bw: 20849723.510308158
@@ -1831,8 +1831,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 18311022.51783218
   cumul_write_bw: 25043006.26393886
@@ -1861,8 +1861,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 480
   cumul_read_bw: 17196604.940755177
   cumul_write_bw: 20793475.841787565
@@ -1891,8 +1891,8 @@ jobs:
   writeTimeSeconds: 8689.828891515732
   writtenBytes: 180691747125
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 320
   cumul_read_bw: 26720461.497764822
   cumul_write_bw: 22744982.399847917
@@ -1921,8 +1921,8 @@ jobs:
   writeTimeSeconds: 5313.6592655181885
   writtenBytes: 120859086473
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 22708187.51066673
   cumul_write_bw: 26194282.629071314
@@ -1951,8 +1951,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23346715.558525316
   cumul_write_bw: 25957573.84876751
@@ -1981,8 +1981,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 24088309.564226087
   cumul_write_bw: 37839327.33925688
@@ -2011,8 +2011,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 52828353.67032281
   cumul_write_bw: 93258717.89594822
@@ -2041,8 +2041,8 @@ jobs:
   writeTimeSeconds: 351.16122937202454
   writtenBytes: 32748846026
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 9780381.513742011
   cumul_write_bw: 34788845.077906
@@ -2071,8 +2071,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 233172169.32103992
   cumul_write_bw: 4401205.666723361
@@ -2101,8 +2101,8 @@ jobs:
   writeTimeSeconds: 699678.8010632992
   writtenBytes: 3079430304126
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 2560
   cumul_read_bw: 222265995.50121924
   cumul_write_bw: 4407622.550613073
@@ -2131,8 +2131,8 @@ jobs:
   writeTimeSeconds: 624945.6958143711
   writtenBytes: 2754524741780
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 24304551.582614183
   cumul_write_bw: 35418659.81692221
@@ -2161,8 +2161,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 496002.93752005853
   cumul_write_bw: 4041578.163182738
@@ -2191,8 +2191,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 920618.9135443498
   cumul_write_bw: 1717823.972790401
@@ -2221,8 +2221,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 890965.4496336955
   cumul_write_bw: 1711751.3430279072
@@ -2251,8 +2251,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 20028669.734995782
   cumul_write_bw: 19140275.06672568
@@ -2281,8 +2281,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 327923871.43501675
   cumul_write_bw: 4445447.985877539
@@ -2311,8 +2311,8 @@ jobs:
   writeTimeSeconds: 950.6681203842163
   writtenBytes: 4226145681
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 13824393.943628948
   cumul_write_bw: 756.7739128853727
@@ -2341,8 +2341,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1600
   cumul_read_bw: 184398428.38576263
   cumul_write_bw: 387664.02093149023
@@ -2371,8 +2371,8 @@ jobs:
   writeTimeSeconds: 164811.28016853333
   writtenBytes: 63891403565
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 0.0
   cumul_write_bw: 93350160.33478025
@@ -2401,8 +2401,8 @@ jobs:
   writeTimeSeconds: 383.94051027297974
   writtenBytes: 35840908193
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 250625544.52704993
   cumul_write_bw: 11.737670337413507
@@ -2431,8 +2431,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 875944.7419477141
   cumul_write_bw: 7964281.525291828
@@ -2461,8 +2461,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1600
   cumul_read_bw: 182388331.11171976
   cumul_write_bw: 380072.09827699285
@@ -2491,8 +2491,8 @@ jobs:
   writeTimeSeconds: 168103.5304028988
   writtenBytes: 63891461528
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 524447.0781134558
   cumul_write_bw: 1908999.593334032
@@ -2521,8 +2521,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 22531961.74051066
   cumul_write_bw: 25554261.26687962
@@ -2551,8 +2551,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 320
   cumul_read_bw: 18360442.034958456
   cumul_write_bw: 23418047.90087098
@@ -2581,8 +2581,8 @@ jobs:
   writeTimeSeconds: 5160.934051275253
   writtenBytes: 120859000826
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23193426.55560152
   cumul_write_bw: 27174265.87626149
@@ -2611,8 +2611,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23555395.025484815
   cumul_write_bw: 20465107.60283533
@@ -2641,8 +2641,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 32
   cumul_read_bw: 15239569.207440946
   cumul_write_bw: 4380357.235592273
@@ -2671,8 +2671,8 @@ jobs:
   writeTimeSeconds: 750.4172263145447
   writtenBytes: 3287095527
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 53672251.17977669
   cumul_write_bw: 82535648.76749319
@@ -2701,8 +2701,8 @@ jobs:
   writeTimeSeconds: 431.4489860534668
   writtenBytes: 35609921974
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1600
   cumul_read_bw: 175030209.1270984
   cumul_write_bw: 338043.98307814973
@@ -2731,8 +2731,8 @@ jobs:
   writeTimeSeconds: 96445.33567237854
   writtenBytes: 32602765420
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 384
   cumul_read_bw: 9112386.687574781
   cumul_write_bw: 2506906.917874003
@@ -2761,8 +2761,8 @@ jobs:
   writeTimeSeconds: 6907.640625
   writtenBytes: 17316812069
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1216
   cumul_read_bw: 38804730.908446826
   cumul_write_bw: 6125.6555377387895
@@ -2791,8 +2791,8 @@ jobs:
   writeTimeSeconds: 23147373.340444326
   writtenBytes: 141792835687
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 33348925.57205494
   cumul_write_bw: 79048850.00270711
@@ -2821,8 +2821,8 @@ jobs:
   writeTimeSeconds: 767.8572776317596
   writtenBytes: 60698234763
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8773489.474096218
   cumul_write_bw: 4985668.329662295
@@ -2851,8 +2851,8 @@ jobs:
   writeTimeSeconds: 123.28755712509155
   writtenBytes: 614670869
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6663070.565435268
   cumul_write_bw: 17686591.244617984
@@ -2881,8 +2881,8 @@ jobs:
   writeTimeSeconds: 129.95402359962463
   writtenBytes: 2298443696
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 12280204.195046019
   cumul_write_bw: 17573585.620220352
@@ -2911,8 +2911,8 @@ jobs:
   writeTimeSeconds: 130.79092717170715
   writtenBytes: 2298465557
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 320
   cumul_read_bw: 12439766.469320782
   cumul_write_bw: 127073221.42747489
@@ -2941,8 +2941,8 @@ jobs:
   writeTimeSeconds: 7510.141597509384
   writtenBytes: 954337886172
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 480
   cumul_read_bw: 13263372.345082426
   cumul_write_bw: 105836071.7273952
@@ -2971,8 +2971,8 @@ jobs:
   writeTimeSeconds: 11327.783639192581
   writtenBytes: 1198888121750
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 53839039.11118663
   cumul_write_bw: 106012257.43946876
@@ -3001,8 +3001,8 @@ jobs:
   writeTimeSeconds: 337.3517405986786
   writtenBytes: 35763419572
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 12481034.164952828
   cumul_write_bw: 17327457.965257
@@ -3031,8 +3031,8 @@ jobs:
   writeTimeSeconds: 132.64860844612122
   writtenBytes: 2298463187
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10412670.617871474
   cumul_write_bw: 17286157.375747405
@@ -3061,8 +3061,8 @@ jobs:
   writeTimeSeconds: 132.9655363559723
   writtenBytes: 2298463187
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 12796874.202102464
   cumul_write_bw: 17319169.726800013
@@ -3091,8 +3091,8 @@ jobs:
   writeTimeSeconds: 132.7120885848999
   writtenBytes: 2298463187
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9743689.030625248
   cumul_write_bw: 17461118.478986636
@@ -3121,8 +3121,8 @@ jobs:
   writeTimeSeconds: 131.633216381073
   writtenBytes: 2298463187
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10749317.053240819
   cumul_write_bw: 17518135.531271715
@@ -3151,8 +3151,8 @@ jobs:
   writeTimeSeconds: 131.2047839164734
   writtenBytes: 2298463187
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11478296.591120912
   cumul_write_bw: 17635819.82180549
@@ -3181,8 +3181,8 @@ jobs:
   writeTimeSeconds: 130.32911705970764
   writtenBytes: 2298460826
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10919723.978367386
   cumul_write_bw: 17340079.904742837
@@ -3211,8 +3211,8 @@ jobs:
   writeTimeSeconds: 132.55178093910217
   writtenBytes: 2298458473
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11383045.10391315
   cumul_write_bw: 17639508.020123754
@@ -3241,8 +3241,8 @@ jobs:
   writeTimeSeconds: 130.30173349380493
   writtenBytes: 2298458473
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4155531.918256454
   cumul_write_bw: 4772742.139085743
@@ -3271,8 +3271,8 @@ jobs:
   writeTimeSeconds: 1804.2826371192932
   writtenBytes: 8611375773
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 19281836.954566073
   cumul_write_bw: 3954810.4025835753
@@ -3301,8 +3301,8 @@ jobs:
   writeTimeSeconds: 123.59141254425049
   writtenBytes: 488780604
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 60502657.07675364
   cumul_write_bw: 3925617.90717823
@@ -3331,8 +3331,8 @@ jobs:
   writeTimeSeconds: 124.71766829490662
   writtenBytes: 489593912
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 2366403.1263314164
   cumul_write_bw: 4943315.29140838
@@ -3361,8 +3361,8 @@ jobs:
   writeTimeSeconds: 838.1587543487549
   writtenBytes: 4143282987
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 55834030.70112317
   cumul_write_bw: 3959768.1037352695
@@ -3391,8 +3391,8 @@ jobs:
   writeTimeSeconds: 123.64507293701172
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 74894615.68105471
   cumul_write_bw: 3935475.6028281273
@@ -3421,8 +3421,8 @@ jobs:
   writeTimeSeconds: 124.40829658508301
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 54626782.230206355
   cumul_write_bw: 3892950.688894581
@@ -3451,8 +3451,8 @@ jobs:
   writeTimeSeconds: 125.7672791481018
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 58475902.91601956
   cumul_write_bw: 3910074.196083513
@@ -3481,8 +3481,8 @@ jobs:
   writeTimeSeconds: 125.21650266647339
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 56977422.74426539
   cumul_write_bw: 3945073.948666302
@@ -3511,8 +3511,8 @@ jobs:
   writeTimeSeconds: 124.10561180114746
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 63928486.63364431
   cumul_write_bw: 3886463.171401352
@@ -3541,8 +3541,8 @@ jobs:
   writeTimeSeconds: 125.97721743583679
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 52692538.6552977
   cumul_write_bw: 3923473.53348533
@@ -3571,8 +3571,8 @@ jobs:
   writeTimeSeconds: 124.78886675834656
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 55747338.047174275
   cumul_write_bw: 3903276.379922431
@@ -3601,8 +3601,8 @@ jobs:
   writeTimeSeconds: 125.43457555770874
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 63784231.78056692
   cumul_write_bw: 3940837.441773716
@@ -3631,8 +3631,8 @@ jobs:
   writeTimeSeconds: 124.23902869224548
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 3003842.9245460704
   cumul_write_bw: 4556316.966985712
@@ -3661,8 +3661,8 @@ jobs:
   writeTimeSeconds: 789.6549518108368
   writtenBytes: 3597918255
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 33954990.26488725
   cumul_write_bw: 74520538.51813656
@@ -3691,8 +3691,8 @@ jobs:
   writeTimeSeconds: 815.2578213214874
   writtenBytes: 60753451876
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4605863.850102289
   cumul_write_bw: 17528264.795317408
@@ -3721,8 +3721,8 @@ jobs:
   writeTimeSeconds: 137.73797607421875
   writtenBytes: 2414307717
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 192
   cumul_read_bw: 2429230.565703235
   cumul_write_bw: 5571641.010442699
@@ -3751,8 +3751,8 @@ jobs:
   writeTimeSeconds: 3108.027199983597
   writtenBytes: 17316811809
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 384
   cumul_read_bw: 2676653.3046894264
   cumul_write_bw: 2909997.439248293
@@ -3781,8 +3781,8 @@ jobs:
   writeTimeSeconds: 5950.799736261368
   writtenBytes: 17316811994
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 384
   cumul_read_bw: 93289300.33329308
   cumul_write_bw: 2342426.6645277296
@@ -3811,8 +3811,8 @@ jobs:
   writeTimeSeconds: 3954.437156677246
   writtenBytes: 9262979039
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 130249.35004924254
   cumul_write_bw: 14258827.155938258
@@ -3841,8 +3841,8 @@ jobs:
   writeTimeSeconds: 1378.7214632034302
   writtenBytes: 19658951040
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 190179018.94331193
   cumul_write_bw: 93344416.40891027
@@ -3871,8 +3871,8 @@ jobs:
   writeTimeSeconds: 11779.08417224884
   writtenBytes: 1099511737890
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 202437377.02593565
   cumul_write_bw: 88547857.08743738
@@ -3901,8 +3901,8 @@ jobs:
   writeTimeSeconds: 18625.72073984146
   writtenBytes: 1649267658222
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 320
   cumul_read_bw: 56549631.29423069
   cumul_write_bw: 87062087.79943198
@@ -3931,8 +3931,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 16384
   cumul_read_bw: 102698981.47950031
   cumul_write_bw: 26621941.950243592
@@ -3961,8 +3961,8 @@ jobs:
   writeTimeSeconds: 82601.92222881317
   writtenBytes: 2199023578554
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 27345107.752490252
   cumul_write_bw: 15521617.284265356
@@ -3991,8 +3991,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 187464312.8929294
   cumul_write_bw: 25309336.756452616
@@ -4021,8 +4021,8 @@ jobs:
   writeTimeSeconds: 45641.69468212128
   writtenBytes: 1155161020845
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 178031884.14788648
   cumul_write_bw: 28311794.14956959
@@ -4051,8 +4051,8 @@ jobs:
   writeTimeSeconds: 40801.40640640259
   writtenBytes: 1155161019191
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 4096
   cumul_read_bw: 251975606.6828777
   cumul_write_bw: 0.0
@@ -4081,8 +4081,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 27169375.266752746
   cumul_write_bw: 15807861.21298882
@@ -4111,8 +4111,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 16384
   cumul_read_bw: 99948543.10201053
   cumul_write_bw: 24775670.045214046
@@ -4141,8 +4141,8 @@ jobs:
   writeTimeSeconds: 2773668.2006714344
   writtenBytes: 68719488154738
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1216
   cumul_read_bw: 38287619.37957791
   cumul_write_bw: 6131.68518991844
@@ -4171,8 +4171,8 @@ jobs:
   writeTimeSeconds: 36997594.510558605
   writtenBytes: 226857602323
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 77251122.5242719
   cumul_write_bw: 28256996.05875095
@@ -4201,8 +4201,8 @@ jobs:
   writeTimeSeconds: 39704.31096792221
   writtenBytes: 1121924558536
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 64484155.723634474
   cumul_write_bw: 30344998.298938006
@@ -4231,8 +4231,8 @@ jobs:
   writeTimeSeconds: 36972.30622982979
   writtenBytes: 1121924569652
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 23369460.259537425
   cumul_write_bw: 17076223.603303824
@@ -4261,8 +4261,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 23360596.876873996
   cumul_write_bw: 16233220.170800233
@@ -4291,8 +4291,8 @@ jobs:
   writeTimeSeconds: 9.37260127067566
   writtenBytes: 152147500
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 384
   cumul_read_bw: 7455095.888684254
   cumul_write_bw: 2049747.676470475
@@ -4321,8 +4321,8 @@ jobs:
   writeTimeSeconds: 8448.265214681625
   writtenBytes: 17316811994
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 352
   cumul_read_bw: 40784274.23432178
   cumul_write_bw: 1191835.424508974
@@ -4351,8 +4351,8 @@ jobs:
   writeTimeSeconds: 14529.532885074615
   writtenBytes: 17316811994
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 704
   cumul_read_bw: 9899445.802351316
   cumul_write_bw: 480141.3246014778
@@ -4381,8 +4381,8 @@ jobs:
   writeTimeSeconds: 36066.072855472565
   writtenBytes: 17316811994
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1408
   cumul_read_bw: 33314106.068370715
   cumul_write_bw: 241982.72758297765
@@ -4411,8 +4411,8 @@ jobs:
   writeTimeSeconds: 71562.16731238365
   writtenBytes: 17316808438
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 21753978.27313667
   cumul_write_bw: 15820302.61424605
@@ -4441,8 +4441,8 @@ jobs:
   writeTimeSeconds: 9.618801593780518
   writtenBytes: 152172352
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54288123.81946528
   cumul_write_bw: 97374176.14486991
@@ -4471,8 +4471,8 @@ jobs:
   writeTimeSeconds: 367.278306722641
   writtenBytes: 35763422533
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 167482.2682659587
   cumul_write_bw: 11162147.715076583
@@ -4501,8 +4501,8 @@ jobs:
   writeTimeSeconds: 1761.0217792987823
   writtenBytes: 19656785230
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 480
   cumul_read_bw: 33307372.638403717
   cumul_write_bw: 35509838.95717483
@@ -4531,8 +4531,8 @@ jobs:
   writeTimeSeconds: 6446.563927650452
   writtenBytes: 228916446898
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 143152.79951144665
   cumul_write_bw: 11037352.838191334
@@ -4561,8 +4561,8 @@ jobs:
   writeTimeSeconds: 8306.120509147644
   writtenBytes: 91677582776
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1920
   cumul_read_bw: 146399.26008537132
   cumul_write_bw: 1239033.7700928878
@@ -4591,8 +4591,8 @@ jobs:
   writeTimeSeconds: 73946.59787774086
   writtenBytes: 91622331954
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8570221.152535908
   cumul_write_bw: 4839371.018990002
@@ -4621,8 +4621,8 @@ jobs:
   writeTimeSeconds: 127.0143792629242
   writtenBytes: 614669706
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10696156.939069014
   cumul_write_bw: 17410877.94984107
@@ -4651,8 +4651,8 @@ jobs:
   writeTimeSeconds: 132.0128800868988
   writtenBytes: 2298460143
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11028285.132774545
   cumul_write_bw: 17603070.367669925
@@ -4681,8 +4681,8 @@ jobs:
   writeTimeSeconds: 130.57154774665833
   writtenBytes: 2298460143
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11785486.01140817
   cumul_write_bw: 17077157.9317727
@@ -4711,8 +4711,8 @@ jobs:
   writeTimeSeconds: 134.59266185760498
   writtenBytes: 2298460143
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11353997.578824531
   cumul_write_bw: 17846598.36152365
@@ -4741,8 +4741,8 @@ jobs:
   writeTimeSeconds: 128.78981733322144
   writtenBytes: 2298460143
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9270603.67214317
   cumul_write_bw: 17734849.100098677
@@ -4771,8 +4771,8 @@ jobs:
   writeTimeSeconds: 129.6012032032013
   writtenBytes: 2298457782
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9825490.246587036
   cumul_write_bw: 17606161.767248105
@@ -4801,8 +4801,8 @@ jobs:
   writeTimeSeconds: 130.548353433609
   writtenBytes: 2298455429
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10075355.7963035
   cumul_write_bw: 17727971.364493575
@@ -4831,8 +4831,8 @@ jobs:
   writeTimeSeconds: 129.65135049819946
   writtenBytes: 2298455429
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 31088944.273416594
   cumul_write_bw: 70684806.60678835
@@ -4861,8 +4861,8 @@ jobs:
   writeTimeSeconds: 858.5945384502411
   writtenBytes: 60689588904
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 18686724.186633214
   cumul_write_bw: 3929524.3326277626
@@ -4891,8 +4891,8 @@ jobs:
   writeTimeSeconds: 124.38659405708313
   writtenBytes: 488780148
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 52529181.05676384
   cumul_write_bw: 3905255.1703941217
@@ -4921,8 +4921,8 @@ jobs:
   writeTimeSeconds: 125.37101793289185
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 52613148.74222279
   cumul_write_bw: 3971676.8538699066
@@ -4951,8 +4951,8 @@ jobs:
   writeTimeSeconds: 123.27433323860168
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 50342452.06793626
   cumul_write_bw: 3903847.95807928
@@ -4981,8 +4981,8 @@ jobs:
   writeTimeSeconds: 125.41621017456055
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 66006050.611539766
   cumul_write_bw: 3954852.2913125404
@@ -5011,8 +5011,8 @@ jobs:
   writeTimeSeconds: 123.79876160621643
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 34312738.64368356
   cumul_write_bw: 3927518.4909619777
@@ -5041,8 +5041,8 @@ jobs:
   writeTimeSeconds: 124.66034650802612
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 46493163.82441788
   cumul_write_bw: 3962100.708720186
@@ -5071,8 +5071,8 @@ jobs:
   writeTimeSeconds: 123.57227945327759
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 49177605.49581947
   cumul_write_bw: 3910755.031451043
@@ -5101,8 +5101,8 @@ jobs:
   writeTimeSeconds: 125.1947033405304
   writtenBytes: 489605816
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 3098947.5015221117
   cumul_write_bw: 8794328.686522814
@@ -5131,8 +5131,8 @@ jobs:
   writeTimeSeconds: 155.9021713733673
   writtenBytes: 1371054938
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54293614.78882363
   cumul_write_bw: 74420132.0505317
@@ -5161,8 +5161,8 @@ jobs:
   writeTimeSeconds: 480.56114530563354
   writtenBytes: 35763423892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 52396399.31143029
   cumul_write_bw: 81299105.46574086
@@ -5191,8 +5191,8 @@ jobs:
   writeTimeSeconds: 439.89931440353394
   writtenBytes: 35763420756
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 0.0
   cumul_write_bw: 64164621.42018237
@@ -5221,8 +5221,8 @@ jobs:
   writeTimeSeconds: 8568.15899848938
   writtenBytes: 549772678406
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 480
   cumul_read_bw: 51267434.61973277
   cumul_write_bw: 77818050.40528043
@@ -5251,8 +5251,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 16384
   cumul_read_bw: 98364147.57626432
   cumul_write_bw: 28936850.996452004
@@ -5281,8 +5281,8 @@ jobs:
   writeTimeSeconds: 2887767.42099905
   writtenBytes: 83562895573858
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 16384
   cumul_read_bw: 7582074.071949078
   cumul_write_bw: 13613038.092076294
@@ -5311,8 +5311,8 @@ jobs:
   writeTimeSeconds: 4886525.878723383
   writtenBytes: 66520462924978
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 3734196.505714583
   cumul_write_bw: 16876379.93473234
@@ -5341,8 +5341,8 @@ jobs:
   writeTimeSeconds: 126.40873956680298
   writtenBytes: 2133321916
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 320
   cumul_read_bw: 12126121.44066109
   cumul_write_bw: 4087528.4123787517
@@ -5371,8 +5371,8 @@ jobs:
   writeTimeSeconds: 40.41701006889343
   writtenBytes: 165205677
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 3792044.878564043
   cumul_write_bw: 4184238.654444667
@@ -5401,8 +5401,8 @@ jobs:
   writeTimeSeconds: 716.1707425117493
   writtenBytes: 2996629304
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 32450229.232058287
   cumul_write_bw: 4416156.395850042
@@ -5431,8 +5431,8 @@ jobs:
   writeTimeSeconds: 678.6011366844177
   writtenBytes: 2996808750
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 50041523.17221846
   cumul_write_bw: 78772156.62983526
@@ -5461,8 +5461,8 @@ jobs:
   writeTimeSeconds: 454.01092076301575
   writtenBytes: 35763419362
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1600
   cumul_read_bw: 181597971.74036738
   cumul_write_bw: 354277.8476437225
@@ -5491,8 +5491,8 @@ jobs:
   writeTimeSeconds: 180345.28278565407
   writtenBytes: 63892338618
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11353613.545000417
   cumul_write_bw: 3860258.5977772055
@@ -5521,8 +5521,8 @@ jobs:
   writeTimeSeconds: 85.67973637580872
   writtenBytes: 330745939
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 51559589.284955435
   cumul_write_bw: 80647030.33969356
@@ -5551,8 +5551,8 @@ jobs:
   writeTimeSeconds: 443.456134557724
   writtenBytes: 35763420338
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 206327.24680250383
   cumul_write_bw: 95915.90876598332
@@ -5581,8 +5581,8 @@ jobs:
   writeTimeSeconds: 29748484.764739513
   writtenBytes: 2853352950621
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 123665.51122961748
   cumul_write_bw: 94905.93654032784
@@ -5611,8 +5611,8 @@ jobs:
   writeTimeSeconds: 22374761.268402576
   writtenBytes: 2123497673044
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 364198.8523104802
   cumul_write_bw: 142157.8675406627
@@ -5641,8 +5641,8 @@ jobs:
   writeTimeSeconds: 18045321.05765605
   writtenBytes: 2565284360643
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 62819.1758792253
   cumul_write_bw: 118431.29173499972
@@ -5671,8 +5671,8 @@ jobs:
   writeTimeSeconds: 14227619.001440287
   writtenBytes: 1684995296654
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 292684.0863561295
   cumul_write_bw: 124974.33091193413
@@ -5701,8 +5701,8 @@ jobs:
   writeTimeSeconds: 11821727.904277325
   writtenBytes: 1477412535060
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 200904.5034965035
   cumul_write_bw: 170705.8271976553
@@ -5731,8 +5731,8 @@ jobs:
   writeTimeSeconds: 10948360.152163982
   writtenBytes: 1868948876233
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 329170.80982711556
   cumul_write_bw: 114129.48316719012
@@ -5761,8 +5761,8 @@ jobs:
   writeTimeSeconds: 18543681.09755373
   writtenBytes: 2116380739681
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 217076.93969396938
   cumul_write_bw: 171101.54411217003
@@ -5791,8 +5791,8 @@ jobs:
   writeTimeSeconds: 11249795.280012846
   writtenBytes: 1924857343356
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 29547867.58907924
   cumul_write_bw: 5070928.098819269
@@ -5821,8 +5821,8 @@ jobs:
   writeTimeSeconds: 599.6544239521027
   writtenBytes: 3040804468
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 32707770.434288234
   cumul_write_bw: 4844077.273906098
@@ -5851,8 +5851,8 @@ jobs:
   writeTimeSeconds: 627.9174573421478
   writtenBytes: 3041680685
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9383239.68413682
   cumul_write_bw: 4382604.789855899
@@ -5881,8 +5881,8 @@ jobs:
   writeTimeSeconds: 188.97816109657288
   writtenBytes: 828216594
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 57848822.707849
   cumul_write_bw: 25707209.271520246
@@ -5911,8 +5911,8 @@ jobs:
   writeTimeSeconds: 28.478805780410767
   writtenBytes: 732110620
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 98702447.83089311
   cumul_write_bw: 24873082.695807848
@@ -5941,8 +5941,8 @@ jobs:
   writeTimeSeconds: 29.43385124206543
   writtenBytes: 732110616
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 50326075.73340517
   cumul_write_bw: 84853316.50797343
@@ -5971,8 +5971,8 @@ jobs:
   writeTimeSeconds: 421.4734582901001
   writtenBytes: 35763420756
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 31937464.395746842
   cumul_write_bw: 67648032.76263468
@@ -6001,8 +6001,8 @@ jobs:
   writeTimeSeconds: 897.5230438709259
   writtenBytes: 60715668277
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54565178.6210672
   cumul_write_bw: 80504133.02648817
@@ -6031,8 +6031,8 @@ jobs:
   writeTimeSeconds: 444.2432997226715
   writtenBytes: 35763421697
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 480
   cumul_read_bw: 16506148.59157129
   cumul_write_bw: 22859991.095838744
@@ -6061,8 +6061,8 @@ jobs:
   writeTimeSeconds: 7904.285934209824
   writtenBytes: 180691906075
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 84661503.2815268
   cumul_write_bw: 116836531.14518034
@@ -6091,8 +6091,8 @@ jobs:
   writeTimeSeconds: 6.266107559204102
   writtenBytes: 732110271
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 78166807.65920633
   cumul_write_bw: 107447501.9553516
@@ -6121,8 +6121,8 @@ jobs:
   writeTimeSeconds: 6.813655614852905
   writtenBytes: 732110275
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 112428434.364775
   cumul_write_bw: 99802.34045326998
@@ -6151,8 +6151,8 @@ jobs:
   writeTimeSeconds: 0.0
   writtenBytes: 0
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 3744404.4808832593
   cumul_write_bw: 5215466.9553746255
@@ -6181,8 +6181,8 @@ jobs:
   writeTimeSeconds: 116.00010299682617
   writtenBytes: 604994704
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4396789.132985138
   cumul_write_bw: 4402666.890547048
@@ -6211,8 +6211,8 @@ jobs:
   writeTimeSeconds: 703.0078418254852
   writtenBytes: 3095109349
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 104492241.315457
   cumul_write_bw: 8116868.580209357
@@ -6241,8 +6241,8 @@ jobs:
   writeTimeSeconds: 8399.674025058746
   writtenBytes: 68179050178
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 92624277.76607667
   cumul_write_bw: 5716431.944084232
@@ -6271,8 +6271,8 @@ jobs:
   writeTimeSeconds: 131202.2394695282
   writtenBytes: 750008672839
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5786969.018285234
   cumul_write_bw: 8015216.218077411
@@ -6301,8 +6301,8 @@ jobs:
   writeTimeSeconds: 385.4271705150604
   writtenBytes: 3089282108
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5464482.181816988
   cumul_write_bw: 7864844.404420005
@@ -6331,8 +6331,8 @@ jobs:
   writeTimeSeconds: 392.8158633708954
   writtenBytes: 3089435645
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6697448.216485088
   cumul_write_bw: 7854981.7173079755
@@ -6361,8 +6361,8 @@ jobs:
   writeTimeSeconds: 393.2186191082001
   writtenBytes: 3088725064
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6607696.318586067
   cumul_write_bw: 7984524.986009888
@@ -6391,8 +6391,8 @@ jobs:
   writeTimeSeconds: 386.83318424224854
   writtenBytes: 3088679225
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6268590.787320216
   cumul_write_bw: 11236227.643387845
@@ -6421,8 +6421,8 @@ jobs:
   writeTimeSeconds: 26.126079082489014
   writtenBytes: 293558572
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 2517880.9339253153
   cumul_write_bw: 4874954.778501434
@@ -6451,8 +6451,8 @@ jobs:
   writeTimeSeconds: 234.8955852985382
   writtenBytes: 1145105356
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 23565848.682931006
   cumul_write_bw: 72087805.54493089
@@ -6481,8 +6481,8 @@ jobs:
   writeTimeSeconds: 1.6536705493927002
   writtenBytes: 119209481
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 26158480.22962174
   cumul_write_bw: 115428659.59420912
@@ -6511,38 +6511,8 @@ jobs:
   writeTimeSeconds: 1.8766560554504395
   writtenBytes: 216619893
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
-  coresUsed: 8192
-  cumul_read_bw: 25596521.449833553
-  cumul_write_bw: 146404719.80341128
-  endTime: '2019-09-19T05:04:48'
-  id: '10364861'
-  metaTimeSeconds: 80.1829125881195
-  nodesUsed: 256
-  readBytes: 0
-  readTimeSeconds: 0.0
-  runs:
-  - dEndTime: 0
-    dStartTime: 0
-    id: 0
-    nprocs: 32
-    readBytes: 0
-    runtime: 0
-    sleepDelay: 18
-    writtenBytes: 314036341
-  runsCount: 1
-  runtimeSeconds: 80
-  sleepSimulationSeconds: 798
-  startTime: '1568862196'
-  submissionTime: '2019-09-19T05:00:27'
-  waitingTimeSeconds: 169
-  walltimeSeconds: 1800
-  writeTimeSeconds: 2.1449878215789795
-  writtenBytes: 314036341
-- category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5573059.454269251
   cumul_write_bw: 16085413.7947333
@@ -6571,8 +6541,8 @@ jobs:
   writeTimeSeconds: 121.7662091255188
   writtenBytes: 1958659860
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6457240.377478158
   cumul_write_bw: 6174101.109678471
@@ -6601,8 +6571,8 @@ jobs:
   writeTimeSeconds: 241.17434239387512
   writtenBytes: 1489034775
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 7744065.908466394
   cumul_write_bw: 6516960.59821431
@@ -6631,8 +6601,8 @@ jobs:
   writeTimeSeconds: 201.03699374198914
   writtenBytes: 1310150167
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6592117.421345667
   cumul_write_bw: 12439622.331991127
@@ -6661,8 +6631,8 @@ jobs:
   writeTimeSeconds: 26.096640825271606
   writtenBytes: 324632356
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54863104.08413894
   cumul_write_bw: 87192279.01690269
@@ -6691,8 +6661,8 @@ jobs:
   writeTimeSeconds: 410.1672751903534
   writtenBytes: 35763419502
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8067734.41406559
   cumul_write_bw: 7819378.239026832
@@ -6721,8 +6691,8 @@ jobs:
   writeTimeSeconds: 121.58154535293579
   writtenBytes: 950692090
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4567939.685131321
   cumul_write_bw: 11384172.739914436
@@ -6751,8 +6721,8 @@ jobs:
   writeTimeSeconds: 203.2292401790619
   writtenBytes: 2313596776
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6126352.499327845
   cumul_write_bw: 13046499.723159695
@@ -6781,8 +6751,8 @@ jobs:
   writeTimeSeconds: 163.5654854774475
   writtenBytes: 2133957061
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 55110636.72205632
   cumul_write_bw: 95388978.1847161
@@ -6811,8 +6781,8 @@ jobs:
   writeTimeSeconds: 374.2496144771576
   writtenBytes: 35699288311
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 480
   cumul_read_bw: 12890021.739396887
   cumul_write_bw: 133095142.63289902
@@ -6841,8 +6811,8 @@ jobs:
   writeTimeSeconds: 10716.334351539612
   writtenBytes: 1426292049020
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 16384
   cumul_read_bw: 169582090.61515564
   cumul_write_bw: 38162321.563874684
@@ -6871,8 +6841,8 @@ jobs:
   writeTimeSeconds: 24861.15185856819
   writtenBytes: 948759271675
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5597602.576853104
   cumul_write_bw: 17428515.212872587
@@ -6901,8 +6871,8 @@ jobs:
   writeTimeSeconds: 329.1337034702301
   writtenBytes: 5736311758
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5833716.635521575
   cumul_write_bw: 17577388.672349606
@@ -6931,8 +6901,8 @@ jobs:
   writeTimeSeconds: 326.34578013420105
   writtenBytes: 5736306619
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6698844.390383149
   cumul_write_bw: 17193270.29014435
@@ -6961,8 +6931,8 @@ jobs:
   writeTimeSeconds: 333.6379585266113
   writtenBytes: 5736327600
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 7363678.061295231
   cumul_write_bw: 17595165.923404302
@@ -6991,8 +6961,8 @@ jobs:
   writeTimeSeconds: 326.00569224357605
   writtenBytes: 5736124247
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6306374.643510639
   cumul_write_bw: 14798127.566170905
@@ -7021,8 +6991,8 @@ jobs:
   writeTimeSeconds: 132.05761528015137
   writtenBytes: 1954205437
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 52586953.10153718
   cumul_write_bw: 88918938.08440566
@@ -7051,8 +7021,8 @@ jobs:
   writeTimeSeconds: 402.20256900787354
   writtenBytes: 35763425331
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 35354586.49320791
   cumul_write_bw: 823421.6840326744
@@ -7081,8 +7051,8 @@ jobs:
   writeTimeSeconds: 6623.95584154129
   writtenBytes: 5454308874
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 85995864.84229876
   cumul_write_bw: 91914160.47515497
@@ -7111,8 +7081,8 @@ jobs:
   writeTimeSeconds: 7.939440965652466
   writtenBytes: 729747051
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54503628.31123015
   cumul_write_bw: 91771418.47687642
@@ -7141,8 +7111,8 @@ jobs:
   writeTimeSeconds: 388.3035113811493
   writtenBytes: 35635164039
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 512
   cumul_read_bw: 29448228.14244931
   cumul_write_bw: 75271875.57063168
@@ -7171,8 +7141,8 @@ jobs:
   writeTimeSeconds: 807.9454116821289
   writtenBytes: 60815566496
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 62417304.19103547
   cumul_write_bw: 106204920.2176254
@@ -7201,8 +7171,8 @@ jobs:
   writeTimeSeconds: 6.92211389541626
   writtenBytes: 735162554
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 83638749.10984941
   cumul_write_bw: 104468986.76078042
@@ -7231,8 +7201,8 @@ jobs:
   writeTimeSeconds: 6.985698699951172
   writtenBytes: 729788865
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4263691.98478087
   cumul_write_bw: 5877892.773022633
@@ -7261,8 +7231,8 @@ jobs:
   writeTimeSeconds: 289.0323829650879
   writtenBytes: 1698901355
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 7299389.17347168
   cumul_write_bw: 6439588.628057743
@@ -7291,8 +7261,8 @@ jobs:
   writeTimeSeconds: 362.42650389671326
   writtenBytes: 2333877593
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4356624.927252648
   cumul_write_bw: 19729154.949680887
@@ -7321,8 +7291,8 @@ jobs:
   writeTimeSeconds: 146.4835033416748
   writtenBytes: 2889995735
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 4509162.646435817
   cumul_write_bw: 10046161.701328602
@@ -7351,8 +7321,8 @@ jobs:
   writeTimeSeconds: 129.31158781051636
   writtenBytes: 1299085121
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 33657535.929773256
   cumul_write_bw: 9633868.674236681
@@ -7381,8 +7351,8 @@ jobs:
   writeTimeSeconds: 136.4278335571289
   writtenBytes: 1314327832
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 45503335.44214504
   cumul_write_bw: 18850216.193225343
@@ -7411,8 +7381,8 @@ jobs:
   writeTimeSeconds: 154.7959759235382
   writtenBytes: 2917937612
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54305248.7582199
   cumul_write_bw: 97226541.89919053
@@ -7441,8 +7411,8 @@ jobs:
   writeTimeSeconds: 365.8572356700897
   writtenBytes: 35571033853
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 54643156.54750627
   cumul_write_bw: 96872880.3016281
@@ -7471,8 +7441,8 @@ jobs:
   writeTimeSeconds: 367.63432216644287
   writtenBytes: 35613795686
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 27365077.152075116
   cumul_write_bw: 120895632.57983719
@@ -7501,8 +7471,8 @@ jobs:
   writeTimeSeconds: 10.398028135299683
   writtenBytes: 1257076189
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5225416.912897701
   cumul_write_bw: 22713591.53594457
@@ -7531,8 +7501,8 @@ jobs:
   writeTimeSeconds: 135.97575306892395
   writtenBytes: 3088497714
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 64
   cumul_read_bw: 723471384.9164358
   cumul_write_bw: 24387025.76448952
@@ -7561,8 +7531,8 @@ jobs:
   writeTimeSeconds: 1861.564929008484
   writtenBytes: 45398031886
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 39386735.50625971
   cumul_write_bw: 486968.4004188998
@@ -7591,8 +7561,8 @@ jobs:
   writeTimeSeconds: 11203.781315803528
   writtenBytes: 5455887466
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 7175128.055972386
   cumul_write_bw: 4951004.421343315
@@ -7621,8 +7591,8 @@ jobs:
   writeTimeSeconds: 124.15012645721436
   writtenBytes: 614667825
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 12230890.726693222
   cumul_write_bw: 17696321.446644567
@@ -7651,8 +7621,8 @@ jobs:
   writeTimeSeconds: 129.88350296020508
   writtenBytes: 2298460219
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10162521.55882243
   cumul_write_bw: 17622670.888985988
@@ -7681,8 +7651,8 @@ jobs:
   writeTimeSeconds: 130.42632603645325
   writtenBytes: 2298460219
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11490190.321111668
   cumul_write_bw: 17866572.867968723
@@ -7711,8 +7681,8 @@ jobs:
   writeTimeSeconds: 128.64570474624634
   writtenBytes: 2298457858
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10762531.969480677
   cumul_write_bw: 17516637.659104794
@@ -7741,8 +7711,8 @@ jobs:
   writeTimeSeconds: 131.21569919586182
   writtenBytes: 2298457858
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 12143967.160912015
   cumul_write_bw: 18080921.612470087
@@ -7771,8 +7741,8 @@ jobs:
   writeTimeSeconds: 127.12061405181885
   writtenBytes: 2298457858
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10758243.198235603
   cumul_write_bw: 18003234.323605202
@@ -7801,8 +7771,8 @@ jobs:
   writeTimeSeconds: 127.66903233528137
   writtenBytes: 2298455505
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9466919.104218682
   cumul_write_bw: 18062066.310030233
@@ -7831,8 +7801,8 @@ jobs:
   writeTimeSeconds: 127.25318717956543
   writtenBytes: 2298455505
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8172296.615452751
   cumul_write_bw: 4888029.633325503
@@ -7861,8 +7831,8 @@ jobs:
   writeTimeSeconds: 125.75010466575623
   writtenBytes: 614670238
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10444600.21065129
   cumul_write_bw: 17759382.129083857
@@ -7891,8 +7861,8 @@ jobs:
   writeTimeSeconds: 129.42230772972107
   writtenBytes: 2298460219
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10605650.761876183
   cumul_write_bw: 17911510.64643659
@@ -7921,8 +7891,8 @@ jobs:
   writeTimeSeconds: 128.3230803012848
   writtenBytes: 2298460219
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10745565.368685879
   cumul_write_bw: 17845744.16983404
@@ -7951,8 +7921,8 @@ jobs:
   writeTimeSeconds: 128.7958538532257
   writtenBytes: 2298457858
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11887170.536735343
   cumul_write_bw: 17951335.28201666
@@ -7981,8 +7951,8 @@ jobs:
   writeTimeSeconds: 128.03826689720154
   writtenBytes: 2298457858
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11074080.314113056
   cumul_write_bw: 17927934.50371693
@@ -8011,8 +7981,8 @@ jobs:
   writeTimeSeconds: 128.20526003837585
   writtenBytes: 2298455505
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9296631.93784719
   cumul_write_bw: 17857769.678787414
@@ -8041,8 +8011,8 @@ jobs:
   writeTimeSeconds: 128.70899033546448
   writtenBytes: 2298455505
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 10466531.912263872
   cumul_write_bw: 17796041.37677904
@@ -8071,8 +8041,8 @@ jobs:
   writeTimeSeconds: 129.15543723106384
   writtenBytes: 2298455505
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 53047337.958714515
   cumul_write_bw: 98056683.16954347
@@ -8101,38 +8071,8 @@ jobs:
   writeTimeSeconds: 362.97799348831177
   writtenBytes: 35592418105
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
-  coresUsed: 1024
-  cumul_read_bw: 61347543.19716008
-  cumul_write_bw: 136924054.4897609
-  endTime: '2019-09-21T13:29:58'
-  id: '10376212'
-  metaTimeSeconds: 3.8157849311828613
-  nodesUsed: 32
-  readBytes: 0
-  readTimeSeconds: 0.0
-  runs:
-  - dEndTime: 0
-    dStartTime: 0
-    id: 0
-    nprocs: 32
-    readBytes: 0
-    runtime: 0
-    sleepDelay: 9
-    writtenBytes: 729757440
-  runsCount: 1
-  runtimeSeconds: 80
-  sleepSimulationSeconds: 2
-  startTime: '1569065312'
-  submissionTime: '2019-09-21T02:31:35'
-  waitingTimeSeconds: 39417
-  walltimeSeconds: 300
-  writeTimeSeconds: 5.329651117324829
-  writtenBytes: 729757440
-- category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 21725645.75578075
   cumul_write_bw: 3922321.354575479
@@ -8161,8 +8101,8 @@ jobs:
   writeTimeSeconds: 124.61513471603394
   writtenBytes: 488780604
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 53653808.312349774
   cumul_write_bw: 3974431.431055384
@@ -8191,8 +8131,8 @@ jobs:
   writeTimeSeconds: 123.18891406059265
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 66491904.92485217
   cumul_write_bw: 3958648.476004981
@@ -8221,8 +8161,8 @@ jobs:
   writeTimeSeconds: 123.6800627708435
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 46839583.262405686
   cumul_write_bw: 3928411.2181937336
@@ -8251,8 +8191,8 @@ jobs:
   writeTimeSeconds: 124.63203692436218
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 62120947.128221765
   cumul_write_bw: 3888547.121209795
@@ -8281,8 +8221,8 @@ jobs:
   writeTimeSeconds: 125.90972328186035
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 48675638.77198203
   cumul_write_bw: 3910760.404958572
@@ -8311,8 +8251,8 @@ jobs:
   writeTimeSeconds: 125.19455075263977
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 23766560.68667117
   cumul_write_bw: 3947962.612728743
@@ -8341,8 +8281,8 @@ jobs:
   writeTimeSeconds: 124.01482486724854
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 56646397.41876457
   cumul_write_bw: 3986479.641239513
@@ -8371,8 +8311,8 @@ jobs:
   writeTimeSeconds: 122.81660413742065
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 20229859.106428593
   cumul_write_bw: 3962089.888893582
@@ -8401,8 +8341,8 @@ jobs:
   writeTimeSeconds: 123.36435914039612
   writtenBytes: 488780680
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 51703421.33692769
   cumul_write_bw: 3946011.2197581343
@@ -8431,8 +8371,8 @@ jobs:
   writeTimeSeconds: 124.07615303993225
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 36112004.334926575
   cumul_write_bw: 3939951.4106220137
@@ -8461,8 +8401,8 @@ jobs:
   writeTimeSeconds: 124.26698732376099
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 45809964.55179467
   cumul_write_bw: 3869646.399837345
@@ -8491,8 +8431,8 @@ jobs:
   writeTimeSeconds: 126.52471089363098
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 49009757.15131979
   cumul_write_bw: 3953539.4231563453
@@ -8521,8 +8461,8 @@ jobs:
   writeTimeSeconds: 123.83989119529724
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 50566108.93103881
   cumul_write_bw: 3888489.34282571
@@ -8551,8 +8491,8 @@ jobs:
   writeTimeSeconds: 125.91159415245056
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 50734729.09416692
   cumul_write_bw: 3973199.227500261
@@ -8581,8 +8521,8 @@ jobs:
   writeTimeSeconds: 123.22711849212646
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 55180569.58993763
   cumul_write_bw: 3941896.6846551257
@@ -8611,8 +8551,8 @@ jobs:
   writeTimeSeconds: 124.20566320419312
   writtenBytes: 489605892
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 2530455.434398037
   cumul_write_bw: 9805958.644616544
@@ -8641,8 +8581,8 @@ jobs:
   writeTimeSeconds: 24.842204809188843
   writtenBytes: 243601633
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8195746.2803323865
   cumul_write_bw: 9569578.98612589
@@ -8671,8 +8611,8 @@ jobs:
   writeTimeSeconds: 354.01056241989136
   writtenBytes: 3387732039
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5206583.799454407
   cumul_write_bw: 9502054.65141387
@@ -8701,8 +8641,8 @@ jobs:
   writeTimeSeconds: 356.5261061191559
   writtenBytes: 3387730545
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8267037.169634586
   cumul_write_bw: 9538951.571574187
@@ -8731,8 +8671,8 @@ jobs:
   writeTimeSeconds: 355.14678144454956
   writtenBytes: 3387727949
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6764731.025662179
   cumul_write_bw: 11977307.429543726
@@ -8761,8 +8701,8 @@ jobs:
   writeTimeSeconds: 647.197146654129
   writtenBytes: 7751679193
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 7395383.756994093
   cumul_write_bw: 12022545.378888445
@@ -8791,8 +8731,8 @@ jobs:
   writeTimeSeconds: 644.7618744373322
   writtenBytes: 7751678894
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8418616.966638206
   cumul_write_bw: 11877107.872610379
@@ -8821,8 +8761,8 @@ jobs:
   writeTimeSeconds: 652.6582958698273
   writtenBytes: 7751692984
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 9371676.819153167
   cumul_write_bw: 12071224.216000412
@@ -8851,8 +8791,8 @@ jobs:
   writeTimeSeconds: 642.1627216339111
   writtenBytes: 7751690196
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 5007353.926220751
   cumul_write_bw: 12245006.091690814
@@ -8881,8 +8821,8 @@ jobs:
   writeTimeSeconds: 633.0484929084778
   writtenBytes: 7751682652
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 7577576.772142432
   cumul_write_bw: 8967058.390262183
@@ -8911,8 +8851,8 @@ jobs:
   writeTimeSeconds: 49.374794244766235
   writtenBytes: 442746663
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 3015152.91030434
   cumul_write_bw: 8402252.869269747
@@ -8941,8 +8881,8 @@ jobs:
   writeTimeSeconds: 52.69167375564575
   writtenBytes: 442728767
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 2401363.0243380778
   cumul_write_bw: 11225418.662798503
@@ -8971,8 +8911,8 @@ jobs:
   writeTimeSeconds: 23.783977508544922
   writtenBytes: 266985105
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 8192
   cumul_read_bw: 27220600.5671403
   cumul_write_bw: 131750490.34671578
@@ -9001,8 +8941,8 @@ jobs:
   writeTimeSeconds: 9.44895315170288
   writtenBytes: 1244904211
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 2100987.012084998
   cumul_write_bw: 8647423.034461098
@@ -9031,8 +8971,8 @@ jobs:
   writeTimeSeconds: 58.8498694896698
   writtenBytes: 508899717
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 3889423.0227060737
   cumul_write_bw: 9047580.488335349
@@ -9061,8 +9001,8 @@ jobs:
   writeTimeSeconds: 56.249117612838745
   writtenBytes: 508918419
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11883069.120525425
   cumul_write_bw: 12656105.35498643
@@ -9091,8 +9031,8 @@ jobs:
   writeTimeSeconds: 55.23291015625
   writtenBytes: 699033530
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 13604773.16495608
   cumul_write_bw: 12988857.733122772
@@ -9121,8 +9061,8 @@ jobs:
   writeTimeSeconds: 53.81913447380066
   writtenBytes: 699049081
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 44577961.360010676
   cumul_write_bw: 9084805.360690106
@@ -9151,8 +9091,8 @@ jobs:
   writeTimeSeconds: 376.51330614089966
   writtenBytes: 3420550102
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8367364.343294504
   cumul_write_bw: 8930760.806243595
@@ -9181,8 +9121,8 @@ jobs:
   writeTimeSeconds: 382.8305094242096
   writtenBytes: 3418967709
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 33170923.15752171
   cumul_write_bw: 8963733.28852505
@@ -9211,8 +9151,8 @@ jobs:
   writeTimeSeconds: 381.5992121696472
   writtenBytes: 3420553561
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 128
   cumul_read_bw: 52684933.28723689
   cumul_write_bw: 69089033.53454836
@@ -9241,8 +9181,8 @@ jobs:
   writeTimeSeconds: 187.06965112686157
   writtenBytes: 12924461400
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 16384
   cumul_read_bw: 29188690.822086822
   cumul_write_bw: 85034560.36045137
@@ -9271,8 +9211,8 @@ jobs:
   writeTimeSeconds: 44.469517946243286
   writtenBytes: 3781445908
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 1024
   cumul_read_bw: 67467607.01703383
   cumul_write_bw: 51121577.54830058
@@ -9301,8 +9241,8 @@ jobs:
   writeTimeSeconds: 14.274713516235352
   writtenBytes: 729745874
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 2592644.0224047783
   cumul_write_bw: 10297692.981545348
@@ -9331,8 +9271,8 @@ jobs:
   writeTimeSeconds: 34.67387080192566
   writtenBytes: 357060876
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 2610831.1974543477
   cumul_write_bw: 10517747.257314041
@@ -9361,8 +9301,8 @@ jobs:
   writeTimeSeconds: 33.94842481613159
   writtenBytes: 357060952
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 3702528.2352749966
   cumul_write_bw: 10503351.14986635
@@ -9391,8 +9331,8 @@ jobs:
   writeTimeSeconds: 35.599236249923706
   writtenBytes: 373911279
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 6132116.889326629
   cumul_write_bw: 11288096.404928206
@@ -9421,8 +9361,8 @@ jobs:
   writeTimeSeconds: 36.42063331604004
   writtenBytes: 411119620
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 11110192.297981514
   cumul_write_bw: 10760683.386509232
@@ -9451,8 +9391,8 @@ jobs:
   writeTimeSeconds: 35.33191418647766
   writtenBytes: 380195542
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8801356.99195683
   cumul_write_bw: 10407695.863318183
@@ -9481,8 +9421,8 @@ jobs:
   writeTimeSeconds: 35.088077783584595
   writtenBytes: 365186042
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 8847511.80012978
   cumul_write_bw: 10825085.775282986
@@ -9511,8 +9451,8 @@ jobs:
   writeTimeSeconds: 33.73517084121704
   writtenBytes: 365186118
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 49320135.32929227
   cumul_write_bw: 11893694.989032315
@@ -9541,8 +9481,8 @@ jobs:
   writeTimeSeconds: 657.052324295044
   writtenBytes: 7814779937
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 93193002.16930252
   cumul_write_bw: 11828261.311846115
@@ -9571,8 +9511,8 @@ jobs:
   writeTimeSeconds: 660.687097787857
   writtenBytes: 7814779638
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 79028180.86576512
   cumul_write_bw: 11864826.74854234
@@ -9601,8 +9541,8 @@ jobs:
   writeTimeSeconds: 658.6519470214844
   writtenBytes: 7814791239
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 90205934.50680014
   cumul_write_bw: 11831405.60101315
@@ -9631,8 +9571,8 @@ jobs:
   writeTimeSeconds: 660.5124702453613
   writtenBytes: 7814790940
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 74139420.26318374
   cumul_write_bw: 11761659.478329105
@@ -9661,8 +9601,8 @@ jobs:
   writeTimeSeconds: 664.4286386966705
   writtenBytes: 7814783396
 - category: -1
-  coreHoursReq: 0
-  coreHoursUsed: 0
+  coreHoursReq: 1
+  coreHoursUsed: 1
   coresUsed: 256
   cumul_read_bw: 2730007.649976348
   cumul_write_bw: 9593252.829562474
