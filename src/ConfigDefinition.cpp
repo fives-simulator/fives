@@ -63,23 +63,11 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
         rhs.net.bw_backbone_ctrl = ynode["network"]["bandwidth_backbone_ctrl"].as<std::string>();
         rhs.net.link_latency = ynode["network"]["link_latency"].as<std::string>();
 
-        // Dragonfly
-        rhs.compute.d_groups = ynode["dragonfly"]["groups"].as<int>();
-        rhs.compute.d_group_links = ynode["dragonfly"]["group_links"].as<int>();
-        rhs.compute.d_chassis = ynode["dragonfly"]["chassis"].as<int>();
-        rhs.compute.d_chassis_links = ynode["dragonfly"]["chassis_links"].as<int>();
-        rhs.compute.d_routers = ynode["dragonfly"]["routers"].as<int>();
-        rhs.compute.d_router_links = ynode["dragonfly"]["router_links"].as<int>();
-        rhs.compute.d_nodes = ynode["dragonfly"]["nodes"].as<int>();
-        rhs.compute.max_compute_nodes = ynode["dragonfly"]["max_compute_nodes"].as<unsigned int>();
-        rhs.compute.core_count = ynode["dragonfly"]["core_count"].as<int>();
-        rhs.compute.ram = ynode["dragonfly"]["ram"].as<unsigned int>();
-        rhs.compute.flops = ynode["dragonfly"]["flops"].as<std::string>();
-        rhs.compute.local_storage = ynode["dragonfly"]["node_local_storage"]["enabled"].as<bool>();
-        rhs.compute.ls_disks = ynode["dragonfly"]["node_local_storage"]["nb_disks"].as<int>();
-        rhs.compute.ls_disks_capa = ynode["dragonfly"]["node_local_storage"]["capacity"].as<std::string>();
-        rhs.compute.ls_disks_read_bw = ynode["dragonfly"]["node_local_storage"]["read_bw"].as<std::string>();
-        rhs.compute.ls_disks_write_bw = ynode["dragonfly"]["node_local_storage"]["write_bw"].as<std::string>();
+        // Torus
+        rhs.compute.max_compute_nodes = ynode["torus"]["max_compute_nodes"].as<unsigned int>();
+        rhs.compute.core_count = ynode["torus"]["core_count"].as<int>();
+        rhs.compute.ram = ynode["torus"]["ram"].as<unsigned int>();
+        rhs.compute.flops = ynode["torus"]["flops"].as<std::string>();
 
         // Storage system (PFS)
         rhs.stor.read_variability = ynode["storage"]["read_variability"].as<float>();

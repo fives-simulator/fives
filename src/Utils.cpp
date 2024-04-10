@@ -82,7 +82,7 @@ namespace fives {
         YAML::Node config = YAML::LoadFile(yaml_file_path);
         WRENCH_INFO("Opening config file %s", yaml_file_path.c_str());
 
-        if (!(config["general"]) or !(config["dragonfly"]) or !(config["storage"])) {
+        if (!(config["general"]) or !(config["torus"]) or !(config["storage"])) {
             std::cout << "# Invalid config file, missing one or many sections." << std::endl;
             throw std::invalid_argument("Invalid config file, missing one or many sections.");
         }

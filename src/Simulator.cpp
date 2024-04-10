@@ -65,10 +65,9 @@ namespace fives {
     std::shared_ptr<wrench::BatchComputeService> instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
                                                                             std::shared_ptr<Config> config) {
         std::vector<std::string> compute_nodes;
-        auto nb_compute_nodes = config->compute.d_nodes * config->compute.d_routers * config->compute.d_chassis * config->compute.d_groups;
-        WRENCH_INFO("Dragonfly has %d available compute nodes, and config set limit is %u", nb_compute_nodes, config->compute.max_compute_nodes);
-        for (unsigned int i = 0; i < nb_compute_nodes && i < config->compute.max_compute_nodes; i++) {
+        for (unsigned int i = 0; i < config->compute.max_compute_nodes; i++) {
             compute_nodes.push_back("compute" + std::to_string(i));
+            // compute_nodes.push_back("compute" + std::to_string(i) + "_1");
         }
         auto batch_service = simulation->add(new wrench::BatchComputeService(
             BATCH, compute_nodes, "",
@@ -93,6 +92,7 @@ namespace fives {
         // Default log settings for a few components
         xbt_log_control_set("fives_jobs.thres:warning");
         xbt_log_control_set("fives_config.thres:info");
+        xbt_log_control_set("fives_main.thres:info");
 
         if (argc < 4) {
             std::cout << "##########################################################################" << std::endl;
@@ -140,11 +140,13 @@ namespace fives {
         simulation->init(&argc, argv);
 
         /* Instantiating the simulated platform with user-provided config */
+        WRENCH_INFO("Instantiating platform...");
         auto platform_factory = PlatformFactory(config);
         simulation->instantiatePlatform(platform_factory);
         simulation->getOutput().enableDiskTimestamps(true);
 
         /* Simple storage services and compound storage service */
+        WRENCH_INFO(" - Instantiating individual storage services...");
         auto sstorageservices = fives::instantiateStorageServices(simulation, config);
 
         /**
@@ -166,6 +168,7 @@ namespace fives {
             return allocator(file, resources, mapping, previous_allocations, stripe_count);
         };
 
+        WRENCH_INFO(" - Instantiating CSS...");
         /* Compound storage service*/
         auto compound_storage_service = simulation->add(
             new wrench::CompoundStorageService(
@@ -186,6 +189,7 @@ namespace fives {
                 PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
         /* Batch compute service */
+        WRENCH_INFO(" - Instantiating individual compute services and BatchComputeService...");
         auto batch_service = fives::instantiateComputeServices(simulation, config);
 
         /* Execution controller */
