@@ -1,0 +1,185 @@
+base_config:
+  allocator: lustre
+  dragonfly:
+    chassis: 6
+    chassis_links: 1
+    core_count: 64
+    flops: 2Tf
+    group_links: 1
+    groups: 12
+    max_compute_nodes: 4392
+    node_local_storage:
+      capacity: 128
+      enabled: false
+      nb_disks: 1
+      read_bw: 2500
+      write_bw: 2500
+    nodes: 4
+    ram: 192
+    router_links: 1
+    routers: 16
+  general:
+    allowed_failure_percent: 0.1
+    config_name: StorAlloc_Theta_Lustre_fs0
+    config_version: 0.0.1
+    max_stripe_size: 100048576
+    preload_percent: 0
+    walltime_extension: 1.0
+  lustre:
+    lq_prio_free: 232
+    lq_threshold_rr: 43
+    max_chunks_per_ost: 56
+    stripe_count: 1
+    stripe_count_high_read_add: 4
+    stripe_count_high_thresh_read: 200000000
+    stripe_count_high_thresh_write: 200000000
+    stripe_count_high_write_add: 3
+    stripe_size: 50000000
+  network:
+    bandwidth_backbone: 9TBps
+    bandwidth_backbone_ctrl: 12.5GBps
+    bandwidth_backbone_perm_storage: 80GBps
+    bandwidth_backbone_storage: 200GBps
+    link_latency: 24us
+  outputs:
+    io_actions_prefix: io_actions_ts_
+    job_filename_prefix: simulatedJobs_
+    storage_svc_prefix: storage_services_operations_
+  permanent_storage:
+    capacity: 3050TB
+    disk_id: perm_disk0
+    io_buffer_size: 268435456B
+    mount_prefix: /dev/disk0
+    read_bw: 20GBps
+    read_path: read/
+    write_bw: 10GBps
+    write_path: write/
+  storage:
+    cleanup_threshold: 0.45
+    io_buffer_size: 268435456B
+    nb_files_per_read: 2
+    nb_files_per_write: 2
+    nodes:
+    - quantity: 56
+      template:
+        disks:
+        - quantity: 1
+          template:
+            capacity: 164000
+            id: raid_OSS
+            mount_prefix: /dev/hdd
+            read_bw: 2500
+            write_bw: 1400
+        id: lustre_OSS
+    non_linear_coef_read: 9
+    non_linear_coef_write: 12
+    read_bytes_preload_thres: 0
+    read_node_thres: 20000000
+    read_variability: 1.0
+    static_read_overhead_seconds: 0
+    static_write_overhead_seconds: 0
+    write_bytes_copy_thres: 0
+    write_node_thres: 18000000
+    write_variability: 1.0
+calibration_dataset: theta2022_aggMonth11_cat1
+failed_calibration_runs: 3
+iterations: 50
+params:
+- bounds:
+  - 1
+  - 25
+  name: nb_files_per_read
+  type: range
+  value_type: int
+- bounds:
+  - 1000000.0
+  - 100000000.0
+  name: stripe_count_high_thresh_read
+  type: range
+  value_type: int
+- bounds:
+  - 1000000.0
+  - 50000000.0
+  name: read_node_thres
+  type: range
+  value_type: int
+- bounds:
+  - 1
+  - 6
+  name: stripe_count_high_read_add
+  type: range
+  value_type: int
+- bounds:
+  - 1000
+  - 4300
+  name: disk_rb
+  type: range
+  value_type: int
+- bounds:
+  - 1
+  - 100
+  digits: 1
+  name: non_linear_coef_read
+  type: range
+  value_type: float
+- bounds:
+  - 0
+  - 4
+  name: static_read_overhead_seconds
+  type: range
+  value_type: int
+- bounds:
+  - 1
+  - 25
+  name: nb_files_per_write
+  type: range
+  value_type: int
+- bounds:
+  - 1000000.0
+  - 100000000.0
+  name: stripe_count_high_thresh_write
+  type: range
+  value_type: int
+- bounds:
+  - 1000000.0
+  - 50000000.0
+  name: write_node_thres
+  type: range
+  value_type: int
+- bounds:
+  - 1
+  - 6
+  name: stripe_count_high_write_add
+  type: range
+  value_type: int
+- bounds:
+  - 500
+  - 3500
+  name: disk_wb
+  type: range
+  value_type: int
+- bounds:
+  - 1
+  - 100
+  digits: 1
+  name: non_linear_coef_write
+  type: range
+  value_type: float
+- bounds:
+  - 0
+  - 4
+  name: static_write_overhead_seconds
+  type: range
+  value_type: int
+- bounds:
+  - 8
+  - 256
+  name: max_chunks_per_ost
+  type: range
+  value_type: int
+- bounds:
+  - 100
+  - 240
+  name: bandwidth_backbone_storage
+  type: range
+  value_type: int
