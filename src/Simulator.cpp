@@ -130,7 +130,6 @@ namespace fives {
         configFilename = configFilename.substr(start, configFilename.find_last_of(".") - start);
 
         std::string jobFilename = argv[2];
-        auto header = std::make_shared<JobsStats>(loadYamlHeader(jobFilename));
         auto jobs = fives::loadYamlJobs(jobFilename);
         start = jobFilename.find_last_of("/") + 1;
         jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
@@ -190,7 +189,7 @@ namespace fives {
 
         /* Execution controller */
         auto ctrl = simulation->add(
-            new fives::Controller(batch_service, permanent_storage, compound_storage_service, USER, header, jobs, config));
+            new fives::Controller(batch_service, permanent_storage, compound_storage_service, USER, jobs, config));
 
         /* Start Wrench simulation */
         WRENCH_INFO("Starting simulation...");

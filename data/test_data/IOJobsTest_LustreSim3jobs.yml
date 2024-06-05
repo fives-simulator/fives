@@ -1,3 +1,4 @@
+---
 jobs:
 - coresUsed: 256
   coreHoursReq: 1280
@@ -153,33 +154,4 @@ jobs:
       dStartTime: 1672528285
       dEndTime: 1672529285
       runtime: 1000
-preload:        # Note : fake values mostly unrelated to the jobs in this dataset
-  duration: 603971
-  first_ts: 1646440956
-  job_count: 3
-  last_ts: 1647044927
-  max_interval_s: 61800
-  max_nodes_used: 2
-  max_read_tbytes: 148.428529082742
-  max_runtime_s: 8000
-  max_written_tbytes: 420.013449602251
-  mean_cores_used: 64
-  mean_interval_s: 15316
-  mean_jobs_per_hour: 2.43
-  mean_nodes_used: 2
-  mean_read_tbytes: 0.014
-  mean_runtime_s: 6666
-  mean_written_tbytes: 0.00633
-  median_cores_used: 8192
-  median_interval_s: 7500
-  median_nodes_used: 128
-  median_read_tbytes: 0.0105
-  median_runtime_s: 6300
-  median_written_tbytes: 0.0025
-  min_interval_s: 1
-  min_runtime_s: 38
-  var_interval_s: 453991388
-  var_nodes_used: 292152
-  var_read_tbytes: 0.162
-  var_runtime_s: 748888
-  var_written_tbytes: 0.069
+...

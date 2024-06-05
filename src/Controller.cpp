@@ -1,13 +1,4 @@
 /**
- * Copyright (c) 2017-2021. The WRENCH Team.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-
-/**
  ** An execution controller to execute a workflow
  **/
 
@@ -50,13 +41,11 @@ namespace fives {
                            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
                            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
                            const std::string &hostname,
-                           const std::shared_ptr<fives::JobsStats> &header,
-                           const std::vector<fives::YamlJob> &jobs,
+                           const std::map<std::string, YamlJob> &jobs,
                            const std::shared_ptr<fives::Config> &fives_config) : ExecutionController(hostname, "controller"),
                                                                                  compute_service(compute_service),
                                                                                  storage_service(storage_service),
                                                                                  compound_storage_service(compound_storage_service),
-                                                                                 preload_header(header),
                                                                                  jobs(jobs),
                                                                                  config(fives_config) {}
 
@@ -82,46 +71,34 @@ namespace fives {
 
         this->job_manager = this->createJobManager();
 
-        // Simulate 'fake' load before the actual dataset is used
-        auto preload_jobs = this->createPreloadJobs();
-
-        // Concat fake preload jobs with dataset
-        for (const auto &job : preload_jobs) {
-            this->jobsWithPreload[job.id] = job;
-        }
-        for (const auto &job : this->jobs) {
-            this->jobsWithPreload[job.id] = job;
-        }
-        preload_jobs.clear(); // no need for the extra memory footprint
-
-        this->preloadData(this->jobsWithPreload);
+        this->preloadData();
 
         auto total_events = 0;
         auto processed_events = 0;
-        for (const auto &yaml_entry : this->jobsWithPreload) {
+        for (const auto &yaml_entry : this->jobs) {
 
-            WRENCH_INFO("[%s] Setting %ds timer", yaml_entry.second.id.c_str(), yaml_entry.second.sleepSimulationSeconds);
+            WRENCH_INFO("[%s] Setting %ds timer", yaml_entry.first.c_str(), yaml_entry.second.sleepSimulationSeconds);
             double timer_off_date = wrench::Simulation::getCurrentSimulatedDate() + yaml_entry.second.sleepSimulationSeconds;
-            this->setTimer(timer_off_date, yaml_entry.first);
+            this->setTimer(timer_off_date, yaml_entry.first.c_str());
             total_events += 1;
 
             auto nextSubmission = false;
             while (!nextSubmission) {
-                WRENCH_INFO("[%s] Now waiting for next event...", yaml_entry.second.id.c_str());
+                WRENCH_INFO("[%s] Now waiting for next event...", yaml_entry.first.c_str());
                 auto event = this->waitForNextEvent();
                 processed_events += 1;
 
                 if (auto timer_event = std::dynamic_pointer_cast<wrench::TimerEvent>(event)) {
-                    WRENCH_INFO("[During loop for %s] Timer event received", yaml_entry.second.id.c_str());
+                    WRENCH_INFO("[During loop for %s] Timer event received", yaml_entry.first.c_str());
                     this->processEventTimer(timer_event);
                     total_events += 1; // job that was just submitted
                     nextSubmission = true;
-                    WRENCH_INFO("[During loop for %s] Timer event processed", yaml_entry.second.id.c_str());
+                    WRENCH_INFO("[During loop for %s] Timer event processed", yaml_entry.first.c_str());
                 } else if (auto completion_event = std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event)) {
-                    WRENCH_INFO("[During loop for %s] Job completed event received ()", yaml_entry.second.id.c_str());
+                    WRENCH_INFO("[During loop for %s] Job completed event received ()", yaml_entry.first.c_str());
                     this->processEventCompoundJobCompletion(completion_event);
                 } else if (auto failure_event = std::dynamic_pointer_cast<wrench::CompoundJobFailedEvent>(event)) {
-                    WRENCH_INFO("[During loop for %s] Job failure event received ()", yaml_entry.second.id.c_str());
+                    WRENCH_INFO("[During loop for %s] Job failure event received ()", yaml_entry.first.c_str());
                     this->processEventCompoundJobFailure(failure_event);
                 } else {
                     throw std::runtime_error("Unexpected Controller Event : " + event->toString());
@@ -188,17 +165,16 @@ namespace fives {
         return success;
     }
 
-    void Controller::preloadData(const std::map<std::string, fives::YamlJob> &job_map) {
+    void Controller::preloadData() {
 
-        for (const auto &map_entry : job_map) {
-            auto job = map_entry.second;
-            for (const auto &run : job.runs) {
+        for (const auto &job : this->jobs) {
+            for (const auto &run : job.second.runs) {
                 if ((run.readBytes > 0) and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
 
-                    unsigned int local_stripe_count = this->determineReadStripeCount(job.cumulReadBW);
+                    unsigned int local_stripe_count = this->determineReadStripeCount(job.second.cumulReadBW);
                     auto nb_read_files = determineReadFileCount(local_stripe_count);
 
-                    auto prefix = "pInputFile_id" + job.id + "_exec" + std::to_string(run.id);
+                    auto prefix = "pInputFile_id" + job.first + "_exec" + std::to_string(run.id);
                     WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
                     auto read_files = this->createFileParts(run.readBytes, nb_read_files, prefix);
 
@@ -209,132 +185,10 @@ namespace fives {
                         }
                     }
 
-                    this->preloadedData[job.id + "_" + std::to_string(run.id)] = read_files;
+                    this->preloadedData[job.first + "_" + std::to_string(run.id)] = read_files;
                 }
             }
         }
-    }
-
-    std::vector<fives::YamlJob> Controller::createPreloadJobs() const {
-
-        // How many preload jobs to create (20% of the total number of jobs):
-        unsigned int preloadJobsCount = std::ceil(this->preload_header->job_count * this->config->preload_percent);
-        if (preloadJobsCount == 0) {
-            WRENCH_INFO("No preloads jobs created (see configuration 'general.preload_percent' to adjust)");
-            return {};
-        }
-        WRENCH_INFO("Preparing %u preload jobs (see configuration 'general.preload_percent' to adjust)", preloadJobsCount);
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-
-        // Runtimes :
-        std::vector<int> rand_runtimes_s;
-        std::lognormal_distribution<> dr(
-            std::log(this->preload_header->mean_runtime_s / std::sqrt(this->preload_header->var_runtime_s / std::pow(this->preload_header->mean_runtime_s, 2) + 1)),
-            std::sqrt(std::log((this->preload_header->var_runtime_s / std::pow(this->preload_header->mean_runtime_s, 2)) + 1)));
-        while (rand_runtimes_s.size() != preloadJobsCount) {
-            auto val = std::floor(dr(gen));
-            if (val <= this->preload_header->max_runtime_s) {
-                rand_runtimes_s.push_back(val);
-            }
-        }
-
-        // Interval between jobs :
-        std::vector<int> rand_intervals_s;
-        std::lognormal_distribution<> di(
-            std::log(this->preload_header->mean_interval_s / std::sqrt(this->preload_header->var_interval_s / std::pow(this->preload_header->mean_interval_s, 2) + 1)),
-            std::sqrt(std::log((this->preload_header->var_interval_s / std::pow(this->preload_header->mean_interval_s, 2)) + 1)));
-        while (rand_intervals_s.size() != preloadJobsCount) {
-            auto val = std::floor(di(gen));
-            if (val <= this->preload_header->max_interval_s) {
-                rand_intervals_s.push_back(val);
-            }
-        }
-
-        // Nodes used:
-        std::vector<int> rand_nodes_count;
-        std::lognormal_distribution<> dn(
-            std::log(this->preload_header->mean_nodes_used / std::sqrt(this->preload_header->var_nodes_used / std::pow(this->preload_header->mean_nodes_used, 2) + 1)),
-            std::sqrt(std::log((this->preload_header->var_nodes_used / std::pow(this->preload_header->mean_nodes_used, 2)) + 1)));
-        while (rand_nodes_count.size() != preloadJobsCount) {
-            auto val = std::floor(dn(gen));
-            if (val <= this->preload_header->max_nodes_used) {
-                rand_nodes_count.push_back(val);
-            }
-        }
-
-        // Bytes READ
-        std::vector<double> rand_read_tbytes;
-        std::lognormal_distribution<> drb(
-            std::log(this->preload_header->mean_read_tbytes / std::sqrt(this->preload_header->var_read_tbytes / std::pow(this->preload_header->mean_read_tbytes, 2) + 1)),
-            std::sqrt(std::log((this->preload_header->var_read_tbytes / std::pow(this->preload_header->mean_read_tbytes, 2)) + 1)));
-        while (rand_read_tbytes.size() != preloadJobsCount) {
-            auto val = drb(gen);
-            if (val <= this->preload_header->max_read_tbytes) {
-                rand_read_tbytes.push_back(val);
-            }
-        }
-
-        // Bytes WRITTEN
-        std::vector<double> rand_written_tbytes;
-        std::lognormal_distribution<> dwb(
-            std::log(this->preload_header->mean_written_tbytes / std::sqrt(this->preload_header->var_written_tbytes / std::pow(this->preload_header->mean_written_tbytes, 2) + 1)),
-            std::sqrt(std::log((this->preload_header->var_written_tbytes / std::pow(this->preload_header->mean_written_tbytes, 2)) + 1)));
-        while (rand_written_tbytes.size() != preloadJobsCount) {
-            auto val = dwb(gen);
-            if (val <= this->preload_header->max_written_tbytes) {
-                rand_written_tbytes.push_back(val);
-            }
-        }
-
-        auto cores_per_node = this->compute_service->getPerHostNumCores().begin()->second;
-        std::vector<fives::YamlJob> preload_jobs;
-        unsigned int i = 0;
-        while (i < preloadJobsCount) {
-            fives::YamlJob job = {};
-
-            uint64_t read_bytes = rand_read_tbytes[i] * 1'000'000'000'000;
-            uint64_t written_bytes = rand_written_tbytes[i] * 1'000'000'000'000;
-
-            job.coreHoursReq = 0;                    // not used
-            job.coreHoursUsed = 0;                   // not used
-            job.endTime = "NA";                      // not used
-            job.id = "preload_" + std::to_string(i); // used to filter out jobs in the end.
-            job.metaTimeSeconds = 0;                 // not used
-            job.nodesUsed = rand_nodes_count[i];
-            job.readBytes = read_bytes; // converting back to bytes from terabytes
-            job.readTimeSeconds = 0;    // not used
-            job.runtimeSeconds = rand_runtimes_s[i] + written_bytes / 100000 + read_bytes / 200000;
-            job.sleepSimulationSeconds = rand_intervals_s[i]; // not used
-            job.startTime = "NA";                             // not used
-            job.submissionTime = "NA";                        // not used
-            job.waitingTimeSeconds = 0;                       // not used
-            job.walltimeSeconds = rand_runtimes_s[i] * 2 + written_bytes / 100000 + read_bytes / 200000;
-            job.writeTimeSeconds = 0;         // not used
-            job.writtenBytes = written_bytes; // converting back to bytes from terabytes
-            job.coresUsed = rand_nodes_count[i] * cores_per_node;
-
-            job.runs = std::vector<fives::DarshanRecord>();
-            DarshanRecord rec = {
-                .id = 1,
-                .nprocs = job.coresUsed,
-                .readBytes = read_bytes,
-                .writtenBytes = written_bytes,
-                .runtime = job.runtimeSeconds - 5,
-                .dStartTime = 0,
-                .dEndTime = 10,
-                .sleepDelay = 1,
-            };
-            job.runs.push_back(rec);
-
-            preload_jobs.push_back(job);
-            i++;
-        }
-
-        WRENCH_INFO("%u preload jobs created", preloadJobsCount);
-
-        return preload_jobs;
     }
 
     unsigned int Controller::determineReadNodeCount(unsigned int max_nodes, double cumul_read_bw,
@@ -408,14 +262,14 @@ namespace fives {
         return nb_files;
     }
 
-    void Controller::submitJob(std::string jobID) {
+    void Controller::submitJob(const std::string &jobID) {
 
-        auto yJob = this->jobsWithPreload[jobID];
-        auto parentJob = this->job_manager->createCompoundJob(yJob.id);
+        auto yJob = this->jobs.find(jobID)->second;
+        auto parentJob = this->job_manager->createCompoundJob(jobID);
         // Save job for future analysis (note : we'll need to find sub jobs one by one by ID)
-        this->compound_jobs[yJob.id] = std::make_pair(yJob, std::vector<std::shared_ptr<wrench::CompoundJob>>());
-        this->compound_jobs[yJob.id].second.push_back(parentJob);
-        WRENCH_INFO("[%s] Preparing parent job for submission", yJob.id.c_str());
+        this->compound_jobs[jobID] = std::make_pair(yJob, std::vector<std::shared_ptr<wrench::CompoundJob>>());
+        this->compound_jobs[jobID].second.push_back(parentJob);
+        WRENCH_INFO("[%s] Preparing parent job for submission", jobID.c_str());
 
         /* Used by cleanup part */
         // this->gen = std::mt19937(this->rd());

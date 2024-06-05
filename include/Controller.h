@@ -69,8 +69,7 @@ namespace fives {
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
-            const std::shared_ptr<fives::JobsStats> &header,
-            const std::vector<YamlJob> &jobs,
+            const std::map<std::string, YamlJob> &jobs,
             const std::shared_ptr<fives::Config> &fives_config);
 
         std::vector<std::shared_ptr<wrench::CompoundJob>> getCompletedJobsById(std::string id);
@@ -92,11 +91,9 @@ namespace fives {
 
         virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
 
-        virtual std::vector<fives::YamlJob> createPreloadJobs() const;
+        virtual void preloadData();
 
-        virtual void preloadData(const std::map<std::string, fives::YamlJob> &job_map);
-
-        virtual void submitJob(std::string jobID);
+        virtual void submitJob(const std::string &jobID);
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                                                                  std::shared_ptr<wrench::CompoundJob> copyJob,
@@ -173,19 +170,9 @@ namespace fives {
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
 
-        std::shared_ptr<fives::JobsStats> preload_header;
-
-        const std::vector<fives::YamlJob> &jobs;
-
-        std::map<std::string, fives::YamlJob> jobsWithPreload{}; // jobId, YamlJob
+        const std::map<std::string, fives::YamlJob> &jobs;
 
         std::map<std::string, std::vector<std::shared_ptr<wrench::DataFile>>> preloadedData;
-
-        std::random_device rd;
-
-        std::mt19937 gen; // (rd());
-
-        std::uniform_real_distribution<float> uni_dis; //(0, 1.0);
 
         std::shared_ptr<wrench::JobManager> job_manager;
 
