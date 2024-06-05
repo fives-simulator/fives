@@ -98,7 +98,7 @@ namespace fives {
      * @param yaml_file_path Path to the data file
      * @return Vector of parsed jobs
      */
-    std::vector<YamlJob> loadYamlJobs(const std::string &yaml_file_path) {
+    std::map<std::string, YamlJob> loadYamlJobs(const std::string &yaml_file_path) {
 
         YAML::Node dataset = YAML::LoadFile(yaml_file_path);
         if (!(dataset["jobs"]) or !(dataset["jobs"].IsSequence())) {
@@ -107,7 +107,7 @@ namespace fives {
         }
 
         const char *timedate_fm = "";
-        std::vector<YamlJob> job_list;
+        std::map<std::string, YamlJob> job_map;
         uint64_t previous_ts = 0;
         std::tm previous_date{};
 
@@ -121,7 +121,7 @@ namespace fives {
                 ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S"); // eg. '2022-10-01 03:42:52'
                 uint64_t ts = (t.tm_year - 2000) * 31536000 + t.tm_yday * 86400 + t.tm_hour * 3600 + t.tm_min * 60 + t.tm_sec;
                 if (ts >= previous_ts) {
-                    job_list.push_back(parsed_job);
+                    job_map[parsed_job.id] = parsed_job;
                     previous_ts = ts;
                     previous_date = t;
                 } else {
@@ -138,26 +138,8 @@ namespace fives {
             }
         }
 
-        WRENCH_INFO("Dataset loaded : %s -- %ld jobs", yaml_file_path.c_str(), job_list.size());
-        return job_list;
-    }
-
-    /**
-     * @brief Load header from job dataset (containing general statistics about the dataset)
-     * @param yaml_file_path Path to the data file
-     * @return Parsed header inside JobStats structure
-     */
-    JobsStats loadYamlHeader(const std::string &yaml_file_path) {
-
-        YAML::Node dataset = YAML::LoadFile(yaml_file_path);
-        if (!dataset["preload"]) {
-            WRENCH_WARN("# Missing preload header in job file");
-            throw std::invalid_argument("Missing preload header in job file");
-        }
-
-        auto parsed_header = dataset["preload"].as<JobsStats>();
-        WRENCH_INFO("Dataset header loaded from file %s", yaml_file_path.c_str());
-        return parsed_header;
+        WRENCH_INFO("Dataset loaded : %s -- %ld jobs", yaml_file_path.c_str(), job_map.size());
+        return job_map;
     }
 
 } // namespace fives

@@ -1710,33 +1710,4 @@ jobs:
   walltimeSeconds: 1800
   writeTimeSeconds: 0.0
   writtenBytes: 0
-preload:
-  duration: 597053
-  first_ts: 1642810494
-  job_count: 57
-  last_ts: 1643407547
-  max_interval_s: 17465
-  max_nodes_used: 512
-  max_read_tbytes: 2.197746404935
-  max_runtime_s: 7161
-  max_written_tbytes: 8.796093186203
-  mean_cores_used: 5669
-  mean_interval_s: 2608
-  mean_jobs_per_hour: 0.34
-  mean_nodes_used: 88
-  mean_read_tbytes: 0.03196848070035138
-  mean_runtime_s: 2384
-  mean_written_tbytes: 0.2976139045691551
-  median_cores_used: 8192
-  median_interval_s: 1037
-  median_nodes_used: 128
-  median_read_tbytes: 0.004785851164
-  median_runtime_s: 984
-  median_written_tbytes: 0.000786653184
-  min_interval_s: 4
-  min_runtime_s: 37
-  var_interval_s: 15557306
-  var_nodes_used: 8422
-  var_read_tbytes: 0.010593596390017763
-  var_runtime_s: 7583578
-  var_written_tbytes: 0.9746089834330811
+...

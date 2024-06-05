@@ -1,5 +1,4 @@
 exp_results
-*.ipynb
 .ipynb_checkpoints/
 *.pdf
 *.png

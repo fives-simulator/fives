@@ -953,7 +953,6 @@ TEST_F(FunctionalAllocTest, lustreFullSim_test) {
 void FunctionalAllocTest::lustreFullSim_test() {
     // # Start a simulation with all components as they would be in a real case
     auto config = std::make_shared<fives::Config>(fives::loadConfig(test::CONFIG_PATH + "lustre_config_hdd.yml"));
-    auto header = std::make_shared<fives::JobsStats>(fives::loadYamlHeader(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml"));
     auto jobs = fives::loadYamlJobs(test::DATA_PATH + "IOJobsTest_LustreSim3jobs.yml");
 
     auto simulation = wrench::Simulation::createSimulation();
@@ -997,7 +996,7 @@ void FunctionalAllocTest::lustreFullSim_test() {
             PERMANENT_STORAGE, {config->pstor.mount_prefix}, ss_params, {}));
 
     // Controler
-    auto ctrl = simulation->add(new fives::Controller(batch_service, permanent_storage, compound_storage_service, "user42", header, jobs, config));
+    auto ctrl = simulation->add(new fives::Controller(batch_service, permanent_storage, compound_storage_service, "user42", jobs, config));
 
     ASSERT_NO_THROW(simulation->launch());
 
