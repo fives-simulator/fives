@@ -129,11 +129,6 @@ namespace fives {
         auto start = configFilename.find_last_of("/") + 1;
         configFilename = configFilename.substr(start, configFilename.find_last_of(".") - start);
 
-        std::string jobFilename = argv[2];
-        auto jobs = fives::loadYamlJobs(jobFilename);
-        start = jobFilename.find_last_of("/") + 1;
-        jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
-
         /* Create a WRENCH simulation object */
         auto simulation = wrench::Simulation::createSimulation();
         simulation->init(&argc, argv);
@@ -142,6 +137,17 @@ namespace fives {
         auto platform_factory = PlatformFactory(config);
         simulation->instantiatePlatform(platform_factory);
         simulation->getOutput().enableDiskTimestamps(true);
+
+        std::string jobFilename = argv[2];
+        // Dirty hidden command 0.0
+        if (jobFilename == "describe") {
+            // Output platform description and exit
+            describe_platform();
+            return 0;
+        }
+        auto jobs = fives::loadYamlJobs(jobFilename);
+        start = jobFilename.find_last_of("/") + 1;
+        jobFilename = jobFilename.substr(start, jobFilename.find_last_of(".") - start);
 
         /* Simple storage services and compound storage service */
         auto sstorageservices = fives::instantiateStorageServices(simulation, config);

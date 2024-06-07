@@ -102,7 +102,7 @@ bool YAML::convert<fives::YamlJob>::decode(const YAML::Node &node, fives::YamlJo
     rhs.coreHoursReq = node["coreHoursReq"].as<double>();
     rhs.coreHoursUsed = node["coreHoursUsed"].as<double>();
     if (rhs.coreHoursUsed == 0) {
-        WRENCH_WARN("coreHoursUsed <= 0 for job %s This might be a data error in the dataset", rhs.id.c_str());
+        WRENCH_WARN("coreHoursUsed <= 0 for job %s", rhs.id.c_str());
     }
     rhs.nodesUsed = node["nodesUsed"].as<unsigned int>();
     if (rhs.nodesUsed == 0) {
@@ -113,15 +113,21 @@ bool YAML::convert<fives::YamlJob>::decode(const YAML::Node &node, fives::YamlJo
     // Total io operations sizes and durations.
     rhs.readBytes = node["readBytes"].as<uint64_t>();
     rhs.writtenBytes = node["writtenBytes"].as<uint64_t>();
-    if ((rhs.readBytes == 0) or rhs.writtenBytes == 0)
-        WRENCH_INFO("read or written bytes == 0 for job %s", rhs.id.c_str());
+    if ((rhs.readBytes == 0) and (rhs.writtenBytes == 0)) {
+        WRENCH_WARN("read and written bytes == 0 for job %s", rhs.id.c_str());
+        return false;
+    }
     rhs.readTimeSeconds = node["readTimeSeconds"].as<double>();
     rhs.writeTimeSeconds = node["writeTimeSeconds"].as<double>();
     rhs.metaTimeSeconds = node["metaTimeSeconds"].as<double>();
+    if ((rhs.readTimeSeconds < 0) or (rhs.writeTimeSeconds < 0) or (rhs.metaTimeSeconds < 0)) {
+        WRENCH_WARN("read, written or meta time < 0 for job %s", rhs.id.c_str());
+        return false;
+    }
 
     rhs.runtimeSeconds = node["runtimeSeconds"].as<unsigned int>();
     if (rhs.runtimeSeconds == 0) {
-        WRENCH_WARN("runtimeSeconds <= 0 for job %s", rhs.id.c_str());
+        WRENCH_WARN("runtimeSeconds == 0 for job %s", rhs.id.c_str());
         return false;
     }
 
