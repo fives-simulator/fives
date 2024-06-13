@@ -111,6 +111,20 @@ namespace fives {
         uint64_t read_node_thres;
         uint64_t write_node_thres;
 
+        // Parameters for Gompertz function used to determine how many
+        // nodes are participating in the I/O operations of a job.
+        float read_node_inflection_param; // Typically between 1 and 10000
+        float read_node_rate_param;       // TYpically between 1e-2 and 1
+        float write_node_inflection_param;
+        float write_node_rate_param;
+
+        // Parameters for Gompertz function used to determine how many
+        // nodes are participating in the I/O operations of a job.
+        float read_sc_inflection_param; // Typically between 1 and 10000
+        float read_sc_rate_param;       // TYpically between 1e-2 and 1
+        float write_sc_inflection_param;
+        float write_sc_rate_param;
+
         std::string io_buffer_size;
 
         uint64_t read_bytes_preload_thres;

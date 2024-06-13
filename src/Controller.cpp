@@ -191,58 +191,86 @@ namespace fives {
         }
     }
 
-    unsigned int Controller::determineReadNodeCount(unsigned int max_nodes, double cumul_read_bw,
-                                                    unsigned int stripe_count) const {
-        /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
-        is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
-        model will probably be required */
-        if (cumul_read_bw <= this->config->stor.read_node_thres) {
-            return 1;
-        } else {
-            auto ratio = (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
-            ratio = std::min(ratio, 1.0);
-            unsigned int node_count = std::ceil(max_nodes * ratio);
-            return std::max(2u, node_count);
-        }
+    /**
+     * @brief Determine the number of nodes from which read operations will take place.
+     *        Ideally we would like to have this information from the traces, but it's not always the case.
+     */
+    unsigned int Controller::determineReadNodeCount(unsigned int max_nodes, double read_bw) const {
+
+        // Inside the ceil is a Gompertz function, with alpha (the asymptot) set to the max number of nodes,
+        // and the inflection and rate being calibrated parameters
+        double read_bw_mb = (read_bw / 1e6);
+        unsigned int used_nodes = std::ceil(max_nodes * std::exp(
+                                                            -this->config->stor.read_node_inflection_param * std::exp(-this->config->stor.read_node_rate_param * read_bw_mb)));
+        return std::max(1u, used_nodes);
     }
 
-    unsigned int Controller::determineWriteNodeCount(unsigned int max_nodes, double cumul_write_bw,
-                                                     unsigned int stripe_count) const {
-        /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
-        is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
-        model will probably be required */
-        if (cumul_write_bw <= this->config->stor.write_node_thres) {
-            return 1;
-        } else {
-            auto ratio = (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
-            ratio = std::min(ratio, 1.0);
-            unsigned int node_count = std::ceil(max_nodes * ratio);
-            return std::max(2u, node_count);
-        }
+    unsigned int Controller::determineWriteNodeCount(unsigned int max_nodes, double write_bw) const {
+
+        // Inside the ceil is a Gompertz function, with alpha (the asymptot) set to the max number of nodes,
+        // and the inflection and rate being calibrated parameters
+        double write_bw_mb = (write_bw / 1e6);
+        unsigned int used_nodes = std::ceil(max_nodes * std::exp(
+                                                            -this->config->stor.write_node_inflection_param * std::exp(-this->config->stor.write_node_rate_param * write_bw_mb)));
+        return std::max(1u, used_nodes);
     }
 
-    unsigned int Controller::determineReadStripeCount(double cumul_read_bw) const {
+    /**
+     * @brief Determine the stripe_count applied for the reads of a given job, based on its mean read bandwidth (B/s)
+     *        If mean bw is below a calibrated threshold, the job will be using the default ()"platform configured")
+     *        stripe_count (usually 1). If mean bw is above the
+     *        threshold, an alternative stripe_count value is used (higher than the default one), multiplied by the
+     *        ratio of (mean bw) / (bw threshold)
+     *        NOTE: the computed stripe_count remains capped by the maximum number of OSTs on the platform (we don't handle overstrippingx)
+     *
+     * @param read_bw Mean bandwidth in B/s
+     * @return Personnalized stripe_count for a job with the input mean read_bw
+     */
+    unsigned int Controller::determineReadStripeCount(double read_bw) const {
 
+        double read_bw_mb = (read_bw / 1e6);
+        unsigned int stripe_count = std::ceil(this->ost_count * std::exp(-this->config->stor.read_sc_inflection_param * std::exp(-this->config->stor.read_sc_rate_param * read_bw_mb)));
+        return std::max(1u, stripe_count);
+
+        /*
         unsigned int local_stripe_count = this->config->lustre.stripe_count;
-        if (this->config->lustre.stripe_count_high_thresh_read && cumul_read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
-            auto ratio = std::ceil(cumul_read_bw / this->config->lustre.stripe_count_high_thresh_read);
+        if (this->config->lustre.stripe_count_high_thresh_read && read_bw >= this->config->lustre.stripe_count_high_thresh_read) {
+            auto ratio = std::ceil(read_bw / this->config->lustre.stripe_count_high_thresh_read);
             local_stripe_count = this->config->lustre.stripe_count_high_read_add * ratio;
             local_stripe_count = std::min(local_stripe_count, this->ost_count);
         }
 
         return local_stripe_count;
+        */
     }
 
-    unsigned int Controller::determineWriteStripeCount(double cumul_write_bw) const {
+    /**
+     * @brief Determine the stripe_count applied for the writes of a given job, based on its mean write bandwidth (B/s)
+     *        Implements some sort of basic activation function: if mean bw is below a calibrated threshold, the job
+     *        will be using the default ()"platform configured") stripe_count (usually 1). If mean bw is above the
+     *        threshold, an alternative stripe_count value is used (higher than the default one), multiplied by the
+     *        ratio of (mean bw) / (bw threshold)
+     *
+     * @param write_bw Mean bandwidth in B/s
+     * @return Personnalized stripe_count for a job with the input mean write_bw
+     */
+    unsigned int Controller::determineWriteStripeCount(double write_bw) const {
 
+        double write_bw_mb = (write_bw / 1e6);
+        unsigned int stripe_count = std::ceil(this->ost_count * std::exp(-this->config->stor.write_sc_inflection_param * std::exp(-this->config->stor.write_sc_rate_param * write_bw_mb)));
+        return std::max(1u, stripe_count);
+
+        /*
         unsigned int local_stripe_count = this->config->lustre.stripe_count;
-        if (this->config->lustre.stripe_count_high_thresh_write && cumul_write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
-            auto ratio = std::ceil(cumul_write_bw / this->config->lustre.stripe_count_high_thresh_write);
+        unsigned int local_stripe_count = this->config->lustre.stripe_count;
+        if (this->config->lustre.stripe_count_high_thresh_write && write_bw >= this->config->lustre.stripe_count_high_thresh_write) {
+            auto ratio = std::ceil(write_bw / this->config->lustre.stripe_count_high_thresh_write);
             local_stripe_count = this->config->lustre.stripe_count_high_write_add * ratio;
             local_stripe_count = std::min(local_stripe_count, this->ost_count);
         }
 
-        return local_stripe_count;
+        return local_stripe_count; 
+        */
     }
 
     unsigned int Controller::determineReadFileCount(unsigned int stripe_count) const {
@@ -262,6 +290,9 @@ namespace fives {
         return nb_files;
     }
 
+    void create_job() {
+    }
+
     void Controller::submitJob(const std::string &jobID) {
 
         auto yJob = this->jobs.find(jobID)->second;
@@ -271,176 +302,147 @@ namespace fives {
         this->compound_jobs[jobID].second.push_back(parentJob);
         WRENCH_INFO("[%s] Preparing parent job for submission", jobID.c_str());
 
-        /* Used by cleanup part */
-        // this->gen = std::mt19937(this->rd());
-        // this->uni_dis = std::uniform_real_distribution<float>(0.0, 1.0);
-
         /* Make sure the reservation lasts for as long as the real one, no matter what happens inside.
          * This is because some jobs have internal scripts or interactive behaviours that make the
-         * reservation stay alive even though nothing much might be happening on the nodes
+         * reservation stay alive even though nothing much might be happening on the nodes, and we want to replicate that
          */
         parentJob->addSleepAction("fullRuntimeSleep", static_cast<double>(std::min(yJob.runtimeSeconds, yJob.walltimeSeconds - 1)));
 
-        // In // add the actual workload taken from Darshan traces (there might not be any)
-        if (yJob.runs.size() != 0) {
+        parentJob->addCustomAction(
+            "parentJob" + yJob.id,
+            0, 0, // RAM & num cores -> this action is just a placeholder and doesn't require any resource
+            [this, jobID](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
+                // Internal job manager used to create jobs for all Darshan records
 
-            parentJob->addCustomAction(
-                "parentJob" + yJob.id,
-                0, 0, // RAM & num cores
-                [this, jobID](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
-                    // Internal job manager used to create jobs for all Darshan records
+                // BareMetalComputeService gives access to the list of resources for this reservation, used by actions which require
+                // some service_specific_arguments.
+                auto internalJobManager = action_executor->createJobManager();
+                auto actionExecutorService = action_executor->getActionExecutionService();
+                auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
+                std::map<std::string, std::map<std::string, std::string>> service_specific_args;
 
-                    // BareMetalComputeService gives access to the list of resources for this reservation, used by actions which require
-                    // some service_specific_arguments.
-                    auto internalJobManager = action_executor->createJobManager();
-                    auto actionExecutorService = action_executor->getActionExecutionService();
-                    auto bare_metal = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(actionExecutorService->getParentService());
+                // Create and keep trace of all exec_jobs for each of the Darshan records / monitored runs of an application
+                // inside the reservation  -- DO NOT SUBMIT JOBS DIRECTLY FROM THIS LOOP
+                std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> exec_jobs;
 
-                    std::map<std::string, std::map<std::string, std::string>> service_specific_args;
+                this->stripes_per_action[jobID] = std::map<unsigned int, std::map<std::string, unsigned int>>(); // empty map for new job
 
-                    // Create and keep trace of all exec_jobs for each of the Darshan records / monitored runs of an application
-                    // inside the reservation  -- DO NOT SUBMIT JOBS IN THIS LOOP
-                    std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> exec_jobs;
-                    this->stripes_per_action[jobID] = std::map<unsigned int, std::map<std::string, unsigned int>>(); // empty map for new job
+                for (const auto &run : this->compound_jobs[jobID].first.runs) {
 
-                    for (const auto &run : this->compound_jobs[jobID].first.runs) {
+                    this->stripes_per_action[jobID][run.id] = std::map<std::string, unsigned int>();
+                    exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
 
-                        this->stripes_per_action[jobID][run.id] = std::map<std::string, unsigned int>();
-                        exec_jobs[run.id] = std::vector<std::shared_ptr<wrench::CompoundJob>>();
+                    /* 1. Create a sleep action if the sub jobs for this run need to wait before they start (depends on when the application(s)
+                          starts running during the reservation). That's mainly useful for jobs with multiple sequential runs, where each runs uses all of
+                          the available resources from the reservation.
+                    */
+                    if (run.sleepDelay != 0) {
+                        auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
+                        sleepJob->addSleepAction("sleep", run.sleepDelay);
+                        exec_jobs[run.id].push_back(sleepJob);
+                        service_specific_args[sleepJob->getName()] = std::map<std::string, std::string>();
+                        service_specific_args[sleepJob->getName()]["sleep"] = {};
+                    }
 
-                        /* 1. Create a sleep action if the sub jobs for this run need to wait before they start (depends on when the application(s)
-                              starts running during the reservation) */
-                        if (run.sleepDelay != 0) {
-                            auto sleepJob = internalJobManager->createCompoundJob("sleep_id" + jobID + "_exec" + std::to_string(run.id));
-                            sleepJob->addSleepAction("sleep", run.sleepDelay);
-                            exec_jobs[run.id].push_back(sleepJob);
-                            service_specific_args[sleepJob->getName()] = std::map<std::string, std::string>();
-                            service_specific_args[sleepJob->getName()]["sleep"] = {};
-                        }
-                        // 2. Create copy / read / write / copy jobs
+                    /* 2. Create read / write jobs */
 
-                        // bool cleanup_external_read = true;
-                        // bool cleanup_external_write = true;
+                    // Determine how many nodes (at most) may be used for the IO operations of this exec job (based on MPI communicator field from Darshan)
+                    unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
 
-                        // Determine how many nodes (at most) may be used for the IO operations of this exec job (based on MPI communicator)
-                        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+                    // 2.1 READ job
+                    std::vector<std::shared_ptr<wrench::DataFile>> input_files;
+                    if (run.readBytes != 0) {
 
-                        // 2.1 READ job
-                        std::vector<std::shared_ptr<wrench::DataFile>> input_files;
-                        if (run.readBytes != 0) {
-                            auto read_stripe_count = this->determineReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW);
-                            auto nb_nodes_read = this->determineReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulReadBW, read_stripe_count);
-                            WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
+                        // stripe_count and number of nodes (from the current reservation) being used for this read job
+                        auto mean_run_read_bw_bs = run.readBytes / run.runtime;
+                        auto read_stripe_count = this->determineReadStripeCount(mean_run_read_bw_bs);
+                        auto nb_nodes_read = this->determineReadNodeCount(max_nodes_run, mean_run_read_bw_bs);
+                        WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
-                            // Getting files ready
-                            if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
-                                // Copy job before the read
-                                auto nb_read_files = this->determineReadFileCount(read_stripe_count);
-                                auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, nb_read_files, nb_nodes_read);
-                                if (exec_jobs[run.id].size() != 0) {
-                                    exec_jobs[run.id].back()->addChildJob(copyJob);
-                                }
-                                exec_jobs[run.id].push_back(copyJob);
-                            } else {
-                                // No need for copy jobs, files have been created already
-                                input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
-                                // cleanup_external_read = false;
-                            }
-
-                            // Read job creation
-                            auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            this->readFromTemporary(bare_metal, readJob, jobID, run.id, service_specific_args, run.readBytes, input_files, nb_nodes_read);
+                        // Getting files ready
+                        if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
+                            // Copy job before the read
+                            auto nb_read_files = this->determineReadFileCount(read_stripe_count);
+                            auto copyJob = internalJobManager->createCompoundJob("stagingCopy_id" + jobID + "_exec" + std::to_string(run.id));
+                            input_files = this->copyFromPermanent(bare_metal, copyJob, service_specific_args, run.readBytes, nb_read_files, nb_nodes_read);
                             if (exec_jobs[run.id].size() != 0) {
-                                exec_jobs[run.id].back()->addChildJob(readJob); // Add dependencies between jobs (but inside a job, actions are //)
-                            }
-                            exec_jobs[run.id].push_back(readJob);
-                        }
-
-                        // 2.2 WRITE
-                        std::vector<std::shared_ptr<wrench::DataFile>> output_data;
-                        if (run.writtenBytes != 0) {
-                            auto write_stripe_count = this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
-                            auto nb_nodes_write = this->determineReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulWriteBW, write_stripe_count);
-                            auto nb_write_files = this->determineWriteFileCount(write_stripe_count);
-                            WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
-
-                            auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
-                            output_data = this->writeToTemporary(bare_metal, writeJob, jobID, run.id, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
-
-                            if (exec_jobs[run.id].size() != 0) {
-                                exec_jobs[run.id].back()->addChildJob(writeJob); // Add dependencies between jobs (but inside a job, actions are //)
-                            }
-                            exec_jobs[run.id].push_back(writeJob);
-
-                            if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
-                                auto copyJob = internalJobManager->createCompoundJob("archiveCopy_id" + jobID + "_exec" + std::to_string(run.id));
-                                this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_nodes_write);
                                 exec_jobs[run.id].back()->addChildJob(copyJob);
-                                exec_jobs[run.id].push_back(copyJob);
-                                // } else {
-                                //    cleanup_external_write = false;
                             }
+                            exec_jobs[run.id].push_back(copyJob);
+                        } else {
+                            // No need for copy jobs, files have been created already
+                            input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
                         }
 
-                        // 2.3 CLEANUP
-                        /*
-                        if (run.readBytes != 0) {
-                            if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
-                                auto cleanupJob = internalJobManager->createCompoundJob("cleanupInput_id" + jobID + "_exec" + std::to_string(run.id));
-                                this->cleanupInput(bare_metal, cleanupJob, service_specific_args, input_files, cleanup_external_read);
-                                exec_jobs[run.id].back()->addChildJob(cleanupJob);
-                                exec_jobs[run.id].push_back(cleanupJob);
-                            }
+                        // Read job creation
+                        auto readJob = internalJobManager->createCompoundJob("readFiles_id" + jobID + "_exec" + std::to_string(run.id));
+                        this->readFromTemporary(bare_metal, readJob, jobID, run.id, service_specific_args, run.readBytes, input_files, nb_nodes_read);
+                        if (exec_jobs[run.id].size() != 0) {
+                            exec_jobs[run.id].back()->addChildJob(readJob); // Add dependencies between jobs (but inside a job, actions are //)
                         }
-                        if (run.writtenBytes != 0) {
-                            if (this->config->stor.cleanup_threshold <= this->uni_dis(this->gen)) {
-                                auto cleanupJob = internalJobManager->createCompoundJob("cleanupOutput_id" + jobID + "_exec" + std::to_string(run.id));
-                                this->cleanupOutput(bare_metal, cleanupJob, service_specific_args, output_data, cleanup_external_write);
-                                exec_jobs[run.id].back()->addChildJob(cleanupJob);
-                                exec_jobs[run.id].push_back(cleanupJob);
-                            }
+                        exec_jobs[run.id].push_back(readJob);
+                    }
+
+                    // 2.2 WRITE
+                    std::vector<std::shared_ptr<wrench::DataFile>> output_data;
+                    if (run.writtenBytes != 0) {
+                        auto write_stripe_count = this->determineWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
+                        auto nb_nodes_write = this->determineReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulWriteBW);
+                        auto nb_write_files = this->determineWriteFileCount(write_stripe_count);
+                        WRENCH_DEBUG(" - [%s-exec%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+
+                        auto writeJob = internalJobManager->createCompoundJob("writeFiles_id" + jobID + "_exec" + std::to_string(run.id));
+                        output_data = this->writeToTemporary(bare_metal, writeJob, jobID, run.id, service_specific_args, run.writtenBytes, nb_write_files, nb_nodes_write);
+
+                        if (exec_jobs[run.id].size() != 0) {
+                            exec_jobs[run.id].back()->addChildJob(writeJob); // Add dependencies between jobs (but inside a job, actions are //)
                         }
-                        */
+                        exec_jobs[run.id].push_back(writeJob);
 
-                        // Keep trace of all jobs for later analysis
-
-                        for (const auto &job : exec_jobs[run.id]) {
-                            if (job->getName().substr(0, 5) == "sleep") {
-                                continue;
-                            }
-                            this->compound_jobs[jobID].second.push_back(job);
+                        if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
+                            auto copyJob = internalJobManager->createCompoundJob("archiveCopy_id" + jobID + "_exec" + std::to_string(run.id));
+                            this->copyToPermanent(bare_metal, copyJob, service_specific_args, run.writtenBytes, output_data, nb_nodes_write);
+                            exec_jobs[run.id].back()->addChildJob(copyJob);
+                            exec_jobs[run.id].push_back(copyJob);
                         }
                     }
 
-                    for (const auto &run : this->compound_jobs[jobID].first.runs) {
-                        for (const auto &subJob : exec_jobs[run.id]) {
-                            WRENCH_DEBUG("Submitting job %s with %lu actions", subJob->getName().c_str(), subJob->getActions().size());
-                            if (bare_metal->hasReturnedFromMain()) {
-                                WRENCH_DEBUG("Bare metal service has already returned from main");
-                            }
-                            if (bare_metal->getState() != wrench::S4U_Daemon::State::UP) {
-                                WRENCH_DEBUG("Bare metal service is not up anymore");
-                            }
-                            WRENCH_DEBUG("Using internal job manager %s and bare_metal %s", internalJobManager->getName().c_str(), bare_metal->getName().c_str());
-                            internalJobManager->submitJob(subJob, bare_metal, service_specific_args[subJob->getName()]);
+                    // Keep trace of all jobs for later analysis
+                    for (const auto &job : exec_jobs[run.id]) {
+                        if (job->getName().substr(0, 5) == "sleep") {
+                            continue;
                         }
+                        this->compound_jobs[jobID].second.push_back(job);
                     }
+                }
 
-                    for (const auto &run : exec_jobs) {
-                        for (const auto &subJob : run.second) {
-                            auto event = action_executor->waitForNextEvent();
-                            if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event)) {
-                                auto failure = std::dynamic_pointer_cast<wrench::CompoundJobFailedEvent>(event);
-                                throw std::runtime_error("One of the subjobs failed -> " + failure->toString() + " // " + failure->failure_cause->toString());
-                            }
+                for (const auto &run : this->compound_jobs[jobID].first.runs) {
+                    for (const auto &subJob : exec_jobs[run.id]) {
+                        WRENCH_DEBUG("Submitting job %s with %lu actions", subJob->getName().c_str(), subJob->getActions().size());
+                        if (bare_metal->hasReturnedFromMain()) {
+                            WRENCH_DEBUG("Bare metal service has already returned from main");
+                        }
+                        if (bare_metal->getState() != wrench::S4U_Daemon::State::UP) {
+                            WRENCH_DEBUG("Bare metal service is not up anymore");
+                        }
+                        WRENCH_DEBUG("Using internal job manager %s and bare_metal %s", internalJobManager->getName().c_str(), bare_metal->getName().c_str());
+                        internalJobManager->submitJob(subJob, bare_metal, service_specific_args[subJob->getName()]);
+                    }
+                }
+
+                for (const auto &run : exec_jobs) {
+                    for (const auto &subJob : run.second) {
+                        auto event = action_executor->waitForNextEvent();
+                        if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(event)) {
+                            auto failure = std::dynamic_pointer_cast<wrench::CompoundJobFailedEvent>(event);
+                            throw std::runtime_error("One of the subjobs failed -> " + failure->toString() + " // " + failure->failure_cause->toString());
                         }
                     }
-                },
-                [jobID](std::shared_ptr<wrench::ActionExecutor> action_executor) {
-                    WRENCH_INFO(" >> [parent customAction_%s] terminating", jobID.c_str());
-                });
-        }
+                }
+            },
+            [jobID](std::shared_ptr<wrench::ActionExecutor> action_executor) {
+                WRENCH_INFO(" >> [parent customAction_%s] terminating", jobID.c_str());
+            });
 
         // Submit job
         std::map<std::string, std::string> service_specific_args =

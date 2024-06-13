@@ -19,19 +19,28 @@ namespace fives {
          * n_activities = Number of Simgrid activities sharing this resource (~ Wrench actions)
          */
         return [non_linear_coef, disk](double capacity, int n_activities) {
-            // auto clock = wrench::S4U_Simulation::getClock();
-            // std::cout << "[NL Cb at " << std::to_string(clock) << "] Capacity  " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
-            // std::cout << "[NL disk] " << disk->get_name() << " on " << disk->get_host()->get_name() << std::endl;
+            // std::cout << "[NL_Cb@ " << std::to_string(wrench::S4U_Simulation::getClock()) << "] Capacity  " << std::to_string(capacity) << " / Activities : " << std::to_string(n_activities) << std::endl;
+            // std::cout << "[NL_Cb] Disk " << disk->get_name() << " on " << disk->get_host()->get_name() << std::endl;
 
+            // I don't know why but it happened that this callback was triggered while n_activities == 0
             if (n_activities < 1) {
                 n_activities = 1;
             }
-            // std::cout << "[DEBUG NON LINEAR] OUTPUT : " << std::to_string(capacity * (non_linear_coef / std::sqrt(n_activities))) << std::endl;
+            // std::cout << "[NL_Cb] Output : " << std::to_string(capacity * (non_linear_coef / std::sqrt(n_activities))) << std::endl;
+            // Note: division by 0 'avoided' because 'non_linear_coef' is > 1, even though n_activities can be == 1
             return capacity * (1 / std::log(n_activities * non_linear_coef));
         };
     }
 
-    // REMOVE OR REPLACE WITH DETERMINISTIC VERSION ?
+    /**
+     * @brief Callback used to add a non deterministic variability on disk bandwidth
+     *        Only implemented for a short experiment and not used in practice. Could be
+     *        removed or maybe replaced by a deterministic value.
+     *        Note: usually deactivated in configuration file.
+     *
+     * @param read_variability Coefficient of variability applied to the disk bandwidth for read operations
+     * @param write_variability Coefficient of variability applied to the disk bandwidth for write operations
+     */
     static auto hdd_variability_factory(double read_variability, double write_variability) {
         auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
             std::random_device rd{};
@@ -106,7 +115,6 @@ namespace fives {
         auto main_zone = sg4::create_star_zone("AS_Root");
         auto main_link_bb =
             main_zone->create_link("backbone", cfg->net.bw_backbone)->set_latency(cfg->net.link_latency);
-        // main_link_bb->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_link_bw); // Last time used, simgrid crashed pretty hard
         sg4::LinkInRoute main_backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
@@ -143,7 +151,7 @@ namespace fives {
         ctrl_zone->set_gateway(control_router);
         ctrl_zone->seal();
 
-        // DRAGONFLY ZONE (COMPUTE)
+        // --- DRAGONFLY ZONE (COMPUTE) ---
         auto create_hostzone = create_hostzone_factory(cfg->compute.flops, cfg->compute.core_count, cfg->compute.ram);
         auto compute_zone = sg4::create_dragonfly_zone("AS_DragonflyCompute", main_zone,
                                                        {{cfg->compute.d_groups, cfg->compute.d_group_links},
