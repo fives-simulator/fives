@@ -96,6 +96,7 @@ if(GTEST_LIBRARY)
       ${SimGrid_LIBRARY}
       ${ZMQ_LIBRARY}
       ${YAML_CPP_LIBRARY}
+      pthread # Necessary on debian for some reason
   )
   else()
     target_link_libraries(unit_tests
@@ -103,6 +104,7 @@ if(GTEST_LIBRARY)
       ${WRENCH_LIBRARY}
       ${SimGrid_LIBRARY}
       ${YAML_CPP_LIBRARY}
+      pthread # Necessary on Debian for some reason
     )
   endif()
 
