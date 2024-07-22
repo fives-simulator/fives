@@ -2,6 +2,7 @@
 #include "AllocationStrategy.h"
 #include "Constants.h"
 
+#include <ctime>
 #include "yaml-cpp/yaml.h"
 #include <iomanip>
 #include <simgrid/kernel/routing/NetPoint.hpp>
@@ -137,10 +138,11 @@ namespace fives {
             throw std::invalid_argument("Invalid job file as input data");
         }
 
-        const char *timedate_fm = "";
+        // const char *timedate_fm = "";
         std::map<std::string, YamlJob> job_map;
-        uint64_t previous_ts = 0;
+        // uint64_t previous_ts = 0;
         std::tm previous_date{};
+        auto previous_ts = std::mktime(&previous_date);
 
         for (const auto &job : dataset["jobs"]) {
             try {
@@ -148,15 +150,17 @@ namespace fives {
 
                 // Here we have a dirty way of checking that jobs in our dataset are ordered by submission date.
                 std::istringstream ss(parsed_job.submissionTime);
-                std::tm t = {};
-                ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S"); // eg. '2022-10-01 03:42:52'
-                uint64_t ts = (t.tm_year - 2000) * 31536000 + t.tm_yday * 86400 + t.tm_hour * 3600 + t.tm_min * 60 + t.tm_sec;
-                if (ts >= previous_ts) {
+                std::tm ts{};
+                ss >> std::get_time(&ts, "%Y-%m-%d %H:%M:%S"); // eg. '2022-10-01 03:42:52'
+                auto current_ts = std::mktime(&ts);
+
+                // uint64_t ts = (t.tm_year - 2000) * 31536000 + t.tm_yday * 86400 + t.tm_hour * 3600 + t.tm_min * 60 + t.tm_sec;
+                if (current_ts >= previous_ts) {
                     job_map[parsed_job.id] = parsed_job;
-                    previous_ts = ts;
-                    previous_date = t;
+                    previous_ts = current_ts;
+                    previous_date = ts;
                 } else {
-                    WRENCH_WARN("Current job's submission time : %s", std::asctime(&t));
+                    WRENCH_WARN("Current job's submission time : %s", std::asctime(&ts));
                     WRENCH_WARN("Previous job's submission time : %s", std::asctime(&previous_date));
                     WRENCH_WARN("Job %s submission time is inferior to the previous parsed job (job ordering is incorrect in dataset)", parsed_job.id.c_str());
                     throw runtime_error("Job " + parsed_job.id + " submission time is inferior to the previous parsed job");
