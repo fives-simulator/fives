@@ -3,10 +3,11 @@
 """
     Run a calibration process using the Ax framework (Bayesian Optimization).
     This script expects to find the compiled 'fives' bin inside '<repo_root>/build/',
-    a base configuration in '<repo_root>/results/exp_configurations/' and a dataset in 
+    a base configuration in '<repo_root>/results/exp_configurations/' and a dataset in
     '<repo_root>/results/exp_datasets/'
 """
 
+import sys
 import json
 import subprocess
 import pathlib
@@ -98,10 +99,10 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Update config file according to parameters provided by Ax
-    base_config["general"]["config_name"] = cfg_name 
+    base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
 
-    # Network bandwidths    
+    # Network bandwidths
     if "bandwidth_backbone_storage" in parametrization:
         bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
         base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
@@ -114,7 +115,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "permanent_storage_read_bw" in parametrization:
         permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
         base_config["permanent_storage"]["read_bw"] = f"{permanent_storage_read_bw}GBps"
-    
+
     if "permanent_storage_write_bw" in parametrization:
         permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
         base_config["permanent_storage"]["write_bw"] = f"{permanent_storage_write_bw}GBps"
@@ -142,7 +143,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "stripe_count_high_thresh_write" in parametrization:
         stripe_count_high_thresh_write = parametrization.get("stripe_count_high_thresh_write")
         base_config["lustre"]["stripe_count_high_thresh_write"] = stripe_count_high_thresh_write
-    
+
     # Base stripe_count value for dynamic stripe_count model (read)
     if "stripe_count_high_read_add" in parametrization:
         stripe_count_high_read_add = parametrization.get("stripe_count_high_read_add")
@@ -184,7 +185,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "non_linear_coef_read" in parametrization:
         non_linear_coef_read = parametrization.get("non_linear_coef_read")
         base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
-    
+
     # Disk bandwidth degradation model calibrated coefficient for writes
     if "non_linear_coef_write" in parametrization:
         non_linear_coef_write = parametrization.get("non_linear_coef_write")
@@ -317,7 +318,7 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
     return {"optimization_metric": mae_pct}
-    
+
 def run_simulation(
     parametrization: dict,
     base_config: dict,
@@ -403,7 +404,7 @@ def evaluate(parameters, trial_index):
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(
             data,
-            parameters.get("static_read_overhead_seconds"), 
+            parameters.get("static_read_overhead_seconds"),
             parameters.get("static_write_overhead_seconds")
         )["optimization_metric"]
     except Exception as e:
@@ -511,9 +512,9 @@ def run_calibration(params_set, contraints: bool = True):
 
     # Keep trace of the calibration env.
     calib_settings = {
-        "params": params_set, 
-        "iterations": CALIBRATION_RUNS, 
-        "calibration_dataset": DATASET, 
+        "params": params_set,
+        "iterations": CALIBRATION_RUNS,
+        "calibration_dataset": DATASET,
         "base_config": load_base_config(CONFIGURATION_BASE),
         "failed_calibration_runs": failed_attempts,
     }
@@ -526,8 +527,8 @@ def run_calibration(params_set, contraints: bool = True):
 
 if __name__ == "__main__":
 
-    if sys.argc > 1:
+    if len(sys.argv) > 1:
         if sys.argv[1] == "stage2":
             run_calibration(PARAMETERS, contraints=False)
     else:
-        run_calibration(PARAMETERS.update(PLATFORM_PARAMETERS))
+        run_calibration(PARAMETERS.extend(PLATFORM_PARAMETERS))
