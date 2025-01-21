@@ -85,11 +85,11 @@ namespace fives {
     protected:
         virtual int main() override;
 
-        virtual void processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) override;
+        virtual void processEventTimer(const std::shared_ptr<wrench::TimerEvent> &timerEvent) override;
 
-        virtual void processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent>) override;
+        virtual void processEventCompoundJobCompletion(const std::shared_ptr<wrench::CompoundJobCompletedEvent> &event) override;
 
-        virtual void processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent>) override;
+        virtual void processEventCompoundJobFailure(const std::shared_ptr<wrench::CompoundJobFailedEvent> &event) override;
 
         virtual void preloadData();
 

@@ -594,7 +594,7 @@ namespace fives {
                 for (unsigned int i = 0; i < nb_stripes; i++) {
                     stripes_per_host_per_file[read_file].push_back(1);
                 }
-                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts => reading 1 stripes from the first %u hosts",
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %lld) : we have only %u stripes, but %u hosts => reading 1 stripes from the first %u hosts",
                              readJob->getName().c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
             } else {
                 unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts);
@@ -605,7 +605,7 @@ namespace fives {
                 for (unsigned int i = 0; i < remainder; i++) {
                     stripes_per_host_per_file[read_file][i] += 1;
                 }
-                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %f) : %u stripes, reading %u +- %u stripes from each host (%u hosts will read more)",
+                WRENCH_DEBUG("[%s] readFromTemporary: For file %s (size %lld) : %u stripes, reading %u +- %u stripes from each host (%u hosts will read more)",
                              readJob->getName().c_str(), read_file->getID().c_str(), read_file->getSize(), nb_stripes, stripes_per_host, remainder, remainder);
             }
         }
@@ -694,7 +694,7 @@ namespace fives {
                 for (unsigned int i = 0; i < nb_stripes; i++) {
                     stripes_per_host_per_file[write_file].push_back(1);
                 }
-                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : we have only %u stripes, but %u hosts, writing 1 stripes from the first %u hosts",
+                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %lld) : we have only %u stripes, but %u hosts, writing 1 stripes from the first %u hosts",
                              writeJob->getName().c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
             } else {
                 unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts); //
@@ -705,7 +705,7 @@ namespace fives {
                 for (unsigned int i = 0; i < remainder; i++) {
                     stripes_per_host_per_file[write_file][i] += 1;
                 }
-                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %f) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
+                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %lld) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
                              writeJob->getName().c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
             }
         }
@@ -915,7 +915,7 @@ namespace fives {
      *
      * @param event: the event
      */
-    void Controller::processEventCompoundJobCompletion(std::shared_ptr<wrench::CompoundJobCompletedEvent> event) {
+    void Controller::processEventCompoundJobCompletion(const std::shared_ptr<wrench::CompoundJobCompletedEvent> &event) {
         auto job = event->job;
         WRENCH_INFO("[%s] Notified that this compound job has completed", job->getName().c_str());
 
@@ -923,7 +923,7 @@ namespace fives {
         processCompletedJob(job->getName());
     }
 
-    void Controller::processEventTimer(std::shared_ptr<wrench::TimerEvent> timerEvent) {
+    void Controller::processEventTimer(const std::shared_ptr<wrench::TimerEvent> &timerEvent) {
         this->submitJob(timerEvent->message);
     }
 
@@ -932,7 +932,7 @@ namespace fives {
      *
      * @param event: the event
      */
-    void Controller::processEventCompoundJobFailure(std::shared_ptr<wrench::CompoundJobFailedEvent> event) {
+    void Controller::processEventCompoundJobFailure(const std::shared_ptr<wrench::CompoundJobFailedEvent> &event) {
         /* Retrieve the job that this event is for and failure cause*/
         auto job = event->job;
         auto cause = event->failure_cause;
@@ -946,7 +946,7 @@ namespace fives {
     std::pair<std::string, std::string> updateIoUsageDelete(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
 
         auto storage_service = location->getStorageService()->getName();
-        auto mount_pt = location->getPath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto mount_pt = location->getFilePath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
         auto volume = location->getFile()->getSize();
 
         // Update volume record with new write/copy/delete value
@@ -962,7 +962,7 @@ namespace fives {
     std::pair<std::string, std::string> updateIoUsageCopy(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
 
         auto dst_storage_service = location->getStorageService()->getName();
-        auto dst_path = location->getPath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto dst_path = location->getFilePath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
         auto dst_volume = location->getFile()->getSize();
 
         if (volume_records.find(dst_storage_service) == volume_records.end()) {
@@ -988,7 +988,7 @@ namespace fives {
     std::pair<std::string, std::string> updateIoUsageWrite(std::map<std::string, StorageServiceIOCounters> &volume_records, const std::shared_ptr<wrench::FileLocation> &location) {
 
         auto storage_service = location->getStorageService()->getName();
-        auto path = location->getPath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
+        auto path = location->getFilePath(); // TODO : RECENT FIX, NEED TO CHECK IF DATA IS CORRECT
         auto volume = location->getFile()->getSize();
 
         if (volume_records.find(storage_service) == volume_records.end()) {
@@ -1110,12 +1110,12 @@ namespace fives {
                 out_jobs << YAML::Key << "parts_count" << YAML::Value << copy_trace.internal_locations.size();
                 out_jobs << YAML::Key << "sss" << YAML::Value << sss->getStorageService()->getName();
                 out_jobs << YAML::Key << "sss_server" << YAML::Value << sss->getStorageService()->getHostname();
-                out_jobs << YAML::Key << "sss_file_path" << YAML::Value << sss->getPath();
+                out_jobs << YAML::Key << "sss_file_path" << YAML::Value << sss->getFilePath();
                 out_jobs << YAML::Key << "sss_file_name" << YAML::Value << sss->getFile()->getID();
                 out_jobs << YAML::Key << "sss_file_size_bytes" << YAML::Value << sss->getFile()->getSize();
                 out_jobs << YAML::Key << "css" << YAML::Value << css->getStorageService()->getName();
                 out_jobs << YAML::Key << "css_server" << YAML::Value << css->getStorageService()->getHostname();
-                out_jobs << YAML::Key << "css_file_path" << YAML::Value << css->getPath();
+                out_jobs << YAML::Key << "css_file_path" << YAML::Value << css->getFilePath();
                 out_jobs << YAML::Key << "css_file_name" << YAML::Value << css->getFile()->getID();
                 out_jobs << YAML::Key << "css_file_size_bytes" << YAML::Value << css->getFile()->getSize();
 
@@ -1147,7 +1147,7 @@ namespace fives {
 
                 out_jobs << YAML::Key << "storage_service" << YAML::Value << usedLocation->getStorageService()->getName();
                 out_jobs << YAML::Key << "storage_server" << YAML::Value << usedLocation->getStorageService()->getHostname();
-                out_jobs << YAML::Key << "file_path" << YAML::Value << usedLocation->getPath();
+                out_jobs << YAML::Key << "file_path" << YAML::Value << usedLocation->getFilePath();
                 out_jobs << YAML::Key << "file_name" << YAML::Value << usedFile->getID();
                 out_jobs << YAML::Key << "file_size_bytes" << YAML::Value << usedFile->getSize();
 
