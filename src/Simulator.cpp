@@ -13,6 +13,7 @@
 #include <simgrid/kernel/routing/NetPoint.hpp>
 
 #include "AllocationStrategy.h"
+#include "BuildInfo.h"
 #include "Constants.h"
 #include "Controller.h"
 #include "Platform.h"
@@ -101,6 +102,10 @@ namespace fives {
             std::cout << "# This program starts a WRENCH simulation of a batch scheduler, with      " << std::endl;
             std::cout << "# emphasis on storage resources model and collecting storage-related      " << std::endl;
             std::cout << "# metrics.                                                                " << std::endl;
+            std::cout << "# Version : " << fives_version << std::endl;
+            std::cout << "# WRENCH build : " << wrench_version << std::endl;
+            std::cout << "# SimGrid build : " << simgrid_version << std::endl;
+            std::cout << "# Config timestamp : " << config_ts << std::endl;
             std::cout << "##########################################################################" << std::endl;
             return 1;
         }

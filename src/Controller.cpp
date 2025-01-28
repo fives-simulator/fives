@@ -2,10 +2,6 @@
  ** An execution controller to execute a workflow
  **/
 
-#define GFLOP (1000.0 * 1000.0 * 1000.0)
-#define MBYTE (1000.0 * 1000.0)
-#define GBYTE (1000.0 * 1000.0 * 1000.0)
-
 #include "Controller.h"
 
 #include <algorithm>
@@ -20,6 +16,10 @@
 #include <wrench/util/UnitParser.h>
 
 #include "yaml-cpp/yaml.h"
+
+#define GFLOP (1000.0 * 1000.0 * 1000.0)
+#define MBYTE (1000.0 * 1000.0)
+#define GBYTE (1000.0 * 1000.0 * 1000.0)
 
 WRENCH_LOG_CATEGORY(fives_controller, "Log category for Fives Controller");
 

@@ -1,0 +1,5 @@
+# v0.1.0:
+    - Moving to SimGrid 3.36 / WRENCH 2.5 and now integrating the FSMod dependency.
+    - Updated CMakeLists.txt for a much better control of dependencies
+    - 
+

@@ -1,0 +1,15 @@
+#ifndef BUILD_INFO_H
+#define BUILD_INFO_H
+
+#include <string>
+
+// FIVES VERSION
+const std::string fives_version = "@FIVES_RELEASE_VERSION@";
+// SIMGRID VERSION
+const std::string simgrid_version = "@SIMGRID_GIT_REF@";
+// WRENCH VERSION
+const std::string wrench_version = "@WRENCH_GIT_REF@";
+// BUILD TIME
+const std::string config_ts = "@TODAY@";
+
+#endif // BUILD_INFO_H
