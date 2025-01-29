@@ -443,7 +443,7 @@ namespace fives {
                 // /!\ Should (could) this be a call to getTotalFreeSpace() instead ?
                 if (current_ost->getTotalFreeSpaceZeroTime() < conservativeFreeSpaceRequirement or (current_ost->getState() != wrench::S4U_Daemon::State::UP)) {
                     // Only keep running storage services associated with non-full disks
-                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST (total free space == %f and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
+                    WRENCH_DEBUG("[lustreRRAllocator] Skipping OST (total free space == %lld and current state == %d)", current_ost->getTotalFreeSpaceZeroTime(), current_ost->getState());
                     continue;
                 }
 
@@ -627,7 +627,7 @@ namespace fives {
 
         WRENCH_DEBUG("[lustreWeightedAllocator] LUSTRE WEIGHT ALLOC DEBUG");
         WRENCH_DEBUG("[lustreWeightedAllocator] Stripe count = %ld", striping.stripes_count);
-        WRENCH_DEBUG("[lustreWeightedAllocator] Current file_size = %f", file_size_b);
+        WRENCH_DEBUG("[lustreWeightedAllocator] Current file_size = %lld", file_size_b);
         WRENCH_DEBUG("[lustreWeightedAllocator] Number of OST / services = %i", active_ost_count);
 
         // from https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
