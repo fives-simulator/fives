@@ -105,6 +105,7 @@ namespace fives {
             std::cout << "# Version : " << fives_version << std::endl;
             std::cout << "# WRENCH build : " << wrench_version << std::endl;
             std::cout << "# SimGrid build : " << simgrid_version << std::endl;
+            std::cout << "# FSMod build version : " << fsmod_version << std::endl;
             std::cout << "# Config timestamp : " << config_ts << std::endl;
             std::cout << "##########################################################################" << std::endl;
             return 1;

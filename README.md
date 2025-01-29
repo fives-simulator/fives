@@ -44,6 +44,8 @@ fsmod (v0.2) @ https://github.com/simgrid/file-system-module
 wrench (origin/master branch, or at least release v2.5) @ https://github.com/wrench-project/wrench
 ```
 
+Additionally, if unit tests are required, you will need `googletest` (any relatively recent version will do).
+
 Note that **simgrid** `>= v3.36` and **fsmod** `>= v0.2` are current requirements of `WRENCH`.
 In addition, **WRENCH** requires **nlohmann/json** (`>= v3.11.0` @ https://github.com/nlohmann/json)
 
@@ -70,7 +72,7 @@ To build everything from source, use:
 
 ```
 mkdir build && cd build
-cmake -DBUILD_DEPENDENCIES=ON ..
+cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=4 ..
 ```
 
 **Note**: This configuration / build process mixes `FetchContent` and `ExternalProject` modules. 
@@ -79,11 +81,11 @@ However in this case, `ExternalProject` is our best option because it lets us de
 Doing so, when you run the build, the `external/` directory at project root will be populated with the git clones of our three dev dependencies, and build will occur in source (or in `build/` in source).
 You can include these source directories to your development workspace and cmake will rebuild the dependencies if you make any change to their sources.
 
-**Note**: The first build will take several minutes, as both **SimGrid** and **WRENCH** are rather large projects that need to be downloaded and compiled from scracth. The `NUM_CORES` variable can be passed to CMake to define how many cores should be used in the builds (`cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=8..` for 8 cores ; default is 3)
+**Note**: The first build will take several minutes, as both **SimGrid** and **WRENCH** are rather large projects that need to be downloaded and compiled from scracth. The `NUM_CORES` variable can be passed to CMake to define how many cores should be used in the builds (`cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=8..` for 8 cores ; default is 3). **DO NOT** use `--parallel=X` in the next step, with `cmake --build .`, as it seems to 
 
 ### Building Fives
 
-Building **Fives** depends on how you configured the dependencies. If you opted for manual setup, only `Fives` now needs to be compiled and linked. Otherwise, all dependencies will need to be compiled, linked and installed from scratch at least once.
+Building **Fives** depends on how you configured the dependencies. If you opted for manual setup, only `Fives` now needs to be compiled and linked. Otherwise, all dependencies will need to be compiled, linked and installed from scratch at least once. If you are building the dependencies inside the project and want some parallelism, use
 
 Run:
 
@@ -116,5 +118,29 @@ cd build
 ```
 
 You can run **Fives** without any argument to get the help message about arguments, and a version information about Fives itself, and the version of SimGrid and Wrench that were used if you chose the automatic dependencies setup.
+If you used system libraries, dependencies version will just print `SYSTEM`.
 
 Whenever in doubt, you can also use `ldd fives` to see which SimGrid and FSMod library are linked by default (WRENCH won't appear as it is static library)
+
+### Building / running tests
+
+A specific target exists for unit tests (not part of `all` target): `unit_tests`.
+Whether you are using manual or automatic dependencies setup, run:
+
+```
+cmake --build . --target=unit_tests
+```
+
+Then, run unit tests with:
+
+```
+./unit_tests
+```
+
+Note: The full simulation test may consume a lot of RAM and run for quite a long time. In some cases you may want to skip it and run instead:
+
+```
+./unit_tests --gtest_filter="-*lustreFullSim*"
+```
+
+Note: Obviously tests need to be rebuild if Fives code is updated.

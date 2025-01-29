@@ -7,6 +7,8 @@
 const std::string fives_version = "@FIVES_RELEASE_VERSION@";
 // SIMGRID VERSION
 const std::string simgrid_version = "@SIMGRID_GIT_REF@";
+// FSMOD VERSION
+const std::string fsmod_version = "@FSMOD_GIT_REF@";
 // WRENCH VERSION
 const std::string wrench_version = "@WRENCH_GIT_REF@";
 // BUILD TIME
