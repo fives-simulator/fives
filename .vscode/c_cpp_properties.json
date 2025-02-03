@@ -1,16 +1,13 @@
 {
     "configurations": [
         {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/opt/simgrid/**"
-            ],
+            "name": "Linux-cmake",
+            "includePath": [],
             "defines": [],
-            "compilerPath": "/usr/bin/clang",
-            "cStandard": "c99",
-            "cppStandard": "c++14",
-            "intelliSenseMode": "${default}",
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64",
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""

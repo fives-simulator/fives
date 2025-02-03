@@ -339,7 +339,9 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
 
     #### Setup link/includes for Fives
 
-    target_include_directories(fives PRIVATE
+    target_include_directories(fives 
+        BEFORE              # Should tell Cmake to start by looking in these include directory before system ones
+        PRIVATE             # Scope: used only for building the target
         ${CMAKE_SOURCE_DIR}/include
         ${LOCAL_INSTALL_DIR}/include
     )
@@ -364,7 +366,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
         ${HEADER_FILES}
     )
 
-    target_include_directories(unit_tests PRIVATE
+    target_include_directories(unit_tests BEFORE PRIVATE
         ${CMAKE_SOURCE_DIR}/include
         ${LOCAL_INSTALL_DIR}/include
     )

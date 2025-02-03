@@ -10,7 +10,7 @@
 #include <iostream>
 
 #include "yaml-cpp/yaml.h"
-#include <simgrid/kernel/routing/NetPoint.hpp>
+// #include <simgrid/kernel/routing/NetPoint.hpp>
 
 #include "AllocationStrategy.h"
 #include "BuildInfo.h"
@@ -106,7 +106,7 @@ namespace fives {
             std::cout << "# WRENCH build : " << wrench_version << std::endl;
             std::cout << "# SimGrid build : " << simgrid_version << std::endl;
             std::cout << "# FSMod build version : " << fsmod_version << std::endl;
-            std::cout << "# Config timestamp : " << config_ts << std::endl;
+            std::cout << "# CMake config timestamp : " << config_ts << std::endl;
             std::cout << "##########################################################################" << std::endl;
             return 1;
         }

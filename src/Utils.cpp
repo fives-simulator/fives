@@ -2,8 +2,8 @@
 #include "AllocationStrategy.h"
 #include "Constants.h"
 
-#include <ctime>
 #include "yaml-cpp/yaml.h"
+#include <ctime>
 #include <iomanip>
 #include <simgrid/kernel/routing/NetPoint.hpp>
 #include <wrench-dev.h>

@@ -9,3 +9,6 @@ results/*.pdf
 results/.python-version
 results/sim_time_plots
 profiling_temp/
+
+*.ipynb filter=strip-notebook-output
+include/BuildInfo.h
