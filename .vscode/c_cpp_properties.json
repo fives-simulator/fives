@@ -2,14 +2,20 @@
     "configurations": [
         {
             "name": "Linux-cmake",
-            "includePath": [],
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/external/install_deps/include/",
+                "${workspaceFolder}/external/install_deps/include/simgrid/",
+                "${workspaceFolder}/external/install_deps/include/**",
+                "${workspaceFolder}/build/_deps/**"
+            ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
-            "cStandard": "c17",
+            "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "linux-gcc-x64",
+            "intelliSenseMode": "${default}",
             "browse": {
-                "limitSymbolsToIncludedHeaders": true,
+                "limitSymbolsToIncludedHeaders": false,
                 "databaseFilename": ""
             },
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",

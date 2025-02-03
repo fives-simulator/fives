@@ -120,7 +120,10 @@ cd build
 You can run **Fives** without any argument to get the help message about arguments, and a version information about Fives itself, and the version of SimGrid and Wrench that were used if you chose the automatic dependencies setup.
 If you used system libraries, dependencies version will just print `SYSTEM`.
 
-Whenever in doubt, you can also use `ldd fives` to see which SimGrid and FSMod library are linked by default (WRENCH won't appear as it is static library)
+Whenever in doubt, you can also use `ldd fives` to see which SimGrid and FSMod library are linked by default (WRENCH won't appear as it is static library).
+Another useful check can be to look at the files `./build/CMakeFiles/fives.dir/compiler_depend.make` and `./build/compile_commands.json`, where all includes for the current build of Fives should be listed (and should be local to the project for the most part in case of automatic setup, or should rely on system libraries exclusively with the manual setup).
+
+
 
 ### Building / running tests
 

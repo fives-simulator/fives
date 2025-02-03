@@ -340,6 +340,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     #### Setup link/includes for Fives
 
     target_include_directories(fives 
+        SYSTEM              # Import as if it were a system lib (so that we can use #include <xxx> instead of #include "xxx.h" everywhere)
         BEFORE              # Should tell Cmake to start by looking in these include directory before system ones
         PRIVATE             # Scope: used only for building the target
         ${CMAKE_SOURCE_DIR}/include
@@ -366,7 +367,10 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
         ${HEADER_FILES}
     )
 
-    target_include_directories(unit_tests BEFORE PRIVATE
+    target_include_directories(unit_tests 
+        SYSTEM 
+        BEFORE 
+        PRIVATE
         ${CMAKE_SOURCE_DIR}/include
         ${LOCAL_INSTALL_DIR}/include
     )

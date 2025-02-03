@@ -1,5 +1,43 @@
-build
-external
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directory
+build/
+
+# Local dependencies directory
+external/
+
+# Scientific results directory
 results
 results/*.png
 results/*.csv
@@ -8,7 +46,15 @@ results/*.yaml
 results/*.pdf
 results/.python-version
 results/sim_time_plots
+
+# Temp directory for profiling debug
 profiling_temp/
 
+# Applying filter 
 *.ipynb filter=strip-notebook-output
+
+# Auto generated, only the BuildInfo.h.in should be commited
 include/BuildInfo.h
+
+# Clang cache
+.cache
