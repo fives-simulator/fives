@@ -1,9 +1,10 @@
 #include "Utils.h"
 #include "AllocationStrategy.h"
 #include "Constants.h"
-
 #include "yaml-cpp/yaml.h"
+
 #include <ctime>
+#include <exception>
 #include <iomanip>
 #include <simgrid/kernel/routing/NetPoint.hpp>
 #include <wrench-dev.h>
@@ -111,8 +112,14 @@ namespace fives {
      */
     Config loadConfig(const std::string &yaml_file_path) {
 
-        YAML::Node config = YAML::LoadFile(yaml_file_path);
-        WRENCH_INFO("Opening config file %s", yaml_file_path.c_str());
+        YAML::Node config;
+        try {
+            WRENCH_INFO("Opening config file %s", yaml_file_path.c_str());
+            config = YAML::LoadFile(yaml_file_path);
+        } catch (const YAML::Exception &e) {
+            WRENCH_WARN("ERROR: Unable to load config : %s", e.what());
+            throw std::invalid_argument("ERROR: Unable to load config :" + std::string(e.what()));
+        }
 
         if (!(config["general"]) or !(config["dragonfly"]) or !(config["storage"])) {
             std::cout << "# Invalid config file, missing one or many sections." << std::endl;

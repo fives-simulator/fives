@@ -5,7 +5,6 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/external/install_deps/include/",
-                "${workspaceFolder}/external/install_deps/include/simgrid/",
                 "${workspaceFolder}/external/install_deps/include/**",
                 "${workspaceFolder}/build/_deps/**"
             ],
