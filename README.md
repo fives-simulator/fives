@@ -22,7 +22,7 @@ The result of a simulation is a set of timestamped execution traces, with emphas
 
 ```
 cmake >= 3.14
-gcc/G++ >= 7.0
+gcc/g++ >= 7.0
 boost >= 1.70 (or at least v1.59)
 ```
 
@@ -43,8 +43,6 @@ simgrid (v3.36) @ https://framagit.org/simgrid/simgrid
 fsmod (v0.2) @ https://github.com/simgrid/file-system-module
 wrench (origin/master branch, or at least release v2.5) @ https://github.com/wrench-project/wrench
 ```
-
-Additionally, if unit tests are required, you will need `googletest` (any relatively recent version will do).
 
 Note that **simgrid** `>= v3.36` and **fsmod** `>= v0.2` are current requirements of `WRENCH`.
 In addition, **WRENCH** requires **nlohmann/json** (`>= v3.11.0` @ https://github.com/nlohmann/json)
@@ -127,7 +125,7 @@ Another useful check can be to look at the files `./build/CMakeFiles/fives.dir/c
 
 ### Building / running tests
 
-A specific target exists for unit tests (not part of `all` target): `unit_tests`.
+A specific target exists for unit tests (not part of `all` target): `unit_tests`. It is available if the `SETUP_GTEST` option is on, which is the default.
 Whether you are using manual or automatic dependencies setup, run:
 
 ```

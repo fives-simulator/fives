@@ -10,6 +10,10 @@ option(BUILD_DEPENDENCIES "Build dependencies (local to project)" OFF)
 # Whether to use sustem libs (simgrid, wrench, ...) instead of local build of dependencies
 option(USE_SYSTEM_LIBS "Use system libraries instead of local dependencies" OFF)
 
+# Whether to use GTEST (it is not recommended to use gtest as a system lib, as it should be 
+# compiled with the same compiler / compiler flags as the tested project)
+option(SETUP_GTEST "Setup googletest locally and add a unit_tests target" ON)
+
 ##### Variables
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules")
@@ -92,10 +96,14 @@ set(TEST_FILES
 
 #####  Dependencies setup
 
+include(FetchContent)
+set(FETCHCONTENT_TRY_FIND_PACKAGE_MODE "NEVER") # The whole point here is to avoid using system libraries
+
+
 ## "Automatic" mode:
 # -> Boost is supposed to be always installed system-wide by the user (outside of this repository),
 #    because it's very heavy and not version-critical for us
-# -> Similarly, nlohmann/json, yaml-cpp and GTest are added to the project via simple FetchContent
+# -> Similarly, nlohmann/json and yaml-cpp are added to the project via simple FetchContent
 #    because we don't need to access/modify/rebuild these sources during dev
 # -> Lastly, SimGrid, FSMod and WRENCH are added via ExternalProject, so that we have full control over
 #    their sources and are able to update / rebuild them manually if needed.
@@ -111,8 +119,22 @@ if(POLICY CMP0167)
 endif()
 find_package(Boost REQUIRED)
 
+# GOOGLE TEST SETUP (always through FetchContent because it is not recommended to rely on system-wide installation)
+if (SETUP_GTEST)
+    FetchContent_Declare(googletest
+        GIT_REPOSITORY   https://github.com/google/googletest/
+        GIT_TAG          ${GOOGLETEST_GIT_REF}
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+endif()
+
+
 # Fetch / Build other dependencies if required.
 if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
+
+    include(ExternalProject)
 
     # Ensure the directories where we'll build the dependencies from source do exist
     file(MAKE_DIRECTORY ${EXTERNAL_DIR})
@@ -132,17 +154,10 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     endif()
     message(STATUS "Using ${NUM_CORES} processes for the compilation of the dependencies")
 
-    # Module includes
-    include(FetchContent)
-    include(ExternalProject)
-
-    set(FETCHCONTENT_TRY_FIND_PACKAGE_MODE "NEVER") # The whole point here is to avoid using system libraries
-
     # nlohmann/json - no need to manually rebuild during dev, so we don't care where cmake builds and install this
     FetchContent_Declare(
-        nlohmann_json
-        GIT_REPOSITORY      https://github.com/nlohmann/json/
-        GIT_TAG             ${NLOHMANNJSON_GIT_REF}
+        json
+        URL https://github.com/nlohmann/json/releases/download/${NLOHMANNJSON_GIT_REF}/json.tar.xz
     )
 
     # jbeder/yaml-cpp - no need to manually rebuild during dev, so we don't care where cmake builds and install this
@@ -151,13 +166,6 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
         GIT_REPOSITORY      https://github.com/jbeder/yaml-cpp
         GIT_TAG             ${YAMLCPP_GIT_REF}
         CMAKE_ARGS          -DYAML_CPP_BUILD_TOOLS=OFF -DYAML_CPP_BUILD_CONTRIB=OFF
-    )
-
-    # Google test - no need to manually rebuild during dev, so we don't care where cmake builds and install this
-    FetchContent_Declare(
-        gtest
-        GIT_REPOSITORY      https://github.com/google/googletest
-        GIT_TAG             ${GOOGLETEST_GIT_REF}
     )
 
     # Make all FetchContent related dependencies available (config time)
@@ -224,7 +232,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     )
 
     # If someone needs to build dependencies only
-    add_custom_target(dependencies DEPENDS nlohmann_json gtest yaml-cpp simgrid_lib fsmod_lib wrench_lib)
+    add_custom_target(dependencies DEPENDS nlohmann_json::nlohmann_json gtest yaml-cpp simgrid_lib fsmod_lib wrench_lib)
 
 elseif(USE_SYSTEM_LIBS)
 
@@ -235,6 +243,9 @@ elseif(USE_SYSTEM_LIBS)
         message(WARNING "BUILD_DEPENDENCIES is ON, but USE_SYSTEM_LIBS is also ON. No dependencies will be built.")
     endif()
 
+    ### Find JSON (just in case it becomes useful, but currently it's only needed by SimGrid, 
+    # which manage on its oww find it)
+    # find_package(nlohmann_json ${${NLOHMANNJSON_GIT_REF}} REQUIRED)
 
     ### Find SimGrid
     if (DEFINED SimGrid_PATH)
@@ -355,38 +366,36 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     )
 
     ##### Unit Tests target
+    if (SETUP_GTEST)
+        add_executable(
+            unit_tests
+            EXCLUDE_FROM_ALL    # don't build as part of the 'all' default target
+            ${TEST_FILES}
+            ${SOURCE_FILES}
+            ${HEADER_FILES}
+        )
 
-    # Also building tests because gtest is always part of installed dependencies in this case
-    add_definitions(-DGTEST_USED)
+        target_include_directories(unit_tests 
+            SYSTEM 
+            BEFORE 
+            PRIVATE
+            ${CMAKE_SOURCE_DIR}/include
+            ${LOCAL_INSTALL_DIR}/include
+        )
 
-    add_executable(
-        unit_tests
-        EXCLUDE_FROM_ALL    # don't build as part of the 'all' default target
-        ${TEST_FILES}
-        ${SOURCE_FILES}
-        ${HEADER_FILES}
-    )
+        target_link_libraries(unit_tests
+            wrench_lib
+            simgrid_lib
+            fsmod_lib
+            yaml-cpp
+            gtest_main
+            pthread # Necessary on Debian for some reason
+        )
 
-    target_include_directories(unit_tests 
-        SYSTEM 
-        BEFORE 
-        PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-        ${LOCAL_INSTALL_DIR}/include
-    )
-
-    target_link_libraries(unit_tests
-        wrench_lib
-        simgrid_lib
-        fsmod_lib
-        yaml-cpp
-        gtest
-        pthread # Necessary on Debian for some reason
-    )
-
-    set_target_properties(unit_tests PROPERTIES COMPILE_FLAGS "-g -O0 --coverage")
-    set_target_properties(unit_tests PROPERTIES LINK_FLAGS "--coverage")
-    add_custom_command(TARGET unit_tests POST_BUILD COMMAND find . -name *.gcda -delete)
+        set_target_properties(unit_tests PROPERTIES COMPILE_FLAGS "-g -O0 --coverage")
+        set_target_properties(unit_tests PROPERTIES LINK_FLAGS "--coverage")
+        add_custom_command(TARGET unit_tests POST_BUILD COMMAND find . -name *.gcda -delete)
+    endif()
 
 else()
 
@@ -409,10 +418,7 @@ else()
         /usr/include /usr/local/include /opt/local/include
     )
 
-    find_library(GTEST_LIBRARY NAMES gtest)
-    if(GTEST_LIBRARY)
-
-        add_definitions(-DGTEST_USED)
+    if(SETUP_GTEST)
 
         add_executable(
             unit_tests
@@ -438,7 +444,7 @@ else()
             FSMOD::FSMOD
             SimGrid::SimGrid
             ${YAML_CPP_LIBRARY} 
-            ${GTEST_LIBRARY}
+            gtest_main
             pthread # Necessary on Debian for some reason
         )
 
