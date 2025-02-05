@@ -156,8 +156,9 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
 
     # nlohmann/json - no need to manually rebuild during dev, so we don't care where cmake builds and install this
     FetchContent_Declare(
-        json
+        nlohmann_json
         URL https://github.com/nlohmann/json/releases/download/${NLOHMANNJSON_GIT_REF}/json.tar.xz
+        DOWNLOAD_EXTRACT_TIMESTAMP ON
     )
 
     # jbeder/yaml-cpp - no need to manually rebuild during dev, so we don't care where cmake builds and install this
@@ -169,7 +170,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     )
 
     # Make all FetchContent related dependencies available (config time)
-    FetchContent_MakeAvailable(nlohmann_json yaml-cpp gtest)
+    FetchContent_MakeAvailable(nlohmann_json yaml-cpp)
 
     # SimGrid - builds in source, as mandated by the project at this time
     ExternalProject_Add(
@@ -232,7 +233,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     )
 
     # If someone needs to build dependencies only
-    add_custom_target(dependencies DEPENDS nlohmann_json::nlohmann_json gtest yaml-cpp simgrid_lib fsmod_lib wrench_lib)
+    add_custom_target(dependencies DEPENDS nlohmann_json::nlohmann_json gtest_main yaml-cpp simgrid_lib fsmod_lib wrench_lib)
 
 elseif(USE_SYSTEM_LIBS)
 
