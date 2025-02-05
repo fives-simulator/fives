@@ -152,49 +152,6 @@ namespace fives {
         return simulation;
     }
 
-    shared_ptr<wrench::CompoundStorageService> createAndInitCSS(std::shared_ptr<wrench::Simulation> simulation,
-                                                                std::shared_ptr<Config> config,
-                                                                std::set<std::shared_ptr<wrench::StorageService>> sstorageservices) {
-
-        /**
-         * What is this useless sorcery you say? Well it was either that or template +
-         * type traits + shared_ptr --' The issue: if you pass to the
-         * CompoundStorageService constructor a functor that has the same signature as
-         * a StorageSelectionStrategyCallback, but isn't one, it will be implicitely
-         * converted to a StorageSelectionStrategyCallback. Because we want to work
-         * with references, what seems to happen is that the CSS ends up not with a
-         * reference to the actual functor, but to the (temporary?)
-         * StorageSelectionStrategyCallback created from converting our functor. This
-         * has no consequences... except if the allocator (eg. LustreAllocator here),
-         * has member variables which were initialized before the conversion/copy
-         * (maybe we could go around the issue by specifying a user defined conversion
-         * function but...)
-         */
-        LustreAllocator allocator(config);
-        wrench::StorageSelectionStrategyCallback allocatorCallback =
-            [&allocator](
-                const std::shared_ptr<wrench::DataFile> &file,
-                const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
-                const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
-                const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
-                unsigned int stripe_count = 0) {
-                return allocator(file, resources, mapping, previous_allocations,
-                                 stripe_count);
-            };
-
-        /* Compound storage service*/
-        auto compound_storage_service =
-            simulation->add(new wrench::CompoundStorageService(
-                COMPOUND_STORAGE, sstorageservices, allocatorCallback,
-                {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE,
-                  std::to_string(config->max_stripe_size)},
-                 {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING,
-                  "false"}}, // because the Lustre allocator takes charge of striping
-                {}));
-
-        return compound_storage_service;
-    }
-
     std::shared_ptr<wrench::SimpleStorageService> createAndInitPermanentStorage(std::shared_ptr<wrench::Simulation> simulation,
                                                                                 std::shared_ptr<Config> config) {
 
@@ -259,7 +216,29 @@ namespace fives {
         /* Instanciation / init of various services */
         auto simulation = createAndInitSimulation(argc, argv, config);
         auto sstorageservices = fives::instantiateStorageServices(simulation, config);
-        auto css = createAndInitCSS(simulation, config, sstorageservices);
+
+        LustreAllocator allocator(config);
+        wrench::StorageSelectionStrategyCallback allocatorCallback =
+            [&allocator](
+                const std::shared_ptr<wrench::DataFile> &file,
+                const std::map<std::string, std::vector<std::shared_ptr<wrench::StorageService>>> &resources,
+                const std::map<std::shared_ptr<wrench::DataFile>, std::vector<std::shared_ptr<wrench::FileLocation>>> &mapping,
+                const std::vector<std::shared_ptr<wrench::FileLocation>> &previous_allocations,
+                unsigned int stripe_count = 0) {
+                return allocator(file, resources, mapping, previous_allocations,
+                                 stripe_count);
+            };
+
+        /* Compound storage service*/
+        auto css =
+            simulation->add(new wrench::CompoundStorageService(
+                COMPOUND_STORAGE, sstorageservices, allocatorCallback,
+                {{wrench::CompoundStorageServiceProperty::MAX_ALLOCATION_CHUNK_SIZE,
+                  std::to_string(config->max_stripe_size)},
+                 {wrench::CompoundStorageServiceProperty::INTERNAL_STRIPING,
+                  "false"}}, // because the Lustre allocator takes charge of striping
+                {}));
+
         auto permanent_storage = createAndInitPermanentStorage(simulation, config);
         auto batch_service = fives::instantiateComputeServices(simulation, config);
         auto ctrl = simulation->add(new fives::Controller(batch_service, permanent_storage, css, USER, jobs, config));
