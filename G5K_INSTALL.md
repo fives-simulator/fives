@@ -2,16 +2,26 @@
 
 *Grid5000 (G5K) is the INRIA's main experimental platform at the time of writing (see https://www.grid5000.fr). This procedure contains the steps taken to install and configure Fives and its dependencies on a G5K node, when used for tests and automated experiments. It could also easily be adapted to most other systems.*
 
-
-### 
-
-In this guide, we'll be using a debian system, specifically `debian11-big`, a Debian bullseye image with developement packages, system tools editors and shells (see [G5K Env](https://www.grid5000.fr/w/Generated/Environments)).
-
+In this guide, we are using a Grid5000 debian image, specifically `debian11-big`, a Debian bullseye with developement packages, system tools editors and shells (see [G5K Env](https://www.grid5000.fr/w/Generated/Environments)).
 
 ### Dependencies
 
+#### Build tools
+
+- `cmake` (technically >= 3.14)
+- `g++` (technically >= 10.2)
+
+Versions are not strict in the sense that the ones in the list above proved to work, you should be fine with any relatively recent version.
+In this guide, cmake and g++ are alrealdy installed in the base image. We can optionally check the version / possible updates with:
+
+```bash
+apt update
+apt install cmake g++
+```
+
 #### Boost
 
+Required by WRENCH.
 Installed through the package manager (in our case, it is already part of `debian11-big`, but you can optionally check that it is recent enough)
 
 ```bash

@@ -22,9 +22,11 @@ The result of a simulation is a set of timestamped execution traces, with emphas
 
 ```
 cmake >= 3.14
-gcc/g++ >= 7.0
-boost >= 1.70 (or at least v1.59)
+gcc/g++ >= 10.2
+boost >= 1.70
 ```
+
+Versions are not strict in the sense that the ones in the list above proved to work, you should be fine with any relatively recent version.
 
 Note: For some reasons, while the project should also build with clang/clang++, it seems that some the dependencies don't really like it.
 
