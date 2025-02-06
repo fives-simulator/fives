@@ -31,6 +31,19 @@ namespace fives {
         std::map<std::string, DiskIOCounters> disks;
     };
 
+    struct JobManagementStruct {
+        std::shared_ptr<JobManager> jobManager;
+        std::shared_ptr<ActionExecutionService> executionService;
+        std::shared_ptr<wrench::BareMetalComputeService> bareMetalCS;
+        std::map<std::string, std::map<std::string, std::string>> serviceSpecificArgs;
+    };
+
+    struct SimulationJobTrace {
+        YamlJob yamlJob;
+        std::shared_ptr<wrench::CompoundJob> reservationJob;
+        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> subJobs;
+    };
+
     class PartialWriteCustomAction : public wrench::CustomAction {
     public:
         std::shared_ptr<wrench::DataFile> writtenFile;
@@ -93,6 +106,26 @@ namespace fives {
 
         virtual void preloadData();
 
+        virtual void registerJob(const std::string &jobId,
+                                 uint32_t runId,
+                                 std::shared_ptr<wrench::CompoundJob> job,
+                                 bool child);
+
+        virtual void addSleepJob(JobManagementStruct &jms,
+                                 const std::string &jobID,
+                                 const DarshanRecord &run,
+                                 std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> &exec_jobs);
+
+        virtual void addReadJob(JobManagementStruct &jms,
+                                const std::string &jobID,
+                                const DarshanRecord &run,
+                                std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> &exec_jobs);
+
+        virtual void addWriteJob(JobManagementStruct &jms,
+                                 const std::string &jobID,
+                                 const DarshanRecord &run,
+                                 std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> &exec_jobs);
+
         virtual void submitJob(const std::string &jobID);
 
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
@@ -148,17 +181,19 @@ namespace fives {
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
-        unsigned int determineReadNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
+        unsigned int getReadNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
 
-        unsigned int determineWriteNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
+        unsigned int getWriteNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
 
-        unsigned int determineReadStripeCount(double cumul_read_bw) const;
+        unsigned int getReadStripeCount(double cumul_read_bw) const;
 
-        unsigned int determineWriteStripeCount(double cumul_write_bw) const;
+        unsigned int getWriteStripeCount(double cumul_write_bw) const;
 
-        unsigned int determineReadFileCount(unsigned int stripe_count) const;
+        unsigned int getReadFileCount(unsigned int stripe_count) const;
 
-        unsigned int determineWriteFileCount(unsigned int stripe_count) const;
+        unsigned int getWriteFileCount(unsigned int stripe_count) const;
+
+        std::map<std::string, SimulationJobTrace> sim_jobs = {};
 
         std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 

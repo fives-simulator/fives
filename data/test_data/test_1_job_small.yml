@@ -1,40 +1,41 @@
 ---
 jobs:
-- id: 1
-  category: 1
-  coresUsed: 64
-  coreHoursReq: 3.0
-  coreHoursUsed: 2.5
-  endTime: '2023-01-01 03:09:00'
-  nodesUsed: 2
-  readBytes: 20000000  # 20 MB
+- coresUsed: 256
+  coreHoursReq: 1280
+  coreHoursUsed: 984.5
   cumul_read_bw: 3795358.854753721
   cumul_write_bw: 28679025.769959778
-  walltimeSeconds: 4000
-  runtimeSeconds: 3000 # seconds
-  sleepSimulationSeconds: 0
+  category: 1
+  endTime: '2023-01-01 14:54:34'
+  id: job1
+  nodesUsed: 4
+  readBytes: 0  #  5 MB
+  walltimeSeconds: 3600   # 1 h
+  runtimeSeconds: 3000
+  sleepSimulationSeconds: 60      # Start the first job after 1 min in simulation time
   waitingTimeSeconds: 10
-  startTime: '2023-01-01 00:08:10'
-  submissionTime: '2023-01-01 00:08:00'
-  writtenBytes: 25000000 # 25 MB
-  readTimeSeconds: 6859.859
-  writeTimeSeconds: 0.215317
-  metaTimeSeconds: 256.299233
+  startTime: '2023-01-01 14:08:10'
+  submissionTime: '2023-01-01 14:08:00'
+  writtenBytes: 4000 # 4 MB
+  readTimeSeconds: 1000   # arbitrary
+  writeTimeSeconds: 1400  # arbitrary
+  metaTimeSeconds: 458.29 # arbitrary
+  runsCount: 2
   runs:
     - id: 1
-      nprocs: 32
-      readBytes: 1000000000000
-      writtenBytes: 1250000000000
-      sleepDelay: 250
-      dStartTime: 1672528090
-      dEndTime: 1672530090
-      runtime: 1000
+      nprocs: 256
+      readBytes: 0      
+      writtenBytes: 2000   
+      sleepDelay: 45              # Start this execution 45s in the reservation
+      dStartTime: 1672528245      # fake
+      dEndTime: 1672529245        # fake
+      runtime: 2400
     - id: 2
-      nprocs: 32
-      readBytes: 1000000000000
-      writtenBytes: 1250000000000
-      sleepDelay: 105
-      dStartTime: 1672530390
-      dEndTime: 1672532390
-      runtime: 1000
+      nprocs: 256
+      readBytes: 0       
+      writtenBytes: 2000   
+      sleepDelay: 2550             # Start this execution 550s in the reservation 
+      dStartTime: 1672528285      # fake
+      dEndTime: 1672529285        # fake
+      runtime: 2000
 ...
