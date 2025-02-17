@@ -32,8 +32,8 @@ namespace fives {
     };
 
     struct JobManagementStruct {
-        std::shared_ptr<JobManager> jobManager;
-        std::shared_ptr<ActionExecutionService> executionService;
+        std::shared_ptr<wrench::JobManager> jobManager;
+        std::shared_ptr<wrench::ActionExecutionService> executionService;
         std::shared_ptr<wrench::BareMetalComputeService> bareMetalCS;
         std::map<std::string, std::map<std::string, std::string>> serviceSpecificArgs;
     };
@@ -85,7 +85,7 @@ namespace fives {
             const std::map<std::string, YamlJob> &jobs,
             const std::shared_ptr<fives::Config> &fives_config);
 
-        std::vector<std::shared_ptr<wrench::CompoundJob>> getCompletedJobsById(std::string id);
+        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> getCompletedJobsById(std::string id);
 
         virtual void processCompletedJobs(const std::string &jobsFilename, const std::string &config_version, const std::string &tag);
 
@@ -113,18 +113,15 @@ namespace fives {
 
         virtual void addSleepJob(JobManagementStruct &jms,
                                  const std::string &jobID,
-                                 const DarshanRecord &run,
-                                 std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> &exec_jobs);
+                                 const DarshanRecord &run);
 
         virtual void addReadJob(JobManagementStruct &jms,
                                 const std::string &jobID,
-                                const DarshanRecord &run,
-                                std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> &exec_jobs);
+                                const DarshanRecord &run);
 
         virtual void addWriteJob(JobManagementStruct &jms,
                                  const std::string &jobID,
-                                 const DarshanRecord &run,
-                                 std::map<unsigned int, std::vector<std::shared_ptr<wrench::CompoundJob>>> &exec_jobs);
+                                 const DarshanRecord &run);
 
         virtual void submitJob(const std::string &jobID);
 
@@ -173,7 +170,8 @@ namespace fives {
         void processActions(YAML::Emitter &out_jobs,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
                             double &job_start_time,
-                            const std::string &job_id);
+                            const std::string &job_id,
+                            uint32_t run_id);
 
         void processCompletedJob(const std::string &job_id);
 
@@ -195,7 +193,7 @@ namespace fives {
 
         std::map<std::string, SimulationJobTrace> sim_jobs = {};
 
-        std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
+        // std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
         std::map<std::string, std::map<unsigned int, std::map<std::string, unsigned int>>> stripes_per_action; // map for to-level jobs, then runs inside jobs, then actions
 
