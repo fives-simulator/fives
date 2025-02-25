@@ -85,7 +85,9 @@ namespace fives {
             const std::map<std::string, YamlJob> &jobs,
             const std::shared_ptr<fives::Config> &fives_config);
 
-        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> getCompletedJobsById(std::string id);
+        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> getCompletedJobsById(const std::string &id);
+
+        std::shared_ptr<wrench::CompoundJob> getReservationJobById(const std::string &id);
 
         virtual void processCompletedJobs(const std::string &jobsFilename, const std::string &config_version, const std::string &tag);
 

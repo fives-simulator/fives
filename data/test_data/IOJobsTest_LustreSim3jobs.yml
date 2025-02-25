@@ -25,7 +25,7 @@ jobs:
     - id: 1
       nprocs: 256
       readBytes: 15000000000      # Read 3/4 of the total read bytes
-      writtenBytes: 8000000000    #  Write 8GB out of 25
+      writtenBytes: 8000000000    # Write 8GB out of 25
       sleepDelay: 45              # Start this execution 45s in the reservation
       dStartTime: 1672528245      # fake
       dEndTime: 1672529245        # fake
@@ -34,7 +34,7 @@ jobs:
       nprocs: 256
       readBytes: 5000000000       # Read the remaining 1/4
       writtenBytes: 17000000000   # Write 17GB (remainer)
-      sleepDelay: 2550             # Start this execution 550s in the reservation 
+      sleepDelay: 2550            # Start this execution 550s in the reservation 
       dStartTime: 1672528285      # fake
       dEndTime: 1672529285        # fake
       runtime: 2000

@@ -1012,107 +1012,102 @@ void FunctionalAllocTest::lustreFullSim_test() {
     auto job_2 = ctrl->getCompletedJobsById("job2");
     auto job_3 = ctrl->getCompletedJobsById("job3");
 
-    /*     for (const auto &subjob : job_3) {
-            std::cout << subjob->getName() << std::endl;
-        } */
+    ASSERT_EQ(job_1.size(), 2); // 2 runs
+    ASSERT_EQ(job_2.size(), 3); // 3 runs
+    ASSERT_EQ(job_3.size(), 6); // 6 runs
 
-    ASSERT_EQ(job_1.size(), 7);  // parent job + (Copy / Read / Write jobs) + (Read / Write / Archive) (+ 2 sleep jobs, ignored)
-    ASSERT_EQ(job_2.size(), 7);  // parent job + 3 * (write + archive)  (no sleep jobs)
-    ASSERT_EQ(job_3.size(), 13); // parent job + 6 * (copy / read) (and 6 ignored sleep actions)
+    ASSERT_EQ(job_1[1].size(), 4); // (sleep + copy + read + write)
+    ASSERT_EQ(job_2[1].size(), 2); // (write + archive)
+    ASSERT_EQ(job_3[1].size(), 3); // (sleep + copy + read)
 
-    ASSERT_EQ(job_1[0]->getName(), "job1");
-    ASSERT_EQ(job_2[0]->getName(), "job2");
-    ASSERT_EQ(job_3[0]->getName(), "job3");
+    ASSERT_EQ(job_1[1][2]->getName(), "wrFiles_idjob1_run1");
+    ASSERT_EQ(job_1[1][3]->getName(), "outCopy_idjob1_run1");
+    ASSERT_EQ(job_1[2][1]->getName(), "inCopy_idjob1_run2");
+    ASSERT_EQ(job_1[2][2]->getName(), "rdFiles_idjob1_run2");
 
-    ASSERT_EQ(job_1[2]->getName(), "writeFiles_idjob1_exec1");
-    ASSERT_EQ(job_1[3]->getName(), "archiveCopy_idjob1_exec1");
-    ASSERT_EQ(job_1[4]->getName(), "stagingCopy_idjob1_exec2");
-    ASSERT_EQ(job_1[6]->getName(), "writeFiles_idjob1_exec2");
+    ASSERT_EQ(job_2[1][0]->getName(), "wrFiles_idjob2_run1");
+    ASSERT_EQ(job_2[1][1]->getName(), "outCopy_idjob2_run1");
 
-    ASSERT_EQ(job_2[2]->getName(), "archiveCopy_idjob2_exec1");
-    ASSERT_EQ(job_2[3]->getName(), "writeFiles_idjob2_exec2");
+    ASSERT_EQ(job_3[1][0]->getName(), "sleep_idjob3_run1");
+    ASSERT_EQ(job_3[1][1]->getName(), "inCopy_idjob3_run1");
+    ASSERT_EQ(job_3[2][2]->getName(), "rdFiles_idjob3_run2");
 
-    ASSERT_EQ(job_3[1]->getName(), "stagingCopy_idjob3_exec1");
-    ASSERT_EQ(job_3[2]->getName(), "readFiles_idjob3_exec1");
-    ASSERT_EQ(job_3[4]->getName(), "readFiles_idjob3_exec2");
+    // JOB 1 (all sequential)
+    auto previous_submit_date = (*job_1[1][0]->getActions().begin())->getStartDate();
+    for (const auto &[run, subjobs] : job_1) {
+        for (const auto &subjob : subjobs) {
 
-    // JOB 1 (easy, all sequential)
-    for (unsigned int i = 0; i < 6; i++) {
-        ASSERT_TRUE(job_1[i]->getSubmitDate() <= job_1[i + 1]->getSubmitDate());
+            if (subjob->getName().substr(0, 5) == "sleep")
+                continue;
+
+            std::cout << "Subjob: " << subjob->getName() << ": " << (*subjob->getActions().begin())->getStartDate() << " VS " << previous_submit_date << std::endl;
+            ASSERT_TRUE((*subjob->getActions().begin())->getStartDate() >= previous_submit_date);
+            previous_submit_date = (*subjob->getActions().begin())->getStartDate();
+        }
     }
 
-    // JOB 2
-    for (unsigned int i = 1; i < 2; i++) {
-        ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 3; i < 4; i++) {
-        ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 5; i < 6; i++) {
-        ASSERT_TRUE(job_2[i]->getSubmitDate() <= job_2[i + 1]->getSubmitDate());
+    // JOB 2 (parallel runs, submit dates are compared on a per-run basis)
+    for (const auto &[run, subjobs] : job_2) {
+        auto previous_submit_date = subjobs[0]->getSubmitDate();
+        for (const auto &subjob : subjobs) {
+            ASSERT_TRUE(subjob->getSubmitDate() >= previous_submit_date);
+            previous_submit_date = subjob->getSubmitDate();
+        }
     }
 
-    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[3]->getSubmitDate(), 1);
-    ASSERT_NEAR(job_2[1]->getSubmitDate(), job_2[5]->getSubmitDate(), 1);
+    // Also check that each run does indeed start roughly at the same time
+    ASSERT_NEAR(job_2[1][0]->getSubmitDate(), job_2[2][0]->getSubmitDate(), 1);
+    ASSERT_NEAR(job_2[2][0]->getSubmitDate(), job_2[3][0]->getSubmitDate(), 1);
 
-    // JOB 3
-    for (unsigned int i = 1; i < 2; i++) {
-        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 3; i < 4; i++) {
-        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 5; i < 6; i++) {
-        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 7; i < 8; i++) {
-        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 9; i < 10; i++) {
-        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
-    }
-    for (unsigned int i = 11; i < 12; i++) {
-        ASSERT_TRUE(job_3[i]->getSubmitDate() <= job_3[i + 1]->getSubmitDate());
+    // JOB 3 (parallel runs, submit dates are compared on a per-run basis)
+    for (const auto &[run, subjobs] : job_3) {
+        auto previous_submit_date = subjobs[0]->getSubmitDate();
+        for (const auto &subjob : subjobs) {
+            ASSERT_TRUE(subjob->getSubmitDate() >= previous_submit_date);
+            previous_submit_date = subjob->getSubmitDate();
+        }
     }
 
-    ASSERT_TRUE(job_3[5]->getSubmitDate() <= job_3[4]->getSubmitDate());
-    ASSERT_TRUE(job_3[11]->getSubmitDate() <= job_3[10]->getSubmitDate());
+    // Also check that runs are started sequentially, with small offset between each other
+    ASSERT_TRUE(job_3[1][0]->getSubmitDate() <= job_3[2][0]->getSubmitDate());
+    ASSERT_TRUE(job_3[3][0]->getSubmitDate() <= job_3[4][0]->getSubmitDate());
 
     // Introspection in parent job for job 1
-    auto parent1 = job_1[0];
-    ASSERT_EQ(parent1->getState(), wrench::CompoundJob::State::COMPLETED);
-    ASSERT_TRUE(parent1->hasSuccessfullyCompleted());
-    ASSERT_NEAR(parent1->getSubmitDate(), 60, 1);
-    ASSERT_EQ(parent1->getActions().size(), 2); // one custom action
-    ASSERT_EQ(wrench::Action::getActionTypeAsString(*(parent1->getActions().begin())), "CUSTOM-");
-    ASSERT_EQ(parent1->getName(), "job1");
-    ASSERT_EQ(parent1->getMinimumRequiredNumCores(), 0);
+    auto reservation1 = ctrl->getReservationJobById("job1");
+    ASSERT_NE(reservation1, nullptr);
+    ASSERT_EQ(reservation1->getState(), wrench::CompoundJob::State::COMPLETED);
+    ASSERT_TRUE(reservation1->hasSuccessfullyCompleted());
+    ASSERT_NEAR(reservation1->getSubmitDate(), 60, 1);
+    ASSERT_EQ(reservation1->getActions().size(), 2); // one custom action
+    ASSERT_EQ(wrench::Action::getActionTypeAsString(*(reservation1->getActions().begin())), "CUSTOM-");
+    ASSERT_EQ(reservation1->getName(), "job1");
+    ASSERT_EQ(reservation1->getMinimumRequiredNumCores(), 0);
 
     // Parent job 2
-    auto parent2 = job_2[0];
-    ASSERT_NEAR(parent2->getSubmitDate(), 3860, 1);
+    auto reservation2 = ctrl->getReservationJobById("job2");
+    ASSERT_NEAR(reservation2->getSubmitDate(), 3860, 1);
 
     // Parent job 3
-    auto parent3 = job_3[0];
-    ASSERT_NEAR(parent3->getSubmitDate(), 3860, 1);
+    auto reservation3 = ctrl->getReservationJobById("job3");
+    ASSERT_NEAR(reservation3->getSubmitDate(), 3860, 1);
 
     // Introspection in one of the sub jobs
-    auto write2 = job_2[1];
-    ASSERT_EQ(write2->getName(), "writeFiles_idjob2_exec1");
+    auto write2 = job_2[1][0];
+    ASSERT_EQ(write2->getName(), "wrFiles_idjob2_run1");
     ASSERT_EQ(write2->getState(), wrench::CompoundJob::State::COMPLETED);
     ASSERT_TRUE(write2->hasSuccessfullyCompleted());
     auto write2Actions = write2->getActions();
     ASSERT_EQ(write2Actions.size(), 8); // Configuration using 2 nodes / 4 files = 8 writes actions in the job
     std::vector<std::string> fileNames{
-        "outputFile_writeFiles_idjob2_exec1_part0",
-        "outputFile_writeFiles_idjob2_exec1_part1",
-        "outputFile_writeFiles_idjob2_exec1_part2",
-        "outputFile_writeFiles_idjob2_exec1_part3"};
-    regex reg("FW_outputFile_writeFiles_idjob2_exec1_part[0-7]_compute\\d+_act[0-9]+");
+        "outputFile_wrFiles_idjob2_run1_part0",
+        "outputFile_wrFiles_idjob2_run1_part1",
+        "outputFile_wrFiles_idjob2_run1_part2",
+        "outputFile_wrFiles_idjob2_run1_part3"};
+    regex reg("FW_outputFile_wrFiles_idjob2_run1_part[0-7]_compute\\d+_act[0-9]+");
 
-    /*     for (const auto &act : write2Actions) {
-            std::cout << "- Action : " << act->getName() << std::endl;
-        } */
+    for (const auto &act : write2Actions) {
+        std::cout << "- Action : " << act->getName() << std::endl;
+    }
 
     for (const auto &act : write2Actions) {
         auto action_name = act->getName();
@@ -1134,25 +1129,31 @@ void FunctionalAllocTest::lustreFullSim_test() {
     }
 
     // Check actions order inside multiple sub jobs and make sure they match the job's boundary
-    for (const auto &parent : {job_1, job_2, job_3}) {
-        auto parent_job_start_date = parent[0]->getActions().begin()->get()->getStartDate();
-        auto parent_job_end_date = parent[0]->getActions().begin()->get()->getEndDate();
-        for (const auto &job : parent) {
-            if ((job->getName() == "job1") or (job->getName() == "job2") or (job->getName() == "job3")) {
-                continue;
-            }
-            auto last_job_submit_date = job->getSubmitDate();
+    std::vector<std::pair<std::shared_ptr<wrench::CompoundJob>,
+                          std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>>>>
+        workload = {{reservation1, job_1}, {reservation2, job_2}, {reservation3, job_3}};
+    for (const auto &[reservation, job] : workload) {
 
-            auto actions = job->getActions();
-            auto action_count = actions.size();
-            for (const auto &action : actions) {
-                auto action_start_date = action->getStartDate();
-                auto action_end_date = action->getEndDate();
+        auto res_job_start_date = reservation->getActions().begin()->get()->getStartDate();
+        auto res_job_end_date = reservation->getActions().begin()->get()->getEndDate();
 
-                ASSERT_TRUE(action_start_date >= last_job_submit_date);
-                ASSERT_TRUE(action_start_date <= action_end_date);
-                ASSERT_TRUE(action_start_date >= parent_job_start_date);
-                ASSERT_TRUE(action_end_date <= parent_job_end_date);
+        for (const auto &[run, subjobs] : job) {
+
+            for (const auto &subjob : subjobs) {
+
+                auto last_job_submit_date = subjob->getSubmitDate();
+
+                auto actions = subjob->getActions();
+                auto action_count = actions.size();
+                for (const auto &action : actions) {
+                    auto action_start_date = action->getStartDate();
+                    auto action_end_date = action->getEndDate();
+
+                    ASSERT_TRUE(action_start_date >= last_job_submit_date);
+                    ASSERT_TRUE(action_start_date <= action_end_date);
+                    ASSERT_TRUE(action_start_date >= res_job_start_date);
+                    ASSERT_TRUE(action_end_date <= res_job_end_date);
+                }
             }
         }
     }

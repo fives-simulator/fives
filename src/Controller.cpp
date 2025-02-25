@@ -120,14 +120,29 @@ namespace fives {
     }
 
     /**
+     * @brief Find a reservation job by id in the internal job list.
+     * @param id String id of the reservation job to look for
+     * @return shared_ptr on CompoundJob, pointing to a 'reservation job'
+     */
+    std::shared_ptr<wrench::CompoundJob> Controller::getReservationJobById(const std::string &id) {
+
+        auto job_entry = this->sim_jobs.find(id);
+        if (job_entry == this->sim_jobs.end()) {
+            WRENCH_WARN("Controller::getCompletedJobsById: Job ID %s not found", id.c_str());
+            return nullptr;
+        }
+
+        return job_entry->second.reservationJob;
+    }
+
+    /**
      * @brief Find compound jobs by id in the internal job list.
-     *        Note that every compound job in this map is actually a list of jobs, always starting
-     *        with the reservation job and then complete by sub-jobs started from inside the customAction of the
-     *        reservation job.
+     *        Note that every compound job in this map is actually a list of sub-jobs started from
+     *        inside the customAction of the reservation job.
      * @param id String id of the reservation job to look for
      * @return Vector of shared_ptr on Compound jobs, including all sub-jobs but not the 'reservation' job
      */
-    std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> Controller::getCompletedJobsById(std::string id) {
+    std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> Controller::getCompletedJobsById(const std::string &id) {
 
         auto job_entry = this->sim_jobs.find(id);
         if (job_entry == this->sim_jobs.end()) {
