@@ -76,7 +76,6 @@ namespace fives {
     class Controller : public wrench::ExecutionController {
 
     public:
-        // Constructor
         Controller(
             const std::shared_ptr<wrench::ComputeService> &compute_service,
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
@@ -91,7 +90,7 @@ namespace fives {
 
         virtual void processCompletedJobs(const std::string &jobsFilename, const std::string &config_version, const std::string &tag);
 
-        virtual bool actionsAllCompleted();
+        // virtual bool actionsAllCompleted();
 
         uint64_t getFailedJobCount() const { return this->failed_jobs_count; };
 
@@ -157,18 +156,6 @@ namespace fives {
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                      unsigned int max_nb_hosts = 1);
 
-        virtual void cleanupInput(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
-                                  std::shared_ptr<wrench::CompoundJob> cleanupJob,
-                                  std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs,
-                                  bool cleanup_external = true);
-
-        virtual void cleanupOutput(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
-                                   std::shared_ptr<wrench::CompoundJob> cleanupJob,
-                                   std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs,
-                                   bool cleanup_external = true);
-
         void processActions(YAML::Emitter &out_jobs,
                             const std::set<std::shared_ptr<wrench::Action>> &actions,
                             double &job_start_time,
@@ -193,9 +180,9 @@ namespace fives {
 
         unsigned int getWriteFileCount(unsigned int stripe_count) const;
 
+        // Map to accumulate every simulation job created
+        // Jobs are removed from the map once processed (after they completed) or in case of failure.
         std::map<std::string, SimulationJobTrace> sim_jobs = {};
-
-        // std::map<std::string, std::pair<YamlJob, std::vector<std::shared_ptr<wrench::CompoundJob>>>> compound_jobs = {};
 
         std::map<std::string, std::map<unsigned int, std::map<std::string, unsigned int>>> stripes_per_action; // map for to-level jobs, then runs inside jobs, then actions
 
@@ -217,6 +204,7 @@ namespace fives {
 
         std::map<std::string, StorageServiceIOCounters> volume_per_storage_service_disk = {};
 
+        // YAML object that accumulates processed informations about (successfully) completed jobs
         YAML::Emitter completed_jobs;
 
         uint64_t failed_jobs_count = 0;

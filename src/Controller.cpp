@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-#include <random>
+// #include <random>
 #include <utility>
 #include <wrench/services/helper_services/action_execution_service/ActionExecutionService.h>
 #include <wrench/util/UnitParser.h>
@@ -51,7 +51,23 @@ namespace fives {
                                                                                  config(fives_config) {}
 
     /**
-     * @brief main method of the Controller
+     * @brief main method of the Controller. Responsible for:
+     *         - reading and setting a few parameters
+     *         - running the data preload function (creating some file on storage *before* any job starts)
+     *         - parsing all yaml jobs and triggering their submission into the simulation:
+     *              - each job has a 'sleepSimulationSeconds' fields that indicates at which point in the
+     *                simulation it should be submitted (how long after the previous job)
+     *              - this value is used to setup a WRENCH timer for each job, which upon releasing an event,
+     *                will trigger the actual creation and submission of the job, at the correct simulated time
+     *              - while waiting for the trigger of a job submission, we may alwo have to handle the completion
+     *                of another job, which we wait for in a while loop (timer off, completion or failure events
+     *                may happen, but only the timer will also make us leave the while loop and setup a new timer
+     *                for the next job)
+     *          - waiting for any remaining running jobs to complete (second loop)
+     *          - 'closing' the yaml document containing simulation results
+     *
+     * When the controller returns, the main of the simulators knows the results are ready to be written to file,
+     * and the simulation can be completed.
      *
      * @return 0 on completion
      *
@@ -63,9 +79,6 @@ namespace fives {
         WRENCH_INFO("Controller : %s jobs to create and submit", std::to_string(jobs.size()).c_str());
 
         this->completed_jobs << YAML::BeginSeq;
-
-        // Forced seed for rand (used later on to decide whether or not to cleanup files after write / copy operations of jobs)
-        std::srand(1);
 
         this->flopRate = this->compute_service->getCoreFlopRate().begin()->second; // flop rate from first compute node
         this->ost_count = this->compound_storage_service->getAllServices().size();
@@ -102,7 +115,7 @@ namespace fives {
                     WRENCH_INFO("[During loop for %s] Job failure event received ()", yaml_entry.first.c_str());
                     this->processEventCompoundJobFailure(failure_event);
                 } else {
-                    throw std::runtime_error("Unexpected Controller Event : " + event->toString());
+                    throw std::runtime_error("[During loop for " + yaml_entry.first + "] Unexpected Controller Event : " + event->toString());
                 }
             }
         }
@@ -120,26 +133,26 @@ namespace fives {
     }
 
     /**
-     * @brief Find a reservation job by id in the internal job list.
-     * @param id String id of the reservation job to look for
-     * @return shared_ptr on CompoundJob, pointing to a 'reservation job'
+     * @brief Getter for a reservation job by its id.
+     * @param id String id of the reservation job to look for ('id' field in the yaml data)
+     * @return shared_ptr on CompoundJob, pointing to a 'reservation job' OR a nullptr (in a shared)
      */
     std::shared_ptr<wrench::CompoundJob> Controller::getReservationJobById(const std::string &id) {
 
         auto job_entry = this->sim_jobs.find(id);
         if (job_entry == this->sim_jobs.end()) {
             WRENCH_WARN("Controller::getCompletedJobsById: Job ID %s not found", id.c_str());
-            return nullptr;
+            return std::shared_ptr<wrench::CompoundJob>(nullptr);
         }
 
         return job_entry->second.reservationJob;
     }
 
     /**
-     * @brief Find compound jobs by id in the internal job list.
+     * @brief Getter for subjobs of a given yaml job, found by the reservation job id.
      *        Note that every compound job in this map is actually a list of sub-jobs started from
      *        inside the customAction of the reservation job.
-     * @param id String id of the reservation job to look for
+     * @param id String id of the reservation job for which you want subjobs
      * @return Vector of shared_ptr on Compound jobs, including all sub-jobs but not the 'reservation' job
      */
     std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> Controller::getCompletedJobsById(const std::string &id) {
@@ -153,35 +166,35 @@ namespace fives {
         return job_entry->second.subJobs;
     }
 
-    /**
-     * @brief Check all actions from all jobs for any failed action
-     * @return True if no action has failed, false otherwise
-     */
-    bool Controller::actionsAllCompleted() {
+    // /**
+    //  * @brief Check all actions from all jobs for any failed action
+    //  * @return True if no action has failed, false otherwise
+    //  */
+    // bool Controller::actionsAllCompleted() {
 
-        bool success = true;
+    //     bool success = true;
 
-        for (const auto &[job_id, trace] : this->sim_jobs) {
-            for (const auto &[run, jobs] : trace.subJobs) {
-                for (const auto &job : jobs) {
-                    for (const auto &a : job->getActions()) {
-                        if (a->getState() != wrench::Action::State::COMPLETED) {
-                            wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
-                            WRENCH_WARN("Error for action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
-                            std::cout << "Failed action for job : " << job_id << " : " << a->getName() << std::endl;
-                            if (a->getFailureCause()) {
-                                WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
-                            }
-                            wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
-                            success = false;
-                        }
-                    }
-                }
-            }
-        }
+    //     for (const auto &[job_id, trace] : this->sim_jobs) {
+    //         for (const auto &[run, jobs] : trace.subJobs) {
+    //             for (const auto &job : jobs) {
+    //                 for (const auto &a : job->getActions()) {
+    //                     if (a->getState() != wrench::Action::State::COMPLETED) {
+    //                         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
+    //                         WRENCH_WARN("Error for action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
+    //                         std::cout << "Failed action for job : " << job_id << " : " << a->getName() << std::endl;
+    //                         if (a->getFailureCause()) {
+    //                             WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
+    //                         }
+    //                         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
+    //                         success = false;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        return success;
-    }
+    //     return success;
+    // }
 
     void Controller::preloadData() {
 
@@ -809,20 +822,6 @@ namespace fives {
             }
         }
 
-        // internalJobManager->submitJob(writeJob, bare_metal, service_specific_args);
-        // WRENCH_INFO("[%s-%u] writeToTemporary: job submitted with %lu actions on bare_metal %s", jobPair.first.id.c_str(), record.id, write_files.size() * max_nb_hosts, bare_metal->getName().c_str());
-        // auto nextEvent = action_executor->waitForNextEvent();
-        // if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(nextEvent)) {
-        //     auto failedEvent = std::dynamic_pointer_cast<wrench::CompoundJobFailedEvent>(nextEvent);
-        //     for (const auto &action : writeJob->getActions()) {
-        //         if (action->getState() == wrench::Action::FAILED) {
-        //             WRENCH_WARN("Action failure cause : %s", action->getFailureCause()->toString().c_str());
-        //         }
-        //     }
-        //     WRENCH_WARN("Failed event cause : %s", failedEvent->failure_cause->toString().c_str());
-        //     throw std::runtime_error("Sub-job 'write to CSS' " + writeJob->getName() + " failed");
-        // }
-        // WRENCH_INFO("[%s] Write job executed with %lu actions", writeJob->getName().c_str(), writeJob->getActions().size());
         return write_files;
     }
 
@@ -860,96 +859,6 @@ namespace fives {
             if (++computeResourcesIt == computeResources.end())
                 computeResourcesIt = computeResources.begin();
         }
-
-        // internalJobManager->submitJob(copyJob, bare_metal, service_specific_args);
-        // WRENCH_INFO("[%s] copyToPermanent: job submitted with %lu actions on bare_metal %s", jobPair.first.id.c_str(), record.id, outputs.size(), bare_metal->getName().c_str());
-        // if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
-        //     throw std::runtime_error("Sub-job 'copy to permanent' " + copyJob->getName() + " failed");
-        // WRENCH_INFO("[%s] CopyTo job executed with %lu actions", copyJob->getName().c_str(), copyJob->getActions().size());
-    }
-
-    void Controller::cleanupInput(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
-                                  std::shared_ptr<wrench::CompoundJob> cleanupJob,
-                                  std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                  std::vector<std::shared_ptr<wrench::DataFile>> inputs,
-                                  bool cleanup_external) {
-
-        WRENCH_INFO("[%s] Creating cleanup actions for input file(s)", cleanupJob->getName().c_str());
-
-        auto computeResources = bare_metal->getPerHostNumCores();
-
-        service_specific_args[cleanupJob->getName()] = std::map<std::string, std::string>();
-        auto computeResourcesIt = computeResources.begin();
-        auto action_cnt = 0;
-        for (const auto &input_data : inputs) {
-            auto del_id = "DRF_" + input_data->getID();
-            auto deleteReadAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->compound_storage_service, input_data));
-            if (computeResourcesIt == computeResources.end()) {
-                computeResourcesIt = computeResources.begin();
-            }
-            service_specific_args[cleanupJob->getName()][del_id] = computeResourcesIt->first;
-            action_cnt++;
-        }
-
-        if (cleanup_external) {
-            for (const auto &input_data : inputs) {
-                auto del_id = "DERF_" + input_data->getID();
-                auto deleteExternalReadAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, input_data));
-                if (computeResourcesIt == computeResources.end()) {
-                    computeResourcesIt = computeResources.begin();
-                }
-                service_specific_args[cleanupJob->getName()][del_id] = computeResourcesIt->first;
-                action_cnt++;
-            }
-        }
-
-        // internalJobManager->submitJob(cleanupJob, bare_metal, {});
-        // WRENCH_INFO("[%s] CleanupInput: inputCleanUp job submitted with %lu actions on bare_metal %s", jobPair.first.id.c_str(), record.id, inputs.size() * 2, bare_metal->getName().c_str());
-        // if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
-        //     throw std::runtime_error("Sub-job 'cleanup input(s)' " + cleanupJob->getName() + " failed");
-        // WRENCH_INFO("[%s] CleanupInput job executed with %lu actions", cleanupJob->getName().c_str(), cleanupJob->getActions().size());
-    }
-
-    void Controller::cleanupOutput(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
-                                   std::shared_ptr<wrench::CompoundJob> cleanupJob,
-                                   std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                   std::vector<std::shared_ptr<wrench::DataFile>> outputs,
-                                   bool cleanup_external) {
-
-        WRENCH_INFO("[%s] Creating cleanup actions for output file(s)", cleanupJob->getName().c_str());
-
-        auto computeResources = bare_metal->getPerHostNumCores();
-
-        service_specific_args[cleanupJob->getName()] = std::map<std::string, std::string>();
-        auto computeResourcesIt = computeResources.begin();
-        auto action_cnt = 0;
-        for (const auto &output_data : outputs) {
-            auto del_id = "DWF_" + output_data->getID();
-            auto deleteWriteAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->compound_storage_service, output_data));
-            if (computeResourcesIt == computeResources.end()) {
-                computeResourcesIt = computeResources.begin();
-            }
-            service_specific_args[cleanupJob->getName()][del_id] = computeResourcesIt->first;
-            action_cnt++;
-        }
-
-        if (cleanup_external) {
-            for (const auto &output_data : outputs) {
-                auto del_id = "DEWF_" + output_data->getID();
-                auto deleteExternalWriteAction = cleanupJob->addFileDeleteAction(del_id, wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.write_path, output_data));
-                if (computeResourcesIt == computeResources.end()) {
-                    computeResourcesIt = computeResources.begin();
-                }
-                service_specific_args[cleanupJob->getName()][del_id] = computeResourcesIt->first;
-                action_cnt++;
-            }
-        }
-
-        // internalJobManager->submitJob(cleanupJob, bare_metal, {});
-        // WRENCH_INFO("[%s] cleanupOutput: outputCleanUp job submitted with %lu actions on bare_metal %s", jobPair.first.id.c_str(), record.id, outputs.size() * 2, bare_metal->getName().c_str());
-        // if (not std::dynamic_pointer_cast<wrench::CompoundJobCompletedEvent>(action_executor->waitForNextEvent()))
-        //     throw std::runtime_error("Sub-job 'cleanup output(s)' " + cleanupJob->getName() + " failed");
-        // WRENCH_INFO("[%s] CleanupOutput job executed with %lu actions", cleanupJob->getName().c_str(), cleanupJob->getActions().size());
     }
 
     /**
@@ -981,6 +890,7 @@ namespace fives {
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
         WRENCH_WARN("[%s] Notified that this compound job has failed: %s", job->getName().c_str(), cause->toString().c_str());
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
+
         this->failed_jobs_count += 1;
         this->sim_jobs.erase(job->getName());
     }
@@ -1247,18 +1157,11 @@ namespace fives {
         // Note that we start at ++begin(), to skip the first job (reservation job) in vector
         for (const auto &[run_id, subjobs] : job_list) {
             for (const auto &subjob : subjobs) {
-                WRENCH_DEBUG("Now processing actions of sub job %s", subjob->getName().c_str());
+                WRENCH_DEBUG("Now processing actions of subjob %s", subjob->getName().c_str());
                 auto actions = subjob->getActions();
                 processActions(this->completed_jobs, std::move(actions), earliest_action_start_time, job_id, run_id);
             }
         }
-
-        // for (auto it = job_list.begin(); it < job_list.end(); it++) {
-        //     WRENCH_DEBUG("Actions of job %s : ", it->get()->getName().c_str());
-        //     auto actions = (it->get())->getActions();
-        //     WRENCH_DEBUG(" ->> %lu", actions.size());
-        //     processActions(this->completed_jobs, actions, earliest_action_start_time, job_id);
-        // }
 
         this->completed_jobs << YAML::EndSeq; // actions
 
