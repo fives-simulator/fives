@@ -1040,7 +1040,6 @@ void FunctionalAllocTest::lustreFullSim_test() {
             if (subjob->getName().substr(0, 5) == "sleep")
                 continue;
 
-            std::cout << "Subjob: " << subjob->getName() << ": " << (*subjob->getActions().begin())->getStartDate() << " VS " << previous_submit_date << std::endl;
             ASSERT_TRUE((*subjob->getActions().begin())->getStartDate() >= previous_submit_date);
             previous_submit_date = (*subjob->getActions().begin())->getStartDate();
         }
@@ -1105,9 +1104,9 @@ void FunctionalAllocTest::lustreFullSim_test() {
         "outputFile_wrFiles_idjob2_run1_part3"};
     regex reg("FW_outputFile_wrFiles_idjob2_run1_part[0-7]_compute\\d+_act[0-9]+");
 
-    for (const auto &act : write2Actions) {
-        std::cout << "- Action : " << act->getName() << std::endl;
-    }
+    // for (const auto &act : write2Actions) {
+    //     std::cout << "- Action : " << act->getName() << std::endl;
+    // }
 
     for (const auto &act : write2Actions) {
         auto action_name = act->getName();
