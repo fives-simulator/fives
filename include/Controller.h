@@ -38,10 +38,14 @@ namespace fives {
         std::map<std::string, std::map<std::string, std::string>> serviceSpecificArgs;
     };
 
+    typedef std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> subjobsPerRunMap;
+
     struct SimulationJobTrace {
-        YamlJob yamlJob;
+        YamlJob &&yamlJob;
         std::shared_ptr<wrench::CompoundJob> reservationJob;
-        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> subJobs;
+        subjobsPerRunMap subJobs;
+
+        SimulationJobTrace &operator=(SimulationJobTrace &&other) { return *this; }
     };
 
     class PartialWriteCustomAction : public wrench::CustomAction {
@@ -81,10 +85,10 @@ namespace fives {
             const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
             const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
             const std::string &hostname,
-            const std::map<std::string, YamlJob> &jobs,
+            const std::map<std::string, YamlJob> &jobs, // not a great practice...
             const std::shared_ptr<fives::Config> &fives_config);
 
-        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> getCompletedJobsById(const std::string &id);
+        subjobsPerRunMap getCompletedJobsById(const std::string &id);
 
         std::shared_ptr<wrench::CompoundJob> getReservationJobById(const std::string &id);
 

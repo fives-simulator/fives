@@ -204,9 +204,11 @@ namespace fives {
         }
 
         std::map<std::string, YamlJob> jobs;
+        uint32_t job_count;
         std::string jobFilename = argv[2];
         try {
             jobs = fives::loadYamlJobs(jobFilename);
+            job_count = jobs.size();
             reduceToStem(jobFilename);
         } catch (const std::exception &e) {
             WRENCH_WARN("ERROR while loading jobs : %s", e.what());
@@ -241,7 +243,8 @@ namespace fives {
 
         auto permanent_storage = createAndInitPermanentStorage(simulation, config);
         auto batch_service = fives::instantiateComputeServices(simulation, config);
-        auto ctrl = simulation->add(new fives::Controller(batch_service, permanent_storage, css, USER, jobs, config));
+        // Note that the job map is moved here
+        auto ctrl = simulation->add(new fives::Controller(batch_service, permanent_storage, css, USER, std::move(jobs), config));
 
         /* Running Wrench simulation */
         WRENCH_INFO("Starting simulation...");
@@ -268,7 +271,7 @@ namespace fives {
             WRENCH_WARN("%lu jobs have failed", failed_cnt);
             std::cerr << "FAILED:" << failed_cnt << std::endl;
         }
-        if (failed_cnt > jobs.size() * config->allowed_failure_percent) {
+        if (failed_cnt > job_count * config->allowed_failure_percent) {
             WRENCH_WARN("More than %f of jobs have failed - Simulation fail",
                         config->allowed_failure_percent * 100);
             std::cerr << "More than " << failed_cnt
