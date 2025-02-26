@@ -166,36 +166,6 @@ namespace fives {
         return job_entry->second.subJobs;
     }
 
-    // /**
-    //  * @brief Check all actions from all jobs for any failed action
-    //  * @return True if no action has failed, false otherwise
-    //  */
-    // bool Controller::actionsAllCompleted() {
-
-    //     bool success = true;
-
-    //     for (const auto &[job_id, trace] : this->sim_jobs) {
-    //         for (const auto &[run, jobs] : trace.subJobs) {
-    //             for (const auto &job : jobs) {
-    //                 for (const auto &a : job->getActions()) {
-    //                     if (a->getState() != wrench::Action::State::COMPLETED) {
-    //                         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_RED);
-    //                         WRENCH_WARN("Error for action %s: %.2fs - %.2fs", a->getName().c_str(), a->getStartDate(), a->getEndDate());
-    //                         std::cout << "Failed action for job : " << job_id << " : " << a->getName() << std::endl;
-    //                         if (a->getFailureCause()) {
-    //                             WRENCH_WARN("-> Failure cause: %s", a->getFailureCause()->toString().c_str());
-    //                         }
-    //                         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
-    //                         success = false;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     return success;
-    // }
-
     void Controller::preloadData() {
 
         for (const auto &job : this->jobs) {

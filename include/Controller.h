@@ -90,8 +90,6 @@ namespace fives {
 
         virtual void processCompletedJobs(const std::string &jobsFilename, const std::string &config_version, const std::string &tag);
 
-        // virtual bool actionsAllCompleted();
-
         uint64_t getFailedJobCount() const { return this->failed_jobs_count; };
 
         virtual void extractSSSIO(const std::string &jobsFilename, const std::string &configVersion, const std::string &tag);
