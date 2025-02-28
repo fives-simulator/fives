@@ -1136,17 +1136,30 @@ void FunctionalAllocTest::lustreFullSim_test() {
         auto res_job_start_date = reservation->getActions().begin()->get()->getStartDate();
         auto res_job_end_date = reservation->getActions().begin()->get()->getEndDate();
 
+        // std::cout << "In reservation job " << reservation->getName() << std::endl;
+        // std::cout << "- start date :  " << res_job_start_date << std::endl;
+        // std::cout << "- end date : " << res_job_end_date << std::endl;
+
         for (const auto &[run, subjobs] : job) {
+
+            // std::cout << "  In run " << run << std::endl;
 
             for (const auto &subjob : subjobs) {
 
                 auto last_job_submit_date = subjob->getSubmitDate();
+
+                // std::cout << "    In subjob " << subjob->getName() << std::endl;
+                // std::cout << "      - submit date: " << last_job_submit_date << std::endl;
 
                 auto actions = subjob->getActions();
                 auto action_count = actions.size();
                 for (const auto &action : actions) {
                     auto action_start_date = action->getStartDate();
                     auto action_end_date = action->getEndDate();
+
+                    // std::cout << "      In action " << action->getName() << std::endl;
+                    // std::cout << "       - start date " << action_start_date << std::endl;
+                    // std::cout << "       - end date " << action_end_date << std::endl;
 
                     ASSERT_TRUE(action_start_date >= last_job_submit_date);
                     ASSERT_TRUE(action_start_date <= action_end_date);

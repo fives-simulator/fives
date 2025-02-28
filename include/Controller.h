@@ -38,10 +38,12 @@ namespace fives {
         std::map<std::string, std::map<std::string, std::string>> serviceSpecificArgs;
     };
 
+    typedef std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> subjobsPerRunMap;
+
     struct SimulationJobTrace {
-        YamlJob yamlJob;
+        const YamlJob *yamlJob;
         std::shared_ptr<wrench::CompoundJob> reservationJob;
-        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> subJobs;
+        subjobsPerRunMap subJobs;
     };
 
     class PartialWriteCustomAction : public wrench::CustomAction {
@@ -77,14 +79,14 @@ namespace fives {
 
     public:
         Controller(
-            const std::shared_ptr<wrench::ComputeService> &compute_service,
-            const std::shared_ptr<wrench::SimpleStorageService> &storage_service,
-            const std::shared_ptr<wrench::CompoundStorageService> &compound_storage_service,
+            std::shared_ptr<wrench::ComputeService> compute_service,
+            std::shared_ptr<wrench::SimpleStorageService> storage_service,
+            std::shared_ptr<wrench::CompoundStorageService> compound_storage_service,
             const std::string &hostname,
-            const std::map<std::string, YamlJob> &jobs,
-            const std::shared_ptr<fives::Config> &fives_config);
+            std::map<std::string, YamlJob> jobs,
+            std::shared_ptr<fives::Config> fives_config);
 
-        std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> getCompletedJobsById(const std::string &id);
+        subjobsPerRunMap getCompletedJobsById(const std::string &id);
 
         std::shared_ptr<wrench::CompoundJob> getReservationJobById(const std::string &id);
 
@@ -190,7 +192,7 @@ namespace fives {
 
         const std::shared_ptr<wrench::CompoundStorageService> compound_storage_service;
 
-        const std::map<std::string, fives::YamlJob> &jobs;
+        const std::map<std::string, fives::YamlJob> jobs;
 
         std::map<std::string, std::vector<std::shared_ptr<wrench::DataFile>>> preloadedData;
 

@@ -42,14 +42,16 @@ jobs:
   coreHoursReq: 3.0
   coreHoursUsed: 2.5
   category: 1
-  cumul_read_bw: 3795358.854753721
-  cumul_write_bw: 28679025.769959778
+  # cumul_read_bw: 3795358.854753721
+  # cumul_write_bw: 28679025.769959778
+  cumul_read_bw:  2000000
+  cumul_write_bw: 1000000
   endTime: '2023-01-01 17:15:47'
   id: job2
   nodesUsed: 16
   readBytes: 0  
-  walltimeSeconds: 10200
-  runtimeSeconds: 10000
+  walltimeSeconds: 15200
+  runtimeSeconds: 15000
   sleepSimulationSeconds: 3800 # seconds
   waitingTimeSeconds: 1157
   startTime: '2023-01-01 15:30:47'
@@ -94,8 +96,8 @@ jobs:
   cumul_write_bw: 28679025.769959778
   nodesUsed: 12
   readBytes: 24000000000  # 20GB
-  walltimeSeconds: 10800
-  runtimeSeconds: 8000
+  walltimeSeconds: 15800
+  runtimeSeconds: 13000
   sleepSimulationSeconds: 0 # seconds -> submitted at the same time as job 2
   waitingTimeSeconds: 1157
   startTime: '2023-01-01 15:30:47'

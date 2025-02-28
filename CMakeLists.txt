@@ -44,7 +44,7 @@ set(YAMLCPP_GIT_REF "0.8.0")
 set(GOOGLETEST_GIT_REF "main")                                                   # googletest recommands to  always use the latest commit on main
 set(SIMGRID_GIT_REF "v3.36")
 set(FSMOD_GIT_REF "v0.2")                                                        # or maybe we should use 'main'
-set(WRENCH_GIT_REF "aa2804e085fa3094db8b8d423f4d710e3b7dcca8")                   # That's slightly above v2.5 but with a typo fixed in CMakeLists.txt
+set(WRENCH_GIT_REF "master")                   # Should be a tagged version instead, but a few quick fixes currently only on master are needed
 
 # WARNING : this is the date at CONFIG time (when 'cmake ..' is run, not when building the project)
 string(TIMESTAMP TODAY "%Y%m%d")
