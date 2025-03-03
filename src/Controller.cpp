@@ -1,6 +1,6 @@
-/**
- ** An execution controller to execute a workflow
- **/
+/*
+ * An execution controller to execute a workflow
+ */
 
 #include "Controller.h"
 
@@ -10,7 +10,6 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-// #include <random>
 #include <utility>
 #include <wrench/services/helper_services/action_execution_service/ActionExecutionService.h>
 #include <wrench/util/UnitParser.h>
@@ -33,11 +32,20 @@ namespace fives {
 
     /**
      * @brief Constructor
+     *        Note that:
+     *          - shared_ptr are passed by value: we could have gone for references, as the Controller
+     *            will always be destroyed before the pointers become invalid, but it doesn't cost much
+     *            and it looks slightly cleaner
+     *          - Yaml jobs map is also passed by value, but allowed to be moved, and effectively not used
+     *            anywhere in the caller after the controller is created. In principle, the compiler should
+     *            avoid the copy
      *
-     * @param compute_service: a compute services available to run actions
-     * @param storage_services: a set of storage services available to store files
-     * @param compound_storage_service
-     * @param hostname: the name of the host on which to start the WMS
+     * @param compute_service   A compute services available to run actions
+     * @param storage_services  A set of storage services available to store files
+     * @param compound_storage_service  A pointer to a compound storage service
+     * @param hostname the name of the host on which to start the WMS
+     * @param jobs A map (by id) of YamlJobs from the job data file used for the simulation
+     * @param fives_config A pointer to the parsed configuration file for the simulation
      */
     Controller::Controller(std::shared_ptr<wrench::ComputeService> compute_service,
                            std::shared_ptr<wrench::SimpleStorageService> storage_service,
@@ -340,7 +348,8 @@ namespace fives {
     }
 
     /**
-     * @brief Add a sleep job to a given
+     * @brief Add a sleep job inside the custom action of a reservation.
+     *
      */
     void Controller::addSleepJob(JobManagementStruct &jms,
                                  const std::string &jobID,
@@ -348,17 +357,17 @@ namespace fives {
 
         auto sleepJob = jms.jobManager->createCompoundJob("sleep_id" + jobID + "_run" + std::to_string(run.id));
         sleepJob->addSleepAction("sleep", run.sleepDelay);
-        this->registerJob(jobID, run.id, sleepJob, false);
+        this->registerJob(jobID, run.id, sleepJob, true);
         jms.serviceSpecificArgs[sleepJob->getName()] = std::map<std::string, std::string>();
         jms.serviceSpecificArgs[sleepJob->getName()]["sleep"] = {};
         WRENCH_DEBUG("[%s-%u] Sleep job added for %lu s", jobID.c_str(), run.id, run.sleepDelay);
     }
 
     /**
-     * Add a read sub job inside the custom action of a reservation.
-     * The read job is possibly preceded by a copy job if the file read have not
-     * already been created by a previous call to 'preloadData'() and/or are out of scope
-     * for 'preloadData()'
+     * @brief Add a read sub job inside the custom action of a reservation.
+     *        The read job is possibly preceded by a copy job if the file read have not
+     *        already been created by a previous call to 'preloadData'() and/or are out of scope
+     *        for 'preloadData()'
      */
     void Controller::addReadJob(JobManagementStruct &jms,
                                 const std::string &jobID,
@@ -369,8 +378,6 @@ namespace fives {
         unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
         auto read_stripe_count = this->getReadStripeCount(this->sim_jobs[jobID].yamlJob->cumulReadBW);
         auto nb_nodes_read = this->getReadNodeCount(max_nodes_run, this->sim_jobs[jobID].yamlJob->cumulReadBW, read_stripe_count);
-        // auto read_stripe_count = this->getReadStripeCount(this->compound_jobs[jobID].first.cumulReadBW);
-        // auto nb_nodes_read = this->getReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulReadBW, read_stripe_count);
 
         // Optional COPY job
         if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
@@ -399,8 +406,6 @@ namespace fives {
         unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
         auto write_stripe_count = this->getWriteStripeCount(this->sim_jobs[jobID].yamlJob->cumulWriteBW);
         auto nb_nodes_write = this->getReadNodeCount(max_nodes_run, this->sim_jobs[jobID].yamlJob->cumulWriteBW, write_stripe_count);
-        // auto write_stripe_count = this->getWriteStripeCount(this->compound_jobs[jobID].first.cumulWriteBW);
-        // auto nb_nodes_write = this->getReadNodeCount(max_nodes_run, this->compound_jobs[jobID].first.cumulWriteBW, write_stripe_count);
         auto nb_write_files = this->getWriteFileCount(write_stripe_count);
         WRENCH_DEBUG("[%s-%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
@@ -436,9 +441,6 @@ namespace fives {
             this->job_manager->createCompoundJob(jobID), // reservationJob
             fives::subjobsPerRunMap()                    // sub-jobs
         };
-
-        // auto yJob = this->sim_jobs[jobID].yamlJob; // for convenience only
-        WRENCH_INFO("Yaml job id: %s", yJob->id.c_str());
 
         /* Make sure the reservation lasts for as long as the real one, no matter what happens inside. */
         this->sim_jobs[jobID].reservationJob->addSleepAction("fullRuntimeSleep",
