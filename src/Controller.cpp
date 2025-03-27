@@ -188,17 +188,21 @@ namespace fives {
 
         for (const auto &job : this->jobs) {
             for (const auto &run : job.second.runs) {
+
                 if ((run.readBytes > 0) and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
 
                     unsigned int local_stripe_count = this->getReadStripeCount(job.second.cumulReadBW);
-                    auto nb_read_files = getReadFileCount(local_stripe_count);
 
                     auto prefix = "plIn_id" + job.first + "_run" + std::to_string(run.id);
-                    WRENCH_DEBUG("preloading file prefix %s on external storage system", prefix.c_str());
-                    auto read_files = this->createFileParts(run.readBytes, nb_read_files, prefix);
+                    WRENCH_DEBUG("[%s] preloading file prefix %s on external storage system", job.first.c_str(), prefix.c_str());
+                    auto read_files = this->createFileParts(run.readBytes, run.read_files_count, prefix);
 
                     for (const auto &read_file : read_files) {
-                        auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file), local_stripe_count);
+                        auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(
+                            wrench::FileLocation::LOCATION(
+                                this->compound_storage_service,
+                                read_file),
+                            local_stripe_count);
                         for (const auto &stripe : file_stripes) {
                             wrench::StorageService::createFileAtLocation(stripe);
                         }
@@ -303,14 +307,14 @@ namespace fives {
      *        is then updated using a configuration value and the currently chosen stripe_count
      * @return Number of files to create in order to support file read actions
      */
-    unsigned int Controller::getReadFileCount(unsigned int stripe_count) const {
+    // unsigned int Controller::getReadFileCount(unsigned int stripe_count) const {
 
-        unsigned int nb_files = 1;
-        nb_files = this->config->stor.nb_files_per_read * stripe_count;
-        nb_files = std::max(nb_files, 1u);
+    //     unsigned int nb_files = 1;
+    //     nb_files = this->config->stor.nb_files_per_read * stripe_count;
+    //     nb_files = std::max(nb_files, 1u);
 
-        return nb_files;
-    }
+    //     return nb_files;
+    // }
 
     /**
      * @brief Compute and return the number of file that should be created on the storage system to
@@ -319,13 +323,13 @@ namespace fives {
      *        is then updated using a configuration value and the currently chosen stripe_count
      * @return Number of files to create in order to support file write actions
      */
-    unsigned int Controller::getWriteFileCount(unsigned int stripe_count) const {
+    // unsigned int Controller::getWriteFileCount(unsigned int stripe_count) const {
 
-        unsigned int nb_files = 1;
-        nb_files = this->config->stor.nb_files_per_write * stripe_count;
-        nb_files = std::max(nb_files, 1u);
-        return nb_files;
-    }
+    //     unsigned int nb_files = 1;
+    //     nb_files = this->config->stor.nb_files_per_write * stripe_count;
+    //     nb_files = std::max(nb_files, 1u);
+    //     return nb_files;
+    // }
 
     /**
      * @brief Add a job to the global job map (sim_jobs). The map is organized by 'reservation' job ID
@@ -381,12 +385,12 @@ namespace fives {
 
         // Optional COPY job
         if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
-            auto nb_read_files = this->getReadFileCount(read_stripe_count);
+
             auto copyJob = jms.jobManager->createCompoundJob("inCopy_id" + jobID + "_run" + std::to_string(run.id));
-            input_files = this->copyFromPermanent(jms.bareMetalCS, copyJob, jms.serviceSpecificArgs, run.readBytes, nb_read_files, nb_nodes_read);
+            input_files = this->copyFromPermanent(jms.bareMetalCS, copyJob, jms.serviceSpecificArgs, run.readBytes, run.read_files_count, nb_nodes_read);
             this->registerJob(jobID, run.id, copyJob, true);
-            // this->compound_jobs[jobID].second.push_back(copyJob);
             WRENCH_DEBUG("[%s-%u] 'In' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
+
         } else { // No need for copy jobs, files have been created already
             input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
         }
@@ -406,11 +410,11 @@ namespace fives {
         unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
         auto write_stripe_count = this->getWriteStripeCount(this->sim_jobs[jobID].yamlJob->cumulWriteBW);
         auto nb_nodes_write = this->getReadNodeCount(max_nodes_run, this->sim_jobs[jobID].yamlJob->cumulWriteBW, write_stripe_count);
-        auto nb_write_files = this->getWriteFileCount(write_stripe_count);
+        // auto nb_write_files = this->getWriteFileCount(write_stripe_count);
         WRENCH_DEBUG("[%s-%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
         auto writeJob = jms.jobManager->createCompoundJob("wrFiles_id" + jobID + "_run" + std::to_string(run.id));
-        output_data = this->writeToTemporary(jms.bareMetalCS, writeJob, jobID, run.id, jms.serviceSpecificArgs, run.writtenBytes, nb_write_files, nb_nodes_write);
+        output_data = this->writeToTemporary(jms.bareMetalCS, writeJob, jobID, run.id, jms.serviceSpecificArgs, run.writtenBytes, run.written_files_count, nb_nodes_write);
         this->registerJob(jobID, run.id, writeJob, true);
 
         // Optional COPY job
@@ -428,6 +432,7 @@ namespace fives {
     void Controller::submitJob(const std::string &jobID) {
 
         wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
+        static uint32_t job_submission_counter = 0;
 
         WRENCH_INFO("[%s] Preparing reservation job for submission", jobID.c_str());
 
@@ -461,10 +466,6 @@ namespace fives {
                 "workload_" + yJob->id,
                 0, 0, // RAM & num cores, unused
                 [this, jobID](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
-                    wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_WHITE);
-
-                    XBT_CDEBUG(fives_controller, "[%s] Testing debug message inside lambda action", jobID.c_str());
-
                     fives::JobManagementStruct jms;
                     jms.jobManager = action_executor->createJobManager();
                     jms.executionService = action_executor->getActionExecutionService();
@@ -488,7 +489,7 @@ namespace fives {
                             this->addSleepJob(jms, jobID, run);
                         }
 
-                        /* 2. Create I/O jobs */
+                        /* 2. Create I/O sub-jobs (basic version: read then write) */
                         if (run.readBytes != 0) {
                             this->addReadJob(jms, jobID, run);
                         }
@@ -551,6 +552,8 @@ namespace fives {
                     yJob->nodesUsed, yJob->coresUsed / yJob->nodesUsed, yJob->walltimeSeconds);
         job_manager->submitJob(this->sim_jobs[jobID].reservationJob, this->compute_service, service_specific_args);
         WRENCH_INFO("[%s] Job successfully submitted", this->sim_jobs[jobID].reservationJob->getName().c_str());
+
+        std::cout << "Job " << jobID << " submitted [" << ++job_submission_counter << "/" << this->jobs.size() << "]" << std::endl;
     }
 
     /**
@@ -913,8 +916,10 @@ namespace fives {
      * @param event: the event
      */
     void Controller::processEventCompoundJobCompletion(const std::shared_ptr<wrench::CompoundJobCompletedEvent> &event) {
+        static uint32_t completed_jobs = 0;
         auto job = event->job;
         WRENCH_INFO("[%s] Notified that this compound job has completed", job->getName().c_str());
+        std::cout << "                                      Job " << job->getName().c_str() << " completed [" << ++completed_jobs << "/" << this->jobs.size() << "]" << std::endl;
 
         // Extract relevant informations from job and write them to file / send them to DB ?
         processCompletedJob(job->getName());

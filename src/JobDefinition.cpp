@@ -19,6 +19,21 @@ YAML::Node YAML::convert<fives::DarshanRecord>::encode(const fives::DarshanRecor
     node.push_back(rhs.dStartTime);
     node.push_back(rhs.dEndTime);
 
+    // New for full Darshan traces (eg. Bluewaters)
+    node.push_back(rhs.unique_files);
+    node.push_back(rhs.traced_file_accesses);
+    node.push_back(rhs.files_accessed_by_all_procs);
+    node.push_back(rhs.files_accessed_by_one_proc);
+    node.push_back(rhs.readTimeSeconds);
+    node.push_back(rhs.writeTimeSeconds);
+    node.push_back(rhs.metaTimeSeconds);
+    node.push_back(rhs.mpiio_used);
+
+    node.push_back(rhs.read_files_count);
+    node.push_back(rhs.read_operations);
+    node.push_back(rhs.write_operations);
+    node.push_back(rhs.written_files_count);
+
     return node;
 }
 
@@ -32,6 +47,21 @@ bool YAML::convert<fives::DarshanRecord>::decode(const Node &node, fives::Darsha
     rhs.dStartTime = node["dStartTime"].as<uint64_t>();
     rhs.dEndTime = node["dEndTime"].as<uint64_t>();
     rhs.sleepDelay = node["sleepDelay"].as<uint64_t>();
+
+    // New for full Darshan traces (eg. Bluewaters)
+    rhs.unique_files = node["unique_files"].as<unsigned int>();
+    rhs.traced_file_accesses = node["unique_files"].as<unsigned int>();
+    rhs.files_accessed_by_all_procs = node["unique_files"].as<unsigned int>();
+    rhs.files_accessed_by_one_proc = node["unique_files"].as<unsigned int>();
+    rhs.readTimeSeconds = node["readTime"].as<double>();
+    rhs.writeTimeSeconds = node["writeTime"].as<double>();
+    rhs.metaTimeSeconds = node["metaTime"].as<double>();
+    rhs.mpiio_used = node["mpiio_used"].as<int>();
+
+    rhs.read_files_count = node["read_files_count"].as<uint32_t>();
+    rhs.read_operations = node["read_operations"].as<uint32_t>();
+    rhs.write_operations = node["write_operations"].as<uint32_t>();
+    rhs.written_files_count = node["written_files_count"].as<uint32_t>();
 
     return true;
 }
@@ -82,6 +112,9 @@ YAML::Node YAML::convert<fives::YamlJob>::encode(const fives::YamlJob &rhs) {
     node.push_back(rhs.submissionTime);
     node.push_back(rhs.startTime);
     node.push_back(rhs.endTime);
+
+    node.push_back(rhs.cumulReadBW);
+    node.push_back(rhs.cumulWriteBW);
 
     return node;
 }

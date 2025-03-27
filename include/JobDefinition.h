@@ -33,6 +33,20 @@ namespace fives {
         uint64_t dStartTime;
         uint64_t dEndTime;
         uint64_t sleepDelay;
+        unsigned int unique_files;
+        unsigned int traced_file_accesses;
+        unsigned int files_accessed_by_all_procs;
+        unsigned int files_accessed_by_one_proc;
+        double readTimeSeconds;
+        double writeTimeSeconds;
+        double metaTimeSeconds;
+        int mpiio_used;
+
+        // unique read / written file and unique read/write operations
+        uint32_t read_files_count;
+        uint32_t read_operations;
+        uint32_t write_operations;
+        uint32_t written_files_count;
     };
 
     /**

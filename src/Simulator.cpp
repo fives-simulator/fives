@@ -65,21 +65,15 @@ namespace fives {
     std::shared_ptr<wrench::BatchComputeService>
     instantiateComputeServices(std::shared_ptr<wrench::Simulation> simulation,
                                std::shared_ptr<Config> config) {
+
         std::vector<std::string> compute_nodes;
-        auto nb_compute_nodes = config->compute.d_nodes * config->compute.d_routers *
-                                config->compute.d_chassis * config->compute.d_groups;
-        WRENCH_INFO(
-            "Dragonfly has %d available compute nodes, and config set limit is %u",
-            nb_compute_nodes, config->compute.max_compute_nodes);
-        for (unsigned int i = 0;
-             i < nb_compute_nodes && i < config->compute.max_compute_nodes; i++) {
+        for (unsigned int i = 0; i < config->compute.max_compute_nodes; i++) {
             compute_nodes.push_back("compute" + std::to_string(i));
+            // compute_nodes.push_back("compute" + std::to_string(i) + "_1");
         }
         auto batch_service = simulation->add(new wrench::BatchComputeService(
             BATCH, compute_nodes, "",
-            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM,
-              "conservative_bf"}},
-            {}));
+            {{wrench::BatchComputeServiceProperty::BATCH_SCHEDULING_ALGORITHM, "conservative_bf"}}, {}));
 
         WRENCH_INFO("  -> %ld compute services instantiated", compute_nodes.size());
 

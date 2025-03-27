@@ -121,7 +121,7 @@ namespace fives {
             throw std::invalid_argument("ERROR: Unable to load config :" + std::string(e.what()));
         }
 
-        if (!(config["general"]) or !(config["dragonfly"]) or !(config["storage"])) {
+        if (!(config["general"]) or !(config["torus"]) or !(config["storage"] or !(config["allocator"]))) {
             std::cout << "# Invalid config file, missing one or many sections." << std::endl;
             throw std::invalid_argument("Invalid config file, missing one or many sections.");
         }
