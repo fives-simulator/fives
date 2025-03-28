@@ -40,6 +40,8 @@ namespace fives {
 
     typedef std::map<uint32_t, std::vector<std::shared_ptr<wrench::CompoundJob>>> subjobsPerRunMap;
 
+    typedef std::map<std::string, std::map<unsigned int, std::map<std::string, unsigned int>>> uglyTripleMap;
+
     struct SimulationJobTrace {
         const YamlJob *yamlJob;
         std::shared_ptr<wrench::CompoundJob> reservationJob;
@@ -126,28 +128,30 @@ namespace fives {
 
         virtual void submitJob(const std::string &jobID);
 
+        virtual void void setStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
+                                            unsigned int participating_hosts_count,
+                                            std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
+                                            std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> &stripes_per_host_per_file,
+                                            const std::string &jobName = "unknown");
+
         virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                                                                  std::shared_ptr<wrench::CompoundJob> copyJob,
                                                                                  std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
                                                                                  uint64_t readBytes,
                                                                                  unsigned int nb_files, unsigned int max_nb_hosts);
 
-        virtual void readFromTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+        virtual void readFromTemporary(JobManagementStruct &jms,
                                        std::shared_ptr<wrench::CompoundJob> readJob,
-                                       std::string jobID,
-                                       unsigned runID,
-                                       std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                       uint64_t readBytes,
+                                       const DarshanRecord &run,
+                                       std::map<std::string, unsigned int> &current_stripes_per_action,
                                        std::vector<std::shared_ptr<wrench::DataFile>> inputs,
                                        unsigned int max_nb_hosts = 1);
 
-        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> writeToTemporary(JobManagementStruct &jms,
                                                                                 std::shared_ptr<wrench::CompoundJob> writeJob,
-                                                                                std::string jobID,
-                                                                                unsigned runID,
-                                                                                std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                                                                uint64_t writtenBytes,
-                                                                                unsigned int nb_files = 1, unsigned int max_nb_hosts = 1);
+                                                                                const DarshanRecord &run,
+                                                                                std::map<std::string, unsigned int> &current_stripes_per_action,
+                                                                                unsigned int max_nb_hosts = 1);
 
         virtual void copyToPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
                                      std::shared_ptr<wrench::CompoundJob> copyJob,
@@ -184,7 +188,7 @@ namespace fives {
         // Jobs are removed from the map once processed (after they completed) or in case of failure.
         std::map<std::string, SimulationJobTrace> sim_jobs = {};
 
-        std::map<std::string, std::map<unsigned int, std::map<std::string, unsigned int>>> stripes_per_action; // map for to-level jobs, then runs inside jobs, then actions
+        uglyTripleMap stripes_per_action; // map for to-level jobs, then runs inside jobs, then actions
 
         const std::shared_ptr<wrench::ComputeService> compute_service;
 

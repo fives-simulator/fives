@@ -153,9 +153,6 @@ def compute_iotime_diff(jobs, plotting=True):
 
     for job in jobs:
 
-        # if job["job_uid"] in [626756, 626672, 626753]:
-        #    continue
-
         # Simulated
         s_io_time = 0
         s_r_time = 0
@@ -170,8 +167,7 @@ def compute_iotime_diff(jobs, plotting=True):
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
                 s_w_time += (action["act_duration"] + WRITE_OVERHEAD) * action["nb_stripes"]
 
-        # if s_r_time + s_w_time > 2e6:
-        #    continue
+
 
         if len(job['actions']) != 0:
             # "Real"
@@ -195,11 +191,6 @@ def compute_iotime_diff(jobs, plotting=True):
         if job["real_cWriteTime_s"] > 1.5 * s_w_time:
             print(f"JOB {job['job_uid']} simulated write time is way too (FAST) -> {job['cumul_write_bw'] / 1e6} MB/s)")
 
-        if s_io_time > r_io_time * 7:
-            print(f"## > JOB {job['job_uid']} simulated time is > 7 times longer than real time")
-
-        if s_io_time > 200000:
-            print(f"## THIS JOBBBBBB !!!!!! --->>>> {job['job_uid']}")
 
     mean_real_io_time = np.mean(real_io_time)
     mean_sim_iotime = np.mean(sim_io_time)
@@ -446,7 +437,7 @@ def analyse(trace, plotting=True):
 
     metrics.update(compute_runtime_diff(results, plotting))
 
-    metrics.update(compute_iovolume_diff(results))
+    metrics.update(compute_iovolume_diff(results, plotting))
 
     metrics.update(compute_iotime_diff(results, plotting))
 
