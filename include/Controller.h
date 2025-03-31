@@ -128,17 +128,23 @@ namespace fives {
 
         virtual void submitJob(const std::string &jobID);
 
-        virtual void void setStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
+        virtual void setReadStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
+                                           unsigned int participating_hosts_count,
+                                           std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
+                                           std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> &stripes_per_host_per_file,
+                                           const std::string &jobName = "unknown");
+
+        virtual void setWriteStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
                                             unsigned int participating_hosts_count,
                                             std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
                                             std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> &stripes_per_host_per_file,
+                                            unsigned int stripe_count, // stripe count computed for each Darshan run
                                             const std::string &jobName = "unknown");
 
-        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+        virtual std::vector<std::shared_ptr<wrench::DataFile>> copyFromPermanent(JobManagementStruct &jms,
                                                                                  std::shared_ptr<wrench::CompoundJob> copyJob,
-                                                                                 std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                                                                 uint64_t readBytes,
-                                                                                 unsigned int nb_files, unsigned int max_nb_hosts);
+                                                                                 const DarshanRecord &run,
+                                                                                 unsigned int max_nb_hosts = 1);
 
         virtual void readFromTemporary(JobManagementStruct &jms,
                                        std::shared_ptr<wrench::CompoundJob> readJob,
@@ -153,10 +159,9 @@ namespace fives {
                                                                                 std::map<std::string, unsigned int> &current_stripes_per_action,
                                                                                 unsigned int max_nb_hosts = 1);
 
-        virtual void copyToPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+        virtual void copyToPermanent(JobManagementStruct &jms,
                                      std::shared_ptr<wrench::CompoundJob> copyJob,
-                                     std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                     uint64_t writtenBytes,
+                                     const DarshanRecord &run,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs,
                                      unsigned int max_nb_hosts = 1);
 

@@ -364,7 +364,7 @@ namespace fives {
         this->registerJob(jobID, run.id, sleepJob, true);
         jms.serviceSpecificArgs[sleepJob->getName()] = std::map<std::string, std::string>();
         jms.serviceSpecificArgs[sleepJob->getName()]["sleep"] = {};
-        WRENCH_DEBUG("[%s-%u] Sleep job added for %lu s", jobID.c_str(), run.id, run.sleepDelay);
+        WRENCH_DEBUG("[%s-%u] addSleepJob: Sleep job added for %lu s", jobID.c_str(), run.id, run.sleepDelay);
     }
 
     /**
@@ -386,7 +386,7 @@ namespace fives {
         double run_mean_read_bw = run.readBytes / run.readTimeSeconds;
         auto read_stripe_count = this->getReadStripeCount(run_mean_read_bw); // lustre param
         auto nb_nodes_read = this->getReadNodeCount(max_nodes_run, run_mean_read_bw, read_stripe_count);
-        WRENCH_DEBUG("[%s-%u] : %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
+        WRENCH_DEBUG("[%s-%u] addReadJob: %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
 
@@ -394,10 +394,10 @@ namespace fives {
         if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
 
             auto copyJob = jms.jobManager->createCompoundJob("inCopy_id" + jobID + "_run" + std::to_string(run.id));
-            input_files = this->copyFromPermanent(jms.bareMetalCS, copyJob, jms.serviceSpecificArgs, run.readBytes, run.read_files_count, nb_nodes_read);
+            input_files = this->copyFromPermanent(jms, copyJob, run, nb_nodes_read);
             this->registerJob(jobID, run.id, copyJob, true);
 
-            WRENCH_DEBUG("[%s-%u] 'In' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
+            WRENCH_DEBUG("[%s-%u] addReadJob: 'In' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
 
         } else { // No need for copy jobs, files have been created already
             input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
@@ -408,7 +408,7 @@ namespace fives {
         this->readFromTemporary(jms, readJob, run, this->stripes_per_action[jobID][run.id], input_files, nb_nodes_read);
         this->registerJob(jobID, run.id, readJob, true);
 
-        WRENCH_DEBUG("[%s-%u] Read job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
+        WRENCH_DEBUG("[%s-%u] addReadJob: Read job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
     }
 
     void Controller::addWriteJob(JobManagementStruct &jms,
@@ -420,21 +420,21 @@ namespace fives {
         unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
         double run_mean_write_bw = run.writtenBytes / run.writeTimeSeconds;
         auto write_stripe_count = this->getWriteStripeCount(run_mean_write_bw);
-        auto nb_nodes_write = this->getReadNodeCount(max_nodes_run, run_mean_write_bw, write_stripe_count);
-        WRENCH_DEBUG("[%s-%u] : %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
+        auto nb_nodes_write = this->getWriteNodeCount(max_nodes_run, run_mean_write_bw, write_stripe_count);
+        WRENCH_DEBUG("[%s-%u] addWriteJob: %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
 
         auto writeJob = jms.jobManager->createCompoundJob("wrFiles_id" + jobID + "_run" + std::to_string(run.id));
-        output_data = this->writeToTemporary(jms, writeJob, jobID, run, nb_nodes_write);
+        output_data = this->writeToTemporary(jms, writeJob, run, this->stripes_per_action[jobID][run.id], nb_nodes_write);
         this->registerJob(jobID, run.id, writeJob, true);
 
         // Optional COPY job
         if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
             auto copyJob = jms.jobManager->createCompoundJob("outCopy_id" + jobID + "_run" + std::to_string(run.id));
-            this->copyToPermanent(jms.bareMetalCS, copyJob, jms.serviceSpecificArgs, run.writtenBytes, output_data, nb_nodes_write);
+            this->copyToPermanent(jms, copyJob, run, output_data, nb_nodes_write);
             this->registerJob(jobID, run.id, copyJob, true);
-            WRENCH_DEBUG("[%s-%u] 'Out' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_write);
+            WRENCH_DEBUG("[%s-%u] addWriteJob: 'Out' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_write);
         }
     }
 
@@ -623,89 +623,35 @@ namespace fives {
         return files;
     }
 
-    /** @brief Create a job with copy actions going from the 'external' storage service to the local distributed
-     *         filesystem (CompoundStorageService).
-     *  @param action_executor Action executor from the customAction lambda calling this method
-     *  @param internalJobManager Job manager created inside the calling lambda, and shared amond all sub jobs
-     *  @param nb_files Number of files to create for the different copy actions (one file per copy action). Each file
-     *                  accounts for 1 / nb_files of the total readBytes of the job.
-     *  @param max_nb_hosts Maximum number of compute hosts involved in the copy actions : i) using 0 means all compute hosts
-     *                      can be used (to the extent of the number of files) ii) using 1 or more compute nodes as io nodes, if
-     *                      max_nb_hosts < nb_files, some hosts will be used more than once
-     *  @return
-     */
-    std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
-                                                                                 std::shared_ptr<wrench::CompoundJob> copyJob,
-                                                                                 std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                                                                 uint64_t readBytes,
-                                                                                 unsigned int nb_files, unsigned int max_nb_hosts) {
-
-        WRENCH_INFO("[%s] Creating copy sub-job (in) for a total read size of %ld bytes, on %u files and at most %u IO nodes (0 means all avail)",
-                    copyJob->getName().c_str(), readBytes, nb_files, max_nb_hosts);
-
-        if (nb_files < 1)
-            throw std::runtime_error("Copy should happen on 1 file at least");
-
-        // Subdivide the amount of copied bytes between as many files as requested (one allocation per file)
-        auto prefix = "inputFile_" + copyJob->getName();
-        auto read_files = this->createFileParts(readBytes, nb_files, prefix);
-
-        // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
-        auto computeResources = bare_metal->getPerHostNumCores();
-        this->pruneIONodes(computeResources, max_nb_hosts);
-
-        // Create one copy action per file and per host
-        service_specific_args[copyJob->getName()] = std::map<std::string, std::string>();
-        auto computeResourcesIt = computeResources.begin();
-        for (const auto &read_file : read_files) {
-            auto source_location = wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, read_file);
-            wrench::StorageService::createFileAtLocation(source_location);
-            auto action_id = "SC_" + read_file->getID();
-            copyJob->addFileCopyAction(
-                action_id,
-                source_location,
-                wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-
-            // register the future file within the CSS
-            this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
-
-            service_specific_args[copyJob->getName()][action_id] = computeResourcesIt->first;
-            if (++computeResourcesIt == computeResources.end())
-                computeResourcesIt = computeResources.begin();
-        }
-
-        return read_files;
-    }
-
-    /** @brief For each read or write subjob, we need to match every stripe of the targetted file to a compute host from which
+    /** @brief For each read subjob, we need to match every stripe of the targetted file to a compute host from which
      *         the I/O will take place. This function does the load-balancing of stripes to participating compute hosts.
      *
      *  @param inputs A list of files for which stripes will need to be load-balanced onto multiple hosts
-     *  @param participating_hosts_count Number of compute hosts that will ultimately received I/O actions to stripes.
+     *  @param participating_hosts_count Number of compute hosts that will ultimately receive the read actions to stripes.
      *  @param stripes_per_file A map to keep track of how many stripes are created for each file
      *  @param stripes_per_host_per_file A map to keep of how many stripes of each file are supposed to be handled by each compute hosts
      *  @param jobName Name of the read or write sub-job that called this (for logs) (default = "unknown")
      *
      *  @return Nothing, but both maps (stripes_per_file / stripes_per_host_per_file) are updated in place.
      */
-    void Controller::setStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
-                                       unsigned int participating_hosts_count,
-                                       std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
-                                       std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> &stripes_per_host_per_file,
-                                       const std::string &jobName) {
+    void Controller::setReadStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
+                                           unsigned int participating_hosts_count,
+                                           std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
+                                           std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> &stripes_per_host_per_file,
+                                           const std::string &jobName) {
 
         for (const auto &file : inputs) {
 
             // We manually invoke this in order to know how the files will be striped before starting I/O
             WRENCH_DEBUG("[%s] setStripesPerHost: Calling lookupFileLocation for file %s", jobName.c_str(), file->getID().c_str());
 
-            auto file_stripes = std::move(this->compound_storage_service->lookupFileLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, file)));
+            auto file_stripes = this->compound_storage_service->lookupFileLocation(wrench::FileLocation::LOCATION(this->compound_storage_service, file));
             unsigned int nb_stripes = file_stripes.size();
             stripes_per_file[file] = nb_stripes;
 
             if (nb_stripes < participating_hosts_count) {
 
-                stripes_per_host_per_file[file] = std::vector<unsigned int>(participating_hosts_count, 1);
+                stripes_per_host_per_file[file] = std::vector<unsigned int>(nb_stripes, 1);
 
                 WRENCH_DEBUG("[%s] setStripesPerHost: For file %s (size %lld) : we have only %u stripes, but %u hosts => IO to 1 stripes from the first %u hosts",
                              jobName.c_str(), file->getID().c_str(), file->getSize(), nb_stripes, participating_hosts_count, nb_stripes);
@@ -724,6 +670,114 @@ namespace fives {
                              jobName.c_str(), file->getID().c_str(), file->getSize(), nb_stripes, stripes_per_host, remainder, remainder);
             }
         }
+    }
+
+    /** @brief For each write subjob, we need to match every stripe of the targetted file to a compute host from which
+     *         the I/O will take place. This function does the load-balancing of stripes to participating compute hosts.
+     *         The logic is slighty different to that of the read version, as it needs to call lookupOrDesignateStorageService()
+     *         instead of lookupFileLocation() (as files to write do not exist yet), and this process also requires to have
+     *         a stripe_count value to feed lookupOrDesignateStorageService.
+     *
+     *  @param inputs A list of files for which stripes will need to be load-balanced onto multiple hosts
+     *  @param participating_hosts_count Number of compute hosts that will ultimately received I/O actions to stripes.
+     *  @param stripes_per_file A map to keep track of how many stripes are created for each file
+     *  @param stripes_per_host_per_file A map to keep of how many stripes of each file are supposed to be handled by each compute hosts
+     *  @param stripe_count A lustre stripe_count value for the current Darshan record, computed from I/O performance indicators
+     *  @param jobName Name of the read or write sub-job that called this (for logs) (default = "unknown")
+     *
+     *  @return Nothing, but both maps (stripes_per_file / stripes_per_host_per_file) are updated in place.
+     */
+    void Controller::setWriteStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
+                                            unsigned int participating_hosts_count,
+                                            std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
+                                            std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> &stripes_per_host_per_file,
+                                            unsigned int stripe_count, // stripe count computed for each Darshan run
+                                            const std::string &jobName) {
+
+        for (const auto &file : inputs) {
+
+            // We manually invoke this in order to know how the files will be striped before starting partial writes.
+            WRENCH_DEBUG("[%s] setWriteStripesPerHost: Calling lookupOrDesignate for file %s", jobName.c_str(), file->getID().c_str());
+            auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, file), stripe_count);
+
+            unsigned int nb_stripes = file_stripes.size();
+            stripes_per_file[file] = nb_stripes;
+
+            // How many stripes should be written by each host in use ?
+            if (nb_stripes < participating_hosts_count) {
+
+                stripes_per_host_per_file[file] = std::vector<unsigned int>(nb_stripes, 1);
+
+                WRENCH_DEBUG("[%s] setWriteStripesPerHost: For file %s (size %lld) : we have only %u stripes, but %u hosts, writing 1 stripes from the first %u hosts",
+                             jobName.c_str(), file->getID().c_str(), file->getSize(), nb_stripes, participating_hosts_count, nb_stripes);
+
+            } else {
+                unsigned int stripes_per_host = std::floor(nb_stripes / participating_hosts_count);
+                unsigned int remainder = nb_stripes % participating_hosts_count;
+                stripes_per_host_per_file[file] = std::vector<unsigned int>(participating_hosts_count, stripes_per_host);
+
+                for (unsigned int i = 0; i < remainder; i++) {
+                    stripes_per_host_per_file[file][i] += 1;
+                }
+
+                WRENCH_DEBUG("[%s] setWriteStripesPerHost: For file %s (size %lld) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
+                             jobName.c_str(), file->getID().c_str(), file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+            }
+        }
+    }
+
+    /** @brief Create a job with copy actions going from the 'external' storage service to the local distributed
+     *         filesystem (CompoundStorageService).
+     *  @param action_executor Action executor from the customAction lambda calling this method
+     *  @param internalJobManager Job manager created inside the calling lambda, and shared amond all sub jobs
+     *  @param nb_files Number of files to create for the different copy actions (one file per copy action). Each file
+     *                  accounts for 1 / nb_files of the total readBytes of the job.
+     *  @param max_nb_hosts Maximum number of compute hosts involved in the copy actions : i) using 0 means all compute hosts
+     *                      can be used (to the extent of the number of files) ii) using 1 or more compute nodes as io nodes, if
+     *                      max_nb_hosts < nb_files, some hosts will be used more than once
+     *  @return
+     */
+    std::vector<std::shared_ptr<wrench::DataFile>> Controller::copyFromPermanent(JobManagementStruct &jms,
+                                                                                 std::shared_ptr<wrench::CompoundJob> copyJob,
+                                                                                 const DarshanRecord &run,
+                                                                                 unsigned int max_nb_hosts) {
+
+        WRENCH_INFO("[%s] copyFromPermanent: Creating copy sub-job (in) for a total read size of %ld bytes, on %u files and at most %u IO nodes (0 means all avail)",
+                    copyJob->getName().c_str(), run.readBytes, run.read_files_count, max_nb_hosts);
+
+        if (run.read_files_count < 1)
+            throw std::runtime_error("[" + copyJob->getName() + "] copyFromPermanent: Copy should happen on 1 file at least");
+
+        // Subdivide the amount of copied bytes between as many files as requested (one allocation per file)
+        auto prefix = "inputFile_" + copyJob->getName();
+        auto read_files = this->createFileParts(run.readBytes, run.read_files_count, prefix);
+
+        // Prepare the list of compute host which may participate in the copy
+        auto computeResources = jms.bareMetalCS->getPerHostNumCores();
+        // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
+        this->pruneIONodes(computeResources, max_nb_hosts);
+        auto computeResourcesIt = computeResources.begin();
+
+        // Create one copy action per file and per host
+        jms.serviceSpecificArgs[copyJob->getName()] = std::map<std::string, std::string>();
+        for (const auto &read_file : read_files) {
+            auto source_location = wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.read_path, read_file);
+            wrench::StorageService::createFileAtLocation(source_location);
+            auto action_id = "SC_" + read_file->getID();
+            copyJob->addFileCopyAction(
+                action_id,
+                source_location,
+                wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+
+            // register the future file within the CSS
+            this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, read_file));
+
+            jms.serviceSpecificArgs[copyJob->getName()][action_id] = computeResourcesIt->first;
+            if (++computeResourcesIt == computeResources.end())
+                computeResourcesIt = computeResources.begin();
+        }
+
+        return read_files;
     }
 
     /** @brief Creates read (and possibly metadata overhead sleep) actions inside a read sub-job.
@@ -748,7 +802,7 @@ namespace fives {
         // Prepare stripes-to-hosts matching
         std::map<std::shared_ptr<wrench::DataFile>, unsigned int> stripes_per_file{};
         std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> stripes_per_host_per_file{};
-        this->setStripesPerHost(inputs, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, readJob->getName());
+        this->setReadStripesPerHost(inputs, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, readJob->getName());
 
         /* Get the list of currently allocated compute resources and randomly remove nodes from resources
            in order to never use more than 'max_nb_hosts' */
@@ -825,78 +879,43 @@ namespace fives {
 
     std::vector<std::shared_ptr<wrench::DataFile>> Controller::writeToTemporary(JobManagementStruct &jms,
                                                                                 std::shared_ptr<wrench::CompoundJob> writeJob,
-                                                                                std::string jobID,
-                                                                                unsigned int runID,
-                                                                                std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                                                                uint64_t writtenBytes,
-                                                                                unsigned int nb_files,
+                                                                                const DarshanRecord &run,
+                                                                                std::map<std::string, unsigned int> &current_stripes_per_action,
                                                                                 unsigned int max_nb_hosts) {
 
-        WRENCH_INFO("[%s] Creating sub-job %s (%ld bytes, on %u files and at most %u IO nodes [0=all])",
-                    jobID.c_str(), writeJob->getName().c_str(), writtenBytes, nb_files, max_nb_hosts);
+        WRENCH_INFO("[%s] Creating sub-job (%ld bytes, on %u files and at most %u IO nodes [0=all])",
+                    writeJob->getName().c_str(), run.writtenBytes, run.written_files_count, max_nb_hosts);
 
-        auto computeResources = jms.bareMetalCS->getPerHostNumCores();
+        if (run.written_files_count < 1) {
+            throw std::runtime_error("[" + writeJob->getName() + "] writeToTemporary: At least one file is needed to perform a write");
+        }
 
-        if (nb_files < 1) {
-            throw std::runtime_error("writeToTemporary: At least one host is needed to perform a write");
-        }
-        if (max_nb_hosts == 0) {
-            max_nb_hosts = computeResources.size();
-        }
+        // Subdivide the amount of written bytes between as many files as requested (one allocation per file)
+        auto prefix = "outputFile_" + writeJob->getName();
+        auto write_files = this->createFileParts(run.writtenBytes, run.written_files_count, prefix);
 
         // Prepare stripes-to-hosts matching
         std::map<std::shared_ptr<wrench::DataFile>, unsigned int> stripes_per_file{};
         std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> stripes_per_host_per_file{};
-        this->setStripesPerHost(inputs, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, readJob->getName());
+        double run_mean_write_bw = run.writtenBytes / run.writeTimeSeconds;
+        unsigned int local_stripe_count = this->getWriteStripeCount(run_mean_write_bw);
+        this->setWriteStripesPerHost(write_files, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, local_stripe_count, writeJob->getName());
 
-        // Subdivide the amount of written bytes between as many files as requested (one allocation per file)
-        auto prefix = "outputFile_" + writeJob->getName();
-        auto write_files = this->createFileParts(writtenBytes, nb_files, prefix);
-
-        // Compute what should be written by each host to each file (including remainder if values are not round)
-        std::map<std::shared_ptr<wrench::DataFile>, unsigned int> stripes_per_file{};
-        std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> stripes_per_host_per_file{};
-
-        for (auto write_file : write_files) {
-            // We manually invoke this in order to know how the files will be striped before starting partial writes.
-            WRENCH_DEBUG("Calling lookupOrDesignate for file %s", write_file->getID().c_str());
-
-            unsigned int local_stripe_count = this->getWriteStripeCount(this->sim_jobs[jobID].yamlJob->cumulWriteBW);
-
-            auto file_stripes = this->compound_storage_service->lookupOrDesignateStorageService(wrench::FileLocation::LOCATION(this->compound_storage_service, write_file), local_stripe_count);
-
-            unsigned int nb_stripes = file_stripes.size();
-            stripes_per_file[write_file] = nb_stripes;
-            stripes_per_host_per_file[write_file] = std::vector<unsigned int>();
-
-            // How many stripes should be written by each host in use ?
-            if (nb_stripes < max_nb_hosts) {
-                for (unsigned int i = 0; i < nb_stripes; i++) {
-                    stripes_per_host_per_file[write_file].push_back(1);
-                }
-                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %lld) : we have only %u stripes, but %u hosts, writing 1 stripes from the first %u hosts",
-                             writeJob->getName().c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, max_nb_hosts, nb_stripes);
-            } else {
-                unsigned int stripes_per_host = std::floor(nb_stripes / max_nb_hosts); //
-                unsigned int remainder = nb_stripes % max_nb_hosts;
-                for (unsigned int i = 0; i < max_nb_hosts; i++) {
-                    stripes_per_host_per_file[write_file].push_back(stripes_per_host);
-                }
-                for (unsigned int i = 0; i < remainder; i++) {
-                    stripes_per_host_per_file[write_file][i] += 1;
-                }
-                WRENCH_DEBUG("[%s] writeToTemporary: For file %s (size %lld) : %u stripes, writing %u stripes from each host and last host writes %u stripes",
-                             writeJob->getName().c_str(), write_file->getID().c_str(), write_file->getSize(), nb_stripes, stripes_per_host, stripes_per_host + remainder);
+        // Using recorded meta time to add a sleep action before every read action
+        std::shared_ptr<wrench::SleepAction> overhead;
+        if (run.metaTimeSeconds) {
+            if (run.readBytes) { // simple approach : divide metadata time between read and write
+                overhead = writeJob->addSleepAction("write_overhead_" + writeJob->getName(), run.metaTimeSeconds / 2);
+            } else { // no read bytes, metadata is for write only
+                overhead = writeJob->addSleepAction("write_overhead_" + writeJob->getName(), run.metaTimeSeconds);
             }
         }
 
-        // DEBUG : AT THIS POINT, THE CORRECT STORAGE SPACE IS RESERVED ONTO THE SELECTED NODES
-
-        // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
-        this->pruneIONodes(computeResources, max_nb_hosts);
-
         // Create one write action per file (each one will run on one host, unless there are more actions than 'max_nb_hosts',
         // in which case multiple actions can be scheduled on the same host)
+        // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
+        auto computeResources = jms.bareMetalCS->getPerHostNumCores();
+        this->pruneIONodes(computeResources, max_nb_hosts);
         auto computeResourcesIt = computeResources.begin();
         unsigned int action_cnt = 0;
         jms.serviceSpecificArgs[writeJob->getName()] = std::map<std::string, std::string>();
@@ -908,7 +927,7 @@ namespace fives {
             for (const auto &stripes_per_host : stripes_per_host_per_file[write_file]) {
                 WRENCH_DEBUG("[%s] writeToTemporary: Creating custom write action for file %s and host %s", writeJob->getName().c_str(), write_file->getID().c_str(), computeResourcesIt->first.c_str());
 
-                auto action_id = "FW_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt);
+                auto action_id = "FW_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt++);
 
                 double write_bytes_per_node = 0;
                 if (stripes_per_file[write_file] == stripes_per_host) {
@@ -920,6 +939,13 @@ namespace fives {
                     WRENCH_DEBUG("[%s] writeToTemporary: We'll be writing %d stripes from this host, for a total of %f bytes from this host", writeJob->getName().c_str(), stripes_per_host, write_bytes_per_node);
                 }
 
+                // This is a reference to a particular map entry in the this->stripes_per_action, for the current job and run
+                // It's used to keep trace the count of stripes used for all actions throughout the simulation (in a dirty way)
+                current_stripes_per_action[action_id] = stripes_per_host;
+
+                // ------------------------------------------------------------------
+                // Create FILEWRITE action (as a custom action, because we need to pass a number of bytes to write,
+                // and that's currently not permitted by WRENCH) -- Specific to a stripe and a host
                 auto customWriteAction = std::make_shared<PartialWriteCustomAction>(
                     action_id, 0, 0,
                     [this, write_file, write_bytes_per_node](const std::shared_ptr<wrench::ActionExecutor> &action_executor) {
@@ -932,13 +958,11 @@ namespace fives {
                         WRENCH_DEBUG("[%s] writeToTemporary: %s terminating - wrote %f", writeJob->getName().c_str(), action_id.c_str(), write_bytes_per_node);
                     },
                     write_file, write_bytes_per_node);
-
-                auto overhead = writeJob->addSleepAction("write_overhead_" + action_id, this->config->stor.static_write_overhead_seconds);
                 auto write_file = writeJob->addCustomAction(customWriteAction);
-                writeJob->addActionDependency(overhead, write_file);
+                // ------------------------------------------------------------------
 
-                this->stripes_per_action[jobID][runID][action_id] = stripes_per_host;
-                action_cnt++;
+                if (overhead) // wait for overhead sleep to be done before starting this action.
+                    writeJob->addActionDependency(overhead, write_file);
 
                 // One copy per compute node, looping over if there are more files than nodes
                 jms.serviceSpecificArgs[writeJob->getName()][action_id] = computeResourcesIt->first;
@@ -950,29 +974,28 @@ namespace fives {
         return write_files;
     }
 
-    void Controller::copyToPermanent(std::shared_ptr<wrench::BareMetalComputeService> bare_metal,
+    void Controller::copyToPermanent(JobManagementStruct &jms,
                                      std::shared_ptr<wrench::CompoundJob> copyJob,
-                                     std::map<std::string, std::map<std::string, std::string>> &service_specific_args,
-                                     uint64_t writtenBytes,
+                                     const DarshanRecord &run,
                                      std::vector<std::shared_ptr<wrench::DataFile>> outputs,
-                                     unsigned int nb_hosts) {
+                                     unsigned int max_nb_hosts) {
 
-        WRENCH_INFO("[%s] Creating copy sub-job (out) %lu file(s) with cumulative size %ld bytes, using %u IO nodes (0 means all avail)",
-                    copyJob->getName().c_str(), outputs.size(), writtenBytes, nb_hosts);
-
-        // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
-        auto computeResources = bare_metal->getPerHostNumCores();
-        if (nb_hosts == 0) {
-            nb_hosts = computeResources.size();
-        }
-        this->pruneIONodes(computeResources, nb_hosts);
+        WRENCH_INFO("[%s] copyToPermanent: Creating copy sub-job (out) %lu file(s) with cumulative size %ld bytes, using %u IO nodes (0 means all avail)",
+                    copyJob->getName().c_str(), outputs.size(), run.writtenBytes, run.written_files_count);
 
         /* Note here if a write operations was previously sliced between n compute hosts, we virtually created n pseudo files,
-         * and we're now goind to run the copy from n compute hosts once again. In future works, we might want to differentiate
+         * and we're now going to run the copy from n compute hosts once again. In future works, we might want to differentiate
          * the number of hosts used in the write operation and the number of hosts used in the following copy.
          */
-        service_specific_args[copyJob->getName()] = std::map<std::string, std::string>();
+
+        // Prepare the list of compute host which may participate in the copy
+        auto computeResources = jms.bareMetalCS->getPerHostNumCores();
+        // Randomly remove nodes from resources in order to never use more than 'max_nb_hosts'
+        this->pruneIONodes(computeResources, max_nb_hosts);
         auto computeResourcesIt = computeResources.begin();
+
+        // Create one copy action per file and per host
+        jms.serviceSpecificArgs[copyJob->getName()] = std::map<std::string, std::string>();
         for (const auto &output_data : outputs) {
             auto action_id = "AC_" + output_data->getID();
             auto archiveAction = copyJob->addFileCopyAction(
@@ -980,7 +1003,7 @@ namespace fives {
                 wrench::FileLocation::LOCATION(this->compound_storage_service, output_data),
                 wrench::FileLocation::LOCATION(this->storage_service, this->config->pstor.mount_prefix + "/" + this->config->pstor.write_path, output_data));
 
-            service_specific_args[copyJob->getName()][action_id] = computeResourcesIt->first;
+            jms.serviceSpecificArgs[copyJob->getName()][action_id] = computeResourcesIt->first;
             if (++computeResourcesIt == computeResources.end())
                 computeResourcesIt = computeResources.begin();
         }
