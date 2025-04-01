@@ -164,7 +164,7 @@ def compute_iotime_diff(jobs, plotting=True):
                 continue
             if action["act_type"] == "FILEREAD":
                 s_r_time += (action["act_duration"] + READ_OVERHEAD)  * action["nb_stripes"]
-            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
+            if action["act_type"] == "CUSTOM" and "wrFiles" in str(action["sub_job"]):
                 s_w_time += (action["act_duration"] + WRITE_OVERHEAD) * action["nb_stripes"]
 
 
@@ -299,7 +299,7 @@ def compute_iovolume_diff(jobs, plotting=True):
         for action in job["actions"]:
 
             if (action["act_type"] == "FILEREAD"
-            or (action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]))
+            or (action["act_type"] == "CUSTOM" and "wrFiles" in str(action["sub_job"]))
             and action["act_status"] == "COMPLETED"):
                 s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
 

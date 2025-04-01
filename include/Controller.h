@@ -157,6 +157,7 @@ namespace fives {
                                                                                 std::shared_ptr<wrench::CompoundJob> writeJob,
                                                                                 const DarshanRecord &run,
                                                                                 std::map<std::string, unsigned int> &current_stripes_per_action,
+                                                                                unsigned int write_stripe_count,
                                                                                 unsigned int max_nb_hosts = 1);
 
         virtual void copyToPermanent(JobManagementStruct &jms,

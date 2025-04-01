@@ -380,11 +380,11 @@ namespace fives {
                                 const std::string &jobID,
                                 const DarshanRecord &run) {
 
+        double run_mean_read_bw = run.readBytes / run.readTimeSeconds;
+        auto read_stripe_count = this->getReadStripeCount(run_mean_read_bw); // lustre param
         // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
         // (not necessarily all the nodes from the reservation)
         unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
-        double run_mean_read_bw = run.readBytes / run.readTimeSeconds;
-        auto read_stripe_count = this->getReadStripeCount(run_mean_read_bw); // lustre param
         auto nb_nodes_read = this->getReadNodeCount(max_nodes_run, run_mean_read_bw, read_stripe_count);
         WRENCH_DEBUG("[%s-%u] addReadJob: %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
@@ -415,18 +415,18 @@ namespace fives {
                                  const std::string &jobID,
                                  const DarshanRecord &run) {
 
+        double run_mean_write_bw = run.writtenBytes / run.writeTimeSeconds;
+        auto write_stripe_count = this->getWriteStripeCount(run_mean_write_bw);
         // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
         // (not necessarily all the nodes from the reservation)
         unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
-        double run_mean_write_bw = run.writtenBytes / run.writeTimeSeconds;
-        auto write_stripe_count = this->getWriteStripeCount(run_mean_write_bw);
         auto nb_nodes_write = this->getWriteNodeCount(max_nodes_run, run_mean_write_bw, write_stripe_count);
         WRENCH_DEBUG("[%s-%u] addWriteJob: %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
         std::vector<std::shared_ptr<wrench::DataFile>> output_data;
 
         auto writeJob = jms.jobManager->createCompoundJob("wrFiles_id" + jobID + "_run" + std::to_string(run.id));
-        output_data = this->writeToTemporary(jms, writeJob, run, this->stripes_per_action[jobID][run.id], nb_nodes_write);
+        output_data = this->writeToTemporary(jms, writeJob, run, this->stripes_per_action[jobID][run.id], nb_nodes_write, write_stripe_count);
         this->registerJob(jobID, run.id, writeJob, true);
 
         // Optional COPY job
@@ -687,6 +687,7 @@ namespace fives {
      *
      *  @return Nothing, but both maps (stripes_per_file / stripes_per_host_per_file) are updated in place.
      */
+    // this->setWriteStripesPerHost(write_files, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, write_stripe_count, writeJob->getName());
     void Controller::setWriteStripesPerHost(const std::vector<std::shared_ptr<wrench::DataFile>> &inputs,
                                             unsigned int participating_hosts_count,
                                             std::map<std::shared_ptr<wrench::DataFile>, unsigned int> &stripes_per_file,
@@ -830,7 +831,7 @@ namespace fives {
             auto stripe_size = read_file->getSize() / stripes_per_file[read_file];
 
             // Secondary loop, to create one action per stripe, with the correct read volume
-            for (const auto &stripes_per_host : stripes_per_host_per_file[read_file]) {
+            for (const auto &stripes_per_host : stripes_per_host_per_file[read_file]) { // each entry in the vector stands for one host
 
                 WRENCH_DEBUG("[%s] readFromTemporary: Creating read action for file %s and host %s",
                              readJob->getName().c_str(), read_file->getID().c_str(), computeResourcesIt->first.c_str());
@@ -871,16 +872,11 @@ namespace fives {
         }
     }
 
-    // JobManagementStruct &jms,
-    // std::shared_ptr<wrench::CompoundJob> writeJob,
-    // const DarshanRecord &run,
-    // std::map<std::string, unsigned int> &current_stripes_per_action,
-    // unsigned int max_nb_hosts = 1
-
     std::vector<std::shared_ptr<wrench::DataFile>> Controller::writeToTemporary(JobManagementStruct &jms,
                                                                                 std::shared_ptr<wrench::CompoundJob> writeJob,
                                                                                 const DarshanRecord &run,
                                                                                 std::map<std::string, unsigned int> &current_stripes_per_action,
+                                                                                unsigned int write_stripe_count,
                                                                                 unsigned int max_nb_hosts) {
 
         WRENCH_INFO("[%s] Creating sub-job (%ld bytes, on %u files and at most %u IO nodes [0=all])",
@@ -897,9 +893,7 @@ namespace fives {
         // Prepare stripes-to-hosts matching
         std::map<std::shared_ptr<wrench::DataFile>, unsigned int> stripes_per_file{};
         std::map<std::shared_ptr<wrench::DataFile>, std::vector<unsigned int>> stripes_per_host_per_file{};
-        double run_mean_write_bw = run.writtenBytes / run.writeTimeSeconds;
-        unsigned int local_stripe_count = this->getWriteStripeCount(run_mean_write_bw);
-        this->setWriteStripesPerHost(write_files, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, local_stripe_count, writeJob->getName());
+        this->setWriteStripesPerHost(write_files, max_nb_hosts, stripes_per_file, stripes_per_host_per_file, write_stripe_count, writeJob->getName());
 
         // Using recorded meta time to add a sleep action before every read action
         std::shared_ptr<wrench::SleepAction> overhead;
@@ -924,7 +918,7 @@ namespace fives {
 
             auto stripe_size = write_file->getSize() / stripes_per_file[write_file];
 
-            for (const auto &stripes_per_host : stripes_per_host_per_file[write_file]) {
+            for (const auto &stripes_per_host : stripes_per_host_per_file[write_file]) { // each entry in the vector stands for one host
                 WRENCH_DEBUG("[%s] writeToTemporary: Creating custom write action for file %s and host %s", writeJob->getName().c_str(), write_file->getID().c_str(), computeResourcesIt->first.c_str());
 
                 auto action_id = "FW_" + write_file->getID() + "_" + computeResourcesIt->first + "_act" + std::to_string(action_cnt++);
