@@ -105,9 +105,6 @@ namespace fives {
         float non_linear_coef_read;  // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.8
         float non_linear_coef_write; // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.6
 
-        unsigned int nb_files_per_read;  // How many files should be used to represent the read amount of each job
-        unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
-
         uint64_t read_node_thres;
         uint64_t write_node_thres;
 
@@ -116,10 +113,7 @@ namespace fives {
         uint64_t read_bytes_preload_thres;
         uint64_t write_bytes_copy_thres;
 
-        unsigned int static_read_overhead_seconds;
-        unsigned int static_write_overhead_seconds;
-
-        float cleanup_threshold;
+        // float cleanup_threshold;
 
         std::map<std::string, DiskTemplate> disk_templates;
         std::map<std::string, NodeTemplate> node_templates;

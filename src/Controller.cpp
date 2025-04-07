@@ -17,6 +17,9 @@
 
 #include "yaml-cpp/yaml.h"
 
+// Uncomment to print Job submissions and completion on stdout (was to lazy to link this to the cmake, it's only debug)
+// #define CONSOLE_OUTPUT
+
 #define GFLOP (1000.0 * 1000.0 * 1000.0)
 #define MBYTE (1000.0 * 1000.0)
 #define GBYTE (1000.0 * 1000.0 * 1000.0)
@@ -565,7 +568,9 @@ namespace fives {
         job_manager->submitJob(this->sim_jobs[jobID].reservationJob, this->compute_service, service_specific_args);
         WRENCH_INFO("[%s] Job successfully submitted", this->sim_jobs[jobID].reservationJob->getName().c_str());
 
+#ifdef CONSOLE_OUTPUT
         std::cout << "Job " << jobID << " submitted [" << ++job_submission_counter << "/" << this->jobs.size() << "]" << std::endl;
+#endif
     }
 
     /**
@@ -1012,8 +1017,9 @@ namespace fives {
         static uint32_t completed_jobs = 0;
         auto job = event->job;
         WRENCH_INFO("[%s] Notified that this compound job has completed", job->getName().c_str());
+#ifdef CONSOLE_OUTPUT
         std::cout << "                                      Job " << job->getName().c_str() << " completed [" << ++completed_jobs << "/" << this->jobs.size() << "]" << std::endl;
-
+#endif
         // Extract relevant informations from job and write them to file / send them to DB ?
         processCompletedJob(job->getName());
     }

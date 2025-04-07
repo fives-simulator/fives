@@ -10,7 +10,7 @@ general:
   config_name: Fives_BLuewaters
   config_version: 0.1.0
   max_stripe_size: 100048576          # Max size for allocation stripes (in bytes) (when striping is done at CSS level, so not used here)
-  preload_percent: 0.0
+  preload_percent: 0.0                # DEPRECATED
   walltime_extension: 1.0             # The final walltime passed to the batch sched will be walltime * walltime_extension
 network:
   bandwidth_backbone: 9TBps
@@ -23,16 +23,11 @@ storage:
   write_variability: 1.0
   non_linear_coef_read: 0.85          # read AND write set to 1.0 to deactivate
   non_linear_coef_write: 0.75
-  nb_files_per_read: 0                # unused
-  nb_files_per_write: 0               # unused
-  read_node_thres: 50000000     
-  write_node_thres: 40000000
-  static_read_overhead_seconds: 0
-  static_write_overhead_seconds: 0
+  read_node_thres: 50000000           # calibrated
+  write_node_thres: 40000000          # calibrated
   io_buffer_size: 536870912B
   read_bytes_preload_thres: 1000000000 # Not doing copy *in* if job reads more than 1GB
   write_bytes_copy_thres:   2000000000 # Not doing copy *out* if job writes more than 2GB
-  cleanup_threshold: 0.75
   disk_templates:
     - &raid_OST
       id: raid_OST
@@ -50,7 +45,7 @@ storage:
     - quantity: 360
       template: *node_OSS
 permanent_storage:  # Using ~ characteristics of the project/ lustre (10x smaller than scratch)
-  read_bw: 100GBps   
+  read_bw: 100GBps        # we consider this storage to have little effect on 
   write_bw: 100GBps  
   capacity: 2000TB  # Tape capacity is 305 PB
   mount_prefix: /dev/project

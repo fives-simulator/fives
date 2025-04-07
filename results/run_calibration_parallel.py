@@ -27,50 +27,49 @@ CONFIGURATION_PATH = os.getenv(
     "CALIBRATION_CONFIG_PATH", default="./exp_configurations"
 )
 CONFIGURATION_BASE = os.getenv(
-    "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
+    "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/bluewaters_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_aggMonth11_cat1")
+DATASET = os.getenv("CALIBRATION_DATASET", default="bluewaters_smallSampled_2019-09-01_2019-09-30")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=50))
-CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="0.0.1")
-MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=16)
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=50))           # nb of runs AFTER the initialization (~30 runs)
+CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="local")
+MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=2)                   # RAM bound
 
-# Create a UID for this experiment
+# Create a UID for this experiment (YEAR-MM-DD-<Min in day> -> eg. "2025-04-14-12673") 
 now = dt.datetime.now()
-today = f"{now.year}-{now.month}-{now.day}"
-min_in_day = ((now.timestamp() % 86400) / 60)
-CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
+CALIBRATION_UID = f"{now.year}-{now.month}-{now.day}-{(now.timestamp() % 86400) / 60:.0f}"
 
 PARAMETERS = [
     # Read params
-    { "name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int" },
     { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
     { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
     { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
     { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
+    { "name": "read_bytes_preload_thres", "type": "range", "bounds": [100000000, 1000000000000], "value_type": "int"},
     # Write params
-    { "name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int" },
     { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
     { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
     { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
     { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
+    { "name": "write_bytes_copy_thres", "type": "range", "bounds": [100000000, 1000000000000], "value_type": "int"},
     # R/W
     { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
+    { "name": "stripe_size", "type": "range", "bounds": [4194304, 268435456]}           # may have a heavy impact on simulation duration
 ]
 
 PLATFORM_PARAMETERS = [
-    { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
-    { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
-    { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 128], "value_type": "int" },
-    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
+    { "name": "disk_rb", "type": "range", "bounds": [100, 5000], "value_type": "int" },
+    { "name": "disk_wb", "type": "range", "bounds": [100, 5000], "value_type": "int" },
+    { "name": "max_chunks_per_ost", "type": "range", "bounds":[4, 256], "value_type": "int" },
+    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[10, 300], "value_type": "int" },
+    { "name": "bandwidth_backbone_perm_storage", "type": "range", "bounds":[10, 300], "value_type": "int" },
+    { "name": "io_buffer_size", "type": "range", "bounds": [4194304, 1073741824], "value_type": "int"} 
 ]
 
 def load_base_config(path: str):
-    """Open configuration file that serves as base config, cleanup the dictionnary and return it"""
+    """Open configuration file that serves as base config, update the dictionnary and return it"""
     # Start from a configuration base for the platform we experiment on
     yaml_config = None
 
@@ -96,11 +95,18 @@ def cohend(data1: list, data2: list):
 
 
 def update_base_config(parametrization, base_config, cfg_name):
-    """Update the base config with new values for parameters, as provided by Ax"""
+    """
+        Update the base config with new values for parameters, as provided by Ax
+        This is a bit of a pain because we try to adapt to various calibration tests
+        and parameters in Ax and in he configuration do not have exactly the same 
+        names/hierarchy, due to 'historical' reasons (a.k.a "the developper fucked up")
+    """
 
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
+
+    # "io_buffer_size",
 
     # Network bandwidths
     if "bandwidth_backbone_storage" in parametrization:
@@ -111,7 +117,7 @@ def update_base_config(parametrization, base_config, cfg_name):
         bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
         base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
 
-    # External storage R/W bandwidths
+    # External storage R/W bandwidths (usually fixed)
     if "permanent_storage_read_bw" in parametrization:
         permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
         base_config["permanent_storage"]["read_bw"] = f"{permanent_storage_read_bw}GBps"
@@ -120,11 +126,12 @@ def update_base_config(parametrization, base_config, cfg_name):
         permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
         base_config["permanent_storage"]["write_bw"] = f"{permanent_storage_write_bw}GBps"
 
+    # DEPRECATED
     # Number of preload jobs in proportion to the number of jobs in the simulated dataset
     if "preload_percent" in parametrization:
         base_config["general"]["preload_percent"] = parametrization.get("preload_percent")
 
-    # Lustre parameter, stripe_size (can be dynamically overriden during sim)
+    # Lustre parameter, stripe_size (base parameter, that can be dynamically overriden during sim)
     if "stripe_size" in parametrization:
         stripe_size = parametrization.get("stripe_size")
         base_config["lustre"]["stripe_size"] = stripe_size
@@ -174,10 +181,12 @@ def update_base_config(parametrization, base_config, cfg_name):
                 disk["template"]["write_bw"] = disk_wb
 
     # Base file number for read action (part of dynamic model)
+    # Not used with BlueWaters data
     if "nb_files_per_read" in parametrization:
         base_config["storage"]["nb_files_per_read"] = parametrization.get("nb_files_per_read")
 
     # Base file number for write action (part of dynamic model)
+    # Not used with BlueWaters data
     if "nb_files_per_write" in parametrization:
         base_config["storage"]["nb_files_per_write"] = parametrization.get("nb_files_per_write")
 
@@ -192,22 +201,33 @@ def update_base_config(parametrization, base_config, cfg_name):
         base_config["storage"]["non_linear_coef_write"] = non_linear_coef_write
 
     # Cumulated read mean bandwidth threshold between static and dynamic number of I/O nodes for jobs
+    # Not used with BlueWaters data
     if "read_node_thres" in parametrization:
         read_node_thres = parametrization.get("read_node_thres")
         base_config["storage"]["read_node_thres"] = read_node_thres
 
     # Cumulated write mean bandwidth threshold between static and dynamic number of I/O nodes for jobs
+    # Not used with BlueWaters data
     if "write_node_thres" in parametrization:
         write_node_thres = parametrization.get("write_node_thres")
         base_config["storage"]["write_node_thres"] = write_node_thres
 
-    if "static_read_overhead_seconds" in parametrization:
-        static_read_overhead_seconds = parametrization.get("static_read_overhead_seconds")
-        base_config["storage"]["static_read_overhead_seconds"] = static_read_overhead_seconds
+    # Thresholds for doing copy in/out before and after job (decides whether to add copy subjobs 
+    # before and after the actual I/O phases)
+    if "read_bytes_preload_thres" in parametrization:
+        rb_preload_thres = parametrization.get("read_bytes_preload_thres")
+        base_config["storage"]["read_bytes_preload_thres"] = rb_preload_thres
 
-    if "static_write_overhead_seconds" in parametrization:
-        static_write_overhead_seconds = parametrization.get("static_write_overhead_seconds")
-        base_config["storage"]["static_write_overhead_seconds"] = static_write_overhead_seconds
+    if "write_bytes_copy_thres" in parametrization:
+        wb_preload_thres = parametrization.get("write_bytes_copy_thres")
+        base_config["storage"]["write_bytes_copy_thres"] = wb_preload_thres
+
+    # Internal parameter for WRENCH : how much bytes are in the buffer that simulates I/O
+    # exchanges : smaller buffer == more accurate but slower, larger buffer == simulation speed-up
+    # but less accuracy
+    if "io_buffer_size" in parametrization:
+        io_buffer = parametrization.get("io_buffer_size")
+        base_config["storage"]["io_buffer_size"] = io_buffer
 
 
 def save_exp_config(base_config, run_idx):
@@ -258,11 +278,15 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
             ):
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"]  * action["nb_stripes"] + read_overhead
-            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] * action["nb_stripes"] +  write_overhead
+                s_r_time += action["act_duration"] * action["nb_stripes"]
+            if action["act_type"] == "CUSTOM" and "wrFiles" in str(action["sub_job"]):
+                s_w_time += action["act_duration"] * action["nb_stripes"]
 
         if len(job["actions"]) != 0:
+
+            assert(job["real_cReadTime_s"] is not None)
+            assert(job["real_cWriteTime_s"] is not None)
+
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
@@ -334,7 +358,7 @@ def run_simulation(
 
     # Config
     update_base_config(
-        parametrization, base_config, f"Storalloc_ParaCalib{CALIBRATION_UID}__{run_idx}"
+        parametrization, base_config, f"Fives_ParaCalib{CALIBRATION_UID}__{run_idx}"
     )
     output_configuration = save_exp_config(base_config, run_idx)
     tag = f"{CALIBRATION_RUNS}_{run_idx}"
@@ -345,7 +369,7 @@ def run_simulation(
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         tag,
-        "--wrench-commport-pool-size=1000000",
+        "--wrench-commport-pool-size=3000000",
     ]
     if logs:
         command.extend(
@@ -397,7 +421,8 @@ def run_simulation(
 
 def evaluate(parameters, trial_index):
     """Run a simulation with the parameter set provided by Ax and return results."""
-    print(f"Starting run #{trial_index}")
+
+    print(f"## Starting run #{trial_index}")
     base_config = load_base_config(CONFIGURATION_BASE)
     results = {"trial_index": trial_index, "optimization_metric": None}
     try:
@@ -409,9 +434,10 @@ def evaluate(parameters, trial_index):
         )["optimization_metric"]
     except Exception as e:
         print(f"{e}")
-        print(f"==> Trial {trial_index} FAILED")
-
-    print(f"## Results for trial {trial_index} == {results}")
+        print(f"!! Ax trial {trial_index} FAILED")
+    else:
+        print(f"## Results for trial {trial_index} == {results}")
+    
     return results
 
 
@@ -428,7 +454,7 @@ def run_calibration(params_set, contraints: bool = True):
 
     ax_client = AxClient()  # enforce_sequential_optimization=False)
     ax_client.create_experiment(
-        name="StorallocWrench_ThetaExperiment",
+        name="Wrench_BlueWat_Experiment",
         parameters=params_set,
         objectives={
             "optimization_metric": ObjectiveProperties(minimize=True),
@@ -531,4 +557,5 @@ if __name__ == "__main__":
         if sys.argv[1] == "stage2":
             run_calibration(PARAMETERS, contraints=False)
     else:
-        run_calibration(PARAMETERS.extend(PLATFORM_PARAMETERS))
+        PARAMETERS.extend(PLATFORM_PARAMETERS)
+        run_calibration(PARAMETERS)

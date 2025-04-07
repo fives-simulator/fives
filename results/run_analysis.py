@@ -137,7 +137,7 @@ def compute_runtime_diff(jobs, plotting=True):
 def plot_iotime_diff(jobs):
     sns.set(rc={'figure.figsize':(12, 12)})
     sns.set_style("white")
-    
+
     # Mean diffs
     sim_io_time = []
     sim_read_time = []
@@ -145,11 +145,11 @@ def plot_iotime_diff(jobs):
     real_io_time = []
     real_read_time = []
     real_write_time = []
-    
+
     calib_month = 11
-    
+
     for job in jobs:
-    
+
         # Simulated
         s_io_time = 0
         s_r_time = 0
@@ -160,37 +160,37 @@ def plot_iotime_diff(jobs):
             if action["act_status"] != "COMPLETED":
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += (action["act_duration"]  + overhead_read) * action["nb_stripes"] 
-            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
+                s_r_time += (action["act_duration"]  + overhead_read) * action["nb_stripes"]
+            if action["act_type"] == "CUSTOM" and "wrFiles" in str(action["sub_job"]):
                 s_w_time += (action["act_duration"]  + overhead_write) * action["nb_stripes"]
-    
+
         if len(job['actions']) != 0:
             # "Real"
-            r_io_time = ( job["real_cReadTime_s"] 
+            r_io_time = ( job["real_cReadTime_s"]
                         + job["real_cWriteTime_s"])
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
             real_write_time.append(job["real_cWriteTime_s"])
-    
+
             s_io_time = (s_r_time + s_w_time)
-    
+
             sim_io_time.append(s_io_time)
             sim_read_time.append(s_r_time)
             sim_write_time.append(s_w_time)
         else:
-            print(f"Job {job['job_id']} has 0 actions") 
-                
-    number_of_jobs = len(real_io_time)       
+            print(f"Job {job['job_id']} has 0 actions")
+
+    number_of_jobs = len(real_io_time)
     max_target = max(max(real_io_time), max(sim_io_time))
     min_target = min(min(real_io_time), min(sim_io_time))
     line = {"x": [0, max_target], "y": [0, max_target]}
-    
+
     scatter = sns.scatterplot(
-        x=real_io_time, 
-        y=sim_io_time, 
-        s=800, 
-        color=".15", 
-        alpha=0.5, 
+        x=real_io_time,
+        y=sim_io_time,
+        s=800,
+        color=".15",
+        alpha=0.5,
         label="Jobs",
         zorder=20,
     )
@@ -212,7 +212,7 @@ def plot_iotime_diff(jobs):
     # scatter.minorticks_on()
     scatter.grid(visible=True, which="both", axis="both", zorder=-10.0, alpha=0.4, linewidth=1)
     scatter.set_frame_on(False)
-    
+
     plt.tight_layout()
     plt.savefig(f"{RES_DIR}/{ID}_simToRealIotimes_fcalibrationMonth.pdf", dpi=300)
     plt.show()
@@ -250,7 +250,7 @@ def compute_iotime_diff(jobs, plotting=True):
                 continue
             if action["act_type"] == "FILEREAD":
                 s_r_time += action["act_duration"] * action["nb_stripes"]
-            if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
+            if action["act_type"] == "CUSTOM" and "wrFiles" in str(action["sub_job"]):
                 s_w_time += action["act_duration"] * action["nb_stripes"]
 
         # if s_r_time + s_w_time > 2e6:
@@ -258,7 +258,7 @@ def compute_iotime_diff(jobs, plotting=True):
 
         if len(job['actions']) != 0:
             # "Real"
-            r_io_time = ( job["real_cReadTime_s"] 
+            r_io_time = ( job["real_cReadTime_s"]
                         + job["real_cWriteTime_s"])
             real_io_time.append(r_io_time)
             real_read_time.append(job["real_cReadTime_s"])
@@ -274,9 +274,9 @@ def compute_iotime_diff(jobs, plotting=True):
 
         if s_w_time > 1.5 * job["real_cWriteTime_s"]:
             print(f"JOB {job['job_uid']} simulated write time is way too [SLOW] -> {job['cumul_write_bw'] / 1e6} MB/s)")
-        
+
         if job["real_cWriteTime_s"] > 1.5 * s_w_time:
-            print(f"JOB {job['job_uid']} simulated write time is way too (FAST) -> {job['cumul_write_bw'] / 1e6} MB/s)") 
+            print(f"JOB {job['job_uid']} simulated write time is way too (FAST) -> {job['cumul_write_bw'] / 1e6} MB/s)")
 
         if s_io_time > r_io_time * 7:
             print(f"## > JOB {job['job_uid']} simulated time is > 7 times longer than real time")

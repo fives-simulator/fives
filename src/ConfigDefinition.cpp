@@ -90,20 +90,15 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
             WRENCH_WARN("non_linear_coef_write should be > 0");
             return false;
         }
-        rhs.stor.nb_files_per_read = ynode["storage"]["nb_files_per_read"].as<unsigned int>();
-        rhs.stor.nb_files_per_write = ynode["storage"]["nb_files_per_write"].as<unsigned int>();
         rhs.stor.read_node_thres = ynode["storage"]["read_node_thres"].as<uint64_t>();   // currently threshold on the cumul BW (r/w)
         rhs.stor.write_node_thres = ynode["storage"]["write_node_thres"].as<uint64_t>(); // currently threshold on the cumul BW (r/w)
-
-        rhs.stor.static_read_overhead_seconds = ynode["storage"]["static_read_overhead_seconds"].as<unsigned int>();
-        rhs.stor.static_write_overhead_seconds = ynode["storage"]["static_write_overhead_seconds"].as<unsigned int>();
 
         rhs.stor.io_buffer_size = ynode["storage"]["io_buffer_size"].as<std::string>();
 
         rhs.stor.read_bytes_preload_thres = ynode["storage"]["read_bytes_preload_thres"].as<uint64_t>();
         rhs.stor.write_bytes_copy_thres = ynode["storage"]["write_bytes_copy_thres"].as<uint64_t>();
 
-        rhs.stor.cleanup_threshold = ynode["storage"]["cleanup_threshold"].as<float>();
+        // rhs.stor.cleanup_threshold = ynode["storage"]["cleanup_threshold"].as<float>();
 
         for (const auto node : ynode["storage"]["nodes"]) {
 
