@@ -271,16 +271,19 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
         s_w_time = 0
 
         for action in job["actions"]:
-            if (
-                action["act_type"] == "COMPUTE"
-                or action["act_type"] == "SLEEP"
-                or action["act_status"] != "COMPLETED"
-            ):
-                continue
-            if action["act_type"] == "FILEREAD":
+
+            # READ action
+            if (action["act_type"] == "FILEREAD" and action["act_status"] == "COMPLETED"):
                 s_r_time += action["act_duration"] * action["nb_stripes"]
-            if action["act_type"] == "CUSTOM" and "wrFiles" in str(action["sub_job"]):
+            # Read meta time
+            elif (action["act_type"] == "SLEEP" and "read_overhead" in action["act_name"] and action["act_status"] == "COMPLETED"):
+                s_r_time += action["act_duration"]
+            # WRITE action
+            elif (action["act_type"] == "CUSTOM" and "wrFiles" in action["sub_job"] and action["act_status"] == "COMPLETED"):
                 s_w_time += action["act_duration"] * action["nb_stripes"]
+            # Write meta time
+            elif (action["act_type"] == "SLEEP" and "write_overhead" in action["act_name"] and action["act_status"] == "COMPLETED"):
+                s_w_time += action["act_duration"]
 
         if len(job["actions"]) != 0:
 

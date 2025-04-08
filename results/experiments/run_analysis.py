@@ -16,6 +16,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
 import statsmodels.api as sm
+import bokeh
+
 
 CI_COMMIT_REF_NAME = os.getenv("CI_COMMIT_REF_NAME", default="UNKNOWN_COMMIT_REF")
 CI_COMMIT_SHORT_SHA = os.getenv("CI_COMMIT_SHORT_SHA", default="UNKNOWN_COMMIT_SHA")
@@ -340,9 +342,9 @@ def compute_iovolume_diff(jobs, plotting=True):
         hist_data["Origin"].extend(["real" for i in range(len(real_io_volume_gb))])
         hist_data["Origin"].extend(["sim" for i in range(len(sim_io_volume_gb))])
 
-        binwidth = 100
+        binwidth = 10
 
-        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", binwidth=binwidth,
+        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", 
                                  ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
         global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth} GB")
 
@@ -351,6 +353,68 @@ def compute_iovolume_diff(jobs, plotting=True):
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.png", dpi=300, format='png')
 
     return {"iovolume_correlation": float(io_vol_corr), "iovolume_cohend_effect": float(io_vol_cohen_d), "mean_iovol_diff": float(mean_io_volume_difference)}
+
+
+def compute_iobw(jobs, plotting=True):
+    """
+    """
+
+    print("###################################################################")
+    print("# IO VOLUMES ---\n")
+
+    ## Compute the IO volume differences and stats for all jobs (Here we're just checking that simulated values are coherent,
+    ## as the simulation should always read / write the data volume specified in the dataset anyway.
+
+    fig, ax = plt.subplots(figsize=(20, 20), layout='constrained')
+
+    plotted_jobs = {"r_io_time_s": [], "r_io_volume_gb": [], "s_io_time_s": [], "s_io_volume_gb": []}
+    
+    for job in jobs:
+
+        plotted_jobs["r_io_volume_gb"].append(job["real_read_bytes"] / 1_000_000_000 + job["real_written_bytes"] / 1_000_000_000)
+        plotted_jobs["r_io_time_s"].append(job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"])
+
+        # Simulated:
+        s_io_volume_gb = 0
+        s_io_time_s = 0
+        for action in job["actions"]:
+
+            if (action["act_type"] == "FILEREAD" and action["act_status"] == "COMPLETED"):
+                s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
+                s_io_time_s += action["act_duration"] * action["nb_stripes"]
+
+            if (action["act_type"] == "CUSTOM" and "wrFiles" in action["sub_job"] and action["act_status"] == "COMPLETED"):
+                s_io_volume_gb += action["io_size_bytes"] / 1_000_000_000
+                s_io_time_s += action["act_duration"] * action["nb_stripes"]
+
+            # "Meta" time
+            if (action["act_type"] == "SLEEP" and "overhead" in action["act_name"] and action["act_status"] == "COMPLETED"):
+                s_io_time_s += action["act_duration"]
+
+        plotted_jobs["s_io_volume_gb"].append(s_io_volume_gb)
+        plotted_jobs["s_io_time_s"].append(s_io_time_s)
+
+    
+    print("    [Plotting io bw analysis]")
+
+    for i in range(0, len(plotted_jobs["r_io_volume_gb"])):
+        line = {
+            "x": [plotted_jobs["r_io_time_s"][i], plotted_jobs["s_io_time_s"][i]], 
+            "y": [plotted_jobs["r_io_volume_gb"][i], plotted_jobs["s_io_volume_gb"][i]]
+        }
+        sns.lineplot(line, x="x", y="y", color="red", linestyle="-", linewidth=1, ax=ax)
+
+    scatter_real = sns.scatterplot(data=plotted_jobs, x="r_io_time_s", y="r_io_volume_gb", s=150, ax=ax, c="b")
+    scatter_sim = sns.scatterplot(data=plotted_jobs, x="s_io_time_s", y="s_io_volume_gb", s=150, ax=ax, c="g")
+    scatter_real.set(xlabel="IO Time", ylabel="IO Volume")
+
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    plt.savefig(f"{CI_PIPELINE_ID}_iobw.pdf", dpi=300, format='pdf')
+    plt.savefig(f"{CI_PIPELINE_ID}_iobw.png", dpi=300, format='png')
+
+
 
 def trace_job_schedule(jobs):
     """ /!\ We need access to the dataset in order to get the origin time for all timestamps !
@@ -435,15 +499,17 @@ def analyse(trace, plotting=True):
 
     metrics = {"job_count": len(results)}
 
-    metrics.update(compute_runtime_diff(results, plotting))
+    #metrics.update(compute_runtime_diff(results, plotting))
 
-    metrics.update(compute_iovolume_diff(results, plotting))
+    #metrics.update(compute_iovolume_diff(results, plotting))
 
-    metrics.update(compute_iotime_diff(results, plotting))
+    #metrics.update(compute_iotime_diff(results, plotting))
+
+    compute_iobw(results)
 
     #trace_job_schedule(results)
 
-    save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
+    #save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
 
 if __name__ == "__main__":
     trace_path = None
