@@ -1,0 +1,9 @@
+exp_results
+.ipynb_checkpoints/
+*.pdf
+*.png
+exp_configurations/exp_config_*
+exp_configurations/theta_config_*
+exp_datasets/theta2022_*
+full_plot.svg
+validation-*

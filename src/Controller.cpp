@@ -97,6 +97,7 @@ namespace fives {
 
         this->job_manager = this->createJobManager();
 
+        // Files that will be read by jobs are created before we actually start submitting any job.
         this->preloadData();
 
         auto total_events = 0;
@@ -192,7 +193,7 @@ namespace fives {
         for (const auto &job : this->jobs) {
             for (const auto &run : job.second.runs) {
 
-                if ((run.readBytes > 0) and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
+                if ((run.readBytes > 0)) { // and (run.readBytes >= this->config->stor.read_bytes_preload_thres)) {
 
                     unsigned int local_stripe_count = this->getReadStripeCount(job.second.cumulReadBW);
 
@@ -394,17 +395,20 @@ namespace fives {
         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
 
         // Optional COPY sub-job
-        if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
+        // if (this->preloadedData.find(jobID + "_" + std::to_string(run.id)) == this->preloadedData.end()) {
 
-            auto copyJob = jms.jobManager->createCompoundJob("inCopy_id" + jobID + "_run" + std::to_string(run.id));
-            input_files = this->copyFromPermanent(jms, copyJob, run, nb_nodes_read);
-            this->registerJob(jobID, run.id, copyJob, true);
+        //     auto copyJob = jms.jobManager->createCompoundJob("inCopy_id" + jobID + "_run" + std::to_string(run.id));
+        //     input_files = this->copyFromPermanent(jms, copyJob, run, nb_nodes_read);
+        //     this->registerJob(jobID, run.id, copyJob, true);
 
-            WRENCH_DEBUG("[%s-%u] addReadJob: 'In' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
+        //     WRENCH_DEBUG("[%s-%u] addReadJob: 'In' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_read);
 
-        } else { // No need for copy jobs, files have been created already
-            input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
-        }
+        // } else { // No need for copy jobs, files have been created already
+        //     input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
+        // }
+
+        // No copy job version
+        input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
 
         // READ sub-job
         auto readJob = jms.jobManager->createCompoundJob("rdFiles_id" + jobID + "_run" + std::to_string(run.id));
@@ -433,12 +437,12 @@ namespace fives {
         this->registerJob(jobID, run.id, writeJob, true);
 
         // Optional COPY job
-        if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
-            auto copyJob = jms.jobManager->createCompoundJob("outCopy_id" + jobID + "_run" + std::to_string(run.id));
-            this->copyToPermanent(jms, copyJob, run, output_data, nb_nodes_write);
-            this->registerJob(jobID, run.id, copyJob, true);
-            WRENCH_DEBUG("[%s-%u] addWriteJob: 'Out' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_write);
-        }
+        // if (run.writtenBytes <= this->config->stor.write_bytes_copy_thres) {
+        //     auto copyJob = jms.jobManager->createCompoundJob("outCopy_id" + jobID + "_run" + std::to_string(run.id));
+        //     this->copyToPermanent(jms, copyJob, run, output_data, nb_nodes_write);
+        //     this->registerJob(jobID, run.id, copyJob, true);
+        //     WRENCH_DEBUG("[%s-%u] addWriteJob: 'Out' copy job added with %d nodes", jobID.c_str(), run.id, nb_nodes_write);
+        // }
     }
 
     /**

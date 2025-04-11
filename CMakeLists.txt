@@ -1,16 +1,16 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.5)
 
 project(fives)
 
 ##### Project options
 
-# Whether to build dependencies (simgrid, wrench, ...) inside project tree 
+# Whether to build dependencies (simgrid, wrench, ...) inside project tree
 option(BUILD_DEPENDENCIES "Build dependencies (local to project)" OFF)
 
 # Whether to use sustem libs (simgrid, wrench, ...) instead of local build of dependencies
 option(USE_SYSTEM_LIBS "Use system libraries instead of local dependencies" OFF)
 
-# Whether to use GTEST (it is not recommended to use gtest as a system lib, as it should be 
+# Whether to use GTEST (it is not recommended to use gtest as a system lib, as it should be
 # compiled with the same compiler / compiler flags as the tested project)
 option(SETUP_GTEST "Setup googletest locally and add a unit_tests target" ON)
 
@@ -142,7 +142,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     file(MAKE_DIRECTORY ${LOCAL_INSTALL_LIB})
     file(MAKE_DIRECTORY ${LOCAL_INSTALL_INCLUDE})
 
-    # Let cmake know about these directories when building/linking any dependency 
+    # Let cmake know about these directories when building/linking any dependency
     # (necessary because of the 'ExternalProject' module usage)
     include_directories(${LOCAL_INSTALL_DIR}/include)
     link_directories(${LOCAL_INSTALL_DIR}/lib)
@@ -150,7 +150,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     # Number of cores to use to build (variable is useless if you are not building the dependencies
     # and you should use  'cmake --build . --parallel=X' or 'make -j X' to configure // for Fives only)
     if (NOT NUM_CORES)
-        set(NUM_CORES "3") 
+        set(NUM_CORES "3")
     endif()
     message(STATUS "Using ${NUM_CORES} processes for the compilation of the dependencies")
 
@@ -228,7 +228,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
     )
     add_library(wrench_lib STATIC IMPORTED)
     set_target_properties(wrench_lib PROPERTIES
-        IMPORTED_LOCATION ${LOCAL_INSTALL_LIB}/libwrench.a 
+        IMPORTED_LOCATION ${LOCAL_INSTALL_LIB}/libwrench.a
         INTERFACE_INCLUDE_DIRECTORIES ${LOCAL_INSTALL_INCLUDE}
     )
 
@@ -244,7 +244,7 @@ elseif(USE_SYSTEM_LIBS)
         message(WARNING "BUILD_DEPENDENCIES is ON, but USE_SYSTEM_LIBS is also ON. No dependencies will be built.")
     endif()
 
-    ### Find JSON (just in case it becomes useful, but currently it's only needed by SimGrid, 
+    ### Find JSON (just in case it becomes useful, but currently it's only needed by SimGrid,
     # which manage on its oww find it)
     # find_package(nlohmann_json ${${NLOHMANNJSON_GIT_REF}} REQUIRED)
 
@@ -311,7 +311,7 @@ elseif(USE_SYSTEM_LIBS)
 
     # For version information displayed inside Fives.
     set(SIMGRID_GIT_REF "SYSTEM")
-    set(FSMOD_GIT_REF "SYSTEM")                       
+    set(FSMOD_GIT_REF "SYSTEM")
     set(WRENCH_GIT_REF "SYSTEM")
 
 else()
@@ -319,7 +319,7 @@ else()
     # Impossible case, we would not have any depenencies available
     message(ERROR "USE_SYSTEM_LIBS and BUILD_DEPENDENCIES are OFF, we can't build Fives.")
 
-endif() 
+endif()
 
 
 ##### Prepare main target: Fives
@@ -327,7 +327,7 @@ endif()
 configure_file(include/BuildInfo.h.in ${CMAKE_SOURCE_DIR}/include/BuildInfo.h)
 
 add_executable(
-    fives 
+    fives
     ${HEADER_FILES}
     ${SOURCE_FILES}
     src/main.cpp        # outside because it should not be included when building tests
@@ -344,14 +344,14 @@ target_compile_options(fives PRIVATE
 
 install(TARGETS fives DESTINATION bin)
 
-##### Add link / include information to Fives target and configure test target 
+##### Add link / include information to Fives target and configure test target
 #     depending on where our dependencies come from
 
 if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
 
     #### Setup link/includes for Fives
 
-    target_include_directories(fives 
+    target_include_directories(fives
         SYSTEM              # Import as if it were a system lib (so that we can use #include <xxx> instead of #include "xxx.h" everywhere)
         BEFORE              # Should tell Cmake to start by looking in these include directory before system ones
         PRIVATE             # Scope: used only for building the target
@@ -376,9 +376,9 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
             ${HEADER_FILES}
         )
 
-        target_include_directories(unit_tests 
-            SYSTEM 
-            BEFORE 
+        target_include_directories(unit_tests
+            SYSTEM
+            BEFORE
             PRIVATE
             ${CMAKE_SOURCE_DIR}/include
             ${LOCAL_INSTALL_DIR}/include
@@ -401,7 +401,7 @@ if (NOT USE_SYSTEM_LIBS AND BUILD_DEPENDENCIES)
 else()
 
     target_link_libraries(fives
-        WRENCH::WRENCH          
+        WRENCH::WRENCH
         FSMOD::FSMOD
         SimGrid::SimGrid
         ${YAML_CPP_LIBRARY}
@@ -410,12 +410,12 @@ else()
 
     target_include_directories(fives PRIVATE
         ${CMAKE_SOURCE_DIR}/include
-        /usr/include,  
+        /usr/include,
         /opt/simgrid, # suggested by simgrid as installation directory
-        ${SimGrid_INCLUDE_DIR} 
-        ${Boost_INCLUDE_DIR} 
-        ${FSMOD_INCLUDE_DIR} 
-        ${WRENCH_INCLUDE_DIR} 
+        ${SimGrid_INCLUDE_DIR}
+        ${Boost_INCLUDE_DIR}
+        ${FSMOD_INCLUDE_DIR}
+        ${WRENCH_INCLUDE_DIR}
         /usr/include /usr/local/include /opt/local/include
     )
 
@@ -431,12 +431,12 @@ else()
 
         target_include_directories(unit_tests PRIVATE
             ${CMAKE_SOURCE_DIR}/include
-            /usr/include,  
+            /usr/include,
             /opt/simgrid, # suggested by simgrid as installation directory
-            ${SimGrid_INCLUDE_DIR} 
-            ${Boost_INCLUDE_DIR} 
-            ${FSMOD_INCLUDE_DIR} 
-            ${WRENCH_INCLUDE_DIR} 
+            ${SimGrid_INCLUDE_DIR}
+            ${Boost_INCLUDE_DIR}
+            ${FSMOD_INCLUDE_DIR}
+            ${WRENCH_INCLUDE_DIR}
             /usr/include /usr/local/include /opt/local/include
         )
 
@@ -444,7 +444,7 @@ else()
             WRENCH::WRENCH
             FSMOD::FSMOD
             SimGrid::SimGrid
-            ${YAML_CPP_LIBRARY} 
+            ${YAML_CPP_LIBRARY}
             gtest_main
             pthread # Necessary on Debian for some reason
         )

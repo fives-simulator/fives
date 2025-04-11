@@ -400,9 +400,10 @@ def compute_iobw(jobs, plotting=True):
     for i in range(0, len(plotted_jobs["r_io_volume_gb"])):
         line = {
             "x": [plotted_jobs["r_io_time_s"][i], plotted_jobs["s_io_time_s"][i]], 
-            "y": [plotted_jobs["r_io_volume_gb"][i], plotted_jobs["s_io_volume_gb"][i]]
+            "y": [plotted_jobs["r_io_volume_gb"][i], plotted_jobs["s_io_volume_gb"][i]],
         }
-        sns.lineplot(line, x="x", y="y", color="red", linestyle="-", linewidth=1, ax=ax)
+        line = sns.lineplot(line, x="x", y="y", color="red", linestyle="-", linewidth=1, ax=ax)
+        line.text(plotted_jobs["s_io_time_s"][i], plotted_jobs["s_io_volume_gb"][i], jobs[i]["job_uid"])
 
     scatter_real = sns.scatterplot(data=plotted_jobs, x="r_io_time_s", y="r_io_volume_gb", s=150, ax=ax, c="b")
     scatter_sim = sns.scatterplot(data=plotted_jobs, x="s_io_time_s", y="s_io_volume_gb", s=150, ax=ax, c="g")
@@ -499,17 +500,18 @@ def analyse(trace, plotting=True):
 
     metrics = {"job_count": len(results)}
 
-    #metrics.update(compute_runtime_diff(results, plotting))
+    # metrics.update(compute_runtime_diff(results, plotting))
 
-    #metrics.update(compute_iovolume_diff(results, plotting))
+    # metrics.update(compute_iovolume_diff(results, plotting))
 
-    #metrics.update(compute_iotime_diff(results, plotting))
+    # metrics.update(compute_iotime_diff(results, plotting))
 
+    # plotting only
     compute_iobw(results)
 
     #trace_job_schedule(results)
 
-    #save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
+    # save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
 
 if __name__ == "__main__":
     trace_path = None
