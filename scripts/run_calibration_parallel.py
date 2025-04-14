@@ -257,6 +257,7 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     io_time_squared_error = []
     io_time_abs_error = []
     io_time_abs_pct_error = []
+    io_time_abs_pct_gt5pct = 0
 
     sim_io_time = []
     sim_read_time = []
@@ -297,15 +298,32 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
             sim_read_time.append(s_r_time)
             sim_write_time.append(s_w_time)
 
+            # Signed time diff
             error = r_io_time - s_io_time
             io_time_error.append(r_io_time - s_io_time)
+
+            # +/- time diff
             if error >= 0:
                 io_time_gt0_error.append(error)
             else:
                 io_time_lt0_error.append(error)
+
+            # Squared time diff
             io_time_squared_error.append(pow(error, 2))
+
+            # Absolute time diff
             io_time_abs_error.append(abs(error))
-            io_time_abs_pct_error.append((abs(error) / r_io_time))
+
+            # Absolute time diff as percentage of real io time
+            # -> for each job, we'd like to have roughly the same error between real and simulated, but the task is not
+            # equally simple/hard for short and long IO time jobs.
+            io_time_abs_pct_error_job = abs(error) / r_io_time
+            io_time_abs_pct_error.append(io_time_abs_pct_error_job)
+            #print(f"## Percentage of IO time error for job {job['job_uid']} : {io_time_abs_pct_error_job}")
+            if io_time_abs_pct_error_job >= 0.15:
+                io_time_abs_pct_gt5pct += 1
+                
+
         else:
             raise RuntimeError(f"Job {job['job_uid']} has 0 read or write action. This should not happen.")
 
@@ -341,7 +359,8 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     # return {"optimization_metric": abs(ttest_io_time.statistic)}
     # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
-    return {"optimization_metric": mae_pct}
+    return {"optimization_metric": io_time_abs_pct_gt5pct }     # number of jobs with a difference between real and sim IO time >= 5% of real IO time
+    # return {"optimization_metric": mae_pct}
 
 def run_simulation(
     parametrization: dict,

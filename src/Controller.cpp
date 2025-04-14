@@ -225,8 +225,21 @@ namespace fives {
      *        such as the currently used stripe_count and the job cumulated read bandwidth. It can't be less than 2 nodes
      * @return Number of compute nodes onto which read file actions should be load balanced
      */
-    unsigned int Controller::getReadNodeCount(unsigned int max_nodes, double cumul_read_bw,
+    unsigned int Controller::getReadNodeCount(const DarshanRecord &run,
+                                              double cumul_read_bw,
                                               unsigned int stripe_count) const {
+
+        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
+        // (not necessarily all the nodes from the reservation)
+        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+
+        // If there are no files accessed by all processes and only file accessed
+        // we consider that it's safe to assume only a few nodes reading, and we basically approximate this to 1
+        if (run.files_accessed_by_all_procs == 0 and run.unique_files == 1) {
+            return 1;
+        }
+
+        // In a more complex scenario, we used the read bw to determine how many nodes should be involved in reading
         /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
         is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
         model will probably be required */
@@ -235,8 +248,8 @@ namespace fives {
         } else {
             auto ratio = (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
             ratio = std::min(ratio, 1.0);
-            unsigned int node_count = std::ceil(max_nodes * ratio);
-            return std::max(2u, node_count);
+            unsigned int node_count = std::ceil(max_nodes_run * ratio);
+            return std::max(1u, node_count);
         }
     }
 
@@ -247,8 +260,20 @@ namespace fives {
      *        such as the currently used stripe_count and the job cumulated write bandwidth. It can't be less than 2 nodes
      * @return Number of compute nodes onto which write file actions should be load balanced
      */
-    unsigned int Controller::getWriteNodeCount(unsigned int max_nodes, double cumul_write_bw,
+    unsigned int Controller::getWriteNodeCount(const DarshanRecord &run,
+                                               double cumul_write_bw,
                                                unsigned int stripe_count) const {
+
+        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
+        // (not necessarily all the nodes from the reservation)
+        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+
+        // If there are no files accessed by all processes and only file accessed
+        // we consider that it's safe to assume only a few nodes reading, and we basically approximate this to 1
+        if (run.files_accessed_by_all_procs == 0 and run.unique_files == 1) {
+            return 1;
+        }
+
         /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
         is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
         model will probably be required */
@@ -257,8 +282,8 @@ namespace fives {
         } else {
             auto ratio = (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
             ratio = std::min(ratio, 1.0);
-            unsigned int node_count = std::ceil(max_nodes * ratio);
-            return std::max(2u, node_count);
+            unsigned int node_count = std::ceil(max_nodes_run * ratio);
+            return std::max(1u, node_count);
         }
     }
 
@@ -386,10 +411,7 @@ namespace fives {
 
         double run_mean_read_bw = run.readBytes / run.readTimeSeconds;
         auto read_stripe_count = this->getReadStripeCount(run_mean_read_bw); // lustre param
-        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
-        // (not necessarily all the nodes from the reservation)
-        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
-        auto nb_nodes_read = this->getReadNodeCount(max_nodes_run, run_mean_read_bw, read_stripe_count);
+        auto nb_nodes_read = this->getReadNodeCount(run, run_mean_read_bw, read_stripe_count);
         WRENCH_DEBUG("[%s-%u] addReadJob: %d nodes will be doing copy/read IOs", jobID.c_str(), run.id, nb_nodes_read);
 
         std::vector<std::shared_ptr<wrench::DataFile>> input_files;
@@ -424,10 +446,7 @@ namespace fives {
 
         double run_mean_write_bw = run.writtenBytes / run.writeTimeSeconds;
         auto write_stripe_count = this->getWriteStripeCount(run_mean_write_bw);
-        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
-        // (not necessarily all the nodes from the reservation)
-        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
-        auto nb_nodes_write = this->getWriteNodeCount(max_nodes_run, run_mean_write_bw, write_stripe_count);
+        auto nb_nodes_write = this->getWriteNodeCount(run, run_mean_write_bw, write_stripe_count);
         WRENCH_DEBUG("[%s-%u] addWriteJob: %d nodes will be doing write/copy IOs", jobID.c_str(), run.id, nb_nodes_write);
 
         std::vector<std::shared_ptr<wrench::DataFile>> output_data;

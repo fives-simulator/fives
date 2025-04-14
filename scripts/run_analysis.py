@@ -336,17 +336,17 @@ def compute_iovolume_diff(jobs, plotting=True):
         target_line = sns.lineplot(line, x="x", y="y", color="red", linestyle="--", linewidth=0.3, ax=axs[0])
         scatter.set(xlabel="Real", ylabel="Simulated")
 
-        hist_data = {"values": [], "Origin": []}
-        hist_data["values"].extend(real_io_volume_gb)
-        hist_data["values"].extend(sim_io_volume_gb)
-        hist_data["Origin"].extend(["real" for i in range(len(real_io_volume_gb))])
-        hist_data["Origin"].extend(["sim" for i in range(len(sim_io_volume_gb))])
+        # hist_data = {"values": [], "Origin": []}
+        # hist_data["values"].extend(real_io_volume_gb)
+        # hist_data["values"].extend(sim_io_volume_gb)
+        # hist_data["Origin"].extend(["real" for i in range(len(real_io_volume_gb))])
+        # hist_data["Origin"].extend(["sim" for i in range(len(sim_io_volume_gb))])
 
-        binwidth = 10
+        # binwidth = 10
 
-        global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", 
-                                 ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
-        global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth} GB")
+        # global_hist = sns.histplot(data=hist_data, x="values", hue="Origin", 
+        #                          ax=axs[1], multiple="dodge", palette={"real": REAL_COLOR, "sim": SIM_COLOR})
+        # global_hist.set(xlabel=f"IO volume histogram (real / simulation) ; binwidth = {binwidth} GB")
 
 
         plt.savefig(f"{CI_PIPELINE_ID}_iovolume.pdf", dpi=300, format='pdf')
@@ -500,18 +500,18 @@ def analyse(trace, plotting=True):
 
     metrics = {"job_count": len(results)}
 
-    # metrics.update(compute_runtime_diff(results, plotting))
+    metrics.update(compute_runtime_diff(results, plotting))
 
-    # metrics.update(compute_iovolume_diff(results, plotting))
+    metrics.update(compute_iovolume_diff(results, plotting))
 
-    # metrics.update(compute_iotime_diff(results, plotting))
+    metrics.update(compute_iotime_diff(results, plotting))
 
     # plotting only
     compute_iobw(results)
 
     #trace_job_schedule(results)
 
-    # save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
+    save_metrics_to_file(metrics, f"{CI_PIPELINE_ID}_metrics.yaml")
 
 if __name__ == "__main__":
     trace_path = None

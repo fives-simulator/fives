@@ -178,9 +178,13 @@ namespace fives {
 
         std::vector<std::shared_ptr<wrench::DataFile>> createFileParts(uint64_t total_bytes, uint64_t nb_files, const std::string &prefix_name) const;
 
-        unsigned int getReadNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
+        unsigned int getReadNodeCount(const DarshanRecord &run,
+                                      double cumul_read_bw,
+                                      unsigned int stripe_count) const;
 
-        unsigned int getWriteNodeCount(unsigned int max_nodes, double cumul_read_bw, unsigned int stripe_count) const;
+        unsigned int getWriteNodeCount(const DarshanRecord &run,
+                                       double cumul_write_bw,
+                                       unsigned int stripe_count) const;
 
         unsigned int getReadStripeCount(double cumul_read_bw) const;
 
