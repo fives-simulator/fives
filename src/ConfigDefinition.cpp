@@ -90,8 +90,8 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
             WRENCH_WARN("non_linear_coef_write should be > 0");
             return false;
         }
-        rhs.stor.read_node_thres = ynode["storage"]["read_node_thres"].as<uint64_t>();   // currently threshold on the cumul BW (r/w)
-        rhs.stor.write_node_thres = ynode["storage"]["write_node_thres"].as<uint64_t>(); // currently threshold on the cumul BW (r/w)
+        rhs.stor.read_node_param = ynode["storage"]["read_node_param"].as<float>();   // currently threshold on the cumul BW (r/w)
+        rhs.stor.write_node_param = ynode["storage"]["write_node_param"].as<float>(); // currently threshold on the cumul BW (r/w)
 
         rhs.stor.io_buffer_size = ynode["storage"]["io_buffer_size"].as<std::string>();
 

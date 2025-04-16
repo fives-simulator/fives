@@ -23,8 +23,8 @@ storage:
   write_variability: 1.0
   non_linear_coef_read: 0.85          # read AND write set to 1.0 to deactivate
   non_linear_coef_write: 0.75
-  read_node_thres: 50000000           # calibrated
-  write_node_thres: 40000000          # calibrated
+  read_node_param: 0.5           # calibrated
+  write_node_param: 0.5          # calibrated
   io_buffer_size: 536870912B
   read_bytes_preload_thres: 1000000000 # Not doing copy *in* if job reads more than 1GB
   write_bytes_copy_thres:   2000000000 # Not doing copy *out* if job writes more than 2GB
@@ -66,10 +66,10 @@ lustre:
   stripe_size: 268435456  # Default size of each read / write before switching to another stripe on a different OST (from https://www.alcf.anl.gov/sites/default/files/2022-08/CompPerfWorkshopq_May2022_IOopt_mcpheeters.pdf)
   max_chunks_per_ost: 22
   stripe_count: 1
-  stripe_count_high_read_add: 2
+  stripe_count_high_read_add: 1
   stripe_count_high_thresh_read: 231004494
   stripe_count_high_thresh_write: 264290989
-  stripe_count_high_write_add: 2
+  stripe_count_high_write_add: 1
 outputs:
   job_filename_prefix: simulatedJobs_
   io_actions_prefix: io_actions_ts_

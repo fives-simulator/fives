@@ -105,8 +105,8 @@ namespace fives {
         float non_linear_coef_read;  // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.8
         float non_linear_coef_write; // Reduction coefficient for read bandwidth of disks in presence of concurrent read - eg. 0.6
 
-        uint64_t read_node_thres;
-        uint64_t write_node_thres;
+        float read_node_param;
+        float write_node_param;
 
         std::string io_buffer_size;
 

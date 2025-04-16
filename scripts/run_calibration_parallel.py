@@ -30,7 +30,7 @@ CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/bluewaters_config.yml"
 )
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="bluewaters_filter1GB_2019-09-01_2019-09-30")
+DATASET = os.getenv("CALIBRATION_DATASET", default="bluewaters_filter100MB_2019-09-01_2019-09-30")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
 CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=50))           # nb of runs AFTER the initialization (~30 runs)
@@ -44,18 +44,18 @@ CALIBRATION_UID = f"{now.year}-{now.month}-{now.day}-{(now.timestamp() % 86400) 
 PARAMETERS = [
     # Read params
     { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-    { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
+    { "name": "read_node_param", "type": "range", "bounds": [0.01, 1], "value_type": "float" },
     { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
     { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
     # { "name": "read_bytes_preload_thres", "type": "range", "bounds": [100000000, 1000000000000], "value_type": "int"},
     # Write params
     { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-    { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
+    { "name": "write_node_param", "type": "range", "bounds": [0.01, 1], "value_type": "float" },
     { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
     { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
     # { "name": "write_bytes_copy_thres", "type": "range", "bounds": [100000000, 1000000000000], "value_type": "int"},
     # R/W
-    { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
+    # { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
     { "name": "stripe_size", "type": "range", "bounds": [4194304, 268435456]}           # may have a heavy impact on simulation duration
 ]
 
@@ -200,15 +200,15 @@ def update_base_config(parametrization, base_config, cfg_name):
 
     # Cumulated read mean bandwidth threshold between static and dynamic number of I/O nodes for jobs
     # Not used with BlueWaters data
-    if "read_node_thres" in parametrization:
-        read_node_thres = parametrization.get("read_node_thres")
-        base_config["storage"]["read_node_thres"] = read_node_thres
+    if "read_node_param" in parametrization:
+        read_node_param = parametrization.get("read_node_param")
+        base_config["storage"]["read_node_param"] = read_node_param
 
     # # Cumulated write mean bandwidth threshold between static and dynamic number of I/O nodes for jobs
     # # Not used with BlueWaters data
-    if "write_node_thres" in parametrization:
-        write_node_thres = parametrization.get("write_node_thres")
-        base_config["storage"]["write_node_thres"] = write_node_thres
+    if "write_node_param" in parametrization:
+        write_node_param = parametrization.get("write_node_param")
+        base_config["storage"]["write_node_param"] = write_node_param
 
     # # Thresholds for doing copy in/out before and after job (decides whether to add copy subjobs 
     # # before and after the actual I/O phases)
@@ -359,8 +359,8 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     # return {"optimization_metric": abs(ttest_io_time.statistic)}
     # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
-    return {"optimization_metric": io_time_abs_pct_gt5pct }     # number of jobs with a difference between real and sim IO time >= 5% of real IO time
-    # return {"optimization_metric": mae_pct}
+    # return {"optimization_metric": io_time_abs_pct_gt5pct }     # number of jobs with a difference between real and sim IO time >= 5% of real IO time
+    return {"optimization_metric": mae_pct}
 
 def run_simulation(
     parametrization: dict,

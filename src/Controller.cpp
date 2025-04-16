@@ -229,28 +229,23 @@ namespace fives {
                                               double cumul_read_bw,
                                               unsigned int stripe_count) const {
 
-        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
-        // (not necessarily all the nodes from the reservation)
-        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
-
-        // If there are no files accessed by all processes and only file accessed
-        // we consider that it's safe to assume only a few nodes reading, and we basically approximate this to 1
+        // If there are no files accessed by all processes and only one file accessed, automatically use a single node
         if (run.files_accessed_by_all_procs == 0 and run.unique_files == 1) {
             return 1;
         }
 
-        // In a more complex scenario, we used the read bw to determine how many nodes should be involved in reading
-        /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
-        is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
-        model will probably be required */
-        if (cumul_read_bw <= this->config->stor.read_node_thres) {
-            return 1;
-        } else {
-            auto ratio = (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
-            ratio = std::min(ratio, 1.0);
-            unsigned int node_count = std::ceil(max_nodes_run * ratio);
-            return std::max(1u, node_count);
-        }
+        // Otherwise, attempt to determine the number of participating nodes from a 'metric' of how well the job is doing
+        // in using the available bandwidth (note that this suppose to know the BW of the disks that are used,
+        // and to have computed a realistic stripe_count as well)
+
+        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
+        // (not necessarily all the nodes from the reservation)
+        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+
+        auto ratio = this->config->stor.read_node_param * (cumul_read_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.read_bw);
+        ratio = std::min(ratio, 1.0);
+        unsigned int node_count = std::ceil(max_nodes_run * ratio);
+        return std::max(1u, node_count);
     }
 
     /**
@@ -264,27 +259,23 @@ namespace fives {
                                                double cumul_write_bw,
                                                unsigned int stripe_count) const {
 
-        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
-        // (not necessarily all the nodes from the reservation)
-        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
-
-        // If there are no files accessed by all processes and only file accessed
-        // we consider that it's safe to assume only a few nodes reading, and we basically approximate this to 1
+        // If there are no files accessed by all processes and only one file accessed, automatically use a single node
         if (run.files_accessed_by_all_procs == 0 and run.unique_files == 1) {
             return 1;
         }
 
-        /* Note : this model uses the disk bw, which is easy to determine in our case (no matter where the file
-        is located, all disks are the same), but won't be in case of a heterogeneous storage system, where another
-        model will probably be required */
-        if (cumul_write_bw <= this->config->stor.write_node_thres) {
-            return 1;
-        } else {
-            auto ratio = (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
-            ratio = std::min(ratio, 1.0);
-            unsigned int node_count = std::ceil(max_nodes_run * ratio);
-            return std::max(1u, node_count);
-        }
+        // Otherwise, attempt to determine the number of participating nodes from a 'metric' of how well the job is doing
+        // in using the available bandwidth (note that this suppose to know the BW of the disks that are used,
+        // and to have computed a realistic stripe_count as well)
+
+        // Assuming 1 proc/thread per core, maximum number of nodes used by the recorded application
+        // (not necessarily all the nodes from the reservation)
+        unsigned int max_nodes_run = max(std::ceil(run.nprocs / this->config->compute.core_count), 1.0);
+
+        auto ratio = this->config->stor.write_node_param * (cumul_write_bw / 1e6) / (stripe_count * this->config->stor.disk_templates.begin()->second.write_bw);
+        ratio = std::min(ratio, 1.0);
+        unsigned int node_count = std::ceil(max_nodes_run * ratio);
+        return std::max(1u, node_count);
     }
 
     /**

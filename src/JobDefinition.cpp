@@ -134,9 +134,6 @@ bool YAML::convert<fives::YamlJob>::decode(const YAML::Node &node, fives::YamlJo
     }
     rhs.coreHoursReq = node["coreHoursReq"].as<double>();
     rhs.coreHoursUsed = node["coreHoursUsed"].as<double>();
-    if (rhs.coreHoursUsed == 0) {
-        WRENCH_WARN("coreHoursUsed <= 0 for job %s", rhs.id.c_str());
-    }
     rhs.nodesUsed = node["nodesUsed"].as<unsigned int>();
     if (rhs.nodesUsed == 0) {
         WRENCH_WARN("nodesUsed <= 0 for job %s", rhs.id.c_str());
