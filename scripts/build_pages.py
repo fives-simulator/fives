@@ -16,9 +16,7 @@ CI_PIPELINE_ID = os.getenv("CI_PIPELINE_ID", default="UNKNOWN_PIPELINE_ID")
 PROJECT_URL = f"{BASE_URL}/projects/{PROJECT_ID}"
 ARTEFACTS_DIR = "./public/static"
 MAX_PIPELINES = int(os.getenv("MAX_PIPELINES", default=1))
-PUBLIC_PROJECT_URL = os.getenv(
-    "CI_PROJECT_URL", default="https://gitlab.inria.fr/jmonniot/fives_wrench"
-)
+PUBLIC_PROJECT_URL = os.getenv("CI_PROJECT_URL", default="https://gitlab.inria.fr/jmonniot/fives_wrench")
 
 
 def download_file(session, url, filename):
@@ -127,9 +125,7 @@ def build_previous_result(result_pages: list, pipeline_id: str):
     # Append everything to the same dictionnary
     metrics["pipeline_id"] = pipeline_id
     metrics["result_pages"] = result_pages
-    metrics["calibrated_config"] = dump(
-        calibrated_config, Dumper=CDumper, encoding=None
-    )
+    metrics["calibrated_config"] = dump(calibrated_config, Dumper=CDumper, encoding=None)
     metrics["latest"] = "index.html"
     metrics["static_path"] = f"./static/{pipeline_id}/results/"
     if not "calibration_iter" in metrics:
@@ -137,18 +133,14 @@ def build_previous_result(result_pages: list, pipeline_id: str):
     if "commit_ts" not in metrics:
         metrics["commit_ts"] = "Unknown date"
     else:
-        metrics["commit_ts"] = datetime.strptime(
-            metrics["commit_ts"], "%Y-%m-%dT%H:%M:%S%z"
-        ).strftime("%a %d %b %Y, %H:%M")
+        metrics["commit_ts"] = datetime.strptime(metrics["commit_ts"], "%Y-%m-%dT%H:%M:%S%z").strftime(
+            "%a %d %b %Y, %H:%M"
+        )
     print(metrics["commit_ts"])
-    metrics["pstor_buff_size"] = calibrated_config["permanent_storage"][
-        "io_buffer_size"
-    ]
+    metrics["pstor_buff_size"] = calibrated_config["permanent_storage"]["io_buffer_size"]
     metrics["stor_buff_size"] = calibrated_config["storage"]["io_buffer_size"]
 
-    env = Environment(
-        loader=FileSystemLoader("web_template"), autoescape=select_autoescape()
-    )
+    env = Environment(loader=FileSystemLoader("web_template"), autoescape=select_autoescape())
 
     template = env.get_template("result_page.html")
     with open(f"public/{pipeline_id}.html", "w", encoding="utf-8") as rendered:
@@ -161,9 +153,7 @@ def build_current_results(result_pages: list):
     # Open the configuration calibrated during this pipeline
     calibrated_config = None
     try:
-        with open(
-            f"./{CI_PIPELINE_ID}_calibrated_config.yaml", "r", encoding="utf-8"
-        ) as config:
+        with open(f"./{CI_PIPELINE_ID}_calibrated_config.yaml", "r", encoding="utf-8") as config:
             calibrated_config = load(config, Loader=CLoader)
     except:
         calibrated_config = {}
@@ -179,9 +169,7 @@ def build_current_results(result_pages: list):
     # Append everything to the same dictionnary
     metrics["pipeline_id"] = CI_PIPELINE_ID
     metrics["result_pages"] = result_pages
-    metrics["calibrated_config"] = dump(
-        calibrated_config, Dumper=CDumper, encoding=None
-    )
+    metrics["calibrated_config"] = dump(calibrated_config, Dumper=CDumper, encoding=None)
     metrics["latest"] = "index.html"
     metrics["static_path"] = "./static"
     if not "calibration_iter" in metrics:
@@ -189,20 +177,16 @@ def build_current_results(result_pages: list):
     if "commit_ts" not in metrics:
         metrics["commit_ts"] = "Unknown date"
     else:
-        metrics["commit_ts"] = datetime.strptime(
-            metrics["commit_ts"], "%Y-%m-%dT%H:%M:%S%z"
-        ).strftime("%a %d %b %Y, %H:%M")
+        metrics["commit_ts"] = datetime.strptime(metrics["commit_ts"], "%Y-%m-%dT%H:%M:%S%z").strftime(
+            "%a %d %b %Y, %H:%M"
+        )
 
-    metrics["pstor_buff_size"] = calibrated_config["permanent_storage"][
-        "io_buffer_size"
-    ]
+    metrics["pstor_buff_size"] = calibrated_config["permanent_storage"]["io_buffer_size"]
     metrics["stor_buff_size"] = calibrated_config["storage"]["io_buffer_size"]
 
     print(metrics["commit_ts"])
 
-    env = Environment(
-        loader=FileSystemLoader("web_template"), autoescape=select_autoescape()
-    )
+    env = Environment(loader=FileSystemLoader("web_template"), autoescape=select_autoescape())
 
     template = env.get_template("result_page.html")
     with open("public/index.html", "w", encoding="utf-8") as rendered:
@@ -224,18 +208,12 @@ def run(token):
         print(f"Fetching pipeline {pipeline_id}")
 
         calibration_job, analysis_job = get_pipeline_jobs(session, pipeline["id"])
-        print(
-            f" Got calibration_job {calibration_job['id']} and analysis_job {analysis_job['id']}"
-        )
+        print(f" Got calibration_job {calibration_job['id']} and analysis_job {analysis_job['id']}")
 
-        calibrated_config_path = get_job_artifacts(
-            session, calibration_job, f"{pipeline_id}_calibrated_config"
-        )
+        calibrated_config_path = get_job_artifacts(session, calibration_job, f"{pipeline_id}_calibrated_config")
         print(f" Artifacts for calibration_job downloaded at {calibrated_config_path}")
         unzip_file(calibrated_config_path, pipeline_id)
-        analysis_path = get_job_artifacts(
-            session, analysis_job, f"{pipeline_id}_analysis"
-        )
+        analysis_path = get_job_artifacts(session, analysis_job, f"{pipeline_id}_analysis")
         print(f" Artifacts for analysis_job downloaded at {analysis_path}")
         unzip_file(analysis_path, pipeline_id)
 
@@ -253,9 +231,7 @@ def run(token):
 
         os.remove(calibrated_config_path)
         os.remove(analysis_path)
-        undesired_files = glob.glob(
-            f"./public/static/{pipeline_id}/results/exp_configurations/exp_config*"
-        )
+        undesired_files = glob.glob(f"./public/static/{pipeline_id}/results/exp_configurations/exp_config*")
         for rfile in undesired_files:
             print(f"Attempting to remove file {rfile}")
             os.remove(rfile)

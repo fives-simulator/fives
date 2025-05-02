@@ -23,7 +23,7 @@ from ax.service.ax_client import AxClient, ObjectiveProperties
 
 # from ax.utils.measurement.synthetic_functions import hartmann6
 
-CONFIGURATION_PATH =  os.getenv("CALIBRATION_CONFIG_PATH", default="./exp_configurations")
+CONFIGURATION_PATH = os.getenv("CALIBRATION_CONFIG_PATH", default="./exp_configurations")
 CONFIGURATION_BASE = os.getenv("CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml")
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
 DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_week4_tiny")
@@ -141,9 +141,7 @@ def cohend(data1: list, data2: list):
     """Compute a Cohen's d metric of two list of values"""
     n_data1, n_data2 = len(data1), len(data2)
     var1, var2 = np.var(data1, ddof=1), np.var(data2, ddof=1)
-    global_var = np.sqrt(
-        ((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2)
-    )
+    global_var = np.sqrt(((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2))
     mean1, mean2 = np.mean(data1), np.mean(data2)
     return (mean1 - mean2) / global_var
 
@@ -168,12 +166,8 @@ def update_base_config(parametrization, base_config):
 
     # Update config file according to parameters provided by Ax
     base_config["general"]["backbone_bw"] = f"{backbone_bw}GBps"
-    base_config["general"][
-        "permanent_storage_read_bw"
-    ] = f"{permanent_storage_read_bw}GBps"
-    base_config["general"][
-        "permanent_storage_write_bw"
-    ] = f"{permanent_storage_write_bw}GBps"
+    base_config["general"]["permanent_storage_read_bw"] = f"{permanent_storage_read_bw}GBps"
+    base_config["general"]["permanent_storage_write_bw"] = f"{permanent_storage_write_bw}GBps"
     base_config["general"]["preload_percent"] = preload_percent
     base_config["general"]["amdahl"] = amdahl
     base_config["general"]["non_linear_coef_read"] = 1  # deactivated
@@ -201,9 +195,7 @@ def save_exp_config(base_config, run_idx):
     """Save base_config to file"""
 
     # Save config as file with a unique name for each parameter set
-    random_part = "".join(
-        random.choices("A,B,C,D,E,F,0,1,2,3,4,5,6,7,8,9".split(","), k=4)
-    )
+    random_part = "".join(random.choices("A,B,C,D,E,F,0,1,2,3,4,5,6,7,8,9".split(","), k=4))
 
     print(f"Updated configuration : ")
     print(json.dumps(base_config, indent=4))
@@ -246,9 +238,9 @@ def process_results(result_filename: str):
         real_runtime.append(job["real_runtime_s"])
 
         # IO TIME
-        r_io_time = (
-            job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
-        ) / job["real_cores_used"]
+        r_io_time = (job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]) / job[
+            "real_cores_used"
+        ]
         real_io_time.append(r_io_time)
         real_read_time.append(job["real_cReadTime_s"] / job["real_cores_used"])
         real_write_time.append(job["real_cWriteTime_s"] / job["real_cores_used"])
@@ -257,11 +249,7 @@ def process_results(result_filename: str):
         s_r_time = 0
         s_w_time = 0
         for action in job["actions"]:
-            if (
-                action["act_type"] == "COMPUTE"
-                or action["act_type"] == "SLEEP"
-                or action["act_status"] != "COMPLETED"
-            ):
+            if action["act_type"] == "COMPUTE" or action["act_type"] == "SLEEP" or action["act_status"] != "COMPLETED":
                 continue
             if action["act_type"] == "FILEREAD":
                 s_r_time += action["act_duration"]
@@ -282,10 +270,7 @@ def process_results(result_filename: str):
 
     return {
         "optimization_metric": (
-            abs(1 - runtime_corr)
-            + abs(1 - io_time_corr)
-            + abs(runtime_cohen_d)
-            + abs(io_time_cohen_d)
+            abs(1 - runtime_corr) + abs(1 - io_time_corr) + abs(runtime_cohen_d) + abs(io_time_cohen_d)
         )
     }
 
@@ -309,12 +294,14 @@ def run_simulation(parametrization: dict, base_config: dict, run_idx: int, captu
         random_part,
     ]
     if logs:
-        command.extend([                
-            "--wrench-full-log",
-            "--log=fives_controller.threshold=debug",
-            "--log=wrench_core_compound_storage_system.threshold=debug",
-            "--log=wrench_core_logical_file_system.threshold=warning",
-        ])
+        command.extend(
+            [
+                "--wrench-full-log",
+                "--log=fives_controller.threshold=debug",
+                "--log=wrench_core_compound_storage_system.threshold=debug",
+                "--log=wrench_core_logical_file_system.threshold=warning",
+            ]
+        )
 
     completed = subprocess.run(
         command,
@@ -322,9 +309,7 @@ def run_simulation(parametrization: dict, base_config: dict, run_idx: int, captu
         check=False,
     )
 
-    print(
-        f"Simulation with tag {random_part} has completed with status : {completed.returncode}"
-    )
+    print(f"Simulation with tag {random_part} has completed with status : {completed.returncode}")
     if completed.returncode != 0:
         raise RuntimeError("Simulation did not complete")
 
@@ -419,9 +404,7 @@ def run_calibration():
             ax_client.log_trial_failure(trial_index=trial_index)
             continue
         else:
-            ax_client.complete_trial(
-                trial_index=trial_index, raw_data=processed_results
-            )
+            ax_client.complete_trial(trial_index=trial_index, raw_data=processed_results)
 
     best_parameters, values = ax_client.get_best_parameters()
     print("Best parameters found :")

@@ -13,6 +13,11 @@ Fairly short / minimalist inventory:
 
 ## How to use?
 
-Simlinks to the right scripts were added to the `../results` directory, and these scripts should usually be run inside `../results` (a few hardcoded paths inside...).
+Symlinks to the right scripts were added to the `../results` directory, and these scripts should usually be run inside `../results` (a few hardcoded paths inside...).
 In particular, a straightforward calibration attempt would call `./run_calibration_parallel.py` from `../results`, after potentially updating details inside the scripts (see the constants at the beginning, to reference the dataset to be used for calibration, for instance, or the // level).
 After the calibration completes, one an run Fives using the calibrated config file, and then run `./run_analysis.py` on the output of the simulation.
+
+
+## Notes:
+
+Auto format of the scripts done with `black -l 120`

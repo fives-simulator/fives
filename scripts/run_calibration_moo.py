@@ -33,12 +33,8 @@ import matplotlib.pyplot as plt
 
 # from ax.utils.measurement.synthetic_functions import hartmann6
 
-CONFIGURATION_PATH = os.getenv(
-    "CALIBRATION_CONFIG_PATH", default="./exp_configurations"
-)
-CONFIGURATION_BASE = os.getenv(
-    "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml"
-)
+CONFIGURATION_PATH = os.getenv("CALIBRATION_CONFIG_PATH", default="./exp_configurations")
+CONFIGURATION_BASE = os.getenv("CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config.yml")
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
 DATASET = os.getenv("CALIBRATION_DATASET", default="theta2022_aggMonth11_cat1")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
@@ -51,7 +47,7 @@ RESULTS_DIR = "exp_results"
 
 now = dt.datetime.now()
 today = f"{now.year}-{now.month}-{now.day}"
-min_in_day = ((now.timestamp() % 86400) / 60)
+min_in_day = (now.timestamp() % 86400) / 60
 CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 PRIMARY_METRIC = "error"
@@ -60,33 +56,33 @@ NUM_POINTS = 15
 
 # Parameters (which need to be converted to dict representation when used with AxClient)
 PARAMETERS = [
-        # Read params
-        { "name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int" },
-        { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-        { "name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
-        { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
-        { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
-        { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-        { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
-        # Write params
-        { "name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int" },
-        { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-        { "name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int" },
-        { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
-        { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
-        { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-        { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int" },
-        # Misc
-        { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
-        { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 128], "value_type": "int" },
-        { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
-        # # Unused
-        # RangeParameter(name="permanent_storage_read_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
-        # RangeParameter(name="permanent_storage_write_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
-        # RangeParameter(name="bandwidth_backbone_perm_storage", lower=50, upper=100, parameter_type=ParameterType.INT),
-        # ChoiceParameter(name="stripe_size", values=[
-        #     2097152, 4194304, 8388608, 16777216, 67108864, 1073741824, 2147483648,
-        # ], parameter_type=ParameterType.INT),
+    # Read params
+    {"name": "nb_files_per_read", "type": "range", "bounds": [1, 25], "value_type": "int"},
+    {"name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int"},
+    {"name": "read_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int"},
+    {"name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int"},
+    {"name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int"},
+    {"name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int"},
+    # Write params
+    {"name": "nb_files_per_write", "type": "range", "bounds": [1, 25], "value_type": "int"},
+    {"name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int"},
+    {"name": "write_node_thres", "type": "range", "bounds": [1e6, 50e6], "value_type": "int"},
+    {"name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int"},
+    {"name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int"},
+    {"name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 5], "value_type": "int"},
+    # Misc
+    {"name": "stripe_count", "type": "range", "bounds": [1, 4], "value_type": "int"},
+    {"name": "max_chunks_per_ost", "type": "range", "bounds": [8, 128], "value_type": "int"},
+    {"name": "bandwidth_backbone_storage", "type": "range", "bounds": [100, 240], "value_type": "int"},
+    # # Unused
+    # RangeParameter(name="permanent_storage_read_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
+    # RangeParameter(name="permanent_storage_write_bw", lower=10, upper=90, parameter_type=ParameterType.INT),
+    # RangeParameter(name="bandwidth_backbone_perm_storage", lower=50, upper=100, parameter_type=ParameterType.INT),
+    # ChoiceParameter(name="stripe_size", values=[
+    #     2097152, 4194304, 8388608, 16777216, 67108864, 1073741824, 2147483648,
+    # ], parameter_type=ParameterType.INT),
 ]
 
 
@@ -113,23 +109,21 @@ def cohend(data1: list, data2: list):
     """Compute a Cohen's d effect metric of two list of values"""
     n_data1, n_data2 = len(data1), len(data2)
     var1, var2 = np.var(data1, ddof=1), np.var(data2, ddof=1)
-    global_var = np.sqrt(
-        ( (n_data1 - 1) * var1 + (n_data2 - 1) * var2 ) / ( n_data1 + n_data2 - 2 ) 
-    )
+    global_var = np.sqrt(((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2))
     mean1, mean2 = np.mean(data1), np.mean(data2)
     return (mean1 - mean2) / global_var
 
 
 def update_base_config(parametrization, base_config: dict, cfg_name: str):
-    """ Update the base config with new values for parameters, as provided by Ax for a given trial run
-        If a value is not provided by Ax, the default value from the base config file is used.
+    """Update the base config with new values for parameters, as provided by Ax for a given trial run
+    If a value is not provided by Ax, the default value from the base config file is used.
     """
 
     # Update config file according to parameters provided by Ax
     base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
 
-    # Network bandwidths    
+    # Network bandwidths
     if "bandwidth_backbone_storage" in parametrization:
         bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
         base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
@@ -142,7 +136,7 @@ def update_base_config(parametrization, base_config: dict, cfg_name: str):
     if "permanent_storage_read_bw" in parametrization:
         permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
         base_config["permanent_storage"]["read_bw"] = f"{permanent_storage_read_bw}GBps"
-    
+
     if "permanent_storage_write_bw" in parametrization:
         permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
         base_config["permanent_storage"]["write_bw"] = f"{permanent_storage_write_bw}GBps"
@@ -170,7 +164,7 @@ def update_base_config(parametrization, base_config: dict, cfg_name: str):
     if "stripe_count_high_thresh_write" in parametrization:
         stripe_count_high_thresh_write = parametrization.get("stripe_count_high_thresh_write")
         base_config["lustre"]["stripe_count_high_thresh_write"] = stripe_count_high_thresh_write
-    
+
     # Base stripe_count value for dynamic stripe_count model (read)
     if "stripe_count_high_read_add" in parametrization:
         stripe_count_high_read_add = parametrization.get("stripe_count_high_read_add")
@@ -212,7 +206,7 @@ def update_base_config(parametrization, base_config: dict, cfg_name: str):
     if "non_linear_coef_read" in parametrization:
         non_linear_coef_read = parametrization.get("non_linear_coef_read")
         base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
-    
+
     # Disk bandwidth degradation model calibrated coefficient for writes
     if "non_linear_coef_write" in parametrization:
         non_linear_coef_write = parametrization.get("non_linear_coef_write")
@@ -236,7 +230,7 @@ def update_base_config(parametrization, base_config: dict, cfg_name: str):
         static_write_overhead_seconds = parametrization.get("static_write_overhead_seconds")
         base_config["storage"]["static_write_overhead_seconds"] = static_write_overhead_seconds
 
-    
+
 def save_exp_config(base_config, run_idx):
     """Save base_config to file"""
 
@@ -256,7 +250,7 @@ def process_results(result_filename: str, read_overhead, write_overhead):
     results = None
     with open(f"./exp_results/{result_filename}", "r", encoding="utf-8") as job_results:
         results = yaml.load(job_results, Loader=yaml.CLoader)
-    
+
     if results is None:
         raise RuntimeError(f"Result file {result_filename} seems to be empty")
 
@@ -280,16 +274,12 @@ def process_results(result_filename: str, read_overhead, write_overhead):
         s_w_time = 0
 
         for action in job["actions"]:
-            if (
-                action["act_type"] == "COMPUTE"
-                or action["act_type"] == "SLEEP"
-                or action["act_status"] != "COMPLETED"
-            ):
+            if action["act_type"] == "COMPUTE" or action["act_type"] == "SLEEP" or action["act_status"] != "COMPLETED":
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"]  * action["nb_stripes"] + read_overhead
+                s_r_time += action["act_duration"] * action["nb_stripes"] + read_overhead
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] * action["nb_stripes"] +  write_overhead
+                s_w_time += action["act_duration"] * action["nb_stripes"] + write_overhead
 
         if len(job["actions"]) != 0:
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
@@ -315,13 +305,9 @@ def process_results(result_filename: str, read_overhead, write_overhead):
             raise RuntimeError(f"Job {job['job_uid']} has 0 read or write action. This should not happen.")
 
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
-    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
-        sim_io_time, real_io_time, alternative="two-sided"
-    )
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
-        print(
-            "Statistically significant difference between simulated io time values and real io time values"
-        )
+        print("Statistically significant difference between simulated io time values and real io time values")
 
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
@@ -353,11 +339,7 @@ def run_simulation(
 
     # Config
     base_config = load_base_config(CONFIGURATION_BASE)
-    update_base_config(
-        parametrization, 
-        base_config, 
-        f"Fives_Calibration_{CALIBRATION_UID}_{run_idx}"
-    )
+    update_base_config(parametrization, base_config, f"Fives_Calibration_{CALIBRATION_UID}_{run_idx}")
     output_configuration, random_part = save_exp_config(base_config, run_idx)
 
     # Now run simulatin with the current configuration file
@@ -378,11 +360,13 @@ def run_simulation(
             ]
         )
 
-    completed = subprocess.run(command, capture_output=capture, check=False,)
-
-    print(
-        f"### Simulation tag [{random_part}] has completed with status : {completed.returncode}"
+    completed = subprocess.run(
+        command,
+        capture_output=capture,
+        check=False,
     )
+
+    print(f"### Simulation tag [{random_part}] has completed with status : {completed.returncode}")
     if completed.returncode != 0:
         print(f"############## FAILED RUN {run_idx} OUTPUT ###########")
         print(completed.stdout)
@@ -414,15 +398,17 @@ def run_simulation(
 
 
 def evaluate(parameters, trial_index):
-    """ Run a simulation as part of the calibration process, and return cost function metric
-        from processed results.
+    """Run a simulation as part of the calibration process, and return cost function metric
+    from processed results.
     """
     print(f"# Starting optimization run #{trial_index}")
 
     cost_results = {}
     try:
         data = run_simulation(parameters, trial_index, True)
-        cost_results = process_results(data, parameters.get("static_read_overhead_seconds"), parameters.get("static_write_overhead_seconds"))
+        cost_results = process_results(
+            data, parameters.get("static_read_overhead_seconds"), parameters.get("static_write_overhead_seconds")
+        )
     except Exception as e:
         print(f"==> Trial {trial_index} FAILED")
         print(f"{e}")
@@ -443,11 +429,11 @@ def run_calibration(params_set):
     sleep(3)
 
     ax_client = AxClient()  # enforce_sequential_optimization=False)
-    ax_client.create_experiment(  
+    ax_client.create_experiment(
         name="FivesCalibration",
         parameters=params_set,
         objectives={
-            PRIMARY_METRIC: ObjectiveProperties(minimize=True),         # Don't forget to update minimize depending on metrics
+            PRIMARY_METRIC: ObjectiveProperties(minimize=True),  # Don't forget to update minimize depending on metrics
             SECONDARY_METRIC: ObjectiveProperties(minimize=False),
         },
         parameter_constraints=[
@@ -477,7 +463,7 @@ def run_calibration(params_set):
         primary_objective=objectives[0].metric,
         secondary_objective=objectives[1].metric,
         absolute_metrics=[PRIMARY_METRIC, SECONDARY_METRIC],
-        num_points=NUM_POINTS
+        num_points=NUM_POINTS,
     )
 
     for idx, param_dict in enumerate(frontier.param_dicts):
@@ -490,27 +476,35 @@ def run_calibration(params_set):
             print("Dumping pareto configuration to " + output_configuration)
             yaml.dump(base_config, calibration_result)
 
-
-
     with open(f"{CALIBRATION_UID}_pareto_results.yaml", "w", encoding="utf-8") as pareto_metrics:
-        yaml.dump({
-            "means_primary": [float(mean) for mean in frontier.means[frontier.primary_metric]], 
-            "means_secondary": [float(mean) for mean in frontier.means[frontier.secondary_metric]], 
-            "primary_metric": frontier.primary_metric, 
-            "secondary_metric": frontier.secondary_metric}, pareto_metrics)
+        yaml.dump(
+            {
+                "means_primary": [float(mean) for mean in frontier.means[frontier.primary_metric]],
+                "means_secondary": [float(mean) for mean in frontier.means[frontier.secondary_metric]],
+                "primary_metric": frontier.primary_metric,
+                "secondary_metric": frontier.secondary_metric,
+            },
+            pareto_metrics,
+        )
 
     # Plot the pareto frontier:
-    idx=[i for i in range(NUM_POINTS)]
-    g = sns.scatterplot(data=frontier.means, x=PRIMARY_METRIC, y=SECONDARY_METRIC, hue=idx, palette=sns.color_palette("husl", NUM_POINTS))
+    idx = [i for i in range(NUM_POINTS)]
+    g = sns.scatterplot(
+        data=frontier.means,
+        x=PRIMARY_METRIC,
+        y=SECONDARY_METRIC,
+        hue=idx,
+        palette=sns.color_palette("husl", NUM_POINTS),
+    )
     g.set(xlabel=frontier.primary_metric, ylabel=frontier.secondary_metric)
     g.set(title=f"Pareto frontier (calibration {CALIBRATION_UID})")
     plt.savefig(f"{CALIBRATION_UID}_pareto_frontier_{PRIMARY_METRIC}_{SECONDARY_METRIC}.png", dpi=300)
 
     # Keep trace of the calibration env.
     calib_settings = {
-        "params": params_set, 
-        "iterations": CALIBRATION_RUNS, 
-        "calibration_dataset": DATASET, 
+        "params": params_set,
+        "iterations": CALIBRATION_RUNS,
+        "calibration_dataset": DATASET,
         "base_config": load_base_config(CONFIGURATION_BASE),
         "failed_calibration_runs": failed_attempts,
     }

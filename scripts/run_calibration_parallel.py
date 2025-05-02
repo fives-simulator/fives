@@ -23,50 +23,53 @@ import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
-CONFIGURATION_PATH = os.getenv(
-    "CALIBRATION_CONFIG_PATH", default="./exp_configurations"
-)
-CONFIGURATION_BASE = os.getenv(
-    "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/bluewaters_config.yml"
-)
+CONFIGURATION_PATH = os.getenv("CALIBRATION_CONFIG_PATH", default="./exp_configurations")
+CONFIGURATION_BASE = os.getenv("CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/bluewaters_config.yml")
 DATASET_PATH = os.getenv("CALIBRATION_DATASET_PATH", default="./exp_datasets")
-DATASET = os.getenv("CALIBRATION_DATASET", default="bluewaters_filter100MB_2019-09-01_2019-09-30")
+DATASET = os.getenv("CALIBRATION_DATASET", default="bluewaters_2019-10-01_2019-10-31")
 DATASET_EXT = os.getenv("CALIBRATION_DATASET_EXT", default=".yaml")
 BUILD_PATH = os.getenv("CALIBRATION_BUILD_PATH", default="../build")
-CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=50))           # nb of runs AFTER the initialization (~30 runs)
+CALIBRATION_RUNS = int(os.getenv("CALIBRATION_RUNS", default=100))  # nb of runs AFTER the initialization (~30 runs)
 CFG_VERSION = os.getenv("CI_COMMIT_SHORT_SHA", default="local")
-MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=2)                   # RAM bound
+MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=2)  # Main memory bound
 
-# Create a UID for this experiment (YEAR-MM-DD-<Min in day> -> eg. "2025-04-14-12673") 
+# Create a UID for this experiment (YEAR-MM-DD-<Min in day> -> eg. "2025-04-14-12673")
 now = dt.datetime.now()
 CALIBRATION_UID = f"{now.year}-{now.month}-{now.day}-{(now.timestamp() % 86400) / 60:.0f}"
 
 PARAMETERS = [
     # Read params
-    { "name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-    { "name": "read_node_param", "type": "range", "bounds": [0.01, 1], "value_type": "float" },
-    { "name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
-    { "name": "non_linear_coef_read", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
+    {"name": "stripe_count_high_thresh_read", "type": "range", "bounds": [1e6, 1000e6], "value_type": "int"},
+    {"name": "read_node_param", "type": "range", "bounds": [0.01, 1], "value_type": "float"},
+    {"name": "stripe_count_high_read_add", "type": "range", "bounds": [1, 15], "value_type": "int"},
+    {"name": "non_linear_coef_read", "type": "range", "bounds": [1, 200], "value_type": "float", "digits": 1},
     # { "name": "read_bytes_preload_thres", "type": "range", "bounds": [100000000, 1000000000000], "value_type": "int"},
     # Write params
-    { "name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 100e6], "value_type": "int" },
-    { "name": "write_node_param", "type": "range", "bounds": [0.01, 1], "value_type": "float" },
-    { "name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 4], "value_type": "int" },
-    { "name": "non_linear_coef_write", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
+    {"name": "stripe_count_high_thresh_write", "type": "range", "bounds": [1e6, 1000e6], "value_type": "int"},
+    {"name": "write_node_param", "type": "range", "bounds": [0.01, 1], "value_type": "float"},
+    {"name": "stripe_count_high_write_add", "type": "range", "bounds": [1, 15], "value_type": "int"},
+    {"name": "non_linear_coef_write", "type": "range", "bounds": [1, 200], "value_type": "float", "digits": 1},
     # { "name": "write_bytes_copy_thres", "type": "range", "bounds": [100000000, 1000000000000], "value_type": "int"},
     # R/W
-    # { "name": "stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
-    { "name": "stripe_size", "type": "range", "bounds": [4194304, 268435456]}           # may have a heavy impact on simulation duration
+    {"name": "stripe_count", "type": "range", "bounds": [1, 10], "value_type": "int"},
+    {
+        "name": "stripe_size",
+        "type": "range",
+        "bounds": [4194304, 268435456],
+    },  # may have a heavy impact on simulation duration
 ]
 
 PLATFORM_PARAMETERS = [
-    { "name": "disk_rb", "type": "range", "bounds": [100, 5000], "value_type": "int" },
-    { "name": "disk_wb", "type": "range", "bounds": [100, 5000], "value_type": "int" },
-    { "name": "max_chunks_per_ost", "type": "range", "bounds":[4, 256], "value_type": "int" },
-    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[10, 300], "value_type": "int" },
-    { "name": "bandwidth_backbone_perm_storage", "type": "range", "bounds":[10, 300], "value_type": "int" },
-    { "name": "io_buffer_size", "type": "range", "bounds": [4194304, 1073741824], "value_type": "int"} 
+    {"name": "disk_rb", "type": "range", "bounds": [100, 10000], "value_type": "int"},
+    {"name": "disk_wb", "type": "range", "bounds": [100, 10000], "value_type": "int"},
+    {"name": "max_chunks_per_ost", "type": "range", "bounds": [1, 256], "value_type": "int"},
+    {"name": "bandwidth_backbone_storage", "type": "range", "bounds": [10, 300], "value_type": "int"},
+    {"name": "bandwidth_backbone_perm_storage", "type": "range", "bounds": [10, 300], "value_type": "int"},
+    {"name": "io_buffer_size", "type": "range", "bounds": [4194304, 1073741824], "value_type": "int"},
+    {"name": "storage_link_bw", "type": "range", "bounds": [1e9, 100e9], "value_type": "int"},
+    {"name": "compute_link_bw", "type": "range", "bounds": [1e9, 100e9], "value_type": "int"},
 ]
+
 
 def load_base_config(path: str):
     """Open configuration file that serves as base config, update the dictionnary and return it"""
@@ -87,19 +90,17 @@ def cohend(data1: list, data2: list):
     """Compute a Cohen's d metric of two list of values"""
     n_data1, n_data2 = len(data1), len(data2)
     var1, var2 = np.var(data1, ddof=1), np.var(data2, ddof=1)
-    global_var = np.sqrt(
-        ((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2)
-    )
+    global_var = np.sqrt(((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2))
     mean1, mean2 = np.mean(data1), np.mean(data2)
     return (mean1 - mean2) / global_var
 
 
 def update_base_config(parametrization, base_config, cfg_name):
     """
-        Update the base config with new values for parameters, as provided by Ax
-        This is a bit of a pain because we try to adapt to various calibration tests
-        and parameters in Ax and in he configuration do not have exactly the same 
-        names/hierarchy, due to 'historical' reasons (a.k.a "the developper fucked up")
+    Update the base config with new values for parameters, as provided by Ax
+    This is a bit of a pain because we try to adapt to various calibration tests
+    and parameters in Ax and in he configuration do not have exactly the same
+    names/hierarchy, due to 'historical' reasons (a.k.a "the developper fucked up")
     """
 
     # Update config file according to parameters provided by Ax
@@ -114,6 +115,14 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "bandwidth_backbone_perm_storage" in parametrization:
         bandwidth_backbone_perm_storage = parametrization.get("bandwidth_backbone_perm_storage")
         base_config["network"]["bandwidth_backbone_perm_storage"] = f"{bandwidth_backbone_perm_storage}GBps"
+
+    if "storage_link_bw" in parametrization:
+        storage_link_bw = parametrization.get("storage_link_bw")
+        base_config["storage"]["link_bw"] = storage_link_bw
+
+    if "compute_link_bw" in parametrization:
+        compute_link_bw = parametrization.get("compute_link_bw")
+        base_config["torus"]["link_bw"] = compute_link_bw
 
     # External storage R/W bandwidths (usually fixed)
     if "permanent_storage_read_bw" in parametrization:
@@ -210,7 +219,7 @@ def update_base_config(parametrization, base_config, cfg_name):
         write_node_param = parametrization.get("write_node_param")
         base_config["storage"]["write_node_param"] = write_node_param
 
-    # # Thresholds for doing copy in/out before and after job (decides whether to add copy subjobs 
+    # # Thresholds for doing copy in/out before and after job (decides whether to add copy subjobs
     # # before and after the actual I/O phases)
     # if "read_bytes_preload_thres" in parametrization:
     #     rb_preload_thres = parametrization.get("read_bytes_preload_thres")
@@ -257,7 +266,8 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     io_time_squared_error = []
     io_time_abs_error = []
     io_time_abs_pct_error = []
-    io_time_abs_pct_gt5pct = 0
+    io_time_pct_error = []
+    io_time_abs_pct_gt15pct = 0
 
     sim_io_time = []
     sim_read_time = []
@@ -274,24 +284,42 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
         for action in job["actions"]:
 
             # READ action
-            if (action["act_type"] == "FILEREAD" and action["act_status"] == "COMPLETED"):
+            if action["act_type"] == "FILEREAD" and action["act_status"] == "COMPLETED":
                 s_r_time += action["act_duration"] * action["nb_stripes"]
             # Read meta time
-            elif (action["act_type"] == "SLEEP" and "read_overhead" in action["act_name"] and action["act_status"] == "COMPLETED"):
+            elif (
+                action["act_type"] == "SLEEP"
+                and "read_overhead" in action["act_name"]
+                and action["act_status"] == "COMPLETED"
+            ):
                 s_r_time += action["act_duration"]
             # WRITE action
-            elif (action["act_type"] == "CUSTOM" and "wrFiles" in action["sub_job"] and action["act_status"] == "COMPLETED"):
+            elif (
+                action["act_type"] == "CUSTOM"
+                and "wrFiles" in action["sub_job"]
+                and action["act_status"] == "COMPLETED"
+            ):
                 s_w_time += action["act_duration"] * action["nb_stripes"]
             # Write meta time
-            elif (action["act_type"] == "SLEEP" and "write_overhead" in action["act_name"] and action["act_status"] == "COMPLETED"):
+            elif (
+                action["act_type"] == "SLEEP"
+                and "write_overhead" in action["act_name"]
+                and action["act_status"] == "COMPLETED"
+            ):
                 s_w_time += action["act_duration"]
 
         if len(job["actions"]) != 0:
 
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"] + job["real_cMetaTime_s"]
             real_io_time.append(r_io_time)
-            real_read_time.append(job["real_cReadTime_s"] + (job["real_cMetaTime_s"] / 2 if job["real_cWriteTime_s"] else job["real_cMetaTime_s"]))
-            real_write_time.append(job["real_cWriteTime_s"] + (job["real_cMetaTime_s"] / 2 if job["real_cReadTime_s"] else job["real_cMetaTime_s"]))
+            real_read_time.append(
+                job["real_cReadTime_s"]
+                + (job["real_cMetaTime_s"] / 2 if job["real_cWriteTime_s"] else job["real_cMetaTime_s"])
+            )
+            real_write_time.append(
+                job["real_cWriteTime_s"]
+                + (job["real_cMetaTime_s"] / 2 if job["real_cReadTime_s"] else job["real_cMetaTime_s"])
+            )
 
             s_io_time = s_r_time + s_w_time
             sim_io_time.append(s_io_time)
@@ -319,22 +347,21 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
             # equally simple/hard for short and long IO time jobs.
             io_time_abs_pct_error_job = abs(error) / r_io_time
             io_time_abs_pct_error.append(io_time_abs_pct_error_job)
-            #print(f"## Percentage of IO time error for job {job['job_uid']} : {io_time_abs_pct_error_job}")
+
+            io_time_pct_error_job = error / r_io_time
+            io_time_pct_error.append(io_time_pct_error_job)
+
+            # print(f"## Percentage of IO time error for job {job['job_uid']} : {io_time_abs_pct_error_job}")
             if io_time_abs_pct_error_job >= 0.15:
-                io_time_abs_pct_gt5pct += 1
-                
+                io_time_abs_pct_gt15pct += 1
 
         else:
             raise RuntimeError(f"Job {job['job_uid']} has 0 read or write action. This should not happen.")
 
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
-    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
-        sim_io_time, real_io_time, alternative="two-sided"
-    )
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
-        print(
-            "Statistically significant difference between simulated io time values and real io time values"
-        )
+        print("Statistically significant difference between simulated io time values and real io time values")
 
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
@@ -348,7 +375,10 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     mlt0e = abs(np.array(io_time_lt0_error).mean())
     mse = np.array(io_time_squared_error).mean()
     mae = np.array(io_time_abs_error).mean()
-    mae_pct = np.array(io_time_abs_pct_error).mean()
+    mae_pct_abs = np.array(io_time_abs_pct_error).mean()
+    mae_pct = np.array(io_time_pct_error).mean()
+    mae_abs_sum = np.array(io_time_abs_pct_error).sum()
+    mae_sum = np.array(io_time_abs_error).sum()
 
     # != options for loss function out
     # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
@@ -359,8 +389,9 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     # return {"optimization_metric": abs(ttest_io_time.statistic)}
     # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
-    # return {"optimization_metric": io_time_abs_pct_gt5pct }     # number of jobs with a difference between real and sim IO time >= 5% of real IO time
-    return {"optimization_metric": mae_pct}
+    # return {"optimization_metric": io_time_abs_pct_gt15pct }     # number of jobs with a difference between real and sim IO time >= 5% of real IO time
+    return {"optimization_metric": mae_sum}
+
 
 def run_simulation(
     parametrization: dict,
@@ -376,9 +407,7 @@ def run_simulation(
     """
 
     # Config
-    update_base_config(
-        parametrization, base_config, f"Fives_ParaCalib{CALIBRATION_UID}__{run_idx}"
-    )
+    update_base_config(parametrization, base_config, f"Fives_ParaCalib{CALIBRATION_UID}__{run_idx}")
     output_configuration = save_exp_config(base_config, run_idx)
     tag = f"{CALIBRATION_RUNS}_{run_idx}"
 
@@ -406,9 +435,7 @@ def run_simulation(
         check=False,
     )
 
-    print(
-        f"Simulation with tag {tag} has completed with status : {completed.returncode}"
-    )
+    print(f"Simulation with tag {tag} has completed with status : {completed.returncode}")
     if completed.returncode != 0:
         print(f"############## FAILED RUN {run_idx} OUTPUT ###########")
         print(completed.stdout)
@@ -447,16 +474,14 @@ def evaluate(parameters, trial_index):
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(
-            data,
-            parameters.get("static_read_overhead_seconds"),
-            parameters.get("static_write_overhead_seconds")
+            data, parameters.get("static_read_overhead_seconds"), parameters.get("static_write_overhead_seconds")
         )["optimization_metric"]
     except Exception as e:
         print(f"{e}")
         print(f"!! Ax trial {trial_index} FAILED")
     else:
         print(f"## Results for trial {trial_index} == {results}")
-    
+
     return results
 
 
@@ -478,10 +503,14 @@ def run_calibration(params_set, contraints: bool = True):
         objectives={
             "optimization_metric": ObjectiveProperties(minimize=True),
         },
-        parameter_constraints=[
-            "disk_rb >= disk_wb",
-            "non_linear_coef_read <= non_linear_coef_write",
-        ] if contraints else [],
+        parameter_constraints=(
+            [
+                "disk_rb >= disk_wb",
+                "non_linear_coef_read <= non_linear_coef_write",
+            ]
+            if contraints
+            else []
+        ),
         outcome_constraints=[],
     )
 
@@ -495,12 +524,8 @@ def run_calibration(params_set, contraints: bool = True):
     for _ in range(parallelism[0][0]):
         trials_parameters.append(ax_client.get_next_trial())
 
-    parallel_pool_params = [
-        (trial[0], trial[1]) for trial in trials_parameters
-    ]
-    print(
-        f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
-    )
+    parallel_pool_params = [(trial[0], trial[1]) for trial in trials_parameters]
+    print(f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs")
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
@@ -519,9 +544,7 @@ def run_calibration(params_set, contraints: bool = True):
         for res in results:
             if res["optimization_metric"] is not None:
                 print(f"Recording trial success for trial {res['trial_index']}")
-                ax_client.complete_trial(
-                    trial_index=res["trial_index"], raw_data=res["optimization_metric"]
-                )
+                ax_client.complete_trial(trial_index=res["trial_index"], raw_data=res["optimization_metric"])
             else:
                 print("Recording trial failure")
                 ax_client.log_trial_failure(trial_index=res["trial_index"])
@@ -533,9 +556,7 @@ def run_calibration(params_set, contraints: bool = True):
         res = evaluate(parameters, trial_index)
         if res["optimization_metric"]:
             print(f"Recording trial success for trial {res['trial_index']}")
-            ax_client.complete_trial(
-                trial_index=res["trial_index"], raw_data=res["optimization_metric"]
-            )
+            ax_client.complete_trial(trial_index=res["trial_index"], raw_data=res["optimization_metric"])
         else:
             print("Recording trial failure")
             ax_client.log_trial_failure(trial_index=res["trial_index"])

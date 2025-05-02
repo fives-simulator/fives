@@ -23,9 +23,7 @@ import statsmodels.api as sm
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
-CONFIGURATION_PATH = os.getenv(
-    "CALIBRATION_CONFIG_PATH", default="./exp_configurations"
-)
+CONFIGURATION_PATH = os.getenv("CALIBRATION_CONFIG_PATH", default="./exp_configurations")
 CONFIGURATION_BASE = os.getenv(
     "CALIBRATION_CONFIGURATION_BASE", default=f"{CONFIGURATION_PATH}/theta_config_sigmoid.yml"
 )
@@ -40,39 +38,40 @@ MAX_PARALLELISM = os.getenv("MAX_PARALLELISM", default=2)
 # Create a UID for this experiment
 now = dt.datetime.now()
 today = f"{now.year}{now.month}{now.day}"
-min_in_day = ((now.timestamp() % 86400) / 60)
+min_in_day = (now.timestamp() % 86400) / 60
 CALIBRATION_UID = f"{today}-{min_in_day:.0f}"
 
 PARAMETERS = [
     # Read params
-    { "name": "read_nodes_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "read_nodes_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4 },
-    { "name": "read_files_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "read_files_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4 },
-    { "name": "read_sc_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "read_sc_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4 },
-    { "name": "non_linear_coef_read", "type": "range", "bounds": [0.01, 15], "value_type": "float", "digits": 3 },
-    { "name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 3], "value_type": "int" },
+    {"name": "read_nodes_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "read_nodes_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4},
+    {"name": "read_files_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "read_files_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4},
+    {"name": "read_sc_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "read_sc_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4},
+    {"name": "non_linear_coef_read", "type": "range", "bounds": [0.01, 15], "value_type": "float", "digits": 3},
+    {"name": "static_read_overhead_seconds", "type": "range", "bounds": [0, 3], "value_type": "int"},
     # Write params
-    { "name": "write_nodes_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "write_nodes_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4 },
-    { "name": "write_files_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "write_files_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4 },
-    { "name": "write_sc_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1 },
-    { "name": "write_sc_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4 },
-    { "name": "non_linear_coef_write", "type": "range", "bounds": [0.01, 15], "value_type": "float", "digits": 3 },
-    { "name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 3], "value_type": "int" },
+    {"name": "write_nodes_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "write_nodes_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4},
+    {"name": "write_files_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "write_files_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4},
+    {"name": "write_sc_inflection_param", "type": "range", "bounds": [1, 100], "value_type": "float", "digits": 1},
+    {"name": "write_sc_rate_param", "type": "range", "bounds": [0.0001, 0.5], "value_type": "float", "digits": 4},
+    {"name": "non_linear_coef_write", "type": "range", "bounds": [0.01, 15], "value_type": "float", "digits": 3},
+    {"name": "static_write_overhead_seconds", "type": "range", "bounds": [0, 3], "value_type": "int"},
     # R/W
-    { "name": "max_files", "type": "range", "bounds":[10, 100], "value_type": "int" },
-    { "name": "min_stripe_count", "type": "range", "bounds":[1, 4], "value_type": "int" },
+    {"name": "max_files", "type": "range", "bounds": [10, 100], "value_type": "int"},
+    {"name": "min_stripe_count", "type": "range", "bounds": [1, 4], "value_type": "int"},
 ]
 
 PLATFORM_PARAMETERS = [
-    { "name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int" },
-    { "name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int" },
-    { "name": "max_chunks_per_ost", "type": "range", "bounds":[8, 256], "value_type": "int" },
-    { "name": "bandwidth_backbone_storage", "type": "range", "bounds":[100, 240], "value_type": "int" },
+    {"name": "disk_rb", "type": "range", "bounds": [1000, 4300], "value_type": "int"},
+    {"name": "disk_wb", "type": "range", "bounds": [500, 3500], "value_type": "int"},
+    {"name": "max_chunks_per_ost", "type": "range", "bounds": [8, 256], "value_type": "int"},
+    {"name": "bandwidth_backbone_storage", "type": "range", "bounds": [100, 240], "value_type": "int"},
 ]
+
 
 def load_base_config(path: str):
     """Open configuration file that serves as base config, cleanup the dictionnary and return it"""
@@ -93,9 +92,7 @@ def cohend(data1: list, data2: list):
     """Compute a Cohen's d metric of two list of values"""
     n_data1, n_data2 = len(data1), len(data2)
     var1, var2 = np.var(data1, ddof=1), np.var(data2, ddof=1)
-    global_var = np.sqrt(
-        ((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2)
-    )
+    global_var = np.sqrt(((n_data1 - 1) * var1 + (n_data2 - 1) * var2) / (n_data1 + n_data2 - 2))
     mean1, mean2 = np.mean(data1), np.mean(data2)
     return (mean1 - mean2) / global_var
 
@@ -104,10 +101,10 @@ def update_base_config(parametrization, base_config, cfg_name):
     """Update the base config with new values for parameters, as provided by Ax"""
 
     # Update config file according to parameters provided by Ax
-    base_config["general"]["config_name"] = cfg_name 
+    base_config["general"]["config_name"] = cfg_name
     base_config["general"]["config_version"] = CFG_VERSION
 
-    # Network bandwidths    
+    # Network bandwidths
     if "bandwidth_backbone_storage" in parametrization:
         bandwidth_backbone_storage = parametrization.get("bandwidth_backbone_storage")
         base_config["network"]["bandwidth_backbone_storage"] = f"{bandwidth_backbone_storage}GBps"
@@ -120,7 +117,7 @@ def update_base_config(parametrization, base_config, cfg_name):
     if "permanent_storage_read_bw" in parametrization:
         permanent_storage_read_bw = parametrization.get("permanent_storage_read_bw")
         base_config["permanent_storage"]["read_bw"] = f"{permanent_storage_read_bw}GBps"
-    
+
     if "permanent_storage_write_bw" in parametrization:
         permanent_storage_write_bw = parametrization.get("permanent_storage_write_bw")
         base_config["permanent_storage"]["write_bw"] = f"{permanent_storage_write_bw}GBps"
@@ -163,7 +160,7 @@ def update_base_config(parametrization, base_config, cfg_name):
         read_nodes_rate_param = parametrization.get("read_nodes_rate_param")
         base_config["storage"]["read_nodes_rate_param"] = read_nodes_rate_param
 
-     # Parameters for the number of compute nodes involved in I/O (WRITE)
+    # Parameters for the number of compute nodes involved in I/O (WRITE)
     if "write_nodes_inflection_param" in parametrization:
         write_nodes_inflection_param = parametrization.get("write_nodes_inflection_param")
         base_config["storage"]["write_nodes_inflection_param"] = write_nodes_inflection_param
@@ -209,12 +206,11 @@ def update_base_config(parametrization, base_config, cfg_name):
             for disk in storage_node["template"]["disks"]:
                 disk["template"]["write_bw"] = disk_wb
 
-
     # Disk bandwidth degradation model calibrated coefficient for reads
     if "non_linear_coef_read" in parametrization:
         non_linear_coef_read = parametrization.get("non_linear_coef_read")
         base_config["storage"]["non_linear_coef_read"] = non_linear_coef_read
-    
+
     # Disk bandwidth degradation model calibrated coefficient for writes
     if "non_linear_coef_write" in parametrization:
         non_linear_coef_write = parametrization.get("non_linear_coef_write")
@@ -270,16 +266,12 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
         s_w_time = 0
 
         for action in job["actions"]:
-            if (
-                action["act_type"] == "COMPUTE"
-                or action["act_type"] == "SLEEP"
-                or action["act_status"] != "COMPLETED"
-            ):
+            if action["act_type"] == "COMPUTE" or action["act_type"] == "SLEEP" or action["act_status"] != "COMPLETED":
                 continue
             if action["act_type"] == "FILEREAD":
-                s_r_time += action["act_duration"]  * action["nb_stripes"] + read_overhead
+                s_r_time += action["act_duration"] * action["nb_stripes"] + read_overhead
             if action["act_type"] == "CUSTOM" and "write" in str(action["sub_job"]):
-                s_w_time += action["act_duration"] * action["nb_stripes"] +  write_overhead
+                s_w_time += action["act_duration"] * action["nb_stripes"] + write_overhead
 
         if len(job["actions"]) != 0:
             r_io_time = job["real_cReadTime_s"] + job["real_cWriteTime_s"]
@@ -305,13 +297,9 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
             raise RuntimeError(f"Job {job['job_uid']} has 0 read or write action. This should not happen.")
 
     # Z-test (asserting statistical significance of the difference between means of real and simulated runtime / IO times)
-    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(
-        sim_io_time, real_io_time, alternative="two-sided"
-    )
+    ztest_iotime_tstat, ztest_iotime_pvalue = sm.stats.ztest(sim_io_time, real_io_time, alternative="two-sided")
     if abs(ztest_iotime_tstat) > 1.96 and ztest_iotime_pvalue < 0.01:
-        print(
-            "Statistically significant difference between simulated io time values and real io time values"
-        )
+        print("Statistically significant difference between simulated io time values and real io time values")
 
     io_time_corr, _ = pearsonr(sim_io_time, real_io_time)
     read_time_corr, _ = pearsonr(sim_read_time, real_read_time)
@@ -337,7 +325,8 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     # return {"optimization_metric": abs(wilcoxon_io_time.statistic)}
     # return {"optimization_metric": ((1 - write_time_corr) + (1 - read_time_corr)) * mean_io_diff_pct }
     return {"optimization_metric": mae_pct}
-    
+
+
 def run_simulation(
     parametrization: dict,
     base_config: dict,
@@ -352,9 +341,7 @@ def run_simulation(
     """
 
     # Config
-    update_base_config(
-        parametrization, base_config, f"calib{CALIBRATION_UID}__{run_idx}"
-    )
+    update_base_config(parametrization, base_config, f"calib{CALIBRATION_UID}__{run_idx}")
     output_configuration = save_exp_config(base_config, run_idx)
     tag = f"{CALIBRATION_RUNS}_{run_idx}"
 
@@ -382,9 +369,7 @@ def run_simulation(
         check=False,
     )
 
-    print(
-        f"Simulation with tag {tag} has completed with status : {completed.returncode}"
-    )
+    print(f"Simulation with tag {tag} has completed with status : {completed.returncode}")
     if completed.returncode != 0:
         print(f"############## FAILED RUN {run_idx} OUTPUT ###########")
         print(completed.stdout)
@@ -392,11 +377,7 @@ def run_simulation(
         print(f"############## FAILED RUN {run_idx} END OF OUTPUT ####")
         raise RuntimeError("Simulation did not complete")
 
-    result_filename = (
-        f"simulatedJobs_{DATASET}__"
-        + f"{base_config['general']['config_name']}"
-        + f"_{tag}.yml"
-    )
+    result_filename = f"simulatedJobs_{DATASET}__" + f"{base_config['general']['config_name']}" + f"_{tag}.yml"
     print(f"Now looking for result file : {result_filename}")
 
     result_file = pathlib.Path(f"./{result_filename}")
@@ -421,9 +402,7 @@ def evaluate(parameters, trial_index):
     try:
         data = run_simulation(parameters, base_config, trial_index, True)
         results["optimization_metric"] = process_results(
-            data,
-            parameters.get("static_read_overhead_seconds"), 
-            parameters.get("static_write_overhead_seconds")
+            data, parameters.get("static_read_overhead_seconds"), parameters.get("static_write_overhead_seconds")
         )["optimization_metric"]
     except Exception as e:
         print(f"{e}")
@@ -451,10 +430,14 @@ def run_calibration(params_set, contraints: bool = True):
         objectives={
             "optimization_metric": ObjectiveProperties(minimize=True),
         },
-        parameter_constraints=[
-            "disk_rb >= disk_wb",
-            "non_linear_coef_read <= non_linear_coef_write",
-        ] if contraints else [],
+        parameter_constraints=(
+            [
+                "disk_rb >= disk_wb",
+                "non_linear_coef_read <= non_linear_coef_write",
+            ]
+            if contraints
+            else []
+        ),
         outcome_constraints=[],
     )
 
@@ -468,12 +451,8 @@ def run_calibration(params_set, contraints: bool = True):
     for _ in range(parallelism[0][0]):
         trials_parameters.append(ax_client.get_next_trial())
 
-    parallel_pool_params = [
-        (trial[0], trial[1]) for trial in trials_parameters
-    ]
-    print(
-        f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs"
-    )
+    parallel_pool_params = [(trial[0], trial[1]) for trial in trials_parameters]
+    print(f"Parallel pool params contains {len(parallel_pool_params)} tuples of parameters for the simulations runs")
 
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
@@ -492,9 +471,7 @@ def run_calibration(params_set, contraints: bool = True):
         for res in results:
             if res["optimization_metric"] is not None:
                 print(f"Recording trial success for trial {res['trial_index']}")
-                ax_client.complete_trial(
-                    trial_index=res["trial_index"], raw_data=res["optimization_metric"]
-                )
+                ax_client.complete_trial(trial_index=res["trial_index"], raw_data=res["optimization_metric"])
             else:
                 print("Recording trial failure")
                 ax_client.log_trial_failure(trial_index=res["trial_index"])
@@ -506,9 +483,7 @@ def run_calibration(params_set, contraints: bool = True):
         res = evaluate(parameters, trial_index)
         if res["optimization_metric"]:
             print(f"Recording trial success for trial {res['trial_index']}")
-            ax_client.complete_trial(
-                trial_index=res["trial_index"], raw_data=res["optimization_metric"]
-            )
+            ax_client.complete_trial(trial_index=res["trial_index"], raw_data=res["optimization_metric"])
         else:
             print("Recording trial failure")
             ax_client.log_trial_failure(trial_index=res["trial_index"])
@@ -530,9 +505,9 @@ def run_calibration(params_set, contraints: bool = True):
 
     # Keep trace of the calibration env.
     calib_settings = {
-        "params": params_set, 
-        "iterations": CALIBRATION_RUNS, 
-        "calibration_dataset": DATASET, 
+        "params": params_set,
+        "iterations": CALIBRATION_RUNS,
+        "calibration_dataset": DATASET,
         "base_config": load_base_config(CONFIGURATION_BASE),
         "failed_calibration_runs": failed_attempts,
     }
@@ -551,4 +526,3 @@ if __name__ == "__main__":
     else:
         PARAMETERS.extend(PLATFORM_PARAMETERS)
         run_calibration(PARAMETERS)
-
