@@ -115,6 +115,8 @@ namespace fives {
 
         // float cleanup_threshold;
 
+        double link_bw; // "12.5" for 12.5GBps / 100Gbps
+
         std::map<std::string, DiskTemplate> disk_templates;
         std::map<std::string, NodeTemplate> node_templates;
         std::vector<NodeEntry> nodes;
@@ -136,6 +138,7 @@ namespace fives {
         unsigned int core_count;        // Core count on each compute node - eg. 64
         unsigned int ram;               // Ram on each compute node - eg. '192' (in GB)
         std::string flops;
+        double link_bw; // eg. 10e9 for ~10 Gbps
     };
 
     struct OutputCfg {

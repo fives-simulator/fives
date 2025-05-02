@@ -63,11 +63,12 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
         rhs.net.bw_backbone_ctrl = ynode["network"]["bandwidth_backbone_ctrl"].as<std::string>();
         rhs.net.link_latency = ynode["network"]["link_latency"].as<std::string>();
 
-        // Torus
+        // Compute (torus in this case)
         rhs.compute.max_compute_nodes = ynode["torus"]["max_compute_nodes"].as<unsigned int>();
         rhs.compute.core_count = ynode["torus"]["core_count"].as<int>();
         rhs.compute.ram = ynode["torus"]["ram"].as<unsigned int>();
         rhs.compute.flops = ynode["torus"]["flops"].as<std::string>();
+        rhs.compute.link_bw = ynode["torus"]["link_bw"].as<double>();
 
         // Storage system (PFS)
         rhs.stor.read_variability = ynode["storage"]["read_variability"].as<float>();
@@ -94,6 +95,8 @@ bool YAML::convert<fives::Config>::decode(const YAML::Node &ynode, fives::Config
         rhs.stor.write_node_param = ynode["storage"]["write_node_param"].as<float>(); // currently threshold on the cumul BW (r/w)
 
         rhs.stor.io_buffer_size = ynode["storage"]["io_buffer_size"].as<std::string>();
+
+        rhs.stor.link_bw = ynode["storage"]["link_bw"].as<double>();
 
         rhs.stor.read_bytes_preload_thres = ynode["storage"]["read_bytes_preload_thres"].as<uint64_t>();
         rhs.stor.write_bytes_copy_thres = ynode["storage"]["write_bytes_copy_thres"].as<uint64_t>();

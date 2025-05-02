@@ -28,6 +28,7 @@ storage:
   io_buffer_size: 536870912B
   read_bytes_preload_thres: 1000000000 # Not doing copy *in* if job reads more than 1GB
   write_bytes_copy_thres:   2000000000 # Not doing copy *out* if job writes more than 2GB
+  link_bw: 10e9  # b/s
   disk_templates:
     - &raid_OST
       id: raid_OST
@@ -58,6 +59,7 @@ torus:
   flops: 300Gf
   max_compute_nodes: 13432
   ram: 32
+  link_bw: 10e9  # b/s
 allocator: lustre
 lustre:
   lq_threshold_rr: 43     # lustre default
@@ -68,7 +70,7 @@ lustre:
   stripe_count: 1
   stripe_count_high_read_add: 1
   stripe_count_high_thresh_read: 231004494
-  stripe_count_high_thresh_write: 264290989
+  stripe_count_high_thresh_write: 0
   stripe_count_high_write_add: 1
 outputs:
   job_filename_prefix: simulatedJobs_

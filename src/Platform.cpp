@@ -31,7 +31,7 @@ namespace fives {
         };
     }
 
-    // REMOVE OR REPLACE WITH DETERMINISTIC VERSION ?
+    // REMOVE OR REPLACE WITH DETERMINISTIC VERSION ? (NOT currently used)
     static auto hdd_variability_factory(double read_variability, double write_variability) {
         auto variability = [=](sg_size_t size, sg4::Io::OpType op) {
             std::random_device rd{};
@@ -61,6 +61,10 @@ namespace fives {
      * 0) for first node in the cluster. To identify the router inside a (group,
      * chassis, blade), we use MAX_UINT in the last parameter (e.g. 0, 0, 0,
      * 4294967295).
+     *
+     *  NOTE:
+     *  Fives doesn't make use of inter compute nodes communications so this shouldn't
+     *  be critical for us.
      *
      * @param zone Torus netzone being created (usefull to create the hosts/links
      * inside it)
@@ -106,11 +110,11 @@ namespace fives {
         auto main_zone = sg4::create_star_zone("AS_Root");
         auto main_link_bb =
             main_zone->create_link("backbone", cfg->net.bw_backbone)->set_latency(cfg->net.link_latency);
-        // main_link_bb->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_link_bw); // Last time used, simgrid crashed pretty hard
         sg4::LinkInRoute main_backbone{main_link_bb};
         auto main_zone_router = main_zone->create_router("main_zone_router");
 
         // --- CONTROL ZONE ---
+        // Rather useless except for deploying some of the services
         auto ctrl_zone = sg4::create_star_zone("AS_Ctrl");
         ctrl_zone->set_parent(main_zone);
         auto backbone_link_ctrl = ctrl_zone->create_link("backbone_ctrl", cfg->net.bw_backbone_ctrl)->set_latency(cfg->net.link_latency)->seal();
@@ -145,13 +149,24 @@ namespace fives {
 
         // TORUS ZONE (COMPUTE)
         auto create_hostzone = create_hostzone_factory(cfg->compute.flops, cfg->compute.core_count, cfg->compute.ram);
+
+        // TODO : use a more recent SimGrid version, and switch to the new implementations
+        // auto compute_zone = main_zone->add_netzone_torus(
+        //                                  "AS_TorusCompute",
+        //                                  {24, 24, 24}, // X, Y, Z dims of Torus
+        //                                  10e9,
+        //                                  10e-6,
+        //                                  sg4::Link::SharingPolicy::SPLITDUPLEX)
+        //                         ->set_netzone_cb(create_hostzone)
+        //                         ->set_limiter_cb(create_limiter);
+
         auto compute_zone = sg4::create_torus_zone(
             "AS_TorusCompute",
             main_zone,
             {24, 24, 24}, // X, Y, Z dims of Torus
             {create_hostzone, {}, create_limiter},
-            10e9,
-            10e-6,
+            cfg->compute.link_bw, // bw
+            10e-6,                // latency
             sg4::Link::SharingPolicy::SPLITDUPLEX);
 
         // Add a global router for zone-zone routes
@@ -178,10 +193,10 @@ namespace fives {
                 storage_host->set_core_count(16);
 
                 // Link to storage backbone
-                auto uplink = storage_zone->create_link(hostname + "_up", FASTLINK)
+                auto uplink = storage_zone->create_link(hostname + "_up", cfg->stor.link_bw)
                                   ->set_latency(cfg->net.link_latency)
                                   ->seal();
-                auto downlink = storage_zone->create_link(hostname + "_down", FASTLINK)
+                auto downlink = storage_zone->create_link(hostname + "_down", cfg->stor.link_bw)
                                     ->set_latency(cfg->net.link_latency)
                                     ->seal();
 
