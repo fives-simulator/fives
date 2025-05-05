@@ -420,7 +420,7 @@ namespace fives {
         //     input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
         // }
 
-        // No copy job version
+        // Not using copy-before-read inside the jobs in this version
         input_files = this->preloadedData[jobID + "_" + std::to_string(run.id)];
 
         // READ sub-job
@@ -505,6 +505,9 @@ namespace fives {
                     /**
                      *  SUB-JOBS CREATION
                      *  Loop on all 'runs' entries (Darshan records) for this job/reservation
+                     *
+                     *  This is really where the high-level 'model' of a job is defined: at this moment, it's only a read phase
+                     *  followed by a write phase, because we don't have much more detail for our jobs
                      */
                     for (const auto &run : this->sim_jobs[jobID].yamlJob->runs) {
 

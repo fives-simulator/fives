@@ -381,6 +381,8 @@ def process_results(result_filename: str, read_overhead: int, write_overhead: in
     mae_sum = np.array(io_time_abs_error).sum()
 
     # != options for loss function out
+    # Note: most of them do not deliver satisfactory results, but I'm all out of ideas
+
     # return {"optimization_metric": (abs(1 - io_time_corr) + abs(io_time_cohen_d))}
     # return {"optimization_metric": abs(ztest_iotime_tstat)}
     # return {"optimization_metric": abs(1 - write_time_corr) + abs(1 - read_time_corr)}
@@ -417,7 +419,7 @@ def run_simulation(
         output_configuration,
         f"{DATASET_PATH}/{DATASET}{DATASET_EXT}",
         tag,
-        "--wrench-commport-pool-size=3000000",
+        "--wrench-commport-pool-size=3000000",              # necessary as simulated reads and writes end up generating many exchanges between actors
     ]
     if logs:
         command.extend(
@@ -530,7 +532,7 @@ def run_calibration(params_set, contraints: bool = True):
     cpu = min(multiprocessing.cpu_count() - 2, parallelism[0][1])
     cpu = min(
         cpu, MAX_PARALLELISM
-    )  # Attempt at mitigating runner limitation... (the f***** VM is damn too slow / buggy)
+    )  # Attempt at mitigating some limitations when running locally or in a small CI runner
     print(
         f"### Running {cpu} simulation in parallel (max Ax // is {parallelism[0][1]} for the first {parallelism[0][0]} runs)"
     )
