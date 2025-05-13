@@ -5,7 +5,7 @@ Fives is a WRENCH-based HPC storage system simulator, with a focus on studying s
 This is the updated, C++, version of StorAlloc, now backed by the [WRENCH](https://wrench-project.org/) and [Simgrid](https://framagit.org/simgrid/simgrid) libraries. 
 If you are looking for the original Python version, it is available [here](https://github.com/hephtaicie/storalloc).
 
-Current version is `0.1.0`.
+Current version is `0.1.1`. 
 
 ## Summary
 
@@ -41,12 +41,12 @@ Manual setup is mostly useful for deployment use cases. For development use case
 When installing dependencies manually, you need:
 
 ```
-simgrid (v3.36) @ https://framagit.org/simgrid/simgrid
-fsmod (v0.2) @ https://github.com/simgrid/file-system-module
-wrench (origin/master branch, or at least release v2.5) @ https://github.com/wrench-project/wrench
+simgrid (v4.0) @ https://framagit.org/simgrid/simgrid
+fsmod (v0.3) @ https://github.com/simgrid/file-system-module
+wrench (origin/master branch, or at least release v2.6) @ https://github.com/wrench-project/wrench
 ```
 
-Note that **simgrid** `>= v3.36` and **fsmod** `>= v0.2` are current requirements of `WRENCH`.
+Note that **simgrid** `>= v4.0` and **fsmod** `>= v0.3` are current requirements of `WRENCH`.
 In addition, **WRENCH** requires **nlohmann/json** (`>= v3.11.0` @ https://github.com/nlohmann/json)
 
 Eventually, **Fives** also requires jbder/yaml-cpp (`>= 0.8.0` @ https://github.com/jbeder/yaml-cpp)
@@ -72,7 +72,7 @@ To build everything from source, use:
 
 ```
 mkdir build && cd build
-cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=4 ..
+cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=4 ..    # possibly add -DCMAKE_POLICY_VERSION_MINIMUM=3.5 to avoid some deprecation warnings from rather old CMakeLists in deps.
 ```
 
 **Note**: This configuration / build process mixes `FetchContent` and `ExternalProject` modules. 
@@ -81,7 +81,7 @@ However in this case, `ExternalProject` is our best option because it lets us de
 Doing so, when you run the build, the `external/` directory at project root will be populated with the git clones of our three dev dependencies, and build will occur in source (or in `build/` in source).
 You can include these source directories to your development workspace and cmake will rebuild the dependencies if you make any change to their sources.
 
-**Note**: The first build will take several minutes, as both **SimGrid** and **WRENCH** are rather large projects that need to be downloaded and compiled from scracth. The `NUM_CORES` variable can be passed to CMake to define how many cores should be used in the builds (`cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=8..` for 8 cores ; default is 3). **DO NOT** use `--parallel=X` in the next step, with `cmake --build .`, as it seems to 
+**Note**: The first build will take several minutes, as both **SimGrid** and **WRENCH** are rather large projects that need to be downloaded and compiled from scracth. The `NUM_CORES` variable can be passed to CMake to define how many cores should be used in the builds (`cmake -DBUILD_DEPENDENCIES=ON -DNUM_CORES=8..` for 8 cores ; default is 3). **DO NOT** use `--parallel=X` in the next step, with `cmake --build .`
 
 ### Building Fives
 
@@ -117,13 +117,13 @@ cd build
 ./fives ../configs/lustre_config_hdd.yml ../data/IOJobsTest_6_LustreSim.yml test_lustre
 ```
 
+With very large simulations, it may be required to increase the communicator pool size, with the WRENCH parameter `--wrench-commport-pool-size=1000000` (or larger values, as long as your syste RAM is large enough)
+
 You can run **Fives** without any argument to get the help message about arguments, and a version information about Fives itself, and the version of SimGrid and Wrench that were used if you chose the automatic dependencies setup.
 If you used system libraries, dependencies version will just print `SYSTEM`.
 
 Whenever in doubt, you can also use `ldd fives` to see which SimGrid and FSMod library are linked by default (WRENCH won't appear as it is static library).
 Another useful check can be to look at the files `./build/CMakeFiles/fives.dir/compiler_depend.make` and `./build/compile_commands.json`, where all includes for the current build of Fives should be listed (and should be local to the project for the most part in case of automatic setup, or should rely on system libraries exclusively with the manual setup).
-
-
 
 ### Building / running tests
 

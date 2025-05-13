@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-    Extract part of a Darshan trace dataset and output a YAML file with relevant data for StorAlloc
+    Extract part of a Darshan trace dataset and output a YAML file with relevant data for Fives
     ---
     KerData - INRIA RBA
 """

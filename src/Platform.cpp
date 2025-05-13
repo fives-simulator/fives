@@ -71,7 +71,7 @@ namespace fives {
     static sg4::Link *create_limiter(sg4::NetZone *zone,
                                      const std::vector<unsigned long> & /*coord*/,
                                      unsigned long id) {
-        return zone->create_link("limiter-" + std::to_string(id), 1e9)->seal();
+        return zone->add_link("limiter-" + std::to_string(id), "1Gbps")->seal();
     }
 
     /**
@@ -91,10 +91,10 @@ namespace fives {
                                         unsigned long id) {
             std::string hostname = "compute" + std::to_string(id);
 
-            auto compute_host =
-                zone->create_host(hostname, flops);
-            compute_host->set_core_count(core_count);
-            compute_host->set_property("ram", std::to_string(ram) + "GB");
+            sg4::Host *compute_host = zone->add_host(hostname, flops);
+            compute_host->set_core_count(core_count)
+                ->set_property("ram", std::to_string(ram) + "GB")
+                ->seal();
 
             return compute_host;
         };
@@ -103,33 +103,35 @@ namespace fives {
     void PlatformFactory::create_platform(const std::shared_ptr<fives::Config> cfg) const {
 
         // --- TOP LEVEL ZONE AND MAIN BACKBONE ---
-        auto main_zone = sg4::create_star_zone("AS_Root");
+        auto engine = sg4::Engine::get_instance();
+        auto main_zone = engine->get_netzone_root()->add_netzone_star("AS_Root");
+
         auto main_link_bb =
-            main_zone->create_link("backbone", cfg->net.bw_backbone)->set_latency(cfg->net.link_latency);
+            main_zone->add_link("backbone", cfg->net.bw_backbone)->set_latency(cfg->net.link_latency);
         // main_link_bb->set_sharing_policy(sg4::Link::SharingPolicy::NONLINEAR, non_linear_link_bw); // Last time used, simgrid crashed pretty hard
         sg4::LinkInRoute main_backbone{main_link_bb};
-        auto main_zone_router = main_zone->create_router("main_zone_router");
+        auto main_zone_router = main_zone->add_router("main_zone_router");
 
         // --- CONTROL ZONE ---
-        auto ctrl_zone = sg4::create_star_zone("AS_Ctrl");
-        ctrl_zone->set_parent(main_zone);
-        auto backbone_link_ctrl = ctrl_zone->create_link("backbone_ctrl", cfg->net.bw_backbone_ctrl)->set_latency(cfg->net.link_latency)->seal();
+        auto ctrl_zone = main_zone->add_netzone_star("AS_Ctrl");
+        // ctrl_zone->set_parent(main_zone);
+        auto backbone_link_ctrl = ctrl_zone->add_link("backbone_ctrl", cfg->net.bw_backbone_ctrl)->set_latency(cfg->net.link_latency)->seal();
 
         // Create a user host & batch head node
         std::vector<s4u_Host *> control_hosts = {};
-        control_hosts.push_back(ctrl_zone->create_host(USER, cfg->compute.flops)); // cfg->compute.flops));
-        control_hosts.push_back(ctrl_zone->create_host(BATCH, cfg->compute.flops));
-        auto control_router = ctrl_zone->create_router("ctrl_zone_router");
+        control_hosts.push_back(ctrl_zone->add_host(USER, cfg->compute.flops));
+        control_hosts.push_back(ctrl_zone->add_host(BATCH, cfg->compute.flops));
+        auto control_router = ctrl_zone->add_router("ctrl_zone_router");
         sg4::LinkInRoute ctrl_backbone(backbone_link_ctrl);
 
         for (auto &ctrl_host : control_hosts) {
             ctrl_host->set_core_count(64);
             ctrl_host->set_property("ram", "64GB");
 
-            auto uplink = ctrl_zone->create_link(ctrl_host->get_name() + "_up", SLOWLINK)
+            auto uplink = ctrl_zone->add_link(ctrl_host->get_name() + "_up", SLOWLINK)
                               ->set_latency(cfg->net.link_latency)
                               ->seal();
-            auto downlink = ctrl_zone->create_link(ctrl_host->get_name() + "_down", SLOWLINK)
+            auto downlink = ctrl_zone->add_link(ctrl_host->get_name() + "_down", SLOWLINK)
                                 ->set_latency(cfg->net.link_latency)
                                 ->seal();
 
@@ -145,26 +147,28 @@ namespace fives {
 
         // DRAGONFLY ZONE (COMPUTE)
         auto create_hostzone = create_hostzone_factory(cfg->compute.flops, cfg->compute.core_count, cfg->compute.ram);
-        auto compute_zone = sg4::create_dragonfly_zone("AS_DragonflyCompute", main_zone,
-                                                       {{cfg->compute.d_groups, cfg->compute.d_group_links},
-                                                        {cfg->compute.d_chassis, cfg->compute.d_chassis_links},
-                                                        {cfg->compute.d_routers, cfg->compute.d_router_links},
-                                                        cfg->compute.d_nodes},
-                                                       {create_hostzone, {}, create_limiter}, 10e9,
-                                                       10e-6, sg4::Link::SharingPolicy::SPLITDUPLEX);
-        // Add a global router for zone-zone routes
-        auto compute_router = compute_zone->create_router("compute_router");
+        auto compute_zone = main_zone->add_netzone_dragonfly("AS_DragonflyCompute",
+                                                             {cfg->compute.d_groups, cfg->compute.d_group_links},
+                                                             {cfg->compute.d_chassis, cfg->compute.d_chassis_links},
+                                                             {cfg->compute.d_routers, cfg->compute.d_router_links},
+                                                             cfg->compute.d_nodes,
+                                                             "10Gbps",
+                                                             cfg->net.link_latency,
+                                                             sg4::Link::SharingPolicy::SPLITDUPLEX);
+        compute_zone->set_host_cb(create_hostzone);
+        compute_zone->set_limiter_cb(create_limiter);
+        // // Add a global router for zone-zone routes
+        auto compute_router = compute_zone->add_router("compute_router");
         compute_zone->set_gateway(compute_router);
         compute_zone->seal();
 
         // --- STORAGE ZONE (PFS) ---
-        auto storage_zone = sg4::create_star_zone("AS_Storage");
-        storage_zone->set_parent(main_zone);
-        auto backbone_link_storage = storage_zone->create_link("backbone_storage",
-                                                               cfg->net.bw_backbone_storage)
+        auto storage_zone = main_zone->add_netzone_star("AS_Storage");
+        auto backbone_link_storage = storage_zone->add_link("backbone_storage",
+                                                            cfg->net.bw_backbone_storage)
                                          ->set_latency(cfg->net.link_latency)
                                          ->seal();
-        auto storage_router = storage_zone->create_router("storage_zone_router");
+        auto storage_router = storage_zone->add_router("storage_zone_router");
         sg4::LinkInRoute storage_backbone{backbone_link_storage};
 
         // Nodes for Simple storage services that will be accessed through the CSS
@@ -172,14 +176,14 @@ namespace fives {
             for (unsigned int i = 0; i < node.qtt; i++) {
 
                 auto hostname = node.tpl.id + std::to_string(i);
-                auto storage_host = storage_zone->create_host(hostname, cfg->compute.flops);
+                auto storage_host = storage_zone->add_host(hostname, cfg->compute.flops);
                 storage_host->set_core_count(16);
 
                 // Link to storage backbone
-                auto uplink = storage_zone->create_link(hostname + "_up", FASTLINK)
+                auto uplink = storage_zone->add_link(hostname + "_up", FASTLINK)
                                   ->set_latency(cfg->net.link_latency)
                                   ->seal();
-                auto downlink = storage_zone->create_link(hostname + "_down", FASTLINK)
+                auto downlink = storage_zone->add_link(hostname + "_down", FASTLINK)
                                     ->set_latency(cfg->net.link_latency)
                                     ->seal();
 
@@ -197,7 +201,7 @@ namespace fives {
 
                     for (unsigned int j = 0; j < disk.qtt; j++) {
 
-                        auto new_disk = storage_host->create_disk(
+                        auto new_disk = storage_host->add_disk(
                             disk.tpl.id + std::to_string(j),
                             std::to_string(disk.tpl.read_bw) + "MBps",
                             std::to_string(disk.tpl.write_bw) + "MBps");
@@ -228,14 +232,14 @@ namespace fives {
         // Add a node for the compound storage service itself
         auto cmpd_storage =
             storage_zone
-                ->create_host(COMPOUND_STORAGE, cfg->compute.flops)
+                ->add_host(COMPOUND_STORAGE, cfg->compute.flops)
                 ->set_core_count(cfg->compute.core_count)
                 ->set_property("ram", std::to_string(cfg->compute.ram) + "GB");
 
-        auto css_uplink = storage_zone->create_link("compound_storage_up", FASTLINK)
+        auto css_uplink = storage_zone->add_link("compound_storage_up", FASTLINK)
                               ->set_latency(cfg->net.link_latency)
                               ->seal();
-        auto css_downlink = storage_zone->create_link("compound_storage_down", FASTLINK)
+        auto css_downlink = storage_zone->add_link("compound_storage_down", FASTLINK)
                                 ->set_latency(cfg->net.link_latency)
                                 ->seal();
 
@@ -248,23 +252,22 @@ namespace fives {
             nullptr, cmpd_storage,
             {{storage_backbone, css_link_down}}, false);
         storage_zone->set_gateway(storage_router);
-
         storage_zone->seal();
 
         // --- STORAGE ZONE (PERMANENT) ---
-        auto pstorage_zone = sg4::create_star_zone("AS_StoragePermanent");
-        pstorage_zone->set_parent(main_zone);
-        // TODO: backbone bandwidth value could be a separate config field for this zone
-        auto backbone_link_pstorage = pstorage_zone->create_link("backbone_permanent_storage",
-                                                                 cfg->net.bw_backbone_perm_storage)
+        auto pstorage_zone = main_zone->add_netzone_star("AS_StoragePermanent");
+        //  pstorage_zone->set_parent(main_zone);
+        //  TODO: backbone bandwidth value could be a separate config field for this zone
+        auto backbone_link_pstorage = pstorage_zone->add_link("backbone_permanent_storage",
+                                                              cfg->net.bw_backbone_perm_storage)
                                           ->set_latency(cfg->net.link_latency)
                                           ->seal();
-        auto pstorage_router = pstorage_zone->create_router("permanent_storage_zone_router");
+        auto pstorage_router = pstorage_zone->add_router("permanent_storage_zone_router");
 
-        auto perm_uplink = pstorage_zone->create_link("permanent_storage_up", FASTLINK)
+        auto perm_uplink = pstorage_zone->add_link("permanent_storage_up", FASTLINK)
                                ->set_latency(cfg->net.link_latency)
                                ->seal();
-        auto perm_downlink = pstorage_zone->create_link("permanent_storage_down", FASTLINK)
+        auto perm_downlink = pstorage_zone->add_link("permanent_storage_down", FASTLINK)
                                  ->set_latency(cfg->net.link_latency)
                                  ->seal();
 
@@ -272,10 +275,10 @@ namespace fives {
         sg4::LinkInRoute link_up{perm_uplink};
         sg4::LinkInRoute link_down{perm_downlink};
 
-        auto permanent_storage = pstorage_zone->create_host(PERMANENT_STORAGE, cfg->compute.flops)
+        auto permanent_storage = pstorage_zone->add_host(PERMANENT_STORAGE, cfg->compute.flops)
                                      ->set_core_count(16)
                                      ->set_property("ram", "32GB");
-        permanent_storage->create_disk(cfg->pstor.disk_id, cfg->pstor.r_bw, cfg->pstor.w_bw)
+        permanent_storage->add_disk(cfg->pstor.disk_id, cfg->pstor.r_bw, cfg->pstor.w_bw)
             ->set_property("size", cfg->pstor.capa)
             ->set_property("mount", cfg->pstor.mount_prefix);
 
