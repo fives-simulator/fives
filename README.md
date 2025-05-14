@@ -122,6 +122,24 @@ With very large simulations, it may be required to increase the communicator poo
 You can run **Fives** without any argument to get the help message about arguments, and a version information about Fives itself, and the version of SimGrid and Wrench that were used if you chose the automatic dependencies setup.
 If you used system libraries, dependencies version will just print `SYSTEM`.
 
+Eg. :
+
+```bash
+$ ./fives
+##########################################################################
+# USAGE: ./fives <config file> <job file> <experiment_tag>
+#          [Both files are expected to be YAML]
+# This program starts a WRENCH simulation of a batch scheduler, with
+# emphasis on storage resources model and collecting storage-related
+# metrics
+# Version : 0.1.1
+# WRENCH build : v2.6
+# SimGrid build : v4.0
+# FSMod build version : v0.3
+# CMake config timestamp : 20250513
+##########################################################################
+```
+
 Whenever in doubt, you can also use `ldd fives` to see which SimGrid and FSMod library are linked by default (WRENCH won't appear as it is static library).
 Another useful check can be to look at the files `./build/CMakeFiles/fives.dir/compiler_depend.make` and `./build/compile_commands.json`, where all includes for the current build of Fives should be listed (and should be local to the project for the most part in case of automatic setup, or should rely on system libraries exclusively with the manual setup).
 

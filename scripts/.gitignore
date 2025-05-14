@@ -1,0 +1,7 @@
+.ipynb_checkpoints
+.python-version
+*.png
+*.pdf
+*.yaml
+*.yml
+time_plots/*.svg

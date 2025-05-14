@@ -108,7 +108,7 @@ namespace fives {
         unsigned int nb_files_per_read;  // How many files should be used to represent the read amount of each job
         unsigned int nb_files_per_write; // How many files should be used to represent the write amount of each job
 
-        uint64_t read_node_thres;
+        uint64_t read_node_thres; // Bandwidth threshold in b/s  -> below threshold, 1 node only is used to read, above threshold, the node count is computed
         uint64_t write_node_thres;
 
         std::string io_buffer_size;
